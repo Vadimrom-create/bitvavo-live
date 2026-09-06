@@ -46,7 +46,7 @@ jobs:
           ALERT_EMAIL_TO: ${{ vars.ALERT_EMAIL_TO }}
           GMAIL_APP_PASSWORD: ${{ secrets.GMAIL_APP_PASSWORD }}
           ALERT_TEST_MODE: ${{ github.event_name == 'workflow_dispatch' && inputs.send_test_email && '1' || '0' }}
-        run: python email_alert.py
+        run: python email_alert_strict.py
 
       - name: Save latest data in repository
         run: |
