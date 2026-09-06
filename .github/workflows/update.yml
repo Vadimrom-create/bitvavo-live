@@ -1,7 +1,13 @@
-name: Update Bitvavo live data
+name: Bitvavo live data + email alerts
 
 on:
   workflow_dispatch:
+    inputs:
+      send_test_email:
+        description: "Envoyer un e-mail de test (aucun faux signal d'achat)"
+        required: false
+        default: false
+        type: boolean
   schedule:
     - cron: "*/5 * * * *"
 
@@ -34,11 +40,22 @@ jobs:
       - name: Build early ignition V2
         run: python early_detector.py
 
+      - name: Send useful email alert
+        env:
+          ALERT_GMAIL_USER: ${{ vars.ALERT_GMAIL_USER }}
+          ALERT_EMAIL_TO: ${{ vars.ALERT_EMAIL_TO }}
+          GMAIL_APP_PASSWORD: ${{ secrets.GMAIL_APP_PASSWORD }}
+          ALERT_TEST_MODE: ${{ github.event_name == 'workflow_dispatch' && inputs.send_test_email && '1' || '0' }}
+        run: python email_alert.py
+
       - name: Save latest data in repository
         run: |
           git config user.name "bitvavo-live-bot"
           git config user.email "actions@users.noreply.github.com"
           git add bitvavo_live.json scan_feed.txt early_watch.txt early_watch.json scan_history.json
+          if [ -f alert_state.json ]; then
+            git add alert_state.json
+          fi
           if ! git diff --cached --quiet; then
             git commit -m "Update Bitvavo live data + early V2"
             git push
