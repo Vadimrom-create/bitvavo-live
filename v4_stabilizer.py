@@ -26,10 +26,10 @@ STATE = Path('v4_stability_state.json')
 
 BUY_HOLD_SEC = 15 * 60
 DOWNGRADE_SCANS_REQUIRED = 2
-BUY_OPP_FLOOR = 8.20       # hysteresis floor after a confirmed BUY_READY
+BUY_OPP_FLOOR = 8.20
 BUY_ENTRY_FLOOR = 7.00
 EMERGENCY_ENTRY_FLOOR = 5.50
-RECENT_BUY_BOOTSTRAP_SEC = 20 * 60
+RECENT_BUY_TRACK_SEC = 2 * 3600
 MAX_OUTPUT = 50
 
 HARD_ACTIONS = {'TOO_LATE', 'WATCH_RISK'}
@@ -38,8 +38,7 @@ HARD_FLAGS = {'HEI_REJECTION', 'TOO_LATE_24H', 'ILLIQUID', 'WIDE_SPREAD'}
 
 def load(path: Path, default):
     try:
-        value = json.loads(path.read_text(encoding='utf-8'))
-        return value
+        return json.loads(path.read_text(encoding='utf-8'))
     except Exception:
         return default
 
@@ -94,7 +93,6 @@ def main() -> int:
         print('V4_STABILITY_SKIPPED invalid_watch')
         return 0
 
-    # Preserve the unmodified scanner output for audit/calibration.
     shutil.copyfile(WATCH_JSON, RAW_JSON)
     if WATCH_TXT.exists():
         shutil.copyfile(WATCH_TXT, RAW_TXT)
@@ -109,10 +107,10 @@ def main() -> int:
 
     raw_rows = {r.get('market'): deepcopy(r) for r in raw.get('watch', []) if isinstance(r, dict) and r.get('market')}
 
-    # Bootstrap recently confirmed BUY_READY names even if raw V4 dropped them out of its top output.
+    # Any recently confirmed BUY_READY stays visible for two hours even if raw V4 drops it.
     for market, hist in history.items():
         recent_buy = f(hist.get('last_buy_ready_ts'))
-        if not hist.get('ever_buy_ready') or not recent_buy or now_ts - recent_buy > RECENT_BUY_BOOTSTRAP_SEC:
+        if not hist.get('ever_buy_ready') or not recent_buy or now_ts - recent_buy > RECENT_BUY_TRACK_SEC:
             continue
         if market not in raw_rows:
             raw_rows[market] = synthetic_row(market, hist, live.get(market, {}), profiles.get(market, {}))
@@ -142,7 +140,6 @@ def main() -> int:
             st['last_raw_buy_ts'] = now_ts
             st['last_good_row'] = deepcopy(row)
         else:
-            # First run after deployment: recover a BUY_READY confirmed by raw V4 minutes ago.
             bootstrap_buy = (
                 bool(hist.get('ever_buy_ready')) and recent_hist_buy > 0
                 and now_ts - recent_hist_buy <= BUY_HOLD_SEC
@@ -154,24 +151,19 @@ def main() -> int:
                 bad_count = 0
 
             if stable_action in {'BUY_READY', 'REENTRY_READY'}:
-                # True structural invalidation always wins over hysteresis.
                 if hard or chase or (ent < EMERGENCY_ENTRY_FLOOR and not not_enriched):
                     stable_action = 'WATCH_RISK' if hard else 'ENTRY_WINDOW'
                     bad_count = 0
                     hold_until = 0.0
                 elif now_ts < hold_until:
-                    # Minimum decision lifetime: do not reverse a confirmed buy on one noisy 5m scan.
                     bad_count = 0
                 else:
                     degraded = opp < BUY_OPP_FLOOR or ent < BUY_ENTRY_FLOOR
-                    if degraded:
-                        bad_count += 1
-                    else:
-                        bad_count = 0
+                    bad_count = bad_count + 1 if degraded else 0
                     if bad_count >= DOWNGRADE_SCANS_REQUIRED:
                         if opp >= 7.8 and ent >= 6.2:
                             stable_action = 'ENTRY_WINDOW'
-                        elif opp >= 7.2:
+                        elif opp >= 7.0:
                             stable_action = 'WATCH'
                         else:
                             stable_action = 'NONE'
@@ -188,13 +180,23 @@ def main() -> int:
                 elif raw_action not in {'ENTRY_WINDOW', 'BUY_READY', 'REENTRY_READY'}:
                     bad_count += 1
                     if bad_count >= DOWNGRADE_SCANS_REQUIRED:
-                        stable_action = 'WATCH' if opp >= 7.2 else 'NONE'
+                        stable_action = 'WATCH' if opp >= 7.0 else 'NONE'
                         bad_count = 0
                 else:
                     bad_count = 0
             else:
                 stable_action = raw_action
                 bad_count = 0
+
+                # A previously actionable setup does not disappear immediately after its buy window.
+                if (
+                    stable_action == 'NONE' and bool(hist.get('ever_buy_ready')) and recent_hist_buy > 0
+                    and now_ts - recent_hist_buy <= RECENT_BUY_TRACK_SEC and not hard
+                ):
+                    if opp >= 7.8 and ent >= 6.2:
+                        stable_action = 'ENTRY_WINDOW'
+                    elif opp >= 6.8:
+                        stable_action = 'WATCH'
 
         row['raw_action_status'] = raw_action
         row['raw_buy_ready'] = raw_buy
@@ -210,7 +212,6 @@ def main() -> int:
         if stable_action != raw_action:
             row['risk_flags'] = list(dict.fromkeys(flags + ['STABILITY_HOLD']))
 
-        # A synthetic held row may need a fresh trade plan.
         if row.get('trade_plan') is None and stable_action in {'BUY_READY', 'REENTRY_READY', 'ENTRY_WINDOW'}:
             try:
                 row['trade_plan'] = suggested_trade_plan(row, row.get('trend_profile') or {}, opp, ent)
@@ -231,18 +232,17 @@ def main() -> int:
 
     raw['watch'] = stabilized
     raw['method_note'] = (
-        'V4 + decision hysteresis: OPPORTUNITY and ENTRY remain separate; a confirmed BUY_READY is held '
-        'for at least 15 minutes and requires two consecutive degraded scans to downgrade, unless a hard '
-        'structural invalidation (HEI/too-late/illiquidity/wide-spread/chase emergency) occurs.'
+        'V4 + decision hysteresis: a confirmed BUY_READY is held for at least 15 minutes; downgrade requires '
+        'two consecutive degraded scans unless hard structural invalidation occurs. Former BUY_READY setups '
+        'remain visible as ENTRY_WINDOW/WATCH for up to two hours instead of disappearing on 5-minute noise.'
     )
-    raw['stability_version'] = 1
+    raw['stability_version'] = 2
     save(WATCH_JSON, raw)
 
-    # Regenerate compact text from stabilized JSON while keeping the raw text separately.
     lines = [
         'BITVAVO SCAN V4 — STABILIZED DECISIONS',
         f'generated_at_utc: {generated}',
-        'RULE: BUY_READY minimum lifetime 15m; downgrade only after 2 consecutive weak scans unless hard invalidation.',
+        'RULE: BUY_READY minimum lifetime 15m; 2 weak scans to downgrade; former buys tracked 2h unless hard invalidation.',
         'market | stable_action | raw_action | opportunity | entry | trend | last | ch24 | confirms | flags | stability',
     ]
     for r in stabilized:
@@ -254,7 +254,7 @@ def main() -> int:
         )
     WATCH_TXT.write_text('\n'.join(lines) + '\n', encoding='utf-8')
 
-    state['version'] = 1
+    state['version'] = 2
     state['generated_at_utc'] = generated
     save(STATE, state)
     ready = [r.get('market') for r in stabilized if r.get('buy_ready')]
