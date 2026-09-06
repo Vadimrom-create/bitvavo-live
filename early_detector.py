@@ -1,339 +1,204 @@
 #!/usr/bin/env python3
-"""V2 overlay: détecte les transitions précoces entre deux snapshots Bitvavo."""
+"""Bitvavo Ignition Detector V3 orchestrator."""
 from __future__ import annotations
 
 import json
-import math
 import time
-import urllib.parse
-import urllib.request
 from concurrent.futures import ThreadPoolExecutor, as_completed
-from datetime import datetime, timezone
-from pathlib import Path
+from datetime import datetime
 
-BASE = "https://api.bitvavo.com/v2"
-LIVE = Path("bitvavo_live.json")
-SCAN = Path("scan_feed.txt")
-HISTORY = Path("scan_history.json")
-EARLY_TXT = Path("early_watch.txt")
-EARLY_JSON = Path("early_watch.json")
-
-MAX_HISTORY_SEC = 3 * 3600
-MAX_SAMPLES = 40
-EARLY_TRIGGER = 6.5
-EARLY_RESET = 4.5
-SESSION_RESET_SEC = 3600
-WATCH_COUNT = 25
-ENRICH_COUNT = 18
-HEADERS = {"Accept": "application/json", "User-Agent": "bitvavo-early-v2/1.0"}
+from v3_common import (
+    EARLY_JSON, EARLY_TXT, ENRICH_COUNT, HISTORY, LIVE, SCAN, SIGNAL_LOG,
+    SIGNAL_LOG_RETENTION_SEC, WATCH_COUNT, btc_risk, enrich_market, f,
+    load_history, maybe, pct, thin_samples, trajectory,
+)
+from v3_scoring import burst_score, continuation_score, finalize_row, select_pre_enrichment, slow_score
 
 
-def f(x, default=0.0):
+def load_signal_log():
     try:
-        return float(x)
+        data = json.loads(SIGNAL_LOG.read_text(encoding="utf-8")) if SIGNAL_LOG.exists() else {}
     except Exception:
-        return default
+        data = {}
+    if not isinstance(data, dict):
+        data = {}
+    data.setdefault("version", 1)
+    data.setdefault("events", [])
+    return data
 
 
-def pct(a, b):
-    return (a / b - 1) * 100 if b else None
+def update_signal_log(log, rows_by_market, now_ts, generated):
+    events = [e for e in log.get("events", []) if f(e.get("created_ts")) >= now_ts - SIGNAL_LOG_RETENTION_SEC]
+    for event in events:
+        row = rows_by_market.get(event.get("market"))
+        if not row:
+            continue
+        last, first = f(row.get("last")), f(event.get("first_price"))
+        event["last_seen_utc"], event["last_price"] = generated, last
+        event["pct_now"] = round(pct(last, first) or 0.0, 4) if first else None
+        event["max_price"] = max(f(event.get("max_price"), last), last)
+        old_min = maybe(event.get("min_price"))
+        event["min_price"] = min(old_min if old_min is not None else last, last)
+        event["mfe_pct"] = round(pct(f(event["max_price"]), first) or 0.0, 4) if first else None
+        event["mae_pct"] = round(pct(f(event["min_price"]), first) or 0.0, 4) if first else None
+        elapsed = now_ts - f(event.get("created_ts"))
+        checkpoints = event.setdefault("checkpoints", {})
+        for label, seconds in (("30m",1800),("60m",3600),("3h",10800),("6h",21600),("12h",43200)):
+            if first and elapsed >= seconds and label not in checkpoints:
+                checkpoints[label] = {"ts_utc": generated, "price": last, "pct": round(pct(last, first) or 0.0, 4)}
+        if elapsed >= 12 * 3600:
+            event["status"] = "CLOSED"
 
-
-def mean(xs):
-    xs = [x for x in xs if x is not None]
-    return sum(xs) / len(xs) if xs else None
-
-
-def ema(values, period):
-    if not values:
-        return None
-    a = 2 / (period + 1)
-    e = values[0]
-    for x in values[1:]:
-        e = a * x + (1 - a) * e
-    return e
-
-
-def get_json(path, params=None, retries=3):
-    url = BASE + path
-    if params:
-        url += "?" + urllib.parse.urlencode(params)
-    err = None
-    for attempt in range(retries):
-        try:
-            req = urllib.request.Request(url, headers=HEADERS)
-            with urllib.request.urlopen(req, timeout=15) as r:
-                return json.loads(r.read().decode("utf-8"))
-        except Exception as e:
-            err = e
-            time.sleep(0.8 + attempt)
-    raise RuntimeError(f"API {url}: {err}")
-
-
-def candles(market, interval, limit=40):
-    rows = []
-    for x in get_json(f"/{market}/candles", {"interval": interval, "limit": limit}):
-        if len(x) >= 6:
-            rows.append({"t": int(x[0]), "o": f(x[1]), "h": f(x[2]), "l": f(x[3]), "c": f(x[4]), "v": f(x[5])})
-    return sorted(rows, key=lambda x: x["t"])
-
-
-def summarize(cs):
-    if len(cs) < 10:
-        return {}
-    closes = [x["c"] for x in cs]
-    vols = [x["v"] for x in cs]
-    recent = cs[-8:]
-    hi = max(x["h"] for x in recent)
-    lo = min(x["l"] for x in recent)
-    wick = 0.0
-    for c in recent:
-        rng = c["h"] - c["l"]
-        if rng > 0:
-            wick = max(wick, max(0, c["h"] - max(c["o"], c["c"])) / rng)
-    prev20 = vols[-21:-1] if len(vols) >= 21 else vols[:-1]
-    return {
-        "last": closes[-1],
-        "ch1": pct(closes[-1], closes[-2]),
-        "ch4": pct(closes[-1], closes[-5]) if len(closes) >= 5 else None,
-        "ch16": pct(closes[-1], closes[-17]) if len(closes) >= 17 else None,
-        "vr1": vols[-1] / mean(prev20) if mean(prev20) else None,
-        "vr4": sum(vols[-4:]) / sum(vols[-8:-4]) if sum(vols[-8:-4]) else None,
-        "ema20": ema(closes, 20),
-        "dist8high": pct(closes[-1], hi),
-        "range8": (hi - lo) / closes[-1] * 100 if closes[-1] else None,
-        "wick": wick,
-    }
-
-
-def book(market):
-    b = get_json(f"/{market}/book", {"depth": 50})
-    bids, asks = b.get("bids", []), b.get("asks", [])
-    bv = sum(f(p) * f(q) for p, q in bids)
-    av = sum(f(p) * f(q) for p, q in asks)
-    return {"bid_share": bv / (bv + av) if bv + av else None, "bid_eur": bv, "ask_eur": av}
-
-
-def load_history():
-    try:
-        d = json.loads(HISTORY.read_text(encoding="utf-8")) if HISTORY.exists() else {}
-    except Exception:
-        d = {}
-    d.setdefault("version", 2)
-    d.setdefault("markets", {})
-    return d
-
-
-def nearest(samples, now_ts, minutes):
-    target = minutes * 60
-    tol = max(6 * 60, target * 0.55)
-    c = []
-    for s in samples:
-        age = now_ts - f(s.get("ts"))
-        if age >= 90:
-            c.append((abs(age - target), s))
-    if not c:
-        return None
-    c.sort(key=lambda x: x[0])
-    return c[0][1] if c[0][0] <= tol else None
-
-
-def trajectory(row, rank, hm, now_ts):
-    out = {}
-    samples = hm.get("samples", [])
-    for m in (5, 15, 30, 60):
-        old = nearest(samples, now_ts, m)
-        if old:
-            out[f"dscore_{m}m"] = round(f(row.get("collector_priority")) - f(old.get("priority")), 4)
-            out[f"drank_{m}m"] = round(f(old.get("rank")) - rank, 1) if old.get("rank") else None
-            out[f"dprice_{m}m_pct"] = round(pct(f(row.get("last")), f(old.get("last"))), 4) if old.get("last") else None
-        else:
-            out[f"dscore_{m}m"] = out[f"drank_{m}m"] = out[f"dprice_{m}m_pct"] = None
-    return out
-
-
-def early_score(row, t):
-    s = row.get("m15") or {}
-    vr1 = max(0, f(s.get("volume_last_vs_prev20")))
-    vr4 = max(0, f(s.get("volume_4_vs_prev4")))
-    ch1h = f(s.get("change_4_candles_pct"))
-    ch4h = f(s.get("change_16_candles_pct"))
-    ch24 = f(row.get("change_24h_pct"))
-    vol = f(row.get("quote_volume_24h_eur"))
-    spread = f(row.get("spread_pct"), 99)
-    wick = f(s.get("max_upper_wick_ratio_8bar"))
-
-    x = 1.0
-    x += min(max(vr1 - 1, 0), 8) * 0.22
-    x += min(max(vr4 - 1, 0), 6) * 0.48
-    x += 0.65 if 0.15 <= ch1h <= 3.5 else (0.25 if 3.5 < ch1h <= 6 else (-0.45 if ch1h < -1.5 else 0))
-    x += 0.55 if 0 <= ch4h <= 6 else (0.10 if 6 < ch4h <= 10 else 0)
-
-    d15, d30 = t.get("dscore_15m"), t.get("dscore_30m")
-    r15, r30 = t.get("drank_15m"), t.get("drank_30m")
-    if d15 is not None:
-        x += min(max(d15, 0), 5) * 0.42
-        x -= 0.35 if d15 < -1.5 else 0
-    if d30 is not None:
-        x += min(max(d30, 0), 6) * 0.20
-    if r15 is not None:
-        x += min(max(r15, 0), 100) / 100 * 1.25
-    if r30 is not None:
-        x += min(max(r30, 0), 150) / 150 * 0.65
-
-    x += 0.60 if vol >= 250000 else (0.40 if vol >= 75000 else (0.15 if vol >= 25000 else (-0.85 if vol < 10000 else 0)))
-    x += 0.45 if spread <= 0.08 else (0.25 if spread <= 0.18 else (-0.85 if spread > 0.40 else (-0.35 if spread > 0.25 else 0)))
-    x -= min((ch24 - 6) * 0.18, 2.2) if ch24 > 6 else 0
-    x -= 1.1 if ch24 > 15 else 0
-    x -= min((ch4h - 9) * 0.16, 1.6) if ch4h > 9 else 0
-    x -= 1.15 if wick >= 0.90 else (0.75 if wick >= 0.75 else (0.35 if wick >= 0.60 else 0))
-    return round(max(0, min(10, x)), 3)
-
-
-def stage(row, score):
-    s = row.get("m15") or {}
-    if f(row.get("change_24h_pct")) >= 15 or f(s.get("change_16_candles_pct")) >= 12:
-        return "TOO_LATE"
-    if score >= 8:
-        return "IGNITION"
-    if score >= EARLY_TRIGGER:
-        return "EARLY"
-    if score >= 5:
-        return "WATCH"
-    return "NONE"
-
-
-def enrich_market(market):
-    try:
-        return market, {
-            "5m": summarize(candles(market, "5m")),
-            "15m": summarize(candles(market, "15m")),
-            "1h": summarize(candles(market, "1h")),
-            "4h": summarize(candles(market, "4h")),
-            "book": book(market),
+    active = {e["market"]: e for e in events if e.get("status") == "ACTIVE"}
+    for market, row in rows_by_market.items():
+        if f(row.get("final_score")) < 7.5 or row.get("early_stage") in {"REJECTED", "TOO_LATE"}:
+            continue
+        if market in active and now_ts - f(active[market].get("created_ts")) < 12 * 3600:
+            continue
+        last = f(row.get("last"))
+        event = {
+            "market": market, "mode": row.get("signal_mode"), "created_ts": now_ts,
+            "first_seen_utc": generated, "first_price": last, "first_score": row.get("final_score"),
+            "first_stage": row.get("early_stage"), "last_seen_utc": generated, "last_price": last,
+            "max_price": last, "min_price": last, "pct_now": 0.0, "mfe_pct": 0.0, "mae_pct": 0.0,
+            "status": "ACTIVE", "checkpoints": {},
         }
-    except Exception as e:
-        return market, {"error": str(e)}
+        events.append(event)
+        active[market] = event
+    log["generated_at_utc"], log["events"] = generated, events
+    return log
 
 
-def fmt(x, n=2):
-    if x is None:
+def fmt(value, digits=2):
+    if value is None:
         return "n/a"
     try:
-        return f"{float(x):.{n}f}"
+        return f"{float(value):.{digits}f}"
     except Exception:
-        return str(x)
+        return str(value)
+
+
+def tf(summary):
+    summary = summary or {}
+    return (
+        f"ch1={fmt(summary.get('ch1'))},ch4={fmt(summary.get('ch4'))},ch16={fmt(summary.get('ch16'))},"
+        f"vr1={fmt(summary.get('vr1'))},vr4={fmt(summary.get('vr4'))},wick={fmt(summary.get('wick'))}"
+    )
 
 
 def main():
     live = json.loads(LIVE.read_text(encoding="utf-8"))
     rows = live.get("markets", [])
-    generated = live.get("generated_at_utc") or datetime.now(timezone.utc).isoformat()
+    generated = live.get("generated_at_utc") or datetime.utcnow().isoformat() + "+00:00"
     try:
         now_ts = datetime.fromisoformat(generated.replace("Z", "+00:00")).timestamp()
     except Exception:
         now_ts = time.time()
 
-    hist = load_history()
-    hm_all = hist["markets"]
-
+    history = load_history()
+    markets_history = history["markets"]
     for rank, row in enumerate(rows, 1):
-        market = row["market"]
-        hm = hm_all.setdefault(market, {})
+        hm = markets_history.setdefault(row["market"], {})
         t = trajectory(row, rank, hm, now_ts)
-        es = early_score(row, t)
-        st = stage(row, es)
+        row["current_rank"], row["trajectory"] = rank, t
+        row["scores"] = {
+            "burst": burst_score(row, t),
+            "slow": slow_score(row, t),
+            "continuation": continuation_score(row, t, hm),
+        }
 
-        first_seen = hm.get("first_early_seen")
-        first_price = hm.get("first_early_price")
-        last_early_ts = f(hm.get("last_early_seen_ts"))
-        if es >= EARLY_TRIGGER and st != "TOO_LATE":
-            if not first_seen or (last_early_ts and now_ts - last_early_ts > SESSION_RESET_SEC):
-                first_seen, first_price = generated, f(row.get("last"))
-                hm["first_early_score"] = es
-            hm.update({"first_early_seen": first_seen, "first_early_price": first_price, "last_early_seen_ts": now_ts})
-        elif es < EARLY_RESET and last_early_ts and now_ts - last_early_ts > SESSION_RESET_SEC:
-            for k in ("first_early_seen", "first_early_price", "first_early_score", "last_early_seen_ts"):
-                hm.pop(k, None)
-            first_seen = first_price = None
+    selected = select_pre_enrichment(rows, markets_history, now_ts, ENRICH_COUNT)
+    enriched, live_details = {}, live.get("details") or {}
+    with ThreadPoolExecutor(max_workers=8) as pool:
+        futures = [pool.submit(enrich_market, row["market"], live_details) for row in selected]
+        for future in as_completed(futures):
+            market, data = future.result()
+            enriched[market] = data
 
-        t["first_early_seen"] = first_seen
-        t["first_early_price"] = first_price
-        t["price_since_first_early_pct"] = round(pct(f(row.get("last")), f(first_price)), 4) if first_price else None
-        row["current_rank"] = rank
-        row["trajectory"] = t
-        row["early_score"] = es
-        row["early_stage"] = st
+    market_risk = btc_risk(live)
+    selected_by_name = {row["market"]: row for row in selected}
+    for market, row in selected_by_name.items():
+        finalize_row(row, enriched.get(market, {}), markets_history.setdefault(market, {}), now_ts, generated, market_risk)
 
-    early = sorted(rows, key=lambda r: (r.get("early_score", -1), r.get("collector_priority", -1)), reverse=True)
-    enrich_names = [r["market"] for r in early[:ENRICH_COUNT]]
-    enriched = {}
-    with ThreadPoolExecutor(max_workers=6) as ex:
-        futs = [ex.submit(enrich_market, m) for m in enrich_names]
-        for fut in as_completed(futs):
-            m, data = fut.result()
-            enriched[m] = data
+    for row in rows:
+        if "final_score" in row:
+            continue
+        scores = row["scores"]
+        mode = max(scores, key=scores.get)
+        score = scores[mode]
+        row.update({
+            "signal_mode": mode.upper(), "setup_score": score, "final_score": score, "early_score": score,
+            "early_stage": "WATCH" if score >= 5 else "NONE", "risk_flags": ["NOT_ENRICHED"],
+            "buy_ready": False, "confirm_count": int(f(markets_history.get(row["market"], {}).get("confirm_count"))),
+        })
 
-    cutoff = now_ts - MAX_HISTORY_SEC
-    active = set()
+    active_markets = set()
     for row in rows:
         market = row["market"]
-        active.add(market)
-        hm = hm_all.setdefault(market, {})
-        samples = [s for s in hm.get("samples", []) if f(s.get("ts")) >= cutoff]
+        active_markets.add(market)
+        hm = markets_history.setdefault(market, {})
         m15 = row.get("m15") or {}
-        samples.append({
-            "ts": now_ts, "rank": row.get("current_rank"), "priority": row.get("collector_priority"),
-            "early": row.get("early_score"), "last": row.get("last"), "ch24": row.get("change_24h_pct"),
-            "vr1": m15.get("volume_last_vs_prev20"), "vr4": m15.get("volume_4_vs_prev4"),
+        sample = [now_ts, row.get("current_rank"), row.get("collector_priority"), row.get("last"), row.get("change_24h_pct"), m15.get("volume_last_vs_prev20"), m15.get("volume_4_vs_prev4"), row.get("final_score")]
+        hm["samples"] = thin_samples(hm.get("samples", []) + [sample], now_ts)
+    for market in list(markets_history):
+        hm = markets_history[market]
+        hm["samples"] = thin_samples(hm.get("samples", []), now_ts)
+        if market not in active_markets and not hm["samples"] and f(hm.get("watch_until_ts")) < now_ts:
+            markets_history.pop(market, None)
+    history["generated_at_utc"] = generated
+    HISTORY.write_text(json.dumps(history, ensure_ascii=False, separators=(",", ":")), encoding="utf-8")
+
+    rows_by_market = {row["market"]: row for row in rows}
+    signal_log = update_signal_log(load_signal_log(), rows_by_market, now_ts, generated)
+    SIGNAL_LOG.write_text(json.dumps(signal_log, ensure_ascii=False, separators=(",", ":")), encoding="utf-8")
+
+    ranked = sorted(selected, key=lambda row: (bool(row.get("buy_ready")), f(row.get("final_score")), f(row.get("setup_score"))), reverse=True)
+    audit_candidates = [row for row in rows if f(row.get("quote_volume_24h_eur")) >= 75_000 and f(row.get("spread_pct"), 99) <= 0.30]
+    gainers_audit = []
+    for row in sorted(audit_candidates, key=lambda r: f(r.get("change_24h_pct")), reverse=True)[:15]:
+        hm = markets_history.get(row["market"], {})
+        first_price = maybe(hm.get("first_signal_price"))
+        gainers_audit.append({
+            "market": row["market"], "change_24h_pct": row.get("change_24h_pct"), "last": row.get("last"),
+            "final_score": row.get("final_score"), "signal_mode": row.get("signal_mode"),
+            "first_signal_seen": hm.get("first_signal_seen"),
+            "gain_since_first_signal_pct": round(pct(f(row.get("last")), first_price), 4) if first_price else None,
         })
-        hm["samples"] = samples[-MAX_SAMPLES:]
-    for market in list(hm_all):
-        hm = hm_all[market]
-        hm["samples"] = [s for s in hm.get("samples", []) if f(s.get("ts")) >= cutoff][-MAX_SAMPLES:]
-        if market not in active and not hm["samples"]:
-            hm_all.pop(market, None)
-
-    hist["generated_at_utc"] = generated
-    HISTORY.write_text(json.dumps(hist, ensure_ascii=False, separators=(",", ":")), encoding="utf-8")
-
-    def tf(s):
-        return f"ch1={fmt(s.get('ch1'))},ch4={fmt(s.get('ch4'))},ch16={fmt(s.get('ch16'))},vr1={fmt(s.get('vr1'))},vr4={fmt(s.get('vr4'))},wick={fmt(s.get('wick'))}"
 
     lines = [
-        "BITVAVO EARLY WATCH V2",
-        f"generated_at_utc: {generated}",
-        "NOTE: early_score mesure la vitesse de transition; validation finale NIL/HEI/HUMA obligatoire.",
-        "rank | market | early | stage | current_rank | priority | dscore15 | drank15 | dscore30 | drank30 | price15% | since_first% | ch24% | vol24EUR | spread% | 5m | 1h | 4h | bid_share | first_seen",
+        "BITVAVO IGNITION WATCH V3", f"generated_at_utc: {generated}", f"btc_risk: {market_risk}",
+        "NOTE: V3 sépare BURST / SLOW / CONTINUATION, garde une watchlist 12h et mesure les performances.",
+        "rank | market | final | mode | stage | BUY | confirms | raw[b,s,c] | current_rank | dscore15 | drank15 | price15% | price60% | price240% | since_first% | ch24% | vol24EUR | spread% | bid_share | flags | 5m | 15m | 1h | 4h | first_seen",
     ]
-    for i, row in enumerate(early[:WATCH_COUNT], 1):
-        t = row["trajectory"]
-        e = enriched.get(row["market"], {})
-        b = e.get("book", {}) if isinstance(e, dict) else {}
+    for index, row in enumerate(ranked[:WATCH_COUNT], 1):
+        t, e, scores = row.get("trajectory") or {}, enriched.get(row["market"], {}), row.get("scores") or {}
+        book = e.get("book", {}) if isinstance(e, dict) else {}
         lines.append(
-            f"{i} | {row['market']} | {fmt(row['early_score'],3)} | {row['early_stage']} | {row['current_rank']} | {fmt(row.get('collector_priority'),3)} | "
-            f"{fmt(t.get('dscore_15m'))} | {fmt(t.get('drank_15m'),0)} | {fmt(t.get('dscore_30m'))} | {fmt(t.get('drank_30m'),0)} | "
-            f"{fmt(t.get('dprice_15m_pct'))} | {fmt(t.get('price_since_first_early_pct'))} | {fmt(row.get('change_24h_pct'))} | "
-            f"{fmt(row.get('quote_volume_24h_eur'),0)} | {fmt(row.get('spread_pct'),4)} | "
-            f"5m[{tf(e.get('5m', {}))}] | 1h[{tf(e.get('1h', {}))}] | 4h[{tf(e.get('4h', {}))}] | "
-            f"{fmt(b.get('bid_share'),3)} | {t.get('first_early_seen') or 'n/a'}"
+            f"{index} | {row['market']} | {fmt(row.get('final_score'),3)} | {row.get('signal_mode')} | {row.get('early_stage')} | {str(bool(row.get('buy_ready'))).upper()} | {row.get('confirm_count')} | "
+            f"[{fmt(scores.get('burst'))},{fmt(scores.get('slow'))},{fmt(scores.get('continuation'))}] | {row.get('current_rank')} | {fmt(t.get('dscore_15m'))} | {fmt(t.get('drank_15m'),0)} | {fmt(t.get('dprice_15m_pct'))} | {fmt(t.get('dprice_60m_pct'))} | {fmt(t.get('dprice_240m_pct'))} | {fmt(t.get('price_since_first_early_pct'))} | "
+            f"{fmt(row.get('change_24h_pct'))} | {fmt(row.get('quote_volume_24h_eur'),0)} | {fmt(row.get('spread_pct'),4)} | {fmt(book.get('bid_share'),3)} | {','.join(row.get('risk_flags') or []) or '-'} | "
+            f"5m[{tf(e.get('5m'))}] | 15m[{tf(e.get('15m'))}] | 1h[{tf(e.get('1h'))}] | 4h[{tf(e.get('4h'))}] | {t.get('first_early_seen') or 'n/a'}"
         )
+    lines += ["", "TOP_GAINERS_AUDIT"]
+    for item in gainers_audit:
+        lines.append(
+            f"{item['market']} | ch24={fmt(item['change_24h_pct'])}% | score={fmt(item['final_score'])} | mode={item['signal_mode']} | "
+            f"first={item['first_signal_seen'] or 'n/a'} | gain_since_first={fmt(item['gain_since_first_signal_pct'])}%"
+        )
+
     EARLY_TXT.write_text("\n".join(lines) + "\n", encoding="utf-8")
-
-    out = {
-        "generated_at_utc": generated,
-        "method_note": "EARLY V2 = deltas score/rang/prix + volume + pénalité mouvement déjà avancé; ce n'est pas un signal d'achat.",
-        "history_window_hours": MAX_HISTORY_SEC / 3600,
-        "watch": early[:WATCH_COUNT],
-        "enriched": enriched,
+    payload = {
+        "generated_at_utc": generated, "version": 3,
+        "method_note": "V3: BURST + SLOW + CONTINUATION; historique aminci 24h; watchlist persistante 12h; mèches pénalisées, rejet HEI seulement si confirmé; buy_ready exige deux confirmations.",
+        "btc_risk": market_risk, "watch": ranked[:WATCH_COUNT],
+        "enriched": {m: enriched.get(m, {}) for m in [r["market"] for r in ranked[:WATCH_COUNT]]},
+        "gainers_audit": gainers_audit,
     }
-    EARLY_JSON.write_text(json.dumps(out, ensure_ascii=False, separators=(",", ":")), encoding="utf-8")
-
-    # Le chemin historique scan_feed.txt reste compatible : on y préfixe la couche EARLY V2.
+    EARLY_JSON.write_text(json.dumps(payload, ensure_ascii=False, separators=(",", ":")), encoding="utf-8")
     base_scan = SCAN.read_text(encoding="utf-8") if SCAN.exists() else ""
-    prefix = "\n".join(lines[:min(len(lines), 18)]) + "\n\n--- CURRENT_STRENGTH SNAPSHOT ---\n"
-    SCAN.write_text(prefix + base_scan, encoding="utf-8")
-    print(f"EARLY V2: {len(rows)} marchés, {len(enriched)} enrichis, historique {MAX_HISTORY_SEC//3600}h")
+    SCAN.write_text("\n".join(lines[:min(len(lines), 22)]) + "\n\n--- CURRENT_STRENGTH SNAPSHOT ---\n" + base_scan, encoding="utf-8")
+    ready = [r["market"] for r in ranked if r.get("buy_ready")]
+    print(f"IGNITION V3: {len(rows)} marchés, {len(selected)} enrichis, buy_ready={ready or 'none'}, history=24h")
 
 
 if __name__ == "__main__":
