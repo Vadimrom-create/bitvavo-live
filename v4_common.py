@@ -196,7 +196,8 @@ def add_relative_strength(cache: dict) -> None:
 def trend_score(profile: dict) -> float:
     if not profile:
         return 5.0
-    s = 3.4
+    # Broad 0-10 scale: only exceptional multi-horizon trends should approach 10.
+    s = 2.6
     r3, r7, r14, r30 = [maybe(profile.get(k)) for k in ('ret3d','ret7d','ret14d','ret30d')]
     rs7, rs30 = maybe(profile.get('rs_btc_7d')), maybe(profile.get('rs_btc_30d'))
     rs7e = maybe(profile.get('rs_eth_7d'))
@@ -208,54 +209,61 @@ def trend_score(profile: dict) -> float:
     atr = maybe(profile.get('atr14_pct'))
 
     if r3 is not None:
-        s += 0.35 if r3 > 1 else 0.0
-        s += 0.35 if r3 > 3 else 0.0
+        s += 0.25 if r3 > 1 else 0.0
+        s += 0.25 if r3 > 3 else 0.0
     if r7 is not None:
-        s += 0.45 if r7 > 3 else 0.0
-        s += 0.45 if r7 > 7 else 0.0
-        s += 0.25 if r7 > 12 else 0.0
+        s += 0.35 if r7 > 3 else 0.0
+        s += 0.35 if r7 > 7 else 0.0
+        s += 0.20 if r7 > 12 else 0.0
     if r14 is not None and r14 > 6:
-        s += 0.35
+        s += 0.25
     if r30 is not None:
-        s += 0.45 if r30 > 8 else 0.0
-        s += 0.45 if r30 > 18 else 0.0
+        s += 0.35 if r30 > 8 else 0.0
+        s += 0.35 if r30 > 18 else 0.0
+        s += 0.20 if r30 > 35 else 0.0
 
+    # Relative strength is central: the historical winners beat BTC even during weak tape.
     if rs7 is not None:
-        s += 0.55 if rs7 > 3 else 0.0
-        s += 0.35 if rs7 > 7 else 0.0
+        s += 0.45 if rs7 > 3 else 0.0
+        s += 0.30 if rs7 > 7 else 0.0
     if rs7e is not None and rs7e > 3:
-        s += 0.30
+        s += 0.20
     if rs30 is not None:
-        s += 0.55 if rs30 > 5 else 0.0
+        s += 0.45 if rs30 > 5 else 0.0
         s += 0.30 if rs30 > 12 else 0.0
 
     if d20 is not None and d20 > 0:
-        s += 0.45
+        s += 0.35
     if d50 is not None and d50 > 0:
-        s += 0.35
-    if slope is not None and slope > 0.4:
-        s += 0.45
-    if profile.get('higher_high_7d'):
-        s += 0.30
-    if profile.get('higher_low_7d'):
-        s += 0.35
-    if breakout is not None and -3 <= breakout <= 4:
-        s += 0.40
-    if dd is not None and -8 <= dd <= -1.5 and (slope or 0) > 0:
-        s += 0.30
-    if vol is not None and 1.1 <= vol <= 4.5:
-        s += 0.35
-    if (profile.get('green_days_7') or 0) >= 4:
         s += 0.25
+    if slope is not None and slope > 0.4:
+        s += 0.35
+    if profile.get('higher_high_7d'):
+        s += 0.20
+    if profile.get('higher_low_7d'):
+        s += 0.25
+    if breakout is not None and -3 <= breakout <= 4:
+        s += 0.30
+    if dd is not None and -8 <= dd <= -1.5 and (slope or 0) > 0:
+        s += 0.25
+    if vol is not None and 1.1 <= vol <= 4.5:
+        s += 0.25
+    if (profile.get('green_days_7') or 0) >= 4:
+        s += 0.15
 
-    if breakout is not None and breakout > 10:
-        s -= 0.55
-    if r7 is not None and r7 > 35:
-        s -= 0.55
+    # Extension reduces timing quality, not the existence of the trend.
+    if breakout is not None and breakout > 8:
+        s -= 0.40
+    if r7 is not None and r7 > 25:
+        s -= 0.35
+    if r7 is not None and r7 > 45:
+        s -= 0.35
+    if r30 is not None and r30 > 80:
+        s -= 0.40
     if atr is not None and atr > 18:
-        s -= 0.45
+        s -= 0.35
     if slope is not None and slope < -1:
-        s -= 0.75
+        s -= 0.65
     return round(clamp(s), 3)
 
 
