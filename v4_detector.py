@@ -18,10 +18,10 @@ from v4_common import (
 )
 
 OPPORTUNITY_WATCH = 7.20
-OPPORTUNITY_STRONG = 8.00
+OPPORTUNITY_STRONG = 7.80
 ENTRY_WINDOW = 6.20
-ENTRY_READY = 7.00
-BUY_OPPORTUNITY = 8.20
+ENTRY_READY = 7.40
+BUY_OPPORTUNITY = 8.55
 CONFIRMATIONS_REQUIRED = 2
 ENTRY_ENRICH_COUNT = 72
 TREND_UNIVERSE_CAP = 120
@@ -208,8 +208,8 @@ def main():
         hm4 = hm4_all.setdefault(row['market'], {})
         pers = persistence_score(hm4, now_ts)
         liq = liquidity_score(row)
-        ignition_path = 0.60 * ign + 0.25 * tr + 0.10 * pers + 0.05 * liq
-        trend_path = 0.66 * tr + 0.22 * ign + 0.08 * pers + 0.04 * liq
+        ignition_path = 0.62 * ign + 0.23 * tr + 0.10 * pers + 0.05 * liq
+        trend_path = 0.68 * tr + 0.18 * ign + 0.09 * pers + 0.05 * liq
         opportunity = round(clamp(max(ignition_path, trend_path)), 3)
         row['trend_profile'] = profile
         row['trend_score'] = tr
@@ -283,8 +283,14 @@ def main():
             action = 'ENTRY_WINDOW'
         if hard:
             action = 'TOO_LATE' if any(x.startswith('TOO_LATE') for x in hard) else 'WATCH_RISK'
-        elif opp >= BUY_OPPORTUNITY and ent >= ENTRY_READY and confirms >= CONFIRMATIONS_REQUIRED:
-            action = 'BUY_READY'; buy_ready = True
+        else:
+            ret7 = maybe(profile.get('ret7d'))
+            chase_risk = (f(row.get('change_24h_pct')) > 10.0 or (ret7 is not None and ret7 > 30.0)) and entry_mode != 'PULLBACK'
+            if chase_risk:
+                flags.append('CHASE_RISK')
+                row['risk_flags'] = flags + hard
+            if opp >= BUY_OPPORTUNITY and ent >= ENTRY_READY and confirms >= CONFIRMATIONS_REQUIRED and not chase_risk:
+                action = 'BUY_READY'; buy_ready = True
 
         peak = maybe(hm.get('peak_since_signal'))
         drawdown = pct(last, peak) if peak else None
