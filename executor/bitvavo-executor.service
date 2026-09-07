@@ -1,0 +1,29 @@
+[Unit]
+Description=Bitvavo private guarded executor and sentinel
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=bitvavoexec
+Group=bitvavoexec
+WorkingDirectory=/opt/bitvavo-executor
+EnvironmentFile=/etc/bitvavo-executor.env
+ExecStart=/opt/bitvavo-executor/.venv/bin/python /opt/bitvavo-executor/daemon.py
+Restart=always
+RestartSec=3
+TimeoutStopSec=15
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectHome=true
+ProtectSystem=strict
+ReadWritePaths=/var/lib/bitvavo-executor
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+RestrictSUIDSGID=true
+LockPersonality=true
+MemoryDenyWriteExecute=true
+
+[Install]
+WantedBy=multi-user.target
