@@ -20,6 +20,7 @@ on:
       - "email_alert_v4.py"
       - "security_alert.py"
       - "security_event.json"
+      - "executor/**"
       - ".github/workflows/update.yml"
 
 permissions:
@@ -44,6 +45,9 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: "3.12"
+
+      - name: Compile-check private executor source
+        run: python -m py_compile executor/bitvavo_client.py executor/daemon.py security_alert.py execution_probe.py
 
       - name: Send security alert if new private-executor event exists
         env:
