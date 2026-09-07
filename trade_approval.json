@@ -1,5 +1,17 @@
 {
   "version": 1,
-  "approval": null,
+  "approval": {
+    "id": "dryrun-fet-20260907T2244Z-001",
+    "status": "APPROVED_BY_USER",
+    "created_at_utc": "2026-09-07T22:44:07+00:00",
+    "expires_at_utc": "2026-09-07T22:54:07+00:00",
+    "market": "FET-EUR",
+    "side": "buy",
+    "order_type": "limit",
+    "stake_eur": 10,
+    "reference_price": "0.15508",
+    "limit_price": "0.15512",
+    "test_note": "End-to-end DRY_RUN validation explicitly authorized by the user in ChatGPT. No live order must be placed while DRY_RUN=true."
+  },
   "rule": "This file is written only after the user explicitly approves a specific trade in ChatGPT. The executor independently revalidates market conditions and safety guardrails before acting."
 }
