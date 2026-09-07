@@ -1,11 +1,27 @@
 {
-  "generated_at_utc": "2026-09-07T23:09:39.635446+00:00",
+  "generated_at_utc": "2026-09-07T23:12:16.586584+00:00",
   "online": true,
   "dry_run": true,
   "operator_id": 26090701,
-  "security_freeze": false,
+  "security_freeze": true,
   "auto_cancel_unknown_orders": false,
-  "last_security_event": null,
+  "last_security_event": {
+    "event_id": "e2fd0221-79ed-4afa-b499-212122f63b5e",
+    "detected_at_utc": "2026-09-07T23:12:14.899053+00:00",
+    "severity": "CRITICAL",
+    "reason": "UNKNOWN_OR_UNAUTHORIZED_BITVAVO_ACTIVITY",
+    "market": "FET-EUR",
+    "event": "order",
+    "orderId": "SECURITY-SELFTEST-NO-REAL-ORDER",
+    "clientOrderId": "unauthorized-selftest",
+    "operatorId": 99999999,
+    "side": "buy",
+    "orderType": "limit",
+    "status": "new",
+    "action_taken": [
+      "SECURITY_FREEZE"
+    ]
+  },
   "last_approval_result": {
     "approval_id": "dryrun-fet-20260907T2247Z-003",
     "processed_at_utc": "2026-09-07T22:53:02.242621+00:00",
