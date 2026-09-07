@@ -6,6 +6,7 @@ APP_DIR="/opt/bitvavo-executor"
 STATE_DIR="/var/lib/bitvavo-executor"
 ENV_FILE="/etc/bitvavo-executor.env"
 SERVICE_FILE="/etc/systemd/system/bitvavo-executor.service"
+CURL=(curl -4 -fsSL --connect-timeout 15 --retry 3)
 
 if [ "$(id -u)" -ne 0 ]; then
   echo "Run as root: sudo bash install.sh" >&2
@@ -35,12 +36,12 @@ fi
 install -d -m 0755 "$APP_DIR"
 install -d -o bitvavoexec -g bitvavoexec -m 0700 "$STATE_DIR"
 
-curl -fsSL "$REPO_RAW/daemon.py" -o "$APP_DIR/daemon.py"
-curl -fsSL "$REPO_RAW/bitvavo_client.py" -o "$APP_DIR/bitvavo_client.py"
-curl -fsSL "$REPO_RAW/requirements.txt" -o "$APP_DIR/requirements.txt"
-curl -fsSL "$REPO_RAW/.env.example" -o "$APP_DIR/.env.example"
-curl -fsSL "$REPO_RAW/configure_secrets.sh" -o "$APP_DIR/configure_secrets.sh"
-curl -fsSL "$REPO_RAW/bitvavo-executor.service" -o "$SERVICE_FILE"
+"${CURL[@]}" "$REPO_RAW/daemon.py" -o "$APP_DIR/daemon.py"
+"${CURL[@]}" "$REPO_RAW/bitvavo_client.py" -o "$APP_DIR/bitvavo_client.py"
+"${CURL[@]}" "$REPO_RAW/requirements.txt" -o "$APP_DIR/requirements.txt"
+"${CURL[@]}" "$REPO_RAW/.env.example" -o "$APP_DIR/.env.example"
+"${CURL[@]}" "$REPO_RAW/configure_secrets.sh" -o "$APP_DIR/configure_secrets.sh"
+"${CURL[@]}" "$REPO_RAW/bitvavo-executor.service" -o "$SERVICE_FILE"
 
 # venv is bundled with Python on Oracle Linux 9; fail clearly if unavailable.
 if ! python3 -m venv "$APP_DIR/.venv"; then
