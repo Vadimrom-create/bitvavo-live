@@ -39,6 +39,7 @@ curl -fsSL "$REPO_RAW/daemon.py" -o "$APP_DIR/daemon.py"
 curl -fsSL "$REPO_RAW/bitvavo_client.py" -o "$APP_DIR/bitvavo_client.py"
 curl -fsSL "$REPO_RAW/requirements.txt" -o "$APP_DIR/requirements.txt"
 curl -fsSL "$REPO_RAW/.env.example" -o "$APP_DIR/.env.example"
+curl -fsSL "$REPO_RAW/configure_secrets.sh" -o "$APP_DIR/configure_secrets.sh"
 curl -fsSL "$REPO_RAW/bitvavo-executor.service" -o "$SERVICE_FILE"
 
 # venv is bundled with Python on Oracle Linux 9; fail clearly if unavailable.
@@ -50,7 +51,7 @@ fi
 "$APP_DIR/.venv/bin/pip" install -r "$APP_DIR/requirements.txt"
 
 chown -R root:root "$APP_DIR"
-chmod 0755 "$APP_DIR/daemon.py" "$APP_DIR/bitvavo_client.py"
+chmod 0755 "$APP_DIR/daemon.py" "$APP_DIR/bitvavo_client.py" "$APP_DIR/configure_secrets.sh"
 chmod 0644 "$APP_DIR/requirements.txt" "$SERVICE_FILE"
 
 if [ ! -f "$ENV_FILE" ]; then
@@ -67,6 +68,6 @@ echo
 printf '%s\n' \
   "Installation complete." \
   "The service is NOT started automatically until the API credentials are added." \
-  "Next: edit $ENV_FILE, then run:" \
-  "  sudo systemctl start bitvavo-executor" \
-  "  sudo journalctl -u bitvavo-executor -f"
+  "Next: run sudo $APP_DIR/configure_secrets.sh" \
+  "Then start in DRY_RUN mode with: sudo systemctl start bitvavo-executor" \
+  "Logs: sudo journalctl -u bitvavo-executor -f"
