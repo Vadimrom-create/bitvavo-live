@@ -1,0 +1,50 @@
+{
+  "version": 1,
+  "updated_at_utc": "2026-09-07T09:12:39.691161+00:00",
+  "purpose": "Persistent decision-layer watchlist owned by ChatGPT. A coin stays here until actionable or structurally invalidated; it must not disappear because of one weaker 5-minute scan.",
+  "portfolio_context": {
+    "target_wallet_eur": 2700,
+    "approx_wallet_eur": 2300,
+    "approx_cash_eur": 1200,
+    "open_positions": [
+      {"market": "FET-EUR", "stake_eur": 75, "entry_price": 0.14890}
+    ]
+  },
+  "operating_rules": {
+    "horizon": "hours_to_7_days",
+    "execution_requires_live_user_capture": true,
+    "do_not_flip_on_single_5m_noise": true,
+    "priority_watch_is_persistent": true,
+    "review_horizons": ["6h", "24h", "72h", "7d"],
+    "winner_retention_rule": "Do not discard a strong 7d/30d trend solely because the immediate Entry Score weakens. Track pullback/re-entry candidates until structural invalidation.",
+    "latent_accelerator_rule": "Coins detected with Opportunity Score >= 7.4 but not promoted because Entry/Trend is weak must remain under observation when acceleration evidence exists; CFG/ORCA/IOST are audit examples.",
+    "states": ["ACHETE_MAINTENANT", "PLACE_LIMITE", "GARDE_PRIORITAIREMENT_EN_WATCHLIST", "INVALIDE"]
+  },
+  "priority": [
+    {"market": "SOLV-EUR", "state": "GARDE_PRIORITAIREMENT_EN_WATCHLIST", "why": "Strong 30d/7d/3d trend, V4 trend 8.55 and entry 7.15, current 24h only +1.18%, no risk flag; pullback/re-entry profile."},
+    {"market": "LDO-EUR", "state": "GARDE_PRIORITAIREMENT_EN_WATCHLIST", "why": "Strong 30d/7d trend, V4 trend 8.95, current 24h ~+1%, no risk flag; continuation after pullback candidate."},
+    {"market": "SYRUP-EUR", "state": "GARDE_PRIORITAIREMENT_EN_WATCHLIST", "why": "+40% class 30d trend, 7d momentum remains strong, current entry score weakened but this must not erase the multi-day setup."},
+    {"market": "NEAR-EUR", "state": "GARDE_PRIORITAIREMENT_EN_WATCHLIST", "why": "+50% class 30d trend with strong 3d/7d relative strength; currently pulling back. Track re-entry rather than discarding because of CHASE_RISK."},
+    {"market": "CAKE-EUR", "state": "GARDE_PRIORITAIREMENT_EN_WATCHLIST", "why": "Strong 30d/7d trend, V4 trend 8.65, current 24h slightly negative and no risk flag; resting continuation candidate."},
+    {"market": "WIF-EUR", "state": "GARDE_PRIORITAIREMENT_EN_WATCHLIST", "why": "Strong 30d trend, V4 entry window with no risk flag and V3 BUY consensus."},
+    {"market": "ASTER-EUR", "state": "GARDE_PRIORITAIREMENT_EN_WATCHLIST", "why": "High current opportunity score 8.546, trend 8.15, modest +1.07% 24h and no risk flag; early continuation profile."},
+    {"market": "HYPE-EUR", "state": "GARDE_PRIORITAIREMENT_EN_WATCHLIST", "why": "Strong 30d trend, entry score 7.5, no risk flag, currently flat/resting; possible pre-reacceleration."},
+    {"market": "UNI-EUR", "state": "GARDE_PRIORITAIREMENT_EN_WATCHLIST", "why": "Very strong 30d/7d trend, current 24h only ~+1%; CHASE_RISK means wait for accessible re-entry, not forget the setup."}
+  ],
+  "active_position_monitoring": [
+    {"market": "FET-EUR", "state": "POSITION_OUVERTE", "why": "Current V4 BUY_READY and V3 BUY; user already owns 75 EUR at 0.14890."}
+  ],
+  "near_term_candidates": [
+    {"market": "ONDO-EUR", "state": "VALIDATION_LIVE_REQUISE", "why": "V4 stabilized BUY_READY and V3 BUY; modest 24h extension."},
+    {"market": "SUI-EUR", "state": "VALIDATION_LIVE_REQUISE", "why": "V4 stabilized BUY_READY but raw WATCH; monitor hysteresis."},
+    {"market": "AVAX-EUR", "state": "VALIDATION_LIVE_REQUISE", "why": "V3 BUY, V4 entry 7.6, no current risk flag."}
+  ],
+  "continuation_wait_for_pullback": [
+    "LINK-EUR", "TAO-EUR", "KAS-EUR", "TIA-EUR", "ICP-EUR", "COTI-EUR"
+  ],
+  "post_move_audit": [
+    {"market": "CFG-EUR", "first_price": 0.093602, "mfe_pct": 23.0989, "first_opportunity_score": 7.559, "first_entry_score": 6.0, "first_trend_score": 2.45, "lesson": "Detected but left WATCH; decision layer failed to retain latent accelerator."},
+    {"market": "ORCA-EUR", "first_price": 1.19207, "mfe_pct": 23.5666, "first_opportunity_score": 7.756, "first_entry_score": 5.9, "first_trend_score": 7.4, "lesson": "Detected but left WATCH; insufficient promotion despite later +20% move."},
+    {"market": "IOST-EUR", "first_price": 0.000633, "mfe_pct": 22.5276, "first_opportunity_score": 7.474, "first_entry_score": 4.5, "first_trend_score": 7.65, "lesson": "Detected but Entry Score suppressed recommendation; must retain explosive latent candidates."}
+  ]
+}
