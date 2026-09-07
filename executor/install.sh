@@ -12,11 +12,24 @@ if [ "$(id -u)" -ne 0 ]; then
   exit 1
 fi
 
-apt-get update -y
-apt-get install -y python3 python3-venv python3-pip curl ca-certificates
+# Oracle Linux 9 uses dnf. Keep Debian/Ubuntu support for portability.
+if command -v dnf >/dev/null 2>&1; then
+  dnf -y install python3 python3-pip curl ca-certificates
+elif command -v yum >/dev/null 2>&1; then
+  yum -y install python3 python3-pip curl ca-certificates
+elif command -v apt-get >/dev/null 2>&1; then
+  apt-get update -y
+  apt-get install -y python3 python3-venv python3-pip curl ca-certificates
+else
+  echo "Unsupported Linux distribution: no dnf/yum/apt-get found" >&2
+  exit 1
+fi
+
+NOLOGIN="$(command -v nologin || true)"
+[ -n "$NOLOGIN" ] || NOLOGIN="/sbin/nologin"
 
 if ! id bitvavoexec >/dev/null 2>&1; then
-  useradd --system --home "$STATE_DIR" --shell /usr/sbin/nologin bitvavoexec
+  useradd --system --home "$STATE_DIR" --shell "$NOLOGIN" bitvavoexec
 fi
 
 install -d -m 0755 "$APP_DIR"
@@ -28,7 +41,11 @@ curl -fsSL "$REPO_RAW/requirements.txt" -o "$APP_DIR/requirements.txt"
 curl -fsSL "$REPO_RAW/.env.example" -o "$APP_DIR/.env.example"
 curl -fsSL "$REPO_RAW/bitvavo-executor.service" -o "$SERVICE_FILE"
 
-python3 -m venv "$APP_DIR/.venv"
+# venv is bundled with Python on Oracle Linux 9; fail clearly if unavailable.
+if ! python3 -m venv "$APP_DIR/.venv"; then
+  echo "python3 venv creation failed" >&2
+  exit 1
+fi
 "$APP_DIR/.venv/bin/pip" install --upgrade pip
 "$APP_DIR/.venv/bin/pip" install -r "$APP_DIR/requirements.txt"
 
