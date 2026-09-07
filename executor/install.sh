@@ -13,17 +13,37 @@ if [ "$(id -u)" -ne 0 ]; then
   exit 1
 fi
 
-# Oracle Linux 9 uses dnf. Keep Debian/Ubuntu support for portability.
-if command -v dnf >/dev/null 2>&1; then
-  dnf -y install python3 python3-pip curl ca-certificates
-elif command -v yum >/dev/null 2>&1; then
-  yum -y install python3 python3-pip curl ca-certificates
-elif command -v apt-get >/dev/null 2>&1; then
-  apt-get update -y
-  apt-get install -y python3 python3-venv python3-pip curl ca-certificates
+# Prefer the already-installed Oracle Linux toolchain. Calling dnf on a tiny
+# Always Free VM can be slow or block on background package activity, and is
+# unnecessary when python3/curl/venv are already usable.
+need_packages=0
+if ! command -v python3 >/dev/null 2>&1 || ! command -v curl >/dev/null 2>&1; then
+  need_packages=1
 else
-  echo "Unsupported Linux distribution: no dnf/yum/apt-get found" >&2
-  exit 1
+  probe="/tmp/bitvavo-venv-probe-$$"
+  if python3 -m venv "$probe" >/dev/null 2>&1; then
+    rm -rf "$probe"
+  else
+    rm -rf "$probe"
+    need_packages=1
+  fi
+fi
+
+if [ "$need_packages" -eq 1 ]; then
+  echo "Installing missing prerequisites..."
+  if command -v dnf >/dev/null 2>&1; then
+    dnf -y --setopt=timeout=30 --setopt=retries=2 install python3 python3-pip curl ca-certificates
+  elif command -v yum >/dev/null 2>&1; then
+    yum -y install python3 python3-pip curl ca-certificates
+  elif command -v apt-get >/dev/null 2>&1; then
+    apt-get update -y
+    apt-get install -y python3 python3-venv python3-pip curl ca-certificates
+  else
+    echo "Unsupported Linux distribution: no dnf/yum/apt-get found" >&2
+    exit 1
+  fi
+else
+  echo "Prerequisites already available; skipping package manager."
 fi
 
 NOLOGIN="$(command -v nologin || true)"
@@ -43,11 +63,8 @@ install -d -o bitvavoexec -g bitvavoexec -m 0700 "$STATE_DIR"
 "${CURL[@]}" "$REPO_RAW/configure_secrets.sh" -o "$APP_DIR/configure_secrets.sh"
 "${CURL[@]}" "$REPO_RAW/bitvavo-executor.service" -o "$SERVICE_FILE"
 
-# venv is bundled with Python on Oracle Linux 9; fail clearly if unavailable.
-if ! python3 -m venv "$APP_DIR/.venv"; then
-  echo "python3 venv creation failed" >&2
-  exit 1
-fi
+rm -rf "$APP_DIR/.venv"
+python3 -m venv "$APP_DIR/.venv"
 "$APP_DIR/.venv/bin/pip" install --upgrade pip
 "$APP_DIR/.venv/bin/pip" install -r "$APP_DIR/requirements.txt"
 
