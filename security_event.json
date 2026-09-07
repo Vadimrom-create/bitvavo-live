@@ -1,7 +1,17 @@
 {
-  "event_id": null,
-  "detected_at_utc": null,
-  "severity": null,
-  "reason": null,
-  "note": "No security event. This file never contains API credentials or wallet balances."
+  "event_id": "e2fd0221-79ed-4afa-b499-212122f63b5e",
+  "detected_at_utc": "2026-09-07T23:12:14.899053+00:00",
+  "severity": "CRITICAL",
+  "reason": "UNKNOWN_OR_UNAUTHORIZED_BITVAVO_ACTIVITY",
+  "market": "FET-EUR",
+  "event": "order",
+  "orderId": "SECURITY-SELFTEST-NO-REAL-ORDER",
+  "clientOrderId": "unauthorized-selftest",
+  "operatorId": 99999999,
+  "side": "buy",
+  "orderType": "limit",
+  "status": "new",
+  "action_taken": [
+    "SECURITY_FREEZE"
+  ]
 }
