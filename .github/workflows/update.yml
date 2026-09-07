@@ -15,6 +15,8 @@ on:
     paths:
       - "v4_*.py"
       - "v4_config.json"
+      - "execution_probe.py"
+      - "decision_watchlist.json"
       - "email_alert_v4.py"
       - ".github/workflows/update.yml"
 
@@ -53,6 +55,9 @@ jobs:
       - name: Stabilize V4 decision state
         run: python v4_stabilizer.py
 
+      - name: Build autonomous execution snapshot
+        run: python execution_probe.py
+
       - name: Send V4 useful email alert
         env:
           ALERT_GMAIL_USER: ${{ vars.ALERT_GMAIL_USER }}
@@ -67,13 +72,14 @@ jobs:
           git config user.email "actions@users.noreply.github.com"
           git add bitvavo_live.json scan_feed.txt early_watch.txt early_watch.json scan_history.json signal_log.json
           git add v4_watch.txt v4_watch.json v4_history.json v4_signal_log.json v4_trend_cache.json
+          git add execution_snapshot.json decision_watchlist.json
           if [ -f v4_watch_raw.txt ]; then git add v4_watch_raw.txt; fi
           if [ -f v4_watch_raw.json ]; then git add v4_watch_raw.json; fi
           if [ -f v4_stability_state.json ]; then git add v4_stability_state.json; fi
           if [ -f alert_state.json ]; then git add alert_state.json; fi
           if [ -f alert_state_v4.json ]; then git add alert_state_v4.json; fi
           if ! git diff --cached --quiet; then
-            git commit -m "Update Bitvavo live data + V3 shadow + V4 stabilized"
+            git commit -m "Update Bitvavo live data + V3 shadow + V4 stabilized + execution snapshot"
             git push
           fi
 
@@ -86,6 +92,7 @@ jobs:
           cp early_watch.json _site/early_watch.json
           cp v4_watch.txt _site/v4_watch.txt
           cp v4_watch.json _site/v4_watch.json
+          cp execution_snapshot.json _site/execution_snapshot.json
           if [ -f v4_watch_raw.txt ]; then cp v4_watch_raw.txt _site/v4_watch_raw.txt; fi
           if [ -f v4_watch_raw.json ]; then cp v4_watch_raw.json _site/v4_watch_raw.json; fi
           cat > _site/index.html <<'EOF'
@@ -97,6 +104,8 @@ jobs:
             <p><strong>V4 stabilized decisions</strong></p>
             <p><a href="v4_watch.txt">v4_watch.txt</a></p>
             <p><a href="v4_watch.json">v4_watch.json</a></p>
+            <p><strong>Autonomous execution snapshot</strong></p>
+            <p><a href="execution_snapshot.json">execution_snapshot.json</a></p>
             <p><strong>V4 raw scanner audit</strong></p>
             <p><a href="v4_watch_raw.txt">v4_watch_raw.txt</a></p>
             <p><a href="v4_watch_raw.json">v4_watch_raw.json</a></p>
