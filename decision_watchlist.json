@@ -1,5 +1,5 @@
 {
-  "version": 1,
+  "version": 2,
   "updated_at_utc": "2026-09-07T09:12:39.691161+00:00",
   "purpose": "Persistent decision-layer watchlist owned by ChatGPT. A coin stays here until actionable or structurally invalidated; it must not disappear because of one weaker 5-minute scan.",
   "portfolio_context": {
@@ -12,7 +12,12 @@
   },
   "operating_rules": {
     "horizon": "hours_to_7_days",
-    "execution_requires_live_user_capture": true,
+    "execution_requires_live_user_capture": false,
+    "execution_requires_fresh_public_probe": true,
+    "fresh_execution_probe_max_age_minutes": 6,
+    "execution_probe_fields_required": ["last_trade_price", "best_bid", "best_ask", "spread_pct", "best_10_bids", "best_10_asks", "near_depth", "buy_slippage", "recent_public_trade_flow"],
+    "manual_capture_fallback_only": "Ask the user for a Bitvavo Pro screenshot only if the autonomous public execution probe is unavailable/stale or if a UI-only/private-account fact is genuinely required.",
+    "private_account_boundary": "Public execution validation does not require account access. Wallet balance, user's open orders, personal fills and private trade history require authenticated Bitvavo API access and must never be committed to this public repository.",
     "do_not_flip_on_single_5m_noise": true,
     "priority_watch_is_persistent": true,
     "review_horizons": ["6h", "24h", "72h", "7d"],
@@ -35,9 +40,9 @@
     {"market": "FET-EUR", "state": "POSITION_OUVERTE", "why": "Current V4 BUY_READY and V3 BUY; user already owns 75 EUR at 0.14890."}
   ],
   "near_term_candidates": [
-    {"market": "ONDO-EUR", "state": "VALIDATION_LIVE_REQUISE", "why": "V4 stabilized BUY_READY and V3 BUY; modest 24h extension."},
-    {"market": "SUI-EUR", "state": "VALIDATION_LIVE_REQUISE", "why": "V4 stabilized BUY_READY but raw WATCH; monitor hysteresis."},
-    {"market": "AVAX-EUR", "state": "VALIDATION_LIVE_REQUISE", "why": "V3 BUY, V4 entry 7.6, no current risk flag."}
+    {"market": "ONDO-EUR", "state": "VALIDATION_AUTONOME_REQUISE", "why": "V4 stabilized BUY_READY and V3 BUY; modest 24h extension."},
+    {"market": "SUI-EUR", "state": "VALIDATION_AUTONOME_REQUISE", "why": "V4 stabilized BUY_READY but raw WATCH; monitor hysteresis."},
+    {"market": "AVAX-EUR", "state": "VALIDATION_AUTONOME_REQUISE", "why": "V3 BUY, V4 entry 7.6, no current risk flag."}
   ],
   "continuation_wait_for_pullback": [
     "LINK-EUR", "TAO-EUR", "KAS-EUR", "TIA-EUR", "ICP-EUR", "COTI-EUR"
