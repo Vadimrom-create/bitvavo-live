@@ -65,6 +65,15 @@ def rebuild(root, db):
     return db
 
 
+def new_candles(db, candles):
+    """Store first-seen bars once; never drop a previously unseen late bar."""
+    result = {}
+    for market, rows in candles.items():
+        known = {r[0] for r in db.execute('SELECT t FROM candles WHERE market=?', (market,))}
+        result[market] = [r for r in rows if r['t'] not in known]
+    return result
+
+
 def recurrent(db, market, now, current_category, window=7200):
     rows = db.execute('SELECT scan_id,ts,payload FROM observations WHERE market=? AND ts>=? AND ts<? ORDER BY ts',
                       (market, now - window, now)).fetchall()

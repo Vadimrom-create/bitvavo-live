@@ -15,6 +15,7 @@ from research.features import closed_candles, describe, chase_risk, wick_setup, 
 from research.history import connect, ingest, recurrent, save_scan
 from research.evaluation import outcome, evaluate, simulate_trade, before_move
 from research.risk import plan, proposed_order, execute, correlation
+from research.http import ReplayClient, PublicClient
 
 ROOT = Path(__file__).resolve().parents[1]
 NOW = 1_788_883_200.0  # exact timeframe boundary
@@ -236,6 +237,40 @@ class HistoryEvaluationTests(unittest.TestCase):
             s = sample_scan(); save_scan(d, s)
             s['observations'][0]['price_eur'] = 200
             with self.assertRaises(ValueError): save_scan(d, s)
+
+    def test_same_bar_stop_before_target_and_gap_loss(self):
+        s = sample_scan(buy=True)
+        s['observations'][0]['trade_plan'] = {'valid': True, 'amount': '1', 'entry_eur': 100,
+            'stop_eur': 95, 'tp1_eur': 110,
+            'cost_assumptions': {'fee_rate_each_side': .0025, 'slippage_rate_each_side': .001}}
+        cs = candles(48, 300000, int(NOW*1000))
+        for c in cs: c.update(o=100, h=111, l=94, c=105)
+        s['candles_5m'] = {'TEST-EUR': cs}; ingest(self.db, s)
+        obs = self.db.execute('SELECT * FROM observations').fetchone()
+        trade = simulate_trade(self.db, obs)
+        self.assertEqual(trade['exit_reason'], 'STOP')
+        self.assertLess(trade['pnl_eur'], -5)
+        self.assertTrue(trade['ambiguous_stop_and_target_bar'])
+
+    def test_passive_entry_target_order_is_not_fabricated(self):
+        s = sample_scan(buy=True)
+        s['observations'][0]['trade_plan'] = {'valid': True, 'amount': '1', 'entry_eur': 100,
+            'stop_eur': 95, 'tp1_eur': 110,
+            'cost_assumptions': {'fee_rate_each_side': .0025, 'slippage_rate_each_side': .001}}
+        cs = candles(48, 300000, int(NOW*1000))
+        for c in cs: c.update(o=105, h=111, l=99, c=105)
+        s['candles_5m'] = {'TEST-EUR': cs}; ingest(self.db, s)
+        obs = self.db.execute('SELECT * FROM observations').fetchone()
+        self.assertEqual(simulate_trade(self.db, obs)['status'], 'AMBIGUOUS')
+
+
+class TransportTests(unittest.TestCase):
+    def test_replay_missing_input_cannot_fetch_present_data(self):
+        with self.assertRaises(RuntimeError): ReplayClient([]).get('/BTC-EUR/candles', {'interval': '15m'})
+
+    def test_public_pipeline_rejects_private_endpoints(self):
+        for path in ('/order', '/balance', '/withdrawal', 'https://example.com'):
+            with self.assertRaises(ValueError): PublicClient().get(path)
 
 
 class BaselineIntegrityTests(unittest.TestCase):

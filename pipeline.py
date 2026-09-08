@@ -20,7 +20,7 @@ from pathlib import Path
 from research.common import atomic_json, finite, freshness, read_json, timestamp, utc
 from research.evaluation import evaluate, market_control
 from research.features import category, chase_risk, closed_candles, describe, nil_match, score_components, wick_setup
-from research.history import connect, ingest, rebuild, recurrent, save_scan
+from research.history import connect, ingest, new_candles, rebuild, recurrent, save_scan
 from research.http import PublicClient
 from research.risk import correlation, plan, proposed_order
 
@@ -70,7 +70,13 @@ def report_text(report):
              '## ACHÈTE — signal V4 et plan théorique', '']
     buys = report['buy']
     if not buys:
-        lines.append('RIEN À ACHETER' if h['status'] == 'OK' else 'SCAN INCOMPLET — aucune recommandation d’achat publiée')
+        lines.append('AUCUN ACHAT VALIDÉ — cette absence ne valide pas les marchés aux données insuffisantes.' if h['status'] == 'OK' else 'SCAN INCOMPLET — aucune recommandation d’achat publiée')
+    lines += [f"Bougies utilisables : 5 min {h.get('valid_5m', 0)}/{h['universe']} ; 15 min {h.get('valid_15m', 0)}/{h['universe']}.",
+              'Les trous de cotation restent visibles ; aucune bougie sans transaction n’est inventée.']
+    if report.get('blocked_baseline_buys'):
+        lines += ['', 'Achats bruts V4 bloqués avant alerte :']
+        for row in report['blocked_baseline_buys']:
+            lines.append(f"- {row['market']} : {', '.join(row['exclusions'])}")
     for obs in buys:
         p, b = obs['trade_plan'], obs['baseline']
         lines += [f"- {obs['market']} : {obs['price_eur']:.8g} € | {obs['category']} | score {b['opportunity_score'] * 10:.2f}/100 | entrée {b['entry_score']:.2f}/10",
@@ -228,6 +234,9 @@ def run():
         buys.append(obs)
     health = {'status': 'OK', 'universe': len(markets), 'baseline_analyzed': len(captured['rows']),
               'valid_markets': sum(o['data_quality']['ok'] for o in observations),
+              'valid_5m': sum(bool((o['features'].get('5m') or {}).get('valid')) for o in observations),
+              'valid_15m': sum(bool((o['features'].get('15m') or {}).get('valid')) for o in observations),
+              'quality_scope': 'OK describes collection execution; per-market admissibility is separate',
               'collected_at_utc': live['generated_at_utc'], 'ticker_age_seconds': finish - timestamp(ticker_at),
               'duration_seconds': finish - start, 'api_error_count': len(client.errors),
               'api_errors': client.errors, 'exchange_clock_offset_seconds': client.server_offset,
@@ -239,7 +248,8 @@ def run():
             obs['exclusions'].append('PIPELINE_DEGRADED')
         buys = []
     scan = {'schema_version': 1, 'scan_id': scan_id, 'scan_ts': baseline_ts, 'scan_at_utc': utc(baseline_ts),
-            'policy': POLICY, 'source': 'live', 'observations': observations, 'candles_5m': candles5,
+            'policy': POLICY, 'source': 'live', 'observations': observations, 'candles_5m': new_candles(db, candles5),
+            'candle_storage': 'FIRST_SEEN_DELTA_REBUILD_ALL_JOURNALS',
             'health': health, 'baseline_input_policy': 'legacy includes forming candles; closed diagnostics never change V4 scoring'}
     journal = save_scan('history', scan)
     ingest(db, scan)
@@ -248,6 +258,8 @@ def run():
     watch = sorted([o for o in observations if o['decision'] == 'SURVEILLE'],
                    key=lambda o: (o.get('baseline') or {}).get('opportunity_score', 0), reverse=True)[:5]
     report = {'scan_id': scan_id, 'scan_at_utc': utc(baseline_ts), 'health': health, 'buy': buys, 'watch': watch,
+              'blocked_baseline_buys': [{'market': o['market'], 'exclusions': o['exclusions']} for o in observations
+                                      if (o.get('baseline') or {}).get('buy_ready') and o not in buys],
               'market_control': control, 'evaluation': evaluation, 'journal_path': str(journal),
               'orders': [proposed_order(o['trade_plan'], scan_id) for o in buys]}
     atomic_json('v5_report.json', report)
@@ -258,7 +270,8 @@ def run():
     atomic_json('proposed_orders.json', {'dry_run': True, 'orders': report['orders']})
     # Preserve raw baseline public outputs for audit; provide a separate, fresh,
     # quality-checked payload to the existing alert transport.
-    alert_payload = {**baseline_output, 'watch': [{**o['baseline'], 'data_quality': o['data_quality']} for o in buys]}
+    alert_payload = {**baseline_output, 'generated_at_utc': utc(baseline_ts),
+                     'watch': [{**o['baseline'], 'data_quality': o['data_quality'], 'trade_plan': o['trade_plan']} for o in buys]}
     atomic_json('alert_candidates.json', alert_payload)
     replay_input.update({'requests': client.records, 'expected_baseline': baseline_output,
                          'expected_all_rows': captured['rows']})

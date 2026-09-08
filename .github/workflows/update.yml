@@ -9,6 +9,8 @@ on:
     paths:
       - '*.py'
       - 'research/**'
+      - 'monitoring/**'
+      - 'requirements-monitoring.txt'
       - 'scripts/**'
       - 'tests/**'
       - 'v4_config.json'
@@ -39,11 +41,14 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
+      - run: python -m pip install -r requirements-monitoring.txt
       - name: Critical tests and unchanged V4 scoring
+        id: tests
         run: python -m unittest discover -s tests -v
       - name: Collect, scan, record all markets and evaluate
         run: python pipeline.py
       - name: Verify exact V4 replay against frozen source
+        id: replay
         run: python -m research.replay runtime/replay-*.json.gz
       - name: Preserve raw replay inputs and failure diagnostics
         if: always()
@@ -56,18 +61,34 @@ jobs:
             pipeline_health.json
             v5_report.json
       - name: Publish complete data and history before notifying
+        id: publication
         run: |
           git config user.name 'bitvavo-live-bot'
           git config user.email 'actions@users.noreply.github.com'
           python scripts/publish_data.py
-      - name: Send only a new useful buy signal
+      - name: Prepare isolated position supervision even if prospecting failed
+        if: always() && steps.tests.outcome == 'success'
+        run: |
+          git config user.name 'bitvavo-live-bot'
+          git config user.email 'actions@users.noreply.github.com'
+          git worktree add --detach /tmp/bitvavo-monitor HEAD
+      - name: Monitor every held position and send only justified actions
+        id: positions
+        if: always() && steps.tests.outcome == 'success'
+        working-directory: /tmp/bitvavo-monitor
         env:
+          ALLOW_BUY_ALERTS: ${{ steps.publication.outcome == 'success' && steps.replay.outcome == 'success' }}
+          BITVAVO_READ_API_KEY: ${{ secrets.BITVAVO_READ_API_KEY }}
+          BITVAVO_READ_API_SECRET: ${{ secrets.BITVAVO_READ_API_SECRET }}
+          POSITION_STATE_KEY: ${{ secrets.POSITION_STATE_KEY }}
+          POSITION_PLANS_JSON: ${{ secrets.POSITION_PLANS_JSON }}
           ALERT_GMAIL_USER: ${{ vars.ALERT_GMAIL_USER }}
-          ALERT_EMAIL_TO: ${{ vars.ALERT_EMAIL_TO }}
+          ALERT_EMAIL_TO: bellonirom@gmail.com
           GMAIL_APP_PASSWORD: ${{ secrets.GMAIL_APP_PASSWORD }}
         run: python scripts/send_useful_alert.py
-      - name: Persist anti-spam state
-        if: success()
+      - name: Persist encrypted anti-spam state and monitoring availability
+        if: always() && steps.tests.outcome == 'success'
+        working-directory: /tmp/bitvavo-monitor
         run: python scripts/publish_data.py --alerts
       - name: Prepare public feed
         run: |
@@ -76,12 +97,14 @@ jobs:
           cp v4_watch.txt v4_watch.json v4_watch_raw.txt v4_watch_raw.json _site/
           cp market_control.txt market_control.json execution_snapshot.json _site/
           cp v5_report.json v5_report.md pipeline_health.json evaluation.json proposed_orders.json _site/
+          cp /tmp/bitvavo-monitor/position_monitor_status.json _site/
           cat > _site/index.html <<'EOF'
           <!doctype html>
           <html lang="fr"><meta charset="utf-8"><title>Bitvavo — suivi V4 / V5</title>
           <h1>Bitvavo — V4 mesurée, infrastructure V5</h1>
           <p><a href="v5_report.md">Dernier scan et contrôle des hausses</a></p>
           <p><a href="pipeline_health.json">État et fraîcheur des données</a></p>
+          <p><a href="position_monitor_status.json">Disponibilité du suivi des positions</a></p>
           <p><a href="evaluation.json">Mesures chronologiques</a></p>
           <p><a href="v4_watch.txt">Décisions V4</a> · <a href="v4_watch_raw.json">V4 avant stabilisation</a></p>
           <p><a href="market_control.txt">Tous les marchés</a> · <a href="execution_snapshot.json">Carnets publics</a></p>

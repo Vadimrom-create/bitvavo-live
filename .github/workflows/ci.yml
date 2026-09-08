@@ -4,7 +4,7 @@ on:
   pull_request:
   push:
     branches: [main, 'codex/**']
-    paths: ['**.py', 'tests/**', '.github/workflows/**', 'baseline/**']
+    paths: ['**.py', 'tests/**', '.github/workflows/**', 'baseline/**', 'requirements-monitoring.txt']
   workflow_dispatch:
 
 permissions:
@@ -22,7 +22,9 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
+      - run: python -m pip install -r requirements-monitoring.txt
       - run: python -m unittest discover -s tests -v
+        name: Critical tests
   public-live-smoke:
     if: github.event_name == 'push' && startsWith(github.ref, 'refs/heads/codex/')
     needs: tests
