@@ -167,7 +167,7 @@ def fmt(x, digits=2):
     except Exception: return str(x)
 
 
-def main(audit_sink=None):
+def main():
     live = json.loads(Path(LIVE).read_text(encoding='utf-8'))
     rows = [r for r in live.get('markets', []) if isinstance(r, dict) and r.get('market')]
     generated = live.get('generated_at_utc') or datetime.now(timezone.utc).isoformat()
@@ -310,11 +310,6 @@ def main(audit_sink=None):
         row['action_status'] = action
         row['buy_ready'] = buy_ready
         row['trade_plan'] = suggested_trade_plan(row, profile, opp, ent) if action in {'BUY_READY','REENTRY_READY','ENTRY_WINDOW'} else None
-
-    if audit_sink is not None:
-        # Observability only: all markets before output truncation. No scoring,
-        # threshold, selection or decision-state change.
-        audit_sink(rows, enriched, generated)
 
     for market in list(hm4_all):
         hm = hm4_all[market]
