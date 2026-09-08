@@ -202,6 +202,12 @@ def run():
     for obs in sorted(observations, key=lambda o: (o.get('baseline') or {}).get('opportunity_score', 0), reverse=True):
         if not (obs.get('baseline') or {}).get('buy_ready') or not obs['data_quality']['ok']:
             continue
+        if obs['category'] == 'TOO LATE':
+            # Preserve the raw V4 decision, but do not publish a contradictory
+            # buy if its own chase/too-late flag survived the re-entry path.
+            obs['decision'] = 'TOO LATE'
+            obs['exclusions'].append('BASELINE_BUY_CHASE_CONTRADICTION')
+            continue
         name = obs['market']
         p = plan(obs['baseline'], obs['features']['15m'], universe[name]['meta'], reserved=used)
         obs['trade_plan'] = p
@@ -262,6 +268,11 @@ def run():
             f.write(text)
     print(json.dumps({'scan_id': scan_id, 'health': health['status'], 'markets': len(markets),
                       'buys': [r['market'] for r in buys], 'journal': str(journal)}, ensure_ascii=False), flush=True)
+    print(text, flush=True)
+    print('BASELINE_BUY_AUDIT ' + json.dumps([
+        {'market': o['market'], 'decision': o['decision'], 'exclusions': o['exclusions'],
+         'trade_plan': o['trade_plan']} for o in observations if (o.get('baseline') or {}).get('buy_ready')
+    ], ensure_ascii=False), flush=True)
     return 0 if health['status'] == 'OK' else 2
 
 

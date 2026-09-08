@@ -74,6 +74,10 @@ def simulate_trade(db, obs, horizon=14400):
             exit_price, reason = min(stop, r['o']) * (1 - slip), 'STOP'
             break
         if r['h'] >= target:
+            if r['t'] == start and first['o'] > limit:
+                # The high may have occurred before a passive limit was filled.
+                # OHLC cannot resolve that ordering; never credit this TP.
+                return {'status': 'AMBIGUOUS', 'reason': 'ENTRY_AND_TARGET_ORDER_UNKNOWN'}
             exit_price, reason = target * (1 - slip), 'TP1'
             break
     if reason == 'HORIZON_EXIT':
