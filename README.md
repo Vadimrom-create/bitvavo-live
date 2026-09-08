@@ -54,4 +54,4 @@ Un achat continu identique est envoyé une seule fois, même en REENTRY_READY ; 
 
 ## Évaluation avant optimisation
 
-Lire [le protocole](docs/EVALUATION.md) et [l’audit](docs/AUDIT_2026-09-08.md). Aucune V5 optimisée n’est déclarée supérieure à V4. Les probabilités +10/+20/+30/+40 % restent nulles jusqu’à calibration hors échantillon. Les statistiques en cours ne remplacent pas un backtest ex ante complet.
+Lire [le protocole](docs/EVALUATION.md), [l’audit](docs/AUDIT_2026-09-08.md) et [le compte rendu de livraison](docs/DELIVERY_2026-09-08.md). Aucune V5 optimisée n’est déclarée supérieure à V4. Les probabilités +10/+20/+30/+40 % restent nulles jusqu’à calibration hors échantillon. Les statistiques en cours ne remplacent pas un backtest ex ante complet.
