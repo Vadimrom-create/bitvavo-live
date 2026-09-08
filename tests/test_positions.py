@@ -183,6 +183,14 @@ class Positions(unittest.TestCase):
             self.assertEqual(runner.run({}), 0)
             send.assert_not_called()
             self.assertNotIn('ABC-EUR', json.dumps(status))
+            # Re-arm a genuinely different position while prospecting is broken.
+            import os
+            os.environ['ALLOW_BUY_ALERTS'] = 'true'
+            os.environ['POSITION_PLANS_JSON'] = json.dumps({'ABC-EUR': {**self.plan, 'position_id': 'lot-3'},
+                                                          'XYZ-EUR': {**self.plan, 'position_id': 'lot-2'}})
+            with patch.object(runner, 'read_json', side_effect=ValueError('corrupt public prospecting')):
+                self.assertEqual(runner.run({}), 0)
+            send.assert_called_once()
 
     def test_candle_deltas_preserve_late_bars_and_original_values(self):
         db = connect()

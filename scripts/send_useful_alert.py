@@ -107,12 +107,19 @@ def run(status):
     if not freshness(now=time.time(), retrieved=account['retrieved_at_utc'], max_retrieval_age=120)['ok']:
         events = []
         issues.append('ACCOUNT_SNAPSHOT_STALE')
-    payload = read_json('alert_candidates.json', {}) if os.getenv('ALLOW_BUY_ALERTS') == 'true' else {}
-    prior_buys = state.get('buy_state')
-    if prior_buys is None:
-        prior_buys = read_json('alert_state_v4.json', {'markets': {}})
-    eligible_buys, buy_state = select_events(payload, prior_buys, time.time())
-    state['buy_state'] = buy_state
+    eligible_buys = []
+    buy_state = state.get('buy_state', {'markets': {}})
+    if os.getenv('ALLOW_BUY_ALERTS') == 'true':
+        try:
+            payload = read_json('alert_candidates.json', {})
+            prior_buys = state.get('buy_state')
+            if prior_buys is None:
+                prior_buys = read_json('alert_state_v4.json', {'markets': {}})
+            eligible_buys, buy_state = select_events(payload, prior_buys, time.time())
+            state['buy_state'] = buy_state
+        except Exception:
+            # Corrupt prospecting files must not suppress a justified exit.
+            issues.append('BUY_INPUT_UNAVAILABLE')
     can_buy = not issues and not events and not any(o.get('side') == 'buy' for o in account['orders'])
     if can_buy:
         cash = next((b['available'] for b in account['balances'] if b['symbol'] == 'EUR'), 0)
