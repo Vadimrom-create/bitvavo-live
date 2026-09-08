@@ -1,29 +1,38 @@
 {
-  "version": 3,
-  "updated_at_utc": "2026-09-08T06:40:00+00:00",
+  "version": 4,
+  "updated_at_utc": "2026-09-08T06:48:00+00:00",
   "purpose": "Persistent decision-layer watchlist owned by ChatGPT. A coin stays here until actionable or structurally invalidated; it must not disappear because of one weaker 5-minute scan.",
-  "portfolio_context": {"target_wallet_eur":2700,"approx_wallet_eur":2300,"approx_cash_eur":1200,"open_positions":[{"market":"FET-EUR","stake_eur":75,"entry_price":0.14890}]},
-  "operating_rules": {
-    "horizon":"hours_to_7_days",
-    "execution_requires_live_user_capture":false,
-    "execution_requires_fresh_public_probe":true,
-    "fresh_execution_probe_max_age_minutes":6,
-    "execution_probe_fields_required":["last_trade_price","best_bid","best_ask","spread_pct","best_10_bids","best_10_asks","near_depth","buy_slippage","recent_public_trade_flow"],
-    "manual_capture_fallback_only":"Ask the user for a Bitvavo Pro screenshot only if the autonomous public execution probe is unavailable/stale or if a UI-only/private-account fact is genuinely required.",
-    "private_account_boundary":"Public execution validation does not require account access. Wallet balance, user's open orders, personal fills and private trade history require authenticated Bitvavo API access and must never be committed to this public repository.",
-    "do_not_flip_on_single_5m_noise":true,
-    "priority_watch_is_persistent":true,
-    "review_horizons":["6h","24h","72h","7d"],
-    "winner_retention_rule":"Do not discard a strong 7d/30d trend solely because the immediate Entry Score weakens. Track pullback/re-entry candidates until structural invalidation.",
-    "latent_accelerator_rule":"Opportunity >= 7.4 plus coherent acceleration evidence must be retained as LATENT_ACCELERATOR even when Entry or Trend is imperfect. Entry is a timing input, not an automatic veto. CFG/ORCA/IOST are audit examples.",
-    "decision_layer_rule":"Do not require simultaneous perfection of Opportunity, Entry, Trend, V3 and order book. Compare the strongest candidates cross-sectionally and judge remaining upside versus timing and risk.",
-    "cross_sectional_ranking_rule":"Every scan interpretation must compare the full current Bitvavo candidate set, not only the persistent watchlist. Select the best risk-adjusted remaining-upside setup across new signals, latent accelerators, pullbacks/re-entries and existing priority candidates.",
-    "required_interpretation_buckets":["MEILLEUR_ACHAT_IMMEDIAT","MEILLEURE_LIMITE_PASSIVE","MEILLEUR_LATENT_ACCELERATOR","MEILLEUR_PULLBACK_REENTRY"],
-    "notification_rule":"Return no-action only when none of the four interpretation buckets contains a materially attractive candidate. Do not notify merely because a bucket has a weak candidate.",
-    "structural_invalidation_rule":"Downgrade persistent candidates only on genuine structural invalidation or sustained deterioration, never one weak 5-minute scan.",
-    "states":["ACHETE_MAINTENANT","PLACE_LIMITE","LATENT_ACCELERATOR","GARDE_PRIORITAIREMENT_EN_WATCHLIST","INVALIDE"]
+  "portfolio_context": {
+    "target_wallet_eur": 2700,
+    "approx_wallet_eur": 2300,
+    "approx_cash_eur": 1200,
+    "open_positions": [{"market":"FET-EUR","stake_eur":75,"entry_price":0.14890}]
   },
-  "priority":[
+  "operating_rules": {
+    "horizon": "hours_to_7_days",
+    "execution_requires_live_user_capture": false,
+    "execution_requires_fresh_public_probe": true,
+    "fresh_execution_probe_max_age_minutes": 6,
+    "execution_probe_fields_required": ["last_trade_price","best_bid","best_ask","spread_pct","best_10_bids","best_10_asks","near_depth","buy_slippage","recent_public_trade_flow"],
+    "manual_capture_fallback_only": "Ask the user for a Bitvavo Pro screenshot only if the autonomous public execution probe is unavailable/stale or if a UI-only/private-account fact is genuinely required.",
+    "private_account_boundary": "Public execution validation does not require account access. Wallet balance, user's open orders, personal fills and private trade history require authenticated Bitvavo API access and must never be committed to this public repository.",
+    "do_not_flip_on_single_5m_noise": true,
+    "priority_watch_is_persistent": true,
+    "review_horizons": ["6h","24h","72h","7d"],
+    "winner_retention_rule": "Do not discard a strong 7d/30d trend solely because the immediate Entry Score weakens. Track pullback/re-entry candidates until structural invalidation.",
+    "latent_accelerator_rule": "Opportunity >= 7.4 plus coherent acceleration evidence must be retained as LATENT_ACCELERATOR even when Entry or Trend is imperfect. Entry is a timing input, not an automatic veto. CFG/ORCA/IOST are audit examples.",
+    "decision_layer_rule": "Do not require simultaneous perfection of Opportunity, Entry, Trend, V3 and order book. Compare the strongest candidates cross-sectionally and judge remaining upside versus timing and risk.",
+    "cross_sectional_ranking_rule": "Every scan interpretation must compare the full current Bitvavo candidate set, not only the persistent watchlist. Select the best risk-adjusted remaining-upside setup across new signals, latent accelerators, pullbacks/re-entries and existing priority candidates.",
+    "dual_scan_protocol": "Every scan has two mandatory simultaneous readings: (1) prospective V3/V4 detection and persistent decision watchlist; (2) market_control full active EUR universe leaderboard, especially current top 24h gainers, to audit whether V3/V4 detected each mover before or during acceleration.",
+    "mandatory_scan_sources": ["decision_watchlist.json","v4_watch.txt/v4_watch.json","early_watch.txt/early_watch.json","market_control.txt/market_control.json","bitvavo_live.json"],
+    "market_control_rule": "For each scan, inspect top 10/20/40 24h gainers and material movers >=5%, identify V4/V3 coverage, highlight material movers missed by both scanners, and compare them with prospective V4 candidates that have not yet reached the leaderboard.",
+    "leaderboard_audit_not_buy_signal": "A high 24h leaderboard rank is not itself a buy signal. Its purpose is to measure scanner coverage and detect late/missed promotion. Execution still requires prospective structure plus fresh execution validation.",
+    "required_interpretation_buckets": ["MEILLEUR_ACHAT_IMMEDIAT","MEILLEURE_LIMITE_PASSIVE","MEILLEUR_LATENT_ACCELERATOR","MEILLEUR_PULLBACK_REENTRY"],
+    "notification_rule": "Return no-action only when none of the four interpretation buckets contains a materially attractive candidate. Do not notify merely because a bucket has a weak candidate.",
+    "structural_invalidation_rule": "Downgrade persistent candidates only on genuine structural invalidation or sustained deterioration, never one weak 5-minute scan.",
+    "states": ["ACHETE_MAINTENANT","PLACE_LIMITE","LATENT_ACCELERATOR","GARDE_PRIORITAIREMENT_EN_WATCHLIST","INVALIDE"]
+  },
+  "priority": [
     {"market":"SOLV-EUR","state":"GARDE_PRIORITAIREMENT_EN_WATCHLIST","why":"Strong 30d/7d/3d trend; pullback/re-entry profile."},
     {"market":"LDO-EUR","state":"GARDE_PRIORITAIREMENT_EN_WATCHLIST","why":"Strong 30d/7d trend; continuation after pullback candidate."},
     {"market":"SYRUP-EUR","state":"GARDE_PRIORITAIREMENT_EN_WATCHLIST","why":"Strong multi-day trend; immediate Entry weakness must not erase setup."},
@@ -34,13 +43,15 @@
     {"market":"HYPE-EUR","state":"GARDE_PRIORITAIREMENT_EN_WATCHLIST","why":"Strong 30d trend; possible pre-reacceleration."},
     {"market":"UNI-EUR","state":"GARDE_PRIORITAIREMENT_EN_WATCHLIST","why":"Very strong 30d/7d trend; wait for accessible re-entry rather than forget."}
   ],
-  "active_position_monitoring":[{"market":"FET-EUR","state":"POSITION_OUVERTE","why":"User owns 75 EUR at 0.14890; monitor structure and remaining upside."}],
-  "near_term_candidates":[
+  "active_position_monitoring": [
+    {"market":"FET-EUR","state":"POSITION_OUVERTE","why":"User owns 75 EUR at 0.14890; monitor structure and remaining upside."}
+  ],
+  "near_term_candidates": [
     {"market":"TIA-EUR","state":"VALIDATION_AUTONOME_REQUISE","why":"Current V4 BUY_READY; evaluate as new full-universe candidate."},
     {"market":"VET-EUR","state":"VALIDATION_AUTONOME_REQUISE","why":"Current V4 BUY_READY with V3 confirmation; evaluate execution quality."}
   ],
-  "continuation_wait_for_pullback":["LINK-EUR","TAO-EUR","KAS-EUR","ICP-EUR","COTI-EUR"],
-  "post_move_audit":[
+  "continuation_wait_for_pullback": ["LINK-EUR","TAO-EUR","KAS-EUR","ICP-EUR","COTI-EUR"],
+  "post_move_audit": [
     {"market":"CFG-EUR","first_price":0.093602,"mfe_pct":23.0989,"first_opportunity_score":7.559,"first_entry_score":6.0,"first_trend_score":2.45,"lesson":"Detected but left WATCH; decision layer failed to retain latent accelerator."},
     {"market":"ORCA-EUR","first_price":1.19207,"mfe_pct":23.5666,"first_opportunity_score":7.756,"first_entry_score":5.9,"first_trend_score":7.4,"lesson":"Detected but left WATCH; insufficient promotion despite later +20% move."},
     {"market":"IOST-EUR","first_price":0.000633,"mfe_pct":22.5276,"first_opportunity_score":7.474,"first_entry_score":4.5,"first_trend_score":7.65,"lesson":"Detected but Entry Score suppressed recommendation; Entry must not veto coherent latent acceleration."}
