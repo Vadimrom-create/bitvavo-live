@@ -30,7 +30,8 @@ def load(path, default):
 
 
 def save(path, data):
-    path.write_text(json.dumps(data, ensure_ascii=False, indent=2, sort_keys=True)+'\n', encoding='utf-8')
+    from research.common import atomic_json
+    atomic_json(path, data)
 
 
 def ts(v):
@@ -50,6 +51,47 @@ def price(x):
     return f'{v:.{d}f} €'
 
 
+def select_events(payload, state, now):
+    """A continuous identical signal is sent once, including REENTRY_READY.
+
+    Observations persist even on empty scans. Delivery markers only change after
+    SMTP succeeds. A failed delivery therefore remains retryable.
+    """
+    import copy
+    state = copy.deepcopy(state)
+    state.setdefault('markets', {})
+    generated = ts(payload.get('generated_at_utc'))
+    if generated is None or not -30 <= now - generated <= MAX_SNAPSHOT_AGE:
+        return [], state
+    eligible = {r['market']: r for r in payload.get('watch', [])
+                if r.get('market') and r.get('buy_ready')
+                and r.get('action_status') in {'BUY_READY', 'REENTRY_READY'}
+                and r.get('data_quality', {}).get('ok', True)}
+    events = []
+    for m in sorted(set(state['markets']) | set(eligible)):
+        previous = state['markets'].setdefault(m, {})
+        row = eligible.get(m)
+        was_active = previous.get('active', previous.get('status') in {'BUY_READY', 'REENTRY_READY'})
+        if row is None:
+            previous['active'] = False
+            continue
+        if not was_active:
+            previous['episode'] = int(previous.get('episode', 0)) + 1
+        previous['active'] = True
+        episode = int(previous.get('episode', 0))
+        last = n(previous.get('last_sent_ts'))
+        new_episode = last is None or episode != previous.get('sent_episode', 0)
+        improved = (n(row.get('opportunity_score'), 0) - n(previous.get('opportunity'), 0) >= .7
+                    and n(row.get('entry_score'), 0) - n(previous.get('entry'), 0) >= .5)
+        if (new_episode or improved) and (last is None or now - last >= MARKET_COOLDOWN):
+            events.append(row)
+    last_global = n(state.get('last_global_sent_ts'))
+    if last_global is not None and now - last_global < GLOBAL_COOLDOWN:
+        return [], state
+    events.sort(key=lambda r: (n(r.get('opportunity_score'), 0), n(r.get('entry_score'), 0)), reverse=True)
+    return events[:1], state
+
+
 def main() -> int:
     user=os.getenv('ALERT_GMAIL_USER','').strip(); recipient=os.getenv('ALERT_EMAIL_TO','').strip(); password=os.getenv('GMAIL_APP_PASSWORD','').strip().replace(' ','')
     test=os.getenv('ALERT_TEST_MODE','').lower() in {'1','true','yes','on'}
@@ -57,7 +99,7 @@ def main() -> int:
         print('EMAIL_V4_CONFIG_MISSING'); return 0
     payload=load(V4_JSON,{})
     generated=ts(payload.get('generated_at_utc'))
-    if generated is None or time.time()-generated>MAX_SNAPSHOT_AGE:
+    if generated is None or not -30 <= time.time()-generated <= MAX_SNAPSHOT_AGE:
         print('EMAIL_V4_SKIPPED stale'); return 0
     state=load(STATE,{'markets':{}})
     state.setdefault('markets',{})
@@ -68,12 +110,9 @@ def main() -> int:
     selected=[]
     if test:
         selected=candidates[:1] or [r for r in payload.get('watch',[])[:1] if isinstance(r,dict)]
-    elif last_global is None or now-last_global>=GLOBAL_COOLDOWN:
-        for r in candidates:
-            m=str(r.get('market') or '')
-            last=n((state['markets'].get(m) or {}).get('last_sent_ts'))
-            if last is None or now-last>=MARKET_COOLDOWN or r.get('action_status')=='REENTRY_READY':
-                selected=[r]; break
+    else:
+        selected,state=select_events(payload,state,now)
+        save(STATE,state)
     if not selected:
         print('EMAIL_V4_SKIPPED no_new_buy_ready'); return 0
 
@@ -99,7 +138,8 @@ def main() -> int:
     base.send_email(user,password,recipient,subject,body)
     if not test:
         state['last_global_sent_ts']=now
-        state['markets'][str(m)]={'last_sent_ts':now,'opportunity':r.get('opportunity_score'),'entry':r.get('entry_score'),'price':r.get('last'),'status':r.get('action_status')}
+        previous=state['markets'].get(str(m),{})
+        state['markets'][str(m)]={**previous,'last_sent_ts':now,'sent_episode':previous.get('episode',0),'opportunity':r.get('opportunity_score'),'entry':r.get('entry_score'),'price':r.get('last'),'status':r.get('action_status')}
         state['updated_at_utc']=datetime.now(timezone.utc).isoformat(); save(STATE,state)
     print(f"EMAIL_V4_SENT recipient={recipient} market={m} test={test}")
     return 0

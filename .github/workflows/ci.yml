@@ -1,0 +1,51 @@
+name: V4 baseline and V5 infrastructure checks
+
+on:
+  pull_request:
+  push:
+    branches: [main, 'codex/**']
+    paths: ['**.py', 'tests/**', '.github/workflows/**', 'baseline/**']
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  PYTHONHASHSEED: '0'
+  DRY_RUN: 'true'
+
+jobs:
+  tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: python -m unittest discover -s tests -v
+  public-live-smoke:
+    if: github.event_name == 'push' && startsWith(github.ref, 'refs/heads/codex/')
+    needs: tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Live scan, no email or real order
+        run: python pipeline.py
+      - name: Replay and compare with frozen V4
+        run: python -m research.replay runtime/replay-*.json.gz
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: public-live-validation
+          retention-days: 30
+          path: |
+            v5_report.json
+            v5_report.md
+            pipeline_health.json
+            evaluation.json
+            history/
+            runtime/replay-*.json.gz
