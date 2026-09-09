@@ -1,47 +1,42 @@
 # Bitvavo — V4 mesurée / infrastructure V5
 
-Scan UTC : 2026-09-09T13:14:40.271965+00:00
-État : OK | marchés EUR : 428 | V4 : 373 | données valides : 10
-Récupération : 2026-09-09T13:14:11.282065+00:00 | âge ticker : 136.6 s | durée : 139.3 s
+Scan UTC : 2026-09-09T13:35:36.443432+00:00
+État : OK | marchés EUR : 428 | V4 : 372 | données valides : 9
+Récupération : 2026-09-09T13:35:05.550853+00:00 | âge ticker : 139.7 s | durée : 141.2 s
 
 ## ACHÈTE — signal V4 et plan théorique
 
-Bougies utilisables : 5 min 36/428 ; 15 min 85/428.
+AUCUN ACHAT VALIDÉ — cette absence ne valide pas les marchés aux données insuffisantes.
+Bougies utilisables : 5 min 39/428 ; 15 min 83/428.
 Les trous de cotation restent visibles ; aucune bougie sans transaction n’est inventée.
 
 Achats bruts V4 bloqués avant alerte :
-- AKT-EUR : STABILITY_HOLD, INVALID_5M, STALE_DAILY_PROFILE
-- ALGO-EUR : INVALID_15M, INVALID_5M, MISSING_LATEST_CLOSED_CANDLE, STALE_DAILY_PROFILE
-- XPL-EUR : INVALID_15M, INVALID_5M
-- TAO-EUR : 230.81 € | IGNITION | score 86.04/100 | entrée 7.45/10
-  Entrée 230.91 € ; stop 221.08 € ; TP1 250.56 € ; TP2 260.4 € ; montant 242.81 € ; risque théorique 12.00 € ; R/R net 1.57.
-  Chase risk : 2.774/10 (diagnostic non calibré). Probabilités +10/+20/+30/+40 % : indisponibles.
-- PUMP-EUR : 0.0039954 € | IGNITION | score 80.46/100 | entrée 7.45/10
-  Entrée 0.0039951 € ; stop 0.003721 € ; TP1 0.0045432 € ; TP2 0.0048173 € ; montant 159.22 € ; risque théorique 12.00 € ; R/R net 1.72.
-  Chase risk : 5.457/10 (diagnostic non calibré). Probabilités +10/+20/+30/+40 % : indisponibles.
+- ALGO-EUR : INVALID_15M, INVALID_5M, STALE_DAILY_PROFILE
+- PUMP-EUR : STABILITY_HOLD, STALE_DAILY_PROFILE
+- TAO-EUR : STABILITY_HOLD, STALE_DAILY_PROFILE
 
 ## SURVEILLE
 
-- PHA-EUR : 0.024516 € ; score 79.15/100 ; SURVEILLE ; WICK_SETUP
-- BCH-EUR : 223.18 € ; score 76.96/100 ; SURVEILLE ; WICK_SETUP
-- XRP-EUR : 1.23292 € ; score 75.21/100 ; SURVEILLE ; seuil achat non atteint
-- UNI-EUR : 5.7313 € ; score 74.82/100 ; SURVEILLE ; seuil achat non atteint
+- AAVE-EUR : 112.2 € ; score 82.48/100 ; SURVEILLE ; seuil achat non atteint
+- VET-EUR : 0.0066694 € ; score 80.69/100 ; SURVEILLE ; WICK_SETUP
+- TRX-EUR : 0.29088 € ; score 79.57/100 ; SURVEILLE ; seuil achat non atteint
+- ETH-EUR : 2161.76 € ; score 78.94/100 ; SURVEILLE ; seuil achat non atteint
 
 ## Contrôle des hausses
 
 | Marché | Prix € | 24 h | État historique |
 |---|---:|---:|---|
-| IOST-EUR | 0.0010927 | +40.78 % | DETECTED_EARLY |
-| VVV-EUR | 22.523 | +36.07 % | EXCLUDED_BEFORE_MOVE |
-| KAT-EUR | 0.005119 | +26.33 % | DETECTED_EARLY |
-| RAY-EUR | 1.1488 | +24.19 % | DETECTED_EARLY |
-| USELESS-EUR | 0.26949 | +20.59 % | EXCLUDED_BEFORE_MOVE |
-| LRC-EUR | 0.008425 | +16.05 % | EXCLUDED_BEFORE_MOVE |
-| CROSS-EUR | 0.1057 | +14.69 % | NO_CONFIRMED_SHORT_TERM_EVENT |
-| NEAR-EUR | 2.2432 | +13.32 % | DETECTED_EARLY |
-| XTZ-EUR | 0.22766 | +12.38 % | DETECTED_EARLY |
-| ATOM-EUR | 1.6689 | +11.30 % | NO_CONFIRMED_SHORT_TERM_EVENT |
+| IOST-EUR | 0.0011461 | +49.76 % | DETECTED_EARLY |
+| VVV-EUR | 22.4738 | +39.06 % | EXCLUDED_BEFORE_MOVE |
+| RAY-EUR | 1.15466 | +24.65 % | DETECTED_EARLY |
+| KAT-EUR | 0.004931 | +22.21 % | DETECTED_EARLY |
+| LRC-EUR | 0.008701 | +19.85 % | EXCLUDED_BEFORE_MOVE |
+| USELESS-EUR | 0.267371 | +15.51 % | EXCLUDED_BEFORE_MOVE |
+| XTZ-EUR | 0.23348 | +15.25 % | DETECTED_EARLY |
+| NEAR-EUR | 2.2279 | +13.80 % | DETECTED_EARLY |
+| ATOM-EUR | 1.6792 | +13.61 % | NO_CONFIRMED_SHORT_TERM_EVENT |
+| CROSS-EUR | 0.104981 | +11.99 % | NO_CONFIRMED_SHORT_TERM_EVENT |
 
-Historique : 53 scans ; 22684 observations ; 17 épisodes d’achat évaluables.
+Historique : 54 scans ; 23112 observations ; 17 épisodes d’achat évaluables.
 V5 optimisée : aucune. Supériorité sur V4 : non démontrée. Probabilités : non calibrées.
 Le cash et le portefeuille du plan sont hypothétiques. Aucun ordre réel n’est envoyé.
