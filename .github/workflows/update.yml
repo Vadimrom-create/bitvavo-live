@@ -50,6 +50,9 @@ jobs:
       - name: Verify exact V4 replay against frozen source
         id: replay
         run: python -m research.replay runtime/replay-*.json.gz
+      - name: Run shadow Decision Layer V1
+        id: decision_layer
+        run: python scripts/run_decision_layer.py
       - name: Preserve raw replay inputs and failure diagnostics
         if: always()
         uses: actions/upload-artifact@v4
@@ -60,6 +63,7 @@ jobs:
             runtime/replay-*.json.gz
             pipeline_health.json
             v5_report.json
+            decision_layer.json
       - name: Publish complete data and history before notifying
         id: publication
         run: |
@@ -97,12 +101,14 @@ jobs:
           cp v4_watch.txt v4_watch.json v4_watch_raw.txt v4_watch_raw.json _site/
           cp market_control.txt market_control.json execution_snapshot.json _site/
           cp v5_report.json v5_report.md pipeline_health.json evaluation.json proposed_orders.json _site/
+          cp decision_layer.json decision_layer.md _site/
           cp /tmp/bitvavo-monitor/position_monitor_status.json _site/
           cat > _site/index.html <<'EOF'
           <!doctype html>
           <html lang="fr"><meta charset="utf-8"><title>Bitvavo — suivi V4 / V5</title>
           <h1>Bitvavo — V4 mesurée, infrastructure V5</h1>
           <p><a href="v5_report.md">Dernier scan et contrôle des hausses</a></p>
+          <p><a href="decision_layer.md">Decision Layer V1 — lecture shadow</a></p>
           <p><a href="pipeline_health.json">État et fraîcheur des données</a></p>
           <p><a href="position_monitor_status.json">Disponibilité du suivi des positions</a></p>
           <p><a href="evaluation.json">Mesures chronologiques</a></p>
