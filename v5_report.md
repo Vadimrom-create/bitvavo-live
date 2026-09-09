@@ -1,40 +1,38 @@
 # Bitvavo — V4 mesurée / infrastructure V5
 
-Scan UTC : 2026-09-09T09:48:02.159291+00:00
-État : OK | marchés EUR : 428 | V4 : 369 | données valides : 9
-Récupération : 2026-09-09T09:47:32.040045+00:00 | âge ticker : 145.9 s | durée : 146.9 s
+Scan UTC : 2026-09-09T10:01:09.342998+00:00
+État : OK | marchés EUR : 428 | V4 : 369 | données valides : 13
+Récupération : 2026-09-09T10:00:38.887520+00:00 | âge ticker : 142.9 s | durée : 143.9 s
 
 ## ACHÈTE — signal V4 et plan théorique
 
 AUCUN ACHAT VALIDÉ — cette absence ne valide pas les marchés aux données insuffisantes.
-Bougies utilisables : 5 min 40/428 ; 15 min 73/428.
+Bougies utilisables : 5 min 41/428 ; 15 min 75/428.
 Les trous de cotation restent visibles ; aucune bougie sans transaction n’est inventée.
-
-Achats bruts V4 bloqués avant alerte :
-- SYRUP-EUR : WICK_SETUP, STABILITY_HOLD, INVALID_5M
 
 ## SURVEILLE
 
-- LINK-EUR : 10.5885 € ; score 77.53/100 ; SURVEILLE ; seuil achat non atteint
-- WLD-EUR : 0.38711 € ; score 73.08/100 ; SURVEILLE ; seuil achat non atteint
-- NEAR-EUR : 2.0994 € ; score 72.73/100 ; SURVEILLE ; seuil achat non atteint
-- FET-EUR : 0.15109 € ; score 72.10/100 ; SURVEILLE ; WICK_SETUP
+- IMX-EUR : 0.11257 € ; score 83.30/100 ; SURVEILLE ; seuil achat non atteint
+- HYPE-EUR : 73.692 € ; score 82.66/100 ; SURVEILLE ; seuil achat non atteint
+- UNI-EUR : 5.7289 € ; score 76.71/100 ; SURVEILLE ; seuil achat non atteint
+- WLD-EUR : 0.38398 € ; score 76.49/100 ; SURVEILLE ; seuil achat non atteint
+- ETH-EUR : 2143.46 € ; score 76.39/100 ; SURVEILLE ; seuil achat non atteint
 
 ## Contrôle des hausses
 
 | Marché | Prix € | 24 h | État historique |
 |---|---:|---:|---|
-| VVV-EUR | 21.7743 | +39.67 % | EXCLUDED_BEFORE_MOVE |
-| IOST-EUR | 0.0010948 | +26.76 % | DETECTED_EARLY |
-| USELESS-EUR | 0.262268 | +21.57 % | EXCLUDED_BEFORE_MOVE |
-| ATOM-EUR | 1.7214 | +19.54 % | DETECTED_EARLY |
-| NPC-EUR | 0.017621 | +18.99 % | DETECTED_EARLY |
-| LRC-EUR | 0.008477 | +16.04 % | EXCLUDED_BEFORE_MOVE |
-| RAY-EUR | 1.10653 | +15.27 % | DETECTED_EARLY |
-| KAT-EUR | 0.004679 | +13.71 % | DETECTED_EARLY |
-| CHIP-EUR | 0.050169 | +13.33 % | DETECTED_EARLY |
-| PHA-EUR | 0.025749 | +12.29 % | DETECTED_EARLY |
+| VVV-EUR | 22.056 | +42.37 % | EXCLUDED_BEFORE_MOVE |
+| LRC-EUR | 0.00913 | +24.39 % | EXCLUDED_BEFORE_MOVE |
+| IOST-EUR | 0.0010723 | +23.64 % | DETECTED_EARLY |
+| ATOM-EUR | 1.7184 | +19.20 % | DETECTED_EARLY |
+| BIRB-EUR | 0.06292 | +17.85 % | NO_CONFIRMED_SHORT_TERM_EVENT |
+| NPC-EUR | 0.017497 | +16.65 % | DETECTED_EARLY |
+| USELESS-EUR | 0.263214 | +15.33 % | EXCLUDED_BEFORE_MOVE |
+| KAT-EUR | 0.004699 | +13.56 % | DETECTED_EARLY |
+| RAY-EUR | 1.08706 | +13.18 % | DETECTED_EARLY |
+| CHIP-EUR | 0.050054 | +12.92 % | DETECTED_EARLY |
 
-Historique : 42 scans ; 17976 observations ; 16 épisodes d’achat évaluables.
+Historique : 43 scans ; 18404 observations ; 16 épisodes d’achat évaluables.
 V5 optimisée : aucune. Supériorité sur V4 : non démontrée. Probabilités : non calibrées.
 Le cash et le portefeuille du plan sont hypothétiques. Aucun ordre réel n’est envoyé.
