@@ -8,7 +8,14 @@ alert_candidates.json, proposed_orders.json or any execution path.
 from __future__ import annotations
 
 import json
+import sys
 from pathlib import Path
+
+# Direct execution from scripts/ puts that directory, not the repository root,
+# on sys.path. Add the root explicitly so research.* imports are reliable in CI.
+ROOT = Path(__file__).resolve().parents[1]
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
 
 from research.common import atomic_json, read_json, utc
 from research.decision_layer import BUCKETS, decide
@@ -84,7 +91,6 @@ def main() -> int:
     journal_path = Path("decision_history") / scan["scan_at_utc"][:10] / f"{scan['scan_id']}.json.gz"
     if journal_path.exists():
         previous = read_json(journal_path)
-        # generated_at is transport metadata; all actual decisions must remain identical.
         old = {k: v for k, v in previous.items() if k != "generated_at_utc"}
         new = {k: v for k, v in payload.items() if k != "generated_at_utc"}
         if old != new:
