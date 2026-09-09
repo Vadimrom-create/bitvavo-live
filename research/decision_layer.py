@@ -6,7 +6,6 @@ quality (Entry) cannot silently veto a structurally strong opportunity.
 """
 from __future__ import annotations
 
-from dataclasses import dataclass
 from typing import Any
 
 
@@ -23,7 +22,7 @@ HARD_VETO_FLAGS = {
     "DATA UNAVAILABLE",
     "PIPELINE_DEGRADED",
     "EXCHANGE_CLOCK_SKEW",
-    "ILLQUID",
+    "ILLIQUID",
     "LOW_LIQUIDITY",
     "WIDE_SPREAD_RISK",
     "VERY_WIDE_SPREAD_RISK",
@@ -35,11 +34,12 @@ HARD_VETO_FLAGS = {
     "INVALID_15M",
 }
 
-# A strong structural setup should survive a weak instantaneous entry score.
+# Deliberately simple, pre-declared shadow thresholds. They are not advertised
+# as optimized and must be evaluated prospectively before production use.
 LATENT_OPPORTUNITY_MIN = 7.40
 LATENT_TREND_MIN = 7.30
 IMMEDIATE_ENTRY_MIN = 6.80
-LIMIT_ENTRY_MAX = 6.79
+PASSIVE_LIMIT_ENTRY_MIN = 5.80
 REENTRY_TREND_MIN = 7.60
 
 
@@ -77,7 +77,7 @@ def _remaining_upside_score(obs: dict[str, Any]) -> float:
     change24 = _n(obs.get("change_24h_pct"))
     chase = _n((obs.get("chase_risk") or {}).get("score"))
     wick = 1.0 if (obs.get("wick_setup") or {}).get("is_wick_setup") else 0.0
-    recurrence = _n((obs.get("recurrence") or {}).get("count"))
+    recurrence = _n((obs.get("recurrence") or {}).get("distinct_15m_periods"))
     return round(
         0.46 * opp
         + 0.36 * trend
@@ -128,17 +128,17 @@ def classify(obs: dict[str, Any]) -> dict[str, Any]:
     if baseline.get("buy_ready") and entry >= IMMEDIATE_ENTRY_MIN and category != "TOO LATE":
         result.update(bucket=BUCKET_IMMEDIATE, action="ACHETE_MAINTENANT",
                       reason="V4 buy-ready with acceptable current entry; no structural veto.")
-    elif strong_structure and entry < IMMEDIATE_ENTRY_MIN:
-        # Weak timing changes execution method, not opportunity status.
-        if pullback_like and trend >= REENTRY_TREND_MIN:
-            result.update(bucket=BUCKET_REENTRY, action="ATTENDS_REPRISE_OU_REENTREE",
-                          reason="Strong opportunity/trend; weak current entry is treated as timing only.")
-        else:
-            result.update(bucket=BUCKET_LATENT, action="LATENT_ACCELERATOR",
-                          reason="Strong structural opportunity retained despite weak instantaneous entry.")
-    elif opp >= LATENT_OPPORTUNITY_MIN and entry <= LIMIT_ENTRY_MAX and category != "TOO LATE":
+    elif strong_structure and pullback_like and trend >= REENTRY_TREND_MIN:
+        result.update(bucket=BUCKET_REENTRY, action="ATTENDS_REPRISE_OU_REENTREE",
+                      reason="Strong trend/opportunity retained through pullback; timing does not erase setup.")
+    elif strong_structure and PASSIVE_LIMIT_ENTRY_MIN <= entry < IMMEDIATE_ENTRY_MIN and category != "TOO LATE":
         result.update(bucket=BUCKET_LIMIT, action="PLACE_LIMITE_PASSIVE",
-                      reason="Opportunity is attractive but current execution timing is not.")
+                      reason="Strong structure but imperfect current entry; prefer passive execution.")
+    elif strong_structure and entry < PASSIVE_LIMIT_ENTRY_MIN:
+        # IOST-like case: a weak instantaneous entry score is not a veto when
+        # opportunity + trend are already coherent.
+        result.update(bucket=BUCKET_LATENT, action="LATENT_ACCELERATOR",
+                      reason="Strong structural opportunity retained despite weak instantaneous entry.")
     elif state == "REENTRY_READY" or (trend >= REENTRY_TREND_MIN and pullback_like):
         result.update(bucket=BUCKET_REENTRY, action="ATTENDS_REPRISE_OU_REENTREE",
                       reason="Trend remains strong; candidate retained for re-entry instead of discarded.")
@@ -173,6 +173,14 @@ def decide(observations: list[dict[str, Any]], top_n: int = 3) -> dict[str, Any]
             "cross_sectional_ranking": True,
             "mandatory_buckets": list(BUCKETS),
             "probabilities_calibrated": False,
+            "production_orders_enabled": False,
+        },
+        "thresholds": {
+            "latent_opportunity_min": LATENT_OPPORTUNITY_MIN,
+            "latent_trend_min": LATENT_TREND_MIN,
+            "immediate_entry_min": IMMEDIATE_ENTRY_MIN,
+            "passive_limit_entry_min": PASSIVE_LIMIT_ENTRY_MIN,
+            "reentry_trend_min": REENTRY_TREND_MIN,
         },
         "bucket_winners": winners,
         "top_actionable": actionable,
