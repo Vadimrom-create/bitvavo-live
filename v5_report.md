@@ -1,36 +1,40 @@
 # Bitvavo — V4 mesurée / infrastructure V5
 
-Scan UTC : 2026-09-09T23:19:52.027180+00:00
-État : OK | marchés EUR : 429 | V4 : 387 | données valides : 6
-Récupération : 2026-09-09T23:19:19.283261+00:00 | âge ticker : 139.7 s | durée : 140.7 s
+Scan UTC : 2026-09-09T23:34:47.129637+00:00
+État : OK | marchés EUR : 429 | V4 : 387 | données valides : 9
+Récupération : 2026-09-09T23:34:12.751282+00:00 | âge ticker : 141.0 s | durée : 142.0 s
 
 ## ACHÈTE — signal V4 et plan théorique
 
 AUCUN ACHAT VALIDÉ — cette absence ne valide pas les marchés aux données insuffisantes.
-Bougies utilisables : 5 min 38/429 ; 15 min 79/429.
+Bougies utilisables : 5 min 39/429 ; 15 min 80/429.
 Les trous de cotation restent visibles ; aucune bougie sans transaction n’est inventée.
+
+Achats bruts V4 bloqués avant alerte :
+- STX-EUR : INVALID_15M, INVALID_5M, MISSING_LATEST_CLOSED_CANDLE, STALE_DAILY_PROFILE
 
 ## SURVEILLE
 
-- PHA-EUR : 0.023882 € ; score 75.20/100 ; SURVEILLE ; seuil achat non atteint
-- FET-EUR : 0.14483 € ; score 74.04/100 ; SURVEILLE ; WICK_SETUP
-- UNI-EUR : 5.2916 € ; score 73.96/100 ; SURVEILLE ; seuil achat non atteint
+- PHA-EUR : 0.024162 € ; score 77.44/100 ; SURVEILLE ; seuil achat non atteint
+- FET-EUR : 0.14564 € ; score 74.05/100 ; SURVEILLE ; WICK_SETUP
+- TAO-EUR : 218.18 € ; score 73.86/100 ; SURVEILLE ; WICK_SETUP
+- PORTAL-EUR : 0.015 € ; score 72.55/100 ; SURVEILLE ; seuil achat non atteint
 
 ## Contrôle des hausses
 
 | Marché | Prix € | 24 h | État historique |
 |---|---:|---:|---|
-| IOST-EUR | 0.0015704 | +112.96 % | EXCLUDED_BEFORE_MOVE |
-| LAPTOP-EUR | 1.47638 | +60.02 % | EXCLUDED_BEFORE_MOVE |
-| KAT-EUR | 0.005264 | +27.74 % | INSUFFICIENT_HISTORY |
-| LRC-EUR | 0.008899 | +21.12 % | INSUFFICIENT_HISTORY |
-| LSK-EUR | 0.09932 | +12.49 % | NO_CONFIRMED_SHORT_TERM_EVENT |
-| IQ-EUR | 0.0007366 | +12.30 % | EXCLUDED_BEFORE_MOVE |
-| PORTAL-EUR | 0.01518 | +7.86 % | DETECTED_EARLY |
+| IOST-EUR | 0.0015865 | +116.47 % | EXCLUDED_BEFORE_MOVE |
+| LAPTOP-EUR | 1.55 | +68.00 % | EXCLUDED_BEFORE_MOVE |
+| KAT-EUR | 0.00535 | +29.57 % | INSUFFICIENT_HISTORY |
+| LRC-EUR | 0.009336 | +27.07 % | EXCLUDED_BEFORE_MOVE |
+| LSK-EUR | 0.09974 | +12.97 % | NO_CONFIRMED_SHORT_TERM_EVENT |
+| IQ-EUR | 0.0007292 | +11.18 % | EXCLUDED_BEFORE_MOVE |
+| PHA-EUR | 0.024162 | +8.14 % | NO_CONFIRMED_SHORT_TERM_EVENT |
+| PUFFER-EUR | 0.013898 | +7.86 % | NO_CONFIRMED_SHORT_TERM_EVENT |
 | CROSS-EUR | 0.098735 | +7.71 % | NO_CONFIRMED_SHORT_TERM_EVENT |
-| PHA-EUR | 0.023882 | +6.88 % | NO_CONFIRMED_SHORT_TERM_EVENT |
-| NEAR-EUR | 2.121 | +6.79 % | NO_CONFIRMED_SHORT_TERM_EVENT |
+| PORTAL-EUR | 0.015 | +7.18 % | DETECTED_EARLY |
 
-Historique : 89 scans ; 38126 observations ; 23 épisodes d’achat évaluables.
+Historique : 90 scans ; 38555 observations ; 23 épisodes d’achat évaluables.
 V5 optimisée : aucune. Supériorité sur V4 : non démontrée. Probabilités : non calibrées.
 Le cash et le portefeuille du plan sont hypothétiques. Aucun ordre réel n’est envoyé.
