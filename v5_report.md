@@ -1,8 +1,8 @@
 # Bitvavo — V4 mesurée / infrastructure V5
 
-Scan UTC : 2026-09-09T03:17:21.453885+00:00
-État : OK | marchés EUR : 428 | V4 : 369 | données valides : 3
-Récupération : 2026-09-09T03:16:48.542894+00:00 | âge ticker : 146.8 s | durée : 148.4 s
+Scan UTC : 2026-09-09T03:35:49.606290+00:00
+État : OK | marchés EUR : 428 | V4 : 369 | données valides : 2
+Récupération : 2026-09-09T03:35:18.208038+00:00 | âge ticker : 138.2 s | durée : 139.2 s
 
 ## ACHÈTE — signal V4 et plan théorique
 
@@ -12,25 +12,24 @@ Les trous de cotation restent visibles ; aucune bougie sans transaction n’est 
 
 ## SURVEILLE
 
-- PEPE-EUR : 3.1259e-06 € ; score 78.95/100 ; SURVEILLE ; WICK_SETUP
-- AKT-EUR : 0.50532 € ; score 73.30/100 ; SURVEILLE ; WICK_SETUP
-- XRP-EUR : 1.21453 € ; score 63.10/100 ; SURVEILLE ; STABILITY_HOLD
+- BCH-EUR : 221.28 € ; score 85.56/100 ; SURVEILLE ; WICK_SETUP
+- XRP-EUR : 1.2144 € ; score 60.69/100 ; SURVEILLE ; STABILITY_HOLD
 
 ## Contrôle des hausses
 
 | Marché | Prix € | 24 h | État historique |
 |---|---:|---:|---|
-| VVV-EUR | 21.5804 | +37.18 % | INSUFFICIENT_HISTORY |
-| USELESS-EUR | 0.247472 | +25.16 % | DETECTED_EARLY |
-| ICX-EUR | 0.012836 | +23.38 % | NO_CONFIRMED_SHORT_TERM_EVENT |
-| QKC-EUR | 0.0025766 | +21.83 % | INSUFFICIENT_HISTORY |
-| KAT-EUR | 0.00482 | +20.23 % | NO_CONFIRMED_SHORT_TERM_EVENT |
-| FORM-EUR | 0.26515 | +16.09 % | INSUFFICIENT_HISTORY |
-| AIOZ-EUR | 0.061995 | +12.42 % | NO_CONFIRMED_SHORT_TERM_EVENT |
-| ARX-EUR | 0.13441 | +12.09 % | NO_CONFIRMED_SHORT_TERM_EVENT |
-| DOT-EUR | 1.031 | +11.74 % | NO_CONFIRMED_SHORT_TERM_EVENT |
-| ATOM-EUR | 1.55 | +10.68 % | NO_CONFIRMED_SHORT_TERM_EVENT |
+| VVV-EUR | 21.33 | +39.02 % | INSUFFICIENT_HISTORY |
+| KAT-EUR | 0.00536 | +33.70 % | DETECTED_EARLY |
+| USELESS-EUR | 0.247833 | +29.74 % | DETECTED_EARLY |
+| ICX-EUR | 0.012862 | +23.63 % | NO_CONFIRMED_SHORT_TERM_EVENT |
+| QKC-EUR | 0.0025 | +20.71 % | INSUFFICIENT_HISTORY |
+| FORM-EUR | 0.2595 | +11.62 % | INSUFFICIENT_HISTORY |
+| ARX-EUR | 0.13365 | +11.30 % | NO_CONFIRMED_SHORT_TERM_EVENT |
+| DOT-EUR | 1.0243 | +10.80 % | NO_CONFIRMED_SHORT_TERM_EVENT |
+| ATOM-EUR | 1.5488 | +10.49 % | NO_CONFIRMED_SHORT_TERM_EVENT |
+| AIOZ-EUR | 0.060778 | +10.41 % | NO_CONFIRMED_SHORT_TERM_EVENT |
 
-Historique : 21 scans ; 8988 observations ; 2 épisodes d’achat évaluables.
+Historique : 22 scans ; 9416 observations ; 3 épisodes d’achat évaluables.
 V5 optimisée : aucune. Supériorité sur V4 : non démontrée. Probabilités : non calibrées.
 Le cash et le portefeuille du plan sont hypothétiques. Aucun ordre réel n’est envoyé.
