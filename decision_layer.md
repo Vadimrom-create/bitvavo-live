@@ -1,6 +1,6 @@
 # Decision Layer V1 — shadow
 
-Scan : 2026-09-10T15:46:06.930377+00:00
+Scan : 2026-09-10T15:59:08.933825+00:00
 Policy : DECISION_LAYER_V1_SHADOW au-dessus de V4_FROZEN_20260908
 
 Cette couche ne modifie aucun score V4 et ne peut envoyer aucun ordre.
@@ -10,15 +10,16 @@ Entry est un indicateur de timing, pas un veto structurel.
 
 - **MEILLEUR_ACHAT_IMMEDIAT** : aucun candidat matériel
 - **MEILLEURE_LIMITE_PASSIVE** : aucun candidat matériel
-- **MEILLEUR_LATENT_ACCELERATOR** : aucun candidat matériel
-- **MEILLEUR_PULLBACK_REENTRY** : KAS-EUR | action ATTENDS_REPRISE_OU_REENTREE | opportunité 7.618 | entrée 5.850 | trend 8.550 | rang 7.524
+- **MEILLEUR_LATENT_ACCELERATOR** : ETHFI-EUR | action LATENT_ACCELERATOR | opportunité 7.995 | entrée 5.200 | trend 8.950 | rang 6.972
+  - Strong structural opportunity retained despite weak instantaneous entry.
+- **MEILLEUR_PULLBACK_REENTRY** : VET-EUR | action ATTENDS_REPRISE_OU_REENTREE | opportunité 7.983 | entrée 6.700 | trend 8.650 | rang 7.613
   - Strong trend/opportunity retained through pullback; timing does not erase setup.
 
 ## Top cross-sectionnel
 
-1. KAS-EUR — MEILLEUR_PULLBACK_REENTRY — ATTENDS_REPRISE_OU_REENTREE — rank 7.524
-2. CAKE-EUR — MEILLEUR_PULLBACK_REENTRY — ATTENDS_REPRISE_OU_REENTREE — rank 7.388
-3. USELESS-EUR — MEILLEUR_PULLBACK_REENTRY — ATTENDS_REPRISE_OU_REENTREE — rank 7.138
+1. VET-EUR — MEILLEUR_PULLBACK_REENTRY — ATTENDS_REPRISE_OU_REENTREE — rank 7.613
+2. KAS-EUR — MEILLEUR_PULLBACK_REENTRY — ATTENDS_REPRISE_OU_REENTREE — rank 7.547
+3. UNI-EUR — MEILLEUR_PULLBACK_REENTRY — ATTENDS_REPRISE_OU_REENTREE — rank 7.118
 
 ## Garde-fous
 
