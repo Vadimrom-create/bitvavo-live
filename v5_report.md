@@ -1,42 +1,40 @@
 # Bitvavo — V4 mesurée / infrastructure V5
 
-Scan UTC : 2026-09-10T04:40:48.217207+00:00
-État : OK | marchés EUR : 429 | V4 : 392 | données valides : 7
-Récupération : 2026-09-10T04:40:17.818574+00:00 | âge ticker : 147.2 s | durée : 148.1 s
+Scan UTC : 2026-09-10T04:56:32.980367+00:00
+État : OK | marchés EUR : 429 | V4 : 392 | données valides : 5
+Récupération : 2026-09-10T04:56:01.596688+00:00 | âge ticker : 138.4 s | durée : 139.3 s
 
 ## ACHÈTE — signal V4 et plan théorique
 
 AUCUN ACHAT VALIDÉ — cette absence ne valide pas les marchés aux données insuffisantes.
-Bougies utilisables : 5 min 31/429 ; 15 min 57/429.
+Bougies utilisables : 5 min 33/429 ; 15 min 57/429.
 Les trous de cotation restent visibles ; aucune bougie sans transaction n’est inventée.
 
 Achats bruts V4 bloqués avant alerte :
-- AVAX-EUR : WICK_SETUP, INVALID_5M, STALE_DAILY_PROFILE
-- FET-EUR : WICK_SETUP, STALE_DAILY_PROFILE
-- TAO-EUR : STALE_DAILY_PROFILE
+- AVAX-EUR : STABILITY_HOLD, INVALID_5M, STALE_DAILY_PROFILE
+- FET-EUR : WICK_SETUP, STABILITY_HOLD, STALE_DAILY_PROFILE
+- TAO-EUR : STABILITY_HOLD, STALE_DAILY_PROFILE
 
 ## SURVEILLE
 
-- SOL-EUR : 87.706 € ; score 75.76/100 ; SURVEILLE ; STABILITY_HOLD
-- UNI-EUR : 5.2222 € ; score 74.93/100 ; SURVEILLE ; WICK_SETUP, STABILITY_HOLD
-- LINK-EUR : 10.158 € ; score 68.24/100 ; SURVEILLE ; STABILITY_HOLD
-- ADA-EUR : 0.18371 € ; score 64.57/100 ; SURVEILLE ; STABILITY_HOLD
+- HYPE-EUR : 72.438 € ; score 77.57/100 ; SURVEILLE ; seuil achat non atteint
+- LINK-EUR : 10.163 € ; score 68.62/100 ; SURVEILLE ; STABILITY_HOLD
 
 ## Contrôle des hausses
 
 | Marché | Prix € | 24 h | État historique |
 |---|---:|---:|---|
-| VTHO-EUR | 0.00061001 | +59.01 % | DETECTED_EARLY |
-| NES-EUR | 0.131 | +24.57 % | EXCLUDED_BEFORE_MOVE |
-| IOST-EUR | 0.0009581 | +23.32 % | EXCLUDED_BEFORE_MOVE |
-| UP-EUR | 0.059548 | +18.20 % | EXCLUDED_BEFORE_MOVE |
-| LRC-EUR | 0.008257 | +13.19 % | EXCLUDED_BEFORE_MOVE |
-| RAY-EUR | 1.16298 | +10.39 % | INSUFFICIENT_HISTORY |
-| LSK-EUR | 0.09772 | +9.42 % | NO_CONFIRMED_SHORT_TERM_EVENT |
+| VTHO-EUR | 0.00055314 | +43.95 % | DETECTED_EARLY |
+| NES-EUR | 0.13523 | +28.59 % | EXCLUDED_BEFORE_MOVE |
+| REZ-EUR | 0.00319 | +17.38 % | NO_CONFIRMED_SHORT_TERM_EVENT |
+| LRC-EUR | 0.008442 | +15.72 % | EXCLUDED_BEFORE_MOVE |
+| IOST-EUR | 0.0009357 | +14.58 % | EXCLUDED_BEFORE_MOVE |
+| U-EUR | 0.0002694 | +11.28 % | NO_CONFIRMED_SHORT_TERM_EVENT |
+| UP-EUR | 0.058105 | +9.62 % | EXCLUDED_BEFORE_MOVE |
+| LSK-EUR | 0.09716 | +9.56 % | NO_CONFIRMED_SHORT_TERM_EVENT |
+| CROSS-EUR | 0.101491 | +8.63 % | NO_CONFIRMED_SHORT_TERM_EVENT |
 | BTT-EUR | 2.659e-07 | +8.28 % | NO_CONFIRMED_SHORT_TERM_EVENT |
-| NEAR-EUR | 2.1654 | +8.05 % | NO_CONFIRMED_SHORT_TERM_EVENT |
-| CROSS-EUR | 0.100546 | +7.62 % | NO_CONFIRMED_SHORT_TERM_EVENT |
 
-Historique : 107 scans ; 45848 observations ; 23 épisodes d’achat évaluables.
+Historique : 108 scans ; 46277 observations ; 23 épisodes d’achat évaluables.
 V5 optimisée : aucune. Supériorité sur V4 : non démontrée. Probabilités : non calibrées.
 Le cash et le portefeuille du plan sont hypothétiques. Aucun ordre réel n’est envoyé.
