@@ -1,38 +1,37 @@
 # Bitvavo — V4 mesurée / infrastructure V5
 
-Scan UTC : 2026-09-10T08:59:15.154847+00:00
-État : OK | marchés EUR : 429 | V4 : 385 | données valides : 3
-Récupération : 2026-09-10T08:58:44.269574+00:00 | âge ticker : 141.8 s | durée : 145.8 s
+Scan UTC : 2026-09-10T09:21:05.642641+00:00
+État : OK | marchés EUR : 429 | V4 : 385 | données valides : 6
+Récupération : 2026-09-10T09:20:33.344905+00:00 | âge ticker : 145.1 s | durée : 146.3 s
 
 ## ACHÈTE — signal V4 et plan théorique
 
 AUCUN ACHAT VALIDÉ — cette absence ne valide pas les marchés aux données insuffisantes.
-Bougies utilisables : 5 min 35/429 ; 15 min 66/429.
+Bougies utilisables : 5 min 34/429 ; 15 min 64/429.
 Les trous de cotation restent visibles ; aucune bougie sans transaction n’est inventée.
 
 Achats bruts V4 bloqués avant alerte :
-- PORTAL-EUR : INVALID_15M, INVALID_5M, STALE_DAILY_PROFILE
-- VET-EUR : STALE_DAILY_PROFILE
+- VET-EUR : STABILITY_HOLD, STALE_DAILY_PROFILE
 
 ## SURVEILLE
 
-- TAO-EUR : 217.19 € ; score 72.67/100 ; SURVEILLE ; WICK_SETUP
+- TAO-EUR : 218.08 € ; score 74.57/100 ; SURVEILLE ; WICK_SETUP
 
 ## Contrôle des hausses
 
 | Marché | Prix € | 24 h | État historique |
 |---|---:|---:|---|
-| UP-EUR | 0.076005 | +52.94 % | NO_CONFIRMED_SHORT_TERM_EVENT |
-| VTHO-EUR | 0.00051298 | +33.03 % | DETECTED_EARLY |
-| NES-EUR | 0.12202 | +16.21 % | EXCLUDED_BEFORE_MOVE |
-| BIRB-EUR | 0.06338 | +12.22 % | NO_CONFIRMED_SHORT_TERM_EVENT |
-| PUFFER-EUR | 0.014157 | +10.48 % | EXCLUDED_BEFORE_MOVE |
-| EGLD-EUR | 4.6864 | +8.78 % | NO_CONFIRMED_SHORT_TERM_EVENT |
-| REZ-EUR | 0.002975 | +7.90 % | DETECTED_EARLY |
-| PORTAL-EUR | 0.014961 | +6.50 % | NO_CONFIRMED_SHORT_TERM_EVENT |
-| BTT-EUR | 2.6481e-07 | +6.50 % | NO_CONFIRMED_SHORT_TERM_EVENT |
-| KAS-EUR | 0.032853 | +5.60 % | NO_CONFIRMED_SHORT_TERM_EVENT |
+| UP-EUR | 0.074 | +49.03 % | EXCLUDED_BEFORE_MOVE |
+| VTHO-EUR | 0.00049574 | +28.98 % | DETECTED_EARLY |
+| NES-EUR | 0.13136 | +25.10 % | INSUFFICIENT_HISTORY |
+| EGLD-EUR | 4.7952 | +13.42 % | EXCLUDED_BEFORE_MOVE |
+| BIRB-EUR | 0.06223 | +10.18 % | EXCLUDED_BEFORE_MOVE |
+| PUFFER-EUR | 0.014157 | +9.91 % | EXCLUDED_BEFORE_MOVE |
+| REZ-EUR | 0.0029507 | +8.18 % | DETECTED_EARLY |
+| KAS-EUR | 0.033427 | +8.15 % | NO_CONFIRMED_SHORT_TERM_EVENT |
+| EDGE-EUR | 0.063999 | +7.56 % | NO_CONFIRMED_SHORT_TERM_EVENT |
+| LSK-EUR | 0.09938 | +7.31 % | NO_CONFIRMED_SHORT_TERM_EVENT |
 
-Historique : 121 scans ; 51854 observations ; 28 épisodes d’achat évaluables.
+Historique : 122 scans ; 52283 observations ; 28 épisodes d’achat évaluables.
 V5 optimisée : aucune. Supériorité sur V4 : non démontrée. Probabilités : non calibrées.
 Le cash et le portefeuille du plan sont hypothétiques. Aucun ordre réel n’est envoyé.
