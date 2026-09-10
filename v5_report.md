@@ -1,38 +1,38 @@
 # Bitvavo — V4 mesurée / infrastructure V5
 
-Scan UTC : 2026-09-10T13:01:47.219817+00:00
-État : OK | marchés EUR : 430 | V4 : 391 | données valides : 12
-Récupération : 2026-09-10T13:01:19.139040+00:00 | âge ticker : 146.8 s | durée : 147.9 s
+Scan UTC : 2026-09-10T13:22:05.635783+00:00
+État : OK | marchés EUR : 430 | V4 : 393 | données valides : 8
+Récupération : 2026-09-10T13:21:32.147618+00:00 | âge ticker : 142.1 s | durée : 143.4 s
 
 ## ACHÈTE — signal V4 et plan théorique
 
 AUCUN ACHAT VALIDÉ — cette absence ne valide pas les marchés aux données insuffisantes.
-Bougies utilisables : 5 min 29/430 ; 15 min 74/430.
+Bougies utilisables : 5 min 32/430 ; 15 min 74/430.
 Les trous de cotation restent visibles ; aucune bougie sans transaction n’est inventée.
 
 ## SURVEILLE
 
-- SUI-EUR : 0.64718 € ; score 87.41/100 ; SURVEILLE ; seuil achat non atteint
-- SOL-EUR : 85.291 € ; score 86.96/100 ; SURVEILLE ; seuil achat non atteint
-- ADA-EUR : 0.17974 € ; score 86.61/100 ; SURVEILLE ; seuil achat non atteint
-- BTC-EUR : 66254 € ; score 84.37/100 ; SURVEILLE ; seuil achat non atteint
-- ONDO-EUR : 0.30107 € ; score 81.70/100 ; SURVEILLE ; seuil achat non atteint
+- VET-EUR : 0.0067683 € ; score 80.10/100 ; SURVEILLE ; seuil achat non atteint
+- SYRUP-EUR : 0.17448 € ; score 76.10/100 ; SURVEILLE ; seuil achat non atteint
+- DOGE-EUR : 0.071787 € ; score 75.96/100 ; SURVEILLE ; STABILITY_HOLD
+- TAO-EUR : 208.31 € ; score 74.20/100 ; SURVEILLE ; STABILITY_HOLD
+- TRX-EUR : 0.29167 € ; score 73.42/100 ; SURVEILLE ; STABILITY_HOLD
 
 ## Contrôle des hausses
 
 | Marché | Prix € | 24 h | État historique |
 |---|---:|---:|---|
-| VTHO-EUR | 0.00055338 | +45.05 % | DETECTED_EARLY |
-| UP-EUR | 0.06278 | +24.78 % | EXCLUDED_BEFORE_MOVE |
-| NES-EUR | 0.12319 | +20.75 % | EXCLUDED_BEFORE_MOVE |
-| PUFFER-EUR | 0.0153 | +19.21 % | NO_CONFIRMED_SHORT_TERM_EVENT |
-| BTT-EUR | 2.764e-07 | +12.13 % | NO_CONFIRMED_SHORT_TERM_EVENT |
-| MLN-EUR | 1.2838 | +8.32 % | NO_CONFIRMED_SHORT_TERM_EVENT |
-| ZIG-EUR | 0.040252 | +7.49 % | DETECTED_EARLY |
-| CSPR-EUR | 0.00261 | +6.31 % | NO_CONFIRMED_SHORT_TERM_EVENT |
-| EGLD-EUR | 4.3766 | +5.39 % | EXCLUDED_BEFORE_MOVE |
-| KAS-EUR | 0.032471 | +5.38 % | NO_CONFIRMED_SHORT_TERM_EVENT |
+| VTHO-EUR | 0.00056518 | +47.92 % | DETECTED_EARLY |
+| UP-EUR | 0.06264 | +23.47 % | INSUFFICIENT_HISTORY |
+| PUFFER-EUR | 0.015441 | +20.30 % | NO_CONFIRMED_SHORT_TERM_EVENT |
+| NES-EUR | 0.12184 | +15.19 % | INSUFFICIENT_HISTORY |
+| CNPY-EUR | 0.17734 | +14.18 % | NO_CONFIRMED_SHORT_TERM_EVENT |
+| NEWT-EUR | 0.041241 | +7.96 % | DETECTED_EARLY |
+| BTT-EUR | 2.6372e-07 | +6.98 % | NO_CONFIRMED_SHORT_TERM_EVENT |
+| EGLD-EUR | 4.4338 | +6.22 % | EXCLUDED_BEFORE_MOVE |
+| XNO-EUR | 0.2867 | +6.14 % | NO_CONFIRMED_SHORT_TERM_EVENT |
+| KAS-EUR | 0.032742 | +5.59 % | NO_CONFIRMED_SHORT_TERM_EVENT |
 
-Historique : 134 scans ; 57432 observations ; 29 épisodes d’achat évaluables.
+Historique : 135 scans ; 57862 observations ; 29 épisodes d’achat évaluables.
 V5 optimisée : aucune. Supériorité sur V4 : non démontrée. Probabilités : non calibrées.
 Le cash et le portefeuille du plan sont hypothétiques. Aucun ordre réel n’est envoyé.
