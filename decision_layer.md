@@ -1,6 +1,6 @@
 # Decision Layer V1 — shadow
 
-Scan : 2026-09-10T23:02:18.725571+00:00
+Scan : 2026-09-10T23:19:27.147763+00:00
 Policy : DECISION_LAYER_V1_SHADOW au-dessus de V4_FROZEN_20260908
 
 Cette couche ne modifie aucun score V4 et ne peut envoyer aucun ordre.
@@ -9,16 +9,14 @@ Entry est un indicateur de timing, pas un veto structurel.
 ## Quatre lectures obligatoires
 
 - **MEILLEUR_ACHAT_IMMEDIAT** : aucun candidat matériel
-- **MEILLEURE_LIMITE_PASSIVE** : VET-EUR | action PLACE_LIMITE_PASSIVE | opportunité 7.596 | entrée 6.250 | trend 8.650 | rang 7.598
+- **MEILLEURE_LIMITE_PASSIVE** : VET-EUR | action PLACE_LIMITE_PASSIVE | opportunité 7.596 | entrée 6.500 | trend 8.650 | rang 7.628
   - Strong structure but imperfect current entry; prefer passive execution.
 - **MEILLEUR_LATENT_ACCELERATOR** : aucun candidat matériel
-- **MEILLEUR_PULLBACK_REENTRY** : USELESS-EUR | action ATTENDS_REPRISE_OU_REENTREE | opportunité 7.558 | entrée 7.150 | trend 8.100 | rang 7.311
-  - Strong trend/opportunity retained through pullback; timing does not erase setup.
+- **MEILLEUR_PULLBACK_REENTRY** : aucun candidat matériel
 
 ## Top cross-sectionnel
 
-1. VET-EUR — MEILLEURE_LIMITE_PASSIVE — PLACE_LIMITE_PASSIVE — rank 7.598
-2. USELESS-EUR — MEILLEUR_PULLBACK_REENTRY — ATTENDS_REPRISE_OU_REENTREE — rank 7.311
+1. VET-EUR — MEILLEURE_LIMITE_PASSIVE — PLACE_LIMITE_PASSIVE — rank 7.628
 
 ## Garde-fous
 
