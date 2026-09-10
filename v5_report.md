@@ -1,38 +1,41 @@
 # Bitvavo — V4 mesurée / infrastructure V5
 
-Scan UTC : 2026-09-10T18:40:44.688974+00:00
-État : OK | marchés EUR : 430 | V4 : 396 | données valides : 15
-Récupération : 2026-09-10T18:40:09.526556+00:00 | âge ticker : 143.1 s | durée : 145.1 s
+Scan UTC : 2026-09-10T18:56:44.058790+00:00
+État : OK | marchés EUR : 430 | V4 : 395 | données valides : 12
+Récupération : 2026-09-10T18:56:08.832733+00:00 | âge ticker : 151.0 s | durée : 152.3 s
 
 ## ACHÈTE — signal V4 et plan théorique
 
 AUCUN ACHAT VALIDÉ — cette absence ne valide pas les marchés aux données insuffisantes.
-Bougies utilisables : 5 min 40/430 ; 15 min 88/430.
+Bougies utilisables : 5 min 35/430 ; 15 min 89/430.
 Les trous de cotation restent visibles ; aucune bougie sans transaction n’est inventée.
+
+Achats bruts V4 bloqués avant alerte :
+- APT-EUR : WICK_SETUP, INVALID_15M, INVALID_5M, STALE_DAILY_PROFILE
 
 ## SURVEILLE
 
-- KAS-EUR : 0.031906 € ; score 83.23/100 ; SURVEILLE ; seuil achat non atteint
-- LINK-EUR : 10.0264 € ; score 79.33/100 ; SURVEILLE ; WICK_SETUP
-- VET-EUR : 0.0068477 € ; score 77.70/100 ; SURVEILLE ; seuil achat non atteint
-- SYRUP-EUR : 0.1872 € ; score 76.67/100 ; SURVEILLE ; seuil achat non atteint
-- UNI-EUR : 5.1956 € ; score 76.31/100 ; SURVEILLE ; STABILITY_HOLD
+- KAS-EUR : 0.031857 € ; score 82.77/100 ; SURVEILLE ; seuil achat non atteint
+- VET-EUR : 0.0068822 € ; score 79.00/100 ; SURVEILLE ; seuil achat non atteint
+- UNI-EUR : 5.243 € ; score 78.24/100 ; SURVEILLE ; seuil achat non atteint
+- SYRUP-EUR : 0.18781 € ; score 76.67/100 ; SURVEILLE ; seuil achat non atteint
+- FET-EUR : 0.14224 € ; score 75.76/100 ; SURVEILLE ; WICK_SETUP
 
 ## Contrôle des hausses
 
 | Marché | Prix € | 24 h | État historique |
 |---|---:|---:|---|
-| VTHO-EUR | 0.00053311 | +42.58 % | INSUFFICIENT_HISTORY |
-| CNPY-EUR | 0.20422 | +31.48 % | INSUFFICIENT_HISTORY |
-| NES-EUR | 0.12452 | +22.55 % | INSUFFICIENT_HISTORY |
-| SAGA-EUR | 0.014631 | +15.51 % | EXCLUDED_BEFORE_MOVE |
-| UP-EUR | 0.05545 | +13.92 % | NO_CONFIRMED_SHORT_TERM_EVENT |
-| ETHFI-EUR | 0.59912 | +13.52 % | DETECTED_EARLY |
-| PUFFER-EUR | 0.014627 | +9.36 % | NO_CONFIRMED_SHORT_TERM_EVENT |
-| U-EUR | 0.0002432 | +8.19 % | NO_CONFIRMED_SHORT_TERM_EVENT |
-| MET-EUR | 0.18418 | +4.39 % | NO_CONFIRMED_SHORT_TERM_EVENT |
-| CSPR-EUR | 0.0026135 | +4.06 % | NO_CONFIRMED_SHORT_TERM_EVENT |
+| VTHO-EUR | 0.00050119 | +34.04 % | INSUFFICIENT_HISTORY |
+| CNPY-EUR | 0.19749 | +27.15 % | INSUFFICIENT_HISTORY |
+| NES-EUR | 0.12568 | +23.99 % | INSUFFICIENT_HISTORY |
+| SAGA-EUR | 0.014871 | +17.41 % | EXCLUDED_BEFORE_MOVE |
+| ETHFI-EUR | 0.60637 | +15.62 % | DETECTED_EARLY |
+| UP-EUR | 0.05545 | +14.52 % | NO_CONFIRMED_SHORT_TERM_EVENT |
+| PUFFER-EUR | 0.014882 | +10.51 % | NO_CONFIRMED_SHORT_TERM_EVENT |
+| U-EUR | 0.0002411 | +6.63 % | NO_CONFIRMED_SHORT_TERM_EVENT |
+| MET-EUR | 0.18675 | +6.56 % | NO_CONFIRMED_SHORT_TERM_EVENT |
+| VVV-EUR | 21.9655 | +4.48 % | DETECTED_EARLY |
 
-Historique : 153 scans ; 65602 observations ; 31 épisodes d’achat évaluables.
+Historique : 154 scans ; 66032 observations ; 31 épisodes d’achat évaluables.
 V5 optimisée : aucune. Supériorité sur V4 : non démontrée. Probabilités : non calibrées.
 Le cash et le portefeuille du plan sont hypothétiques. Aucun ordre réel n’est envoyé.
