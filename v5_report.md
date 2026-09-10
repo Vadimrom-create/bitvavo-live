@@ -1,36 +1,38 @@
 # Bitvavo — V4 mesurée / infrastructure V5
 
-Scan UTC : 2026-09-10T09:39:51.676619+00:00
-État : OK | marchés EUR : 429 | V4 : 384 | données valides : 5
-Récupération : 2026-09-10T09:39:22.722005+00:00 | âge ticker : 140.9 s | durée : 143.3 s
+Scan UTC : 2026-09-10T09:55:25.984949+00:00
+État : OK | marchés EUR : 429 | V4 : 385 | données valides : 9
+Récupération : 2026-09-10T09:54:53.448702+00:00 | âge ticker : 143.2 s | durée : 144.3 s
 
 ## ACHÈTE — signal V4 et plan théorique
 
 AUCUN ACHAT VALIDÉ — cette absence ne valide pas les marchés aux données insuffisantes.
-Bougies utilisables : 5 min 33/429 ; 15 min 63/429.
+Bougies utilisables : 5 min 34/429 ; 15 min 65/429.
 Les trous de cotation restent visibles ; aucune bougie sans transaction n’est inventée.
 
 ## SURVEILLE
 
-- VET-EUR : 0.00676 € ; score 80.90/100 ; SURVEILLE ; seuil achat non atteint
-- PUMP-EUR : 0.0034215 € ; score 74.47/100 ; SURVEILLE ; seuil achat non atteint
-- LAPTOP-EUR : 0.73695 € ; score 73.49/100 ; SURVEILLE ; WICK_SETUP, VERTICAL_SHORT_TERM
+- KAS-EUR : 0.033558 € ; score 82.72/100 ; SURVEILLE ; WICK_SETUP
+- VET-EUR : 0.0067989 € ; score 80.95/100 ; SURVEILLE ; seuil achat non atteint
+- LINK-EUR : 10.1478 € ; score 76.25/100 ; SURVEILLE ; WICK_SETUP, STABILITY_HOLD
+- TAO-EUR : 216.55 € ; score 72.84/100 ; SURVEILLE ; seuil achat non atteint
+- PUMP-EUR : 0.0034219 € ; score 72.47/100 ; SURVEILLE ; seuil achat non atteint
 
 ## Contrôle des hausses
 
 | Marché | Prix € | 24 h | État historique |
 |---|---:|---:|---|
-| UP-EUR | 0.068793 | +38.26 % | EXCLUDED_BEFORE_MOVE |
-| VTHO-EUR | 0.00049791 | +29.05 % | DETECTED_EARLY |
-| NES-EUR | 0.13017 | +24.56 % | EXCLUDED_BEFORE_MOVE |
-| EGLD-EUR | 4.8291 | +14.22 % | EXCLUDED_BEFORE_MOVE |
-| DODO-EUR | 0.016667 | +10.41 % | NO_CONFIRMED_SHORT_TERM_EVENT |
+| VTHO-EUR | 0.00053779 | +40.02 % | DETECTED_EARLY |
+| UP-EUR | 0.064265 | +25.16 % | EXCLUDED_BEFORE_MOVE |
+| NES-EUR | 0.12963 | +23.78 % | EXCLUDED_BEFORE_MOVE |
+| LSK-EUR | 0.11079 | +18.66 % | NO_CONFIRMED_SHORT_TERM_EVENT |
 | PUFFER-EUR | 0.0142 | +10.25 % | EXCLUDED_BEFORE_MOVE |
-| REZ-EUR | 0.002964 | +9.60 % | DETECTED_EARLY |
-| KAS-EUR | 0.033537 | +8.64 % | NO_CONFIRMED_SHORT_TERM_EVENT |
-| LSK-EUR | 0.1012 | +8.39 % | NO_CONFIRMED_SHORT_TERM_EVENT |
-| XNO-EUR | 0.28891 | +7.92 % | NO_CONFIRMED_SHORT_TERM_EVENT |
+| EGLD-EUR | 4.6086 | +9.69 % | EXCLUDED_BEFORE_MOVE |
+| KAS-EUR | 0.033558 | +9.51 % | NO_CONFIRMED_SHORT_TERM_EVENT |
+| DODO-EUR | 0.01619 | +7.25 % | INSUFFICIENT_HISTORY |
+| REZ-EUR | 0.0028883 | +6.80 % | DETECTED_EARLY |
+| NEWT-EUR | 0.041142 | +6.48 % | NO_CONFIRMED_SHORT_TERM_EVENT |
 
-Historique : 123 scans ; 52712 observations ; 29 épisodes d’achat évaluables.
+Historique : 124 scans ; 53141 observations ; 29 épisodes d’achat évaluables.
 V5 optimisée : aucune. Supériorité sur V4 : non démontrée. Probabilités : non calibrées.
 Le cash et le portefeuille du plan sont hypothétiques. Aucun ordre réel n’est envoyé.
