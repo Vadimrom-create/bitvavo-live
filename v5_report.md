@@ -1,39 +1,39 @@
 # Bitvavo — V4 mesurée / infrastructure V5
 
-Scan UTC : 2026-09-11T20:16:21.010092+00:00
-État : OK | marchés EUR : 429 | V4 : 366 | données valides : 4
-Récupération : 2026-09-11T20:15:54.077036+00:00 | âge ticker : 141.8 s | durée : 142.8 s
+Scan UTC : 2026-09-11T20:34:02.881042+00:00
+État : OK | marchés EUR : 429 | V4 : 366 | données valides : 5
+Récupération : 2026-09-11T20:33:32.131170+00:00 | âge ticker : 146.7 s | durée : 147.6 s
 
 ## ACHÈTE — signal V4 et plan théorique
 
 AUCUN ACHAT VALIDÉ — cette absence ne valide pas les marchés aux données insuffisantes.
-Bougies utilisables : 5 min 24/429 ; 15 min 69/429.
+Bougies utilisables : 5 min 23/429 ; 15 min 68/429.
 Les trous de cotation restent visibles ; aucune bougie sans transaction n’est inventée.
 
 Achats bruts V4 bloqués avant alerte :
-- BNB-EUR : INVALID_15M, INVALID_5M, STALE_DAILY_PROFILE
-- SOL-EUR : WICK_SETUP, STALE_DAILY_PROFILE
+- BNB-EUR : STABILITY_HOLD, INVALID_15M, INVALID_5M, STALE_DAILY_PROFILE
+- ETHFI-EUR : STALE_DAILY_PROFILE
 
 ## SURVEILLE
 
-- ETHFI-EUR : 0.62054 € ; score 87.31/100 ; SURVEILLE ; seuil achat non atteint
-- VET-EUR : 0.0063979 € ; score 84.48/100 ; SURVEILLE ; WICK_SETUP
+- VET-EUR : 0.0063726 € ; score 89.00/100 ; SURVEILLE ; WICK_SETUP
+- SOL-EUR : 88.236 € ; score 69.97/100 ; SURVEILLE ; STABILITY_HOLD
 
 ## Contrôle des hausses
 
 | Marché | Prix € | 24 h | État historique |
 |---|---:|---:|---|
-| MET-EUR | 0.23109 | +24.22 % | EXCLUDED_BEFORE_MOVE |
-| DOGS-EUR | 4.6246e-05 | +18.36 % | DETECTED_EARLY |
-| RAY-EUR | 1.38784 | +15.39 % | NO_CONFIRMED_SHORT_TERM_EVENT |
-| LSK-EUR | 0.11364 | +14.89 % | NO_CONFIRMED_SHORT_TERM_EVENT |
-| BLUR-EUR | 0.015722 | +10.84 % | NO_CONFIRMED_SHORT_TERM_EVENT |
-| GLMR-EUR | 0.004951 | +10.69 % | NO_CONFIRMED_SHORT_TERM_EVENT |
-| PUFFER-EUR | 0.015918 | +9.79 % | NO_CONFIRMED_SHORT_TERM_EVENT |
-| SOLV-EUR | 0.0038702 | +8.36 % | NO_CONFIRMED_SHORT_TERM_EVENT |
-| TRAC-EUR | 0.29164 | +8.15 % | NO_CONFIRMED_SHORT_TERM_EVENT |
-| MERL-EUR | 0.019996 | +8.14 % | NO_CONFIRMED_SHORT_TERM_EVENT |
+| MET-EUR | 0.23314 | +25.32 % | EXCLUDED_BEFORE_MOVE |
+| DOGS-EUR | 4.5974e-05 | +17.66 % | DETECTED_EARLY |
+| LSK-EUR | 0.11322 | +14.60 % | NO_CONFIRMED_SHORT_TERM_EVENT |
+| RAY-EUR | 1.37295 | +13.35 % | NO_CONFIRMED_SHORT_TERM_EVENT |
+| BLUR-EUR | 0.015782 | +13.14 % | NO_CONFIRMED_SHORT_TERM_EVENT |
+| PUFFER-EUR | 0.01618 | +11.42 % | NO_CONFIRMED_SHORT_TERM_EVENT |
+| TRAC-EUR | 0.29578 | +9.68 % | NO_CONFIRMED_SHORT_TERM_EVENT |
+| SOLV-EUR | 0.0038711 | +8.46 % | NO_CONFIRMED_SHORT_TERM_EVENT |
+| GLMR-EUR | 0.004969 | +8.05 % | NO_CONFIRMED_SHORT_TERM_EVENT |
+| TRIA-EUR | 0.003138 | +7.95 % | NO_CONFIRMED_SHORT_TERM_EVENT |
 
-Historique : 242 scans ; 103844 observations ; 50 épisodes d’achat évaluables.
+Historique : 243 scans ; 104273 observations ; 50 épisodes d’achat évaluables.
 V5 optimisée : aucune. Supériorité sur V4 : non démontrée. Probabilités : non calibrées.
 Le cash et le portefeuille du plan sont hypothétiques. Aucun ordre réel n’est envoyé.
