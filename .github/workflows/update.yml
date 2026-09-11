@@ -75,7 +75,7 @@ jobs:
           mkdir -p _site
           cp scan_feed.txt bitvavo_live.json early_watch.txt early_watch.json _site/
           cp v4_watch.txt v4_watch.json v4_watch_raw.txt v4_watch_raw.json _site/
-          cp market_control.txt market_control.json execution_snapshot.json _site/
+          cp market_control.txt market_control.json market_control_current.json market_control_history.json execution_snapshot.json _site/
           cp v5_report.json v5_report.md pipeline_health.json evaluation.json proposed_orders.json _site/
           cp decision_layer.json decision_layer.md _site/
           test ! -f position_monitor_status.json || cp position_monitor_status.json _site/
@@ -89,7 +89,7 @@ jobs:
           <p><a href="position_monitor_status.json">Disponibilité du suivi des positions</a></p>
           <p><a href="evaluation.json">Mesures chronologiques</a></p>
           <p><a href="v4_watch.txt">Décisions V4</a> · <a href="v4_watch_raw.json">V4 avant stabilisation</a></p>
-          <p><a href="market_control.txt">Tous les marchés</a> · <a href="execution_snapshot.json">Carnets publics</a></p>
+          <p><a href="market_control_current.json">Présence dans les listes courantes</a> · <a href="market_control_history.json">Contrôle du journal complet</a> · <a href="execution_snapshot.json">Carnets publics</a></p>
           <p><a href="proposed_orders.json">Propositions théoriques — validation humaine requise</a></p>
           </html>
           EOF

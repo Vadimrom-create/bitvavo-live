@@ -60,3 +60,12 @@ All prospective data starts as TECHNICAL_PILOT, never held-out.
 - Full pipeline fixture exercises legacy and corrected paths in isolated subprocesses and exact consumer-aware replay against both frozen and instrumented engines. A cold-cache {} replay initialization discrepancy was found and fixed. These fabricated fixture observations are not saved into repository journals.
 - 83 tests pass. Actual CI raw legacy replay 20260911T115709Z-f616cf19 remains exact (50 watch rows). V4/DL-V1 source and historical hash invariants pass; prior 113 DL-V1 replays remain valid.
 - Rollback: suspend corrected consumer / reject ambiguous closure; retain its logs and original replay mode. Live corrected acquisition still needs a prospective run; private monitoring remains PENDING PRIVATE CONFIGURATION. Monitoring release pin will advance after all critical-path changes are validated.
+
+## Lot 6 — Historical continuity and explicit output scopes
+
+- Reproduced false onset across a 3h50 gap. Three new tests cover the gap, continuous sequence, reverse input order, duplicate/conflicting bars, partial crossing bar and a previously detected market outside a 70-market current top.
+- HISTORY_CONTINUITY_V2 checks the entire 13-bar link and rejects unclosed/invalid/contradictory inputs. Insufficient observability does not assign detection lead or FN.
+- Current published-list presence and complete-journal diagnostics are separate outputs; historical rows have no 50/40/20 cap. Legacy aliases carry explicit current-only scope. Pages and documentation link both.
+- Actual latest starting-checkout scan 20260911T065702Z-cc6756ed inspected after index reconstruction: 428 markets, 12 observable short-event diagnostics, 407 insufficient-continuity, 9 no-event. This is a development diagnostic, not performance validation.
+- 86 tests pass, including both complete pipeline/replay fixtures. V4/DL-V1 algorithms unchanged; historical source/hash protections pass. No old report or journal rewritten.
+- Rollback: suspend the new diagnostic report; retain versioned raw journals and explicit alias scope.

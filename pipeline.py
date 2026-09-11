@@ -19,7 +19,7 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
 
 from research.common import atomic_json, finite, freshness, read_json, timestamp, utc
-from research.evaluation import evaluate, market_control
+from research.evaluation import evaluate, market_control, market_control_current, HISTORY_POLICY
 from research.features import category, chase_risk, closed_candles, describe, nil_match, score_components, wick_setup
 from research.history import connect, ingest, new_candles, rebuild, recurrent, save_scan
 from research.http import PublicClient
@@ -90,7 +90,7 @@ def report_text(report):
     lines += ['', '## SURVEILLE', '']
     for obs in report['watch']:
         lines.append(f"- {obs['market']} : {obs['price_eur']:.8g} € ; score {(obs.get('baseline') or {}).get('opportunity_score', 0) * 10:.2f}/100 ; {obs['decision']} ; {', '.join(obs['exclusions']) or 'seuil achat non atteint'}")
-    lines += ['', '## Contrôle des hausses', '', '| Marché | Prix € | 24 h | État historique |', '|---|---:|---:|---|']
+    lines += ['', '## Contrôle historique des hausses — journal complet', '', '| Marché | Prix € | 24 h | État historique |', '|---|---:|---:|---|']
     for r in report['market_control'][:10]:
         lines.append(f"| {r['market']} | {r['price_eur']:.8g} | {r['change_24h_pct']:+.2f} % | {r['audit_state']} |")
     ev = report['evaluation']
@@ -268,13 +268,23 @@ def run(data_policy=LEGACY_DATA):
     journal = save_scan(history_root, scan)
     ingest(db, scan)
     evaluation = evaluate(db)
-    control = market_control(db, observations, baseline_ts)
+    control = market_control(db, observations, finish)
+    current_control = market_control_current(observations, baseline_output, read_json('early_watch.json', {}))
+    control_meta = {'scan_id': scan_id, 'data_policy': output_data_policy, 'evaluation_policy': HISTORY_POLICY}
+    atomic_json('market_control_history.json', {**control_meta, 'scope': 'COMPLETE_OBSERVATION_JOURNAL', 'markets': control})
+    atomic_json('market_control_current.json', {**control_meta, 'scope': 'CURRENT_PUBLISHED_LISTS', 'markets': current_control})
+    legacy_alias = read_json('market_control.json', {})
+    legacy_alias.update(scope='CURRENT_PUBLISHED_LISTS', canonical_artifact='market_control_current.json',
+                        absence_meaning='Absent from current published lists; not a historical non-detection')
+    atomic_json('market_control.json', legacy_alias)
+    old_text = Path('market_control.txt').read_text()
+    Path('market_control.txt').write_text('PORTÉE : listes courantes publiées ; aucune conclusion historique.\n' + old_text)
     watch = sorted([o for o in observations if o['decision'] == 'SURVEILLE'],
                    key=lambda o: (o.get('baseline') or {}).get('opportunity_score', 0), reverse=True)[:5]
     report = {'scan_id': scan_id, 'scan_at_utc': utc(baseline_ts), 'health': health, 'buy': buys, 'watch': watch,
               'blocked_baseline_buys': [{'market': o['market'], 'exclusions': o['exclusions']} for o in observations
                                       if (o.get('baseline') or {}).get('buy_ready') and o not in buys],
-              'market_control': control, 'evaluation': evaluation, 'journal_path': str(journal),
+              'market_control': control, 'market_control_history': control, 'market_control_current': current_control, 'evaluation': evaluation, 'journal_path': str(journal),
               'orders': [proposed_order(o['trade_plan'], scan_id) for o in buys]}
     atomic_json('v5_report.json', report)
     text = report_text(report)

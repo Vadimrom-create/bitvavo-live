@@ -28,3 +28,11 @@ L’expected value est celle d’une simulation séparée : limit disponible pen
 | Supériorité hors échantillon | Référence | Non démontrée |
 
 Une V5 future doit être définie avant d’ouvrir le jeu de validation, rejouée sur les mêmes périodes et marchés, et comparée avec une séparation temporelle comportant un embargo supérieur à l’horizon maximal. Les sélections, versions du code, coûts et exclusions doivent être identiques ou explicitement attribués. Le nombre d’épisodes et l’incertitude sont indispensables ; un seul gagnant n’est pas une preuve. Aucune taille d’échantillon seule ne garantit une validation, notamment si les événements proviennent d’un même régime de marché.
+
+## Phase 3 : contrats de mesure et portée
+
+L'évaluation `HISTORY_CONTINUITY_V2` exige une séquence continue jusqu'à la bougie de franchissement incluse, avec clôture observée. Un trou, une bougie contradictoire ou une dernière bougie partielle ne confirme pas un événement court. Les anciens rapports restent dans leurs révisions/journaux ; un recalcul ne reprend pas leur identité d'évaluation.
+
+`market_control_current.json` décrit uniquement la présence dans les listes publiées du cycle. `market_control_history.json` interroge toutes les observations de son namespace de données, sans plafond 50/40 ni sélection des vingt premiers marchés. Il conserve aussi la première détection historique connue. `market_control.json/.txt` restent des interfaces de compatibilité à portée courante explicite. Absence du top courant et absence historique sont distinctes.
+
+Les namespaces `history`, `history_legacy_diagnostics` et `history_corrected` séparent données historiques, diagnostics corrigés sur V4 historique et acquisition corrigée. Les états corrigés commencent explicitement dans `policy_state/CORRECTED_INPUTS_V1` ; ils ne rajeunissent pas les anciens profils. Un horizon futur manquant est censuré. Des données décisionnelles manquantes avec un résultat positif observable restent comptabilisables dans le futur bilan end-to-end, sans devenir automatiquement un FN décisionnel conditionnel.

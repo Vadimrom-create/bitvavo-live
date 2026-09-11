@@ -55,3 +55,7 @@ Un achat continu identique est envoyé une seule fois, même en REENTRY_READY ; 
 ## Évaluation avant optimisation
 
 Lire [le protocole](docs/EVALUATION.md), [l’audit](docs/AUDIT_2026-09-08.md) et [le compte rendu de livraison](docs/DELIVERY_2026-09-08.md). Aucune V5 optimisée n’est déclarée supérieure à V4. Les probabilités +10/+20/+30/+40 % restent nulles jusqu’à calibration hors échantillon. Les statistiques en cours ne remplacent pas un backtest ex ante complet.
+
+### Lecture des contrôles de marché
+
+`market_control_current.json` mesure la présence dans les listes du cycle. `market_control_history.json` interroge le journal complet de sa politique de données. Les anciens noms `market_control.json/.txt` sont des alias documentés du contrôle courant : ils ne prouvent pas qu'un marché n'a jamais été détecté. Le protocole et les versions sont détaillés dans `docs/EVALUATION.md`.

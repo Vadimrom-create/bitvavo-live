@@ -4,10 +4,13 @@ from __future__ import annotations
 import json
 import math
 import statistics
+from research.common import finite
 
 HORIZONS = {'15m': 900, '30m': 1800, '1h': 3600, '2h': 7200, '4h': 14400}
 THRESHOLDS = (5, 10, 15, 20, 30, 40)
+HISTORY_POLICY = 'HISTORY_CONTINUITY_V2'
 EVALUATION_SPEC = {
+    'evaluation_policy': HISTORY_POLICY,
     'primary_horizon': '4h', 'primary_threshold_pct': 5, 'max_adverse_before_target_pct': 5,
     'bar_resolution_minutes': 5, 'future_start': 'first complete 5m bar starting at or after scan',
     'minimum_useful_lead_minutes': 15, 'episode_separation_minutes': 240,
@@ -106,9 +109,43 @@ def before_move(db, market, onset_ts, price_now=None):
             'remaining_to_current_pct': (price_now / first['price'] - 1) * 100 if first and first['price'] and price_now else None}
 
 
+def short_event(bars, now):
+    unique = {}
+    for row in bars:
+        r = dict(row)
+        if any(finite(r.get(k)) is None for k in ('t','o','h','l','c','v')):
+            return {'onset_ts': None, 'status': 'INVALID_CANDLE'}
+        if r['t'] % 300000 or min(r['o'],r['h'],r['l'],r['c']) <= 0 or r['v'] < 0 or r['h'] < max(r['o'],r['l'],r['c']) or r['l'] > min(r['o'],r['h'],r['c']):
+            return {'onset_ts': None, 'status': 'INVALID_CANDLE'}
+        if r['t'] in unique and unique[r['t']] != r:
+            return {'onset_ts': None, 'status': 'CONFLICTING_CANDLE'}
+        unique[r['t']] = r
+    closed = sorted((r for r in unique.values() if r['t']+300000 <= now*1000), key=lambda r:r['t'])
+    gaps = len(closed) < 13
+    for i in range(12, len(closed)):
+        sequence = closed[i-12:i+1]
+        if any(b['t']-a['t'] != 300000 for a,b in zip(sequence,sequence[1:])):
+            gaps = True
+            continue
+        low = min(sequence[:-1], key=lambda r:r['l'])
+        if sequence[-1]['h'] >= low['l']*1.05:
+            return {'onset_ts': low['t']/1000, 'status': 'OBSERVABLE',
+                    'crossing_ts': sequence[-1]['t']/1000, 'reference_low_eur': low['l']}
+    return {'onset_ts': None, 'status': 'INSUFFICIENT_CONTINUITY' if gaps else 'NO_EVENT'}
+
+
+def market_control_current(observations, v4, v3):
+    four = {r['market'] for r in v4.get('watch', [])}
+    three = {r['market'] for r in v3.get('watch', [])}
+    return [{'market': o['market'], 'in_current_v4_list': o['market'] in four,
+             'in_current_v3_list': o['market'] in three,
+             'presence': 'PRESENT_IN_CURRENT_PUBLISHED_LISTS' if o['market'] in four|three else 'ABSENT_FROM_CURRENT_PUBLISHED_LISTS'}
+            for o in observations]
+
+
 def market_control(db, observations, now):
     leaders = sorted([o for o in observations if o.get('change_24h_pct') is not None],
-                     key=lambda o: o['change_24h_pct'], reverse=True)[:20]
+                     key=lambda o: o['change_24h_pct'], reverse=True)
     out = []
     for obs in leaders:
         market = obs['market']
@@ -116,18 +153,11 @@ def market_control(db, observations, now):
         # first 5% rise from a trailing one-hour low in the last four hours.
         bars = db.execute('SELECT * FROM candles WHERE market=? AND t>=? AND t<? ORDER BY t',
                           (market, int((now - 18000) * 1000), int(now * 1000))).fetchall()
-        onset = None
-        for i, bar in enumerate(bars):
-            if i < 12:
-                continue
-            prior = bars[i - 12:i]
-            if any(b['t'] - a['t'] != 300_000 for a, b in zip(prior, prior[1:])):
-                continue
-            low = min(prior, key=lambda b: b['l'])
-            if bar['h'] >= low['l'] * 1.05:
-                onset = low['t'] / 1000
-                break
-        history = before_move(db, market, onset, obs['price_eur']) if onset else {}
+        event = short_event(bars, now)
+        onset = event['onset_ts']
+        history = before_move(db, market, onset, obs['price_eur']) if onset is not None else {}
+        ever = db.execute('SELECT MIN(ts) FROM observations WHERE market=? AND ts<=? AND detected=1',
+                          (market, now)).fetchone()[0]
         first_ts = history.get('first_signal_ts')
         observed = [r for r in history.get('lookbacks', {}).values() if r['status'] == 'OBSERVED']
         if onset is None:
@@ -142,7 +172,8 @@ def market_control(db, observations, now):
             state = 'FALSE_NEGATIVE'
         out.append({'market': market, 'price_eur': obs['price_eur'], 'change_24h_pct': obs['change_24h_pct'],
                     'current_baseline_action': (obs.get('baseline') or {}).get('action_status'),
-                    'event_onset_ts': onset, 'audit_state': state, **history})
+                    'event_onset_ts': onset, 'event_observability': event['status'],
+                    'evaluation_policy': HISTORY_POLICY, 'first_detected_ever_ts': ever, 'audit_state': state, **history})
     return out
 
 

@@ -16,7 +16,7 @@ from pathlib import Path
 GENERATED = ['bitvavo_live.json', 'scan_feed.txt', 'early_watch.txt', 'early_watch.json', 'scan_history.json',
              'signal_log.json', 'v4_watch.txt', 'v4_watch.json', 'v4_history.json', 'v4_signal_log.json',
              'v4_trend_cache.json', 'v4_watch_raw.txt', 'v4_watch_raw.json', 'v4_stability_state.json',
-             'market_control.txt', 'market_control.json', 'execution_snapshot.json', 'v5_report.json', 'v5_report.md',
+             'market_control.txt', 'market_control.json', 'market_control_current.json', 'market_control_history.json', 'execution_snapshot.json', 'v5_report.json', 'v5_report.md',
              'pipeline_health.json', 'evaluation.json', 'proposed_orders.json', 'alert_candidates.json', 'history',
              'decision_layer.json', 'decision_layer.md', 'decision_history', 'history_corrected', 'history_legacy_diagnostics', 'policy_state']
 ALERT_STATE = ['alert_state_v4.json', 'security_alert_state.json', 'position_alert_state.enc.json', 'position_monitor_status.json']
