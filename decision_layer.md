@@ -1,6 +1,6 @@
 # Decision Layer V1 — shadow
 
-Scan : 2026-09-11T08:13:15.301040+00:00
+Scan : 2026-09-11T08:34:07.206053+00:00
 Policy : DECISION_LAYER_V1_SHADOW au-dessus de V4_FROZEN_20260908
 
 Cette couche ne modifie aucun score V4 et ne peut envoyer aucun ordre.
@@ -11,12 +11,14 @@ Entry est un indicateur de timing, pas un veto structurel.
 - **MEILLEUR_ACHAT_IMMEDIAT** : aucun candidat matériel
 - **MEILLEURE_LIMITE_PASSIVE** : aucun candidat matériel
 - **MEILLEUR_LATENT_ACCELERATOR** : aucun candidat matériel
-- **MEILLEUR_PULLBACK_REENTRY** : NEAR-EUR | action ATTENDS_REPRISE_OU_REENTREE | opportunité 7.574 | entrée 5.750 | trend 8.100 | rang 7.134
+- **MEILLEUR_PULLBACK_REENTRY** : NEAR-EUR | action ATTENDS_REPRISE_OU_REENTREE | opportunité 7.878 | entrée 7.850 | trend 8.100 | rang 7.542
   - Strong trend/opportunity retained through pullback; timing does not erase setup.
 
 ## Top cross-sectionnel
 
-1. NEAR-EUR — MEILLEUR_PULLBACK_REENTRY — ATTENDS_REPRISE_OU_REENTREE — rank 7.134
+1. NEAR-EUR — MEILLEUR_PULLBACK_REENTRY — ATTENDS_REPRISE_OU_REENTREE — rank 7.542
+2. FET-EUR — MEILLEUR_PULLBACK_REENTRY — ATTENDS_REPRISE_OU_REENTREE — rank 7.128
+3. TAO-EUR — MEILLEUR_PULLBACK_REENTRY — ATTENDS_REPRISE_OU_REENTREE — rank 7.118
 
 ## Garde-fous
 
