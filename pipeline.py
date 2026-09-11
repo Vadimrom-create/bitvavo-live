@@ -26,6 +26,7 @@ from research.http import PublicClient
 from research.policies import identities, LEGACY_DATA, CORRECTED_DATA, LEGACY_DIAGNOSTICS
 from research.v4_adapter import state_path
 from research.quality import assess as assess_quality
+from research.input_contract import code_revision
 from research.risk import correlation, plan, proposed_order
 
 POLICY = 'V4_FROZEN_20260908'
@@ -122,7 +123,7 @@ def run(data_policy=LEGACY_DATA):
     collector.main()
     live = read_json('bitvavo_live.json')
     # Retain the actual input snapshots and baseline state for exact replay.
-    replay_input = {'scan_id': scan_id, 'source_commit': os.getenv('GITHUB_SHA'), 'state_before': before,
+    replay_input = {'scan_id': scan_id, 'source_commit': code_revision(), 'state_before': before,
                     'live': copy.deepcopy(live), 'baseline_manifest': read_json('baseline/v4_20260908/manifest.json')}
     import v3_common
     import early_detector
@@ -210,6 +211,7 @@ def run(data_policy=LEGACY_DATA):
                               'exchange_time': client.metadata('/time')['data']['time'],
                               'candle15_start_ms': features.get('last_closed_start_ms'),
                               'candle15_close_ms': features.get('last_closed_close_ms')},
+               'setup_evidence': {'closed_15m_tail': m15.get('candles', [])[-8:]},
                'input_sources': {interval: data['timeframes'].get(interval, {}).get('source') for interval in ('5m','15m')}}
         obs['quality_v2'] = assess_quality(obs, finish)
         if not quality['ok']:
@@ -268,11 +270,13 @@ def run(data_policy=LEGACY_DATA):
     scan = {'schema_version': 2, **identities(data_policy=output_data_policy),
             'input_snapshot_id': scan_id, 'input_cutoff_at_utc': utc(finish),
             'policy_ready_at': utc(baseline_ts), 'diagnostics_ready_at': utc(finish),
-            'code_commit': os.getenv('GITHUB_SHA'), 'scan_id': scan_id, 'scan_ts': baseline_ts, 'scan_at_utc': utc(baseline_ts),
-            'policy': POLICY, 'source': 'live', 'observations': observations, 'candles_5m': new_candles(db, candles5),
+            'code_commit': code_revision(), 'scan_id': scan_id, 'scan_ts': baseline_ts, 'scan_at_utc': utc(baseline_ts),
+            'policy': POLICY, 'stage': os.getenv('PHASE3_STAGE', 'TECHNICAL_PILOT'),
+            'source': 'synthetic' if os.getenv('PHASE3_STAGE') == 'SIMULATED_FIXTURE' else 'live', 'observations': observations, 'candles_5m': new_candles(db, candles5),
             'candle_storage': 'FIRST_SEEN_DELTA_REBUILD_ALL_JOURNALS',
             'health': health, 'baseline_input_policy': 'legacy includes forming candles; closed diagnostics never change V4 scoring'}
     journal = save_scan(history_root, scan)
+    atomic_json('runtime/current_scan.json', {'scan_id':scan_id,'journal':str(journal),'data_policy':output_data_policy})
     ingest(db, scan)
     evaluation = evaluate(db)
     control = market_control(db, observations, finish)

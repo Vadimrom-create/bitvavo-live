@@ -29,3 +29,10 @@ def source_close_bound(record):
 def read_identities(scan):
     return {name: scan.get(name, LEGACY_DATA if name == 'data_policy' else None)
             for name in ('data_policy', 'decision_policy', 'execution_policy', 'evaluation_policy')}
+
+
+def code_revision():
+    import subprocess
+    from pathlib import Path
+    root=Path(__file__).resolve().parents[1]
+    return subprocess.check_output(['git','-C',str(root),'rev-parse','HEAD'],text=True).strip()

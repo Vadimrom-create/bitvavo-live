@@ -1,5 +1,6 @@
 """Deterministic fabricated public transport for integration, never real observations."""
 import json
+import os
 import math
 import sys
 import time
@@ -12,6 +13,7 @@ import pipeline
 from research.http import PublicClient
 from research.common import INTERVAL_MS
 
+os.environ['PHASE3_STAGE']='SIMULATED_FIXTURE'
 NOW = time.time()
 MARKETS = ('AAA-EUR','BTC-EUR','ETH-EUR')
 
