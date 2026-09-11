@@ -142,6 +142,8 @@ class Positions(unittest.TestCase):
                 if path.endswith('/candles'):
                     raise RuntimeError('unavailable')
                 return {'bids': [['8.9', '10']], 'asks': [['8.91', '10']]}
+            def capture(self, path, *args, **kwargs):
+                return {'data': self.get(path, *args, **kwargs), **self.metadata(path)}
             def metadata(self, *args):
                 return {'retrieved_at_utc': utc(1_800_000_000.)}
         quote, features, _ = runner.market_inputs(Client(), 'ABC-EUR', self.now)

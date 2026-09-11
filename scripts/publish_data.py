@@ -18,7 +18,7 @@ GENERATED = ['bitvavo_live.json', 'scan_feed.txt', 'early_watch.txt', 'early_wat
              'v4_trend_cache.json', 'v4_watch_raw.txt', 'v4_watch_raw.json', 'v4_stability_state.json',
              'market_control.txt', 'market_control.json', 'execution_snapshot.json', 'v5_report.json', 'v5_report.md',
              'pipeline_health.json', 'evaluation.json', 'proposed_orders.json', 'alert_candidates.json', 'history',
-             'decision_layer.json', 'decision_layer.md', 'decision_history']
+             'decision_layer.json', 'decision_layer.md', 'decision_history', 'history_corrected', 'history_legacy_diagnostics', 'policy_state']
 ALERT_STATE = ['alert_state_v4.json', 'security_alert_state.json', 'position_alert_state.enc.json', 'position_monitor_status.json']
 
 
@@ -43,7 +43,7 @@ def publish(files, message, source=None, base_sha=None, branch='main'):
                         if not f.is_file():
                             continue
                         target = dst / f.relative_to(src)
-                        if name.endswith('history') and target.exists() and target.read_bytes() != f.read_bytes():
+                        if name in {'history', 'history_corrected', 'history_legacy_diagnostics', 'decision_history'} and target.exists() and target.read_bytes() != f.read_bytes():
                             raise RuntimeError('IMMUTABLE_JOURNAL_CONFLICT')
                     shutil.copytree(src, dst, dirs_exist_ok=True)
                 else:

@@ -12,3 +12,5 @@ def identities(*, data_policy=CORRECTED_DATA, decision_policy=FROZEN_V4,
                execution_policy=EXECUTION, evaluation_policy=EVALUATION):
     return dict(data_policy=data_policy, decision_policy=decision_policy,
                 execution_policy=execution_policy, evaluation_policy=evaluation_policy)
+
+LEGACY_DIAGNOSTICS = 'LEGACY_V4_CORRECTED_DIAGNOSTICS_V1'

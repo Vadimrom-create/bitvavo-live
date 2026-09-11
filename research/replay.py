@@ -21,6 +21,9 @@ from research.common import read_json
 snapshot=read_json(sys.argv[3])
 client=ReplayClient(snapshot['requests'], snapshot.get('consumptions'), consumer_id='v4')
 import v3_common,early_detector,v4_detector,v4_stabilizer
+if snapshot.get('data_policy') == 'CORRECTED_INPUTS_V1':
+    from research.v4_adapter import install
+    client = install(client)
 v3_common.get_json=client.get
 early_detector.main()
 v4_detector.main()

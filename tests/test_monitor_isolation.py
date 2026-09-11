@@ -47,6 +47,8 @@ class MonitorIsolationTests(unittest.TestCase):
                 if path.endswith('/book'): return {'bids': [['8', '100']], 'asks': [['8.01', '100']]}
                 if path.endswith('/candles'): raise AssertionError('enrichment must not run before exit')
                 raise AssertionError(path)
+            def capture(self, path, *args, **kwargs):
+                return {'data': self.get(path, *args, **kwargs), **self.metadata(path)}
             def metadata(self, *args): return {'retrieved_at_utc': utc(now)}
         account = {'retrieved_at_utc': utc(now), 'balances': [dict(symbol=m, amount=10, available=10) for m in ('AAA','BBB')], 'orders': []}
         plans = {m+'-EUR': dict(position_id=m, verified=True, initial_amount=10, stop_eur=9) for m in ('AAA','BBB')}

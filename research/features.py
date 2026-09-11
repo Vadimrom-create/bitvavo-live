@@ -27,6 +27,13 @@ def closed_candles(raw, interval, now):
     return sorted(result.values(), key=lambda r: r['t'])
 
 
+def candles_from_response(record, interval, cutoff=None):
+    from research.input_contract import require_available, source_close_bound
+    if cutoff is not None:
+        require_available(record, cutoff)
+    return closed_candles(record['data'], interval, source_close_bound(record))
+
+
 def pct(a, b):
     return (a / b - 1) * 100 if b else None
 

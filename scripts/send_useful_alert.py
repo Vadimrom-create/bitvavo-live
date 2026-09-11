@@ -26,16 +26,19 @@ STATUS = 'position_monitor_status.json'
 
 
 def market_quote(client, market):
-    book = client.get('/' + market + '/book', {'depth': 25}, cache=False)
+    response = client.capture('/' + market + '/book', {'depth': 25}, cache=False, consumer_id='monitor:'+market)
+    book = response['data']
     return {'bid': finite(book['bids'][0][0]) if book.get('bids') else None,
             'ask': finite(book['asks'][0][0]) if book.get('asks') else None,
-            'retrieved_at_utc': client.metadata('/' + market + '/book', {'depth': 25})['retrieved_at_utc']}
+            'retrieved_at_utc': response['retrieved_at_utc']}
 
 
 def market_features(client, market, now):
     try:
-        raw = client.get('/' + market + '/candles', {'interval': '15m', 'limit': 100})
-        candles = closed_candles(raw, '15m', now)
+        from research.features import candles_from_response
+        response = client.capture('/' + market + '/candles', {'interval': '15m', 'limit': 100},
+                                  consumer_id='monitor:'+market)
+        candles = candles_from_response(response, '15m')
         return describe(candles, '15m'), candles
     except Exception:
         return {'valid': False}, []

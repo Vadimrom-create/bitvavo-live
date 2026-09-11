@@ -23,7 +23,8 @@ from research.evaluation import evaluate, market_control
 from research.features import category, chase_risk, closed_candles, describe, nil_match, score_components, wick_setup
 from research.history import connect, ingest, new_candles, rebuild, recurrent, save_scan
 from research.http import PublicClient
-from research.policies import identities, LEGACY_DATA
+from research.policies import identities, LEGACY_DATA, CORRECTED_DATA, LEGACY_DIAGNOSTICS
+from research.v4_adapter import state_path
 from research.risk import correlation, plan, proposed_order
 
 POLICY = 'V4_FROZEN_20260908'
@@ -47,11 +48,13 @@ def collect_universe(client, markets, ticker, now):
         for interval in ('5m', '15m'):
             params = {'interval': interval, 'limit': 100}
             try:
-                raw = client.get('/' + name + '/candles', params)
-                record = client.metadata('/' + name + '/candles', params)
-                cs = closed_candles(raw, interval, now)
+                record = client.capture('/' + name + '/candles', params, consumer_id='diagnostics:'+name+':'+interval)
+                from research.features import candles_from_response
+                cs = candles_from_response(record, interval)
+                # Reception may be later than V4 readiness; never attribute this snapshot to that earlier decision.
                 data['timeframes'][interval] = {'candles': cs, 'features': describe(cs, interval),
-                                                'retrieved_at_utc': record['retrieved_at_utc']}
+                                                'retrieved_at_utc': record['retrieved_at_utc'],
+                                                'response_id': record['response_id'], 'source': {k:v for k,v in record.items() if k != 'data'}}
             except (ValueError, RuntimeError, KeyError) as exc:
                 data['errors'].append({'interval': interval, 'reason': str(exc)})
         return name, data
@@ -97,16 +100,22 @@ def report_text(report):
     return '\n'.join(lines)
 
 
-def run():
+def run(data_policy=LEGACY_DATA):
     start = time.time()
     scan_id = time.strftime('%Y%m%dT%H%M%SZ', time.gmtime(start)) + '-' + uuid.uuid4().hex[:8]
     Path('runtime').mkdir(exist_ok=True)
-    before = {f: read_json(f, {}) for f in STATE_FILES}
+    corrected = data_policy == CORRECTED_DATA
+    history_root = 'history_corrected' if corrected else 'history_legacy_diagnostics'
+    output_data_policy = CORRECTED_DATA if corrected else LEGACY_DIAGNOSTICS
+    before = {str(state_path(f, corrected)): read_json(state_path(f, corrected), {}) for f in STATE_FILES}
     client = PublicClient()
     client.get('/time', cache=False)
     if abs(client.server_offset) > 30:
         raise RuntimeError('EXCHANGE_CLOCK_SKEW')
-    print('PIPELINE collect legacy inputs', flush=True)
+    if corrected:
+        from research.v4_adapter import install
+        client = install(client)
+    print('PIPELINE collect ' + data_policy, flush=True)
     collector = load_collector()
     collector.get_json = client.get
     collector.main()
@@ -143,11 +152,11 @@ def run():
     markets = sorted([m for m in markets_raw if m.get('quote') == 'EUR' and m.get('status') == 'trading'], key=lambda m: m['market'])
     tickers = {r['market']: r for r in client.get('/ticker/24h')}
     print(f'PIPELINE full EUR universe: {len(markets)} markets, closed 5m/15m candles', flush=True)
-    # Observation features must not include information after the baseline signal.
+    # Post-V4 diagnostics carry their own availability cutoff; they are not baseline inputs.
     universe = collect_universe(client, markets, tickers, baseline_ts)
     finish = time.time()
     ticker_at = client.metadata('/ticker/24h')['retrieved_at_utc']
-    db = rebuild('history', connect())
+    db = rebuild(history_root, connect())
     observations, candles5 = [], {}
     for meta in markets:
         name = meta['market']
@@ -162,10 +171,9 @@ def run():
         for interval, tf in (('5m', m5), ('15m', m15)):
             if not tf.get('features', {}).get('valid'):
                 quality['reasons'].append('INVALID_' + interval.upper())
-            # Candle freshness is assessed at the signal time, retrieval at the
-            # report time. Later-closing candles cannot leak into this signal.
+            # Diagnose the source-closed snapshot at its consumption time.
             if tf.get('candles'):
-                q = freshness(now=baseline_ts, retrieved=ticker_at,
+                q = freshness(now=finish, retrieved=tf.get('retrieved_at_utc'),
                               candle_start_ms=tf['candles'][-1]['t'], interval=interval)
                 quality['reasons'].extend(q['reasons'])
             else:
@@ -175,7 +183,7 @@ def run():
             if e.get('error') or 'NOT_ENTRY_ENRICHED' in baseline.get('risk_flags', []):
                 quality['reasons'].append('ENTRY_INPUTS_UNAVAILABLE')
             profile = baseline.get('trend_profile') or {}
-            if baseline.get('buy_ready') and (baseline_ts - finite(profile.get('updated_ts'), 0) > 3 * 3600):
+            if baseline_ts - finite(profile.get('updated_ts'), 0) > 3 * 3600:
                 quality['reasons'].append('STALE_DAILY_PROFILE')
         quality['reasons'] = sorted(set(quality['reasons']))
         quality['ok'] = not quality['reasons']
@@ -191,7 +199,7 @@ def run():
         trade = plan(row, features, meta) if row.get('buy_ready') and quality['ok'] else None
         obs = {'market': name, 'price_eur': last, 'change_24h_pct': change24, 'baseline': baseline,
                'category': cls, 'features': {'5m': m5.get('features'), '15m': features},
-               'score_components': score_components(row, before['v4_history.json'].get('markets', {}).get(name, {}), timestamp(live['generated_at_utc'])) if baseline else None,
+               'score_components': score_components(row, before[str(state_path('v4_history.json', corrected))].get('markets', {}).get(name, {}), timestamp(live['generated_at_utc'])) if baseline else None,
                'data_quality': quality, 'exclusions': exclusions, 'chase_risk': chase_risk(features, change24),
                'wick_setup': wick_setup(features, row), 'nil_match': nil_match(features),
                'recurrence': recurrent(db, name, baseline_ts, cls), 'trade_plan': trade,
@@ -200,7 +208,8 @@ def run():
                'timestamps': {'ticker_retrieved_at_utc': ticker_at, 'scan_at_utc': utc(baseline_ts),
                               'exchange_time': client.metadata('/time')['data']['time'],
                               'candle15_start_ms': features.get('last_closed_start_ms'),
-                              'candle15_close_ms': features.get('last_closed_close_ms')}}
+                              'candle15_close_ms': features.get('last_closed_close_ms')},
+               'input_sources': {interval: data['timeframes'].get(interval, {}).get('source') for interval in ('5m','15m')}}
         if not quality['ok']:
             obs['decision'] = 'DATA UNAVAILABLE'
         observations.append(obs)
@@ -249,14 +258,14 @@ def run():
             obs['decision'] = 'DATA UNAVAILABLE'
             obs['exclusions'].append('PIPELINE_DEGRADED')
         buys = []
-    scan = {'schema_version': 2, **identities(data_policy=LEGACY_DATA),
+    scan = {'schema_version': 2, **identities(data_policy=output_data_policy),
             'input_snapshot_id': scan_id, 'input_cutoff_at_utc': utc(finish),
             'policy_ready_at': utc(baseline_ts), 'diagnostics_ready_at': utc(finish),
             'code_commit': os.getenv('GITHUB_SHA'), 'scan_id': scan_id, 'scan_ts': baseline_ts, 'scan_at_utc': utc(baseline_ts),
             'policy': POLICY, 'source': 'live', 'observations': observations, 'candles_5m': new_candles(db, candles5),
             'candle_storage': 'FIRST_SEEN_DELTA_REBUILD_ALL_JOURNALS',
             'health': health, 'baseline_input_policy': 'legacy includes forming candles; closed diagnostics never change V4 scoring'}
-    journal = save_scan('history', scan)
+    journal = save_scan(history_root, scan)
     ingest(db, scan)
     evaluation = evaluate(db)
     control = market_control(db, observations, baseline_ts)
@@ -279,7 +288,7 @@ def run():
                      'watch': [{**o['baseline'], 'data_quality': o['data_quality'], 'trade_plan': o['trade_plan']} for o in buys]}
     atomic_json('alert_candidates.json', alert_payload)
     replay_input.update({'requests': client.records, 'consumptions': client.consumptions,
-                         **identities(data_policy=LEGACY_DATA), 'expected_baseline': baseline_output,
+                         **identities(data_policy=output_data_policy), 'expected_baseline': baseline_output,
                          'expected_all_rows': captured['rows']})
     atomic_json('runtime/replay-' + scan_id + '.json.gz', replay_input)
     if os.getenv('GITHUB_STEP_SUMMARY'):
@@ -298,12 +307,13 @@ def run():
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--evaluate-only', action='store_true')
+    parser.add_argument('--data-policy', choices=[LEGACY_DATA, CORRECTED_DATA], default=LEGACY_DATA)
     args = parser.parse_args()
     if args.evaluate_only:
         atomic_json('evaluation.json', evaluate(rebuild('history', connect())))
         return 0
     try:
-        return run()
+        return run(args.data_policy)
     except Exception as exc:
         atomic_json('pipeline_health.json', {'status': 'FAILED', 'failed_at_utc': utc(),
                                            'error_type': type(exc).__name__, 'reason': str(exc)})
