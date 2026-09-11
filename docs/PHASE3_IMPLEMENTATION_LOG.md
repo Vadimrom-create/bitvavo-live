@@ -69,3 +69,13 @@ All prospective data starts as TECHNICAL_PILOT, never held-out.
 - Actual latest starting-checkout scan 20260911T065702Z-cc6756ed inspected after index reconstruction: 428 markets, 12 observable short-event diagnostics, 407 insufficient-continuity, 9 no-event. This is a development diagnostic, not performance validation.
 - 86 tests pass, including both complete pipeline/replay fixtures. V4/DL-V1 algorithms unchanged; historical source/hash protections pass. No old report or journal rewritten.
 - Rollback: suspend the new diagnostic report; retain versioned raw journals and explicit alias scope.
+
+## Lot 7 — Data capabilities and real producer contracts
+
+- Five new tests initially failed; 91 tests now pass, including historical IOST observation and complete frozen/corrected replay fixtures.
+- CAPABILITIES_V1 separately records structure, measured entry, immediate execution, inactive passive planning, retrace observation and outcome-reference availability with reasons and source IDs. Coverage is exposed globally and by category. Missing future labels remain unknown.
+- Structural proof requires source-closed 15m data and fresh local/BTC/ETH profiles at consumption; missing secondary 5m data can leave structure usable while entry is unavailable. A 4.5 entry default with NOT_ENTRY_ENRICHED remains untouched in the baseline and becomes UNKNOWN/null only in the new view.
+- Actual historical IOST stays UNVERIFIABLE with unknown entry; the complete synthetic case has distinct evidence. No outcome or historical winner influenced thresholds.
+- Spread severity includes WIDE_SPREAD_RISK and WIDE_SPREAD with monotone constraints. All five real wick statuses are decoded; execution-only reasons are separated from price-confirmation reasons. No is_wick_setup dependency, numeric wick penalty or global prefix veto is introduced.
+- Raw data_quality, exclusions and V1 payloads are retained. The new interpretation is for the forthcoming versioned consumer; its inactive planning capability does not authorize a trade.
+- Rollback: disable the new consumer/view, preserve raw histories and block any new activation whose execution proof is unavailable.

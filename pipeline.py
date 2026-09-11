@@ -25,6 +25,7 @@ from research.history import connect, ingest, new_candles, rebuild, recurrent, s
 from research.http import PublicClient
 from research.policies import identities, LEGACY_DATA, CORRECTED_DATA, LEGACY_DIAGNOSTICS
 from research.v4_adapter import state_path
+from research.quality import assess as assess_quality
 from research.risk import correlation, plan, proposed_order
 
 POLICY = 'V4_FROZEN_20260908'
@@ -197,7 +198,7 @@ def run(data_policy=LEGACY_DATA):
             exclusions.append('LEGACY_VOLUME_PREFILTER_OR_COLLECTION_FAILURE')
         exclusions += quality['reasons']
         trade = plan(row, features, meta) if row.get('buy_ready') and quality['ok'] else None
-        obs = {'market': name, 'price_eur': last, 'change_24h_pct': change24, 'baseline': baseline,
+        obs = {'data_policy': output_data_policy, 'market': name, 'price_eur': last, 'change_24h_pct': change24, 'baseline': baseline,
                'category': cls, 'features': {'5m': m5.get('features'), '15m': features},
                'score_components': score_components(row, before[str(state_path('v4_history.json', corrected))].get('markets', {}).get(name, {}), timestamp(live['generated_at_utc'])) if baseline else None,
                'data_quality': quality, 'exclusions': exclusions, 'chase_risk': chase_risk(features, change24),
@@ -210,6 +211,7 @@ def run(data_policy=LEGACY_DATA):
                               'candle15_start_ms': features.get('last_closed_start_ms'),
                               'candle15_close_ms': features.get('last_closed_close_ms')},
                'input_sources': {interval: data['timeframes'].get(interval, {}).get('source') for interval in ('5m','15m')}}
+        obs['quality_v2'] = assess_quality(obs, finish)
         if not quality['ok']:
             obs['decision'] = 'DATA UNAVAILABLE'
         observations.append(obs)
@@ -248,6 +250,10 @@ def run(data_policy=LEGACY_DATA):
               'valid_5m': sum(bool((o['features'].get('5m') or {}).get('valid')) for o in observations),
               'valid_15m': sum(bool((o['features'].get('15m') or {}).get('valid')) for o in observations),
               'quality_scope': 'OK describes collection execution; per-market admissibility is separate',
+              'capability_coverage': {k:sum(o['quality_v2']['capabilities'][k]['available'] for o in observations)
+                                      for k in ('structure','entry','immediate','passive','retrace','outcome')},
+              'capability_coverage_by_category': {category:{k:sum(o['category']==category and o['quality_v2']['capabilities'][k]['available'] for o in observations)
+                  for k in ('structure','entry','immediate','passive','retrace','outcome')} for category in sorted({o['category'] for o in observations})},
               'collected_at_utc': live['generated_at_utc'], 'ticker_age_seconds': finish - timestamp(ticker_at),
               'duration_seconds': finish - start, 'api_error_count': len(client.errors),
               'api_errors': client.errors, 'exchange_clock_offset_seconds': client.server_offset,
