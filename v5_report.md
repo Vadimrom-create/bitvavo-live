@@ -1,38 +1,38 @@
 # Bitvavo — V4 mesurée / infrastructure V5
 
-Scan UTC : 2026-09-11T09:46:04.628607+00:00
-État : OK | marchés EUR : 430 | V4 : 361 | données valides : 11
-Récupération : 2026-09-11T09:45:35.291432+00:00 | âge ticker : 142.0 s | durée : 143.3 s
+Scan UTC : 2026-09-11T09:59:15.108704+00:00
+État : OK | marchés EUR : 430 | V4 : 361 | données valides : 8
+Récupération : 2026-09-11T09:58:44.976267+00:00 | âge ticker : 141.9 s | durée : 143.0 s
 
 ## ACHÈTE — signal V4 et plan théorique
 
 AUCUN ACHAT VALIDÉ — cette absence ne valide pas les marchés aux données insuffisantes.
-Bougies utilisables : 5 min 25/430 ; 15 min 50/430.
+Bougies utilisables : 5 min 24/430 ; 15 min 50/430.
 Les trous de cotation restent visibles ; aucune bougie sans transaction n’est inventée.
 
 ## SURVEILLE
 
-- TAO-EUR : 201.5 € ; score 89.44/100 ; SURVEILLE ; seuil achat non atteint
-- SOL-EUR : 85.48 € ; score 86.96/100 ; SURVEILLE ; seuil achat non atteint
-- LINK-EUR : 9.8408 € ; score 81.81/100 ; SURVEILLE ; WICK_SETUP
-- VTHO-EUR : 0.0005175 € ; score 77.61/100 ; SURVEILLE ; VERTICAL_SHORT_TERM
-- VET-EUR : 0.0064493 € ; score 75.42/100 ; SURVEILLE ; WICK_SETUP
+- FET-EUR : 0.14155 € ; score 84.24/100 ; SURVEILLE ; WICK_SETUP
+- VTHO-EUR : 0.00052708 € ; score 81.59/100 ; SURVEILLE ; VERTICAL_SHORT_TERM
+- LSK-EUR : 0.11922 € ; score 75.81/100 ; SURVEILLE ; SPREAD_RISK, SELLER_HEAVY_BOOK, WICK_SETUP, VERTICAL_SHORT_TERM
+- VET-EUR : 0.0064521 € ; score 75.42/100 ; SURVEILLE ; WICK_SETUP
+- TAO-EUR : 201.97 € ; score 73.22/100 ; SURVEILLE ; WICK_SETUP
 
 ## Contrôle des hausses
 
 | Marché | Prix € | 24 h | État historique |
 |---|---:|---:|---|
-| STORJ-EUR | 0.032584 | +32.32 % | EXCLUDED_BEFORE_MOVE |
-| CNPY-EUR | 0.19674 | +26.67 % | EXCLUDED_BEFORE_MOVE |
-| RAY-EUR | 1.35977 | +16.54 % | EXCLUDED_BEFORE_MOVE |
-| LSK-EUR | 0.11819 | +15.00 % | DETECTED_EARLY |
-| MET-EUR | 0.20807 | +14.91 % | DETECTED_EARLY |
-| PUFFER-EUR | 0.016468 | +14.35 % | EXCLUDED_BEFORE_MOVE |
-| SAGA-EUR | 0.014273 | +12.66 % | EXCLUDED_BEFORE_MOVE |
-| IMU-EUR | 0.0020203 | +11.74 % | EXCLUDED_BEFORE_MOVE |
-| DOGS-EUR | 4.3489e-05 | +8.94 % | NO_CONFIRMED_SHORT_TERM_EVENT |
-| PTB-EUR | 0.0005809 | +7.55 % | NO_CONFIRMED_SHORT_TERM_EVENT |
+| STORJ-EUR | 0.034168 | +38.75 % | EXCLUDED_BEFORE_MOVE |
+| CNPY-EUR | 0.19933 | +28.34 % | EXCLUDED_BEFORE_MOVE |
+| RAY-EUR | 1.36985 | +18.39 % | EXCLUDED_BEFORE_MOVE |
+| MET-EUR | 0.21164 | +16.88 % | DETECTED_EARLY |
+| PUFFER-EUR | 0.0167 | +15.96 % | EXCLUDED_BEFORE_MOVE |
+| SAGA-EUR | 0.014114 | +11.41 % | EXCLUDED_BEFORE_MOVE |
+| IMU-EUR | 0.001966 | +8.74 % | EXCLUDED_BEFORE_MOVE |
+| DOGS-EUR | 4.3226e-05 | +8.04 % | NO_CONFIRMED_SHORT_TERM_EVENT |
+| KNC-EUR | 0.11153 | +7.32 % | NO_CONFIRMED_SHORT_TERM_EVENT |
+| PTB-EUR | 0.0005808 | +7.08 % | NO_CONFIRMED_SHORT_TERM_EVENT |
 
-Historique : 206 scans ; 88392 observations ; 36 épisodes d’achat évaluables.
+Historique : 207 scans ; 88822 observations ; 36 épisodes d’achat évaluables.
 V5 optimisée : aucune. Supériorité sur V4 : non démontrée. Probabilités : non calibrées.
 Le cash et le portefeuille du plan sont hypothétiques. Aucun ordre réel n’est envoyé.
