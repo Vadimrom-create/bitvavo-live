@@ -1,6 +1,6 @@
 # Decision Layer V1 — shadow
 
-Scan : 2026-09-11T14:35:44.688398+00:00
+Scan : 2026-09-11T14:52:16.581790+00:00
 Policy : DECISION_LAYER_V1_SHADOW au-dessus de V4_FROZEN_20260908
 
 Cette couche ne modifie aucun score V4 et ne peut envoyer aucun ordre.
@@ -11,14 +11,14 @@ Entry est un indicateur de timing, pas un veto structurel.
 - **MEILLEUR_ACHAT_IMMEDIAT** : aucun candidat matériel
 - **MEILLEURE_LIMITE_PASSIVE** : aucun candidat matériel
 - **MEILLEUR_LATENT_ACCELERATOR** : aucun candidat matériel
-- **MEILLEUR_PULLBACK_REENTRY** : VTHO-EUR | action ATTENDS_REPRISE_OU_REENTREE | opportunité 8.264 | entrée 7.050 | trend 9.200 | rang 8.199
+- **MEILLEUR_PULLBACK_REENTRY** : VTHO-EUR | action ATTENDS_REPRISE_OU_REENTREE | opportunité 8.898 | entrée 6.950 | trend 9.200 | rang 8.268
   - Strong trend/opportunity retained through pullback; timing does not erase setup.
 
 ## Top cross-sectionnel
 
-1. VTHO-EUR — MEILLEUR_PULLBACK_REENTRY — ATTENDS_REPRISE_OU_REENTREE — rank 8.199
-2. WLD-EUR — MEILLEUR_PULLBACK_REENTRY — ATTENDS_REPRISE_OU_REENTREE — rank 7.908
-3. VET-EUR — MEILLEUR_PULLBACK_REENTRY — ATTENDS_REPRISE_OU_REENTREE — rank 7.880
+1. VTHO-EUR — MEILLEUR_PULLBACK_REENTRY — ATTENDS_REPRISE_OU_REENTREE — rank 8.268
+2. VET-EUR — MEILLEUR_PULLBACK_REENTRY — ATTENDS_REPRISE_OU_REENTREE — rank 7.813
+3. KAS-EUR — MEILLEUR_PULLBACK_REENTRY — ATTENDS_REPRISE_OU_REENTREE — rank 7.546
 
 ## Garde-fous
 
