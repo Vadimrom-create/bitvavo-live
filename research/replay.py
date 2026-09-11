@@ -19,7 +19,7 @@ sys.path.append(sys.argv[2])
 from research.http import ReplayClient
 from research.common import read_json
 snapshot=read_json(sys.argv[3])
-client=ReplayClient(snapshot['requests'])
+client=ReplayClient(snapshot['requests'], snapshot.get('consumptions'), consumer_id='v4')
 import v3_common,early_detector,v4_detector,v4_stabilizer
 v3_common.get_json=client.get
 early_detector.main()

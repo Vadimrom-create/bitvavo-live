@@ -40,3 +40,12 @@ All prospective data starts as TECHNICAL_PILOT, never held-out.
 - New buy module retains the original top-one selection until lot 8. Workflow new buys remain disabled until coherent manifests and fallback are validated. No V2 route exists.
 - Public live CI no longer commits observations back onto a review branch; validation artifacts remain uploadable. No historical source or journal changed. No V4/DL-V1 replay required for this isolated lot.
 - Rollback: pin previous validated monitoring SHA with current encrypted state; never restore a second sender. Real account, SMTP and seven-day cadence: PENDING PRIVATE CONFIGURATION. Release pin is recorded in the immediately following metadata commit after validation.
+
+## Lot 4 — Minimum temporal contract
+
+- Four new temporal tests failed before implementation; five targeted tests now pass, full suite 78 tests pass.
+- PublicClient.capture binds copied content and metadata, request/response identity, per-consumer/key sequence and availability cutoff. Refreshed same-URL responses coexist. ReplayClient replays consumer-bound responses with no network fallback; old journals retain their legacy reader.
+- Source-close bound uses request start plus measured server offset minus clock uncertainty; HTTP Date is retained separately and is not a market-content timestamp. Actual cache closure correction follows in lot 5.
+- Pipeline records four policy identities, input snapshot/cutoff and separate baseline/diagnostic readiness. This lot still labels legacy inputs LEGACY_OBSERVED_V1; later diagnostics do not become earlier V4 inputs.
+- Downloaded actual CI raw snapshot from run 34596469789, artifact 10261523827. Local replay of 20260911T115709Z-f616cf19: frozen reference = instrumented = recorded live, 50 watch rows. All 113 DL-V1 journals present in the starting checkout replay exactly on every field returned by decide.
+- Source/historical blob protections pass. No historical journal or baseline source changed. Rollback: legacy replay reader remains; reject ambiguous inputs rather than replacing an earlier response.

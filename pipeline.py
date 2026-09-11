@@ -14,6 +14,7 @@ import json
 import os
 import time
 import uuid
+from functools import partial
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
 
@@ -22,6 +23,7 @@ from research.evaluation import evaluate, market_control
 from research.features import category, chase_risk, closed_candles, describe, nil_match, score_components, wick_setup
 from research.history import connect, ingest, new_candles, rebuild, recurrent, save_scan
 from research.http import PublicClient
+from research.policies import identities, LEGACY_DATA
 from research.risk import correlation, plan, proposed_order
 
 POLICY = 'V4_FROZEN_20260908'
@@ -118,7 +120,7 @@ def run():
     import v4_stabilizer
     import market_control as legacy_control
     import execution_probe
-    v3_common.get_json = client.get
+    v3_common.get_json = partial(client.get, consumer_id='v4')
     legacy_control.get_json = client.get
     execution_probe.get_json = client.get
     print('PIPELINE baseline V3/V4', flush=True)
@@ -247,7 +249,10 @@ def run():
             obs['decision'] = 'DATA UNAVAILABLE'
             obs['exclusions'].append('PIPELINE_DEGRADED')
         buys = []
-    scan = {'schema_version': 1, 'scan_id': scan_id, 'scan_ts': baseline_ts, 'scan_at_utc': utc(baseline_ts),
+    scan = {'schema_version': 2, **identities(data_policy=LEGACY_DATA),
+            'input_snapshot_id': scan_id, 'input_cutoff_at_utc': utc(finish),
+            'policy_ready_at': utc(baseline_ts), 'diagnostics_ready_at': utc(finish),
+            'code_commit': os.getenv('GITHUB_SHA'), 'scan_id': scan_id, 'scan_ts': baseline_ts, 'scan_at_utc': utc(baseline_ts),
             'policy': POLICY, 'source': 'live', 'observations': observations, 'candles_5m': new_candles(db, candles5),
             'candle_storage': 'FIRST_SEEN_DELTA_REBUILD_ALL_JOURNALS',
             'health': health, 'baseline_input_policy': 'legacy includes forming candles; closed diagnostics never change V4 scoring'}
@@ -273,7 +278,8 @@ def run():
     alert_payload = {**baseline_output, 'generated_at_utc': utc(baseline_ts),
                      'watch': [{**o['baseline'], 'data_quality': o['data_quality'], 'trade_plan': o['trade_plan']} for o in buys]}
     atomic_json('alert_candidates.json', alert_payload)
-    replay_input.update({'requests': client.records, 'expected_baseline': baseline_output,
+    replay_input.update({'requests': client.records, 'consumptions': client.consumptions,
+                         **identities(data_policy=LEGACY_DATA), 'expected_baseline': baseline_output,
                          'expected_all_rows': captured['rows']})
     atomic_json('runtime/replay-' + scan_id + '.json.gz', replay_input)
     if os.getenv('GITHUB_STEP_SUMMARY'):
