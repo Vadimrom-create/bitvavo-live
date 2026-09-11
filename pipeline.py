@@ -143,6 +143,7 @@ def run(data_policy=LEGACY_DATA):
     v4_detector.main(audit_sink=observe)
     v4_stabilizer.main()
     baseline_output = read_json('v4_watch.json')
+    v4_ready_at = time.time()
     legacy_control.main()
     execution_probe.main()
     baseline_ts = captured['scan_ts']
@@ -200,7 +201,7 @@ def run(data_policy=LEGACY_DATA):
         exclusions += quality['reasons']
         trade = plan(row, features, meta) if row.get('buy_ready') and quality['ok'] else None
         obs = {'data_policy': output_data_policy, 'market': name, 'price_eur': last, 'change_24h_pct': change24, 'baseline': baseline,
-               'category': cls, 'features': {'5m': m5.get('features'), '15m': features},
+               'market_meta': meta, 'category': cls, 'features': {'5m': m5.get('features'), '15m': features},
                'score_components': score_components(row, before[str(state_path('v4_history.json', corrected))].get('markets', {}).get(name, {}), timestamp(live['generated_at_utc'])) if baseline else None,
                'data_quality': quality, 'exclusions': exclusions, 'chase_risk': chase_risk(features, change24),
                'wick_setup': wick_setup(features, row), 'nil_match': nil_match(features),
@@ -269,7 +270,9 @@ def run(data_policy=LEGACY_DATA):
         buys = []
     scan = {'schema_version': 2, **identities(data_policy=output_data_policy),
             'input_snapshot_id': scan_id, 'input_cutoff_at_utc': utc(finish),
-            'policy_ready_at': utc(baseline_ts), 'diagnostics_ready_at': utc(finish),
+            'policy_ready_at': utc(v4_ready_at), 'diagnostics_ready_at': utc(finish),
+            'triggered_at': os.getenv('WORKFLOW_TRIGGERED_AT'), 'collection_started_at': utc(start),
+            'baseline_output': baseline_output,
             'code_commit': code_revision(), 'scan_id': scan_id, 'scan_ts': baseline_ts, 'scan_at_utc': utc(baseline_ts),
             'policy': POLICY, 'stage': os.getenv('PHASE3_STAGE', 'TECHNICAL_PILOT'),
             'source': 'synthetic' if os.getenv('PHASE3_STAGE') == 'SIMULATED_FIXTURE' else 'live', 'observations': observations, 'candles_5m': new_candles(db, candles5),
