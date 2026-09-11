@@ -36,13 +36,16 @@ class PublicationTests(unittest.TestCase):
             run('add', '.', cwd=writer); run('commit', '-m', 'executor update', cwd=writer)
             run('push', 'origin', 'main', cwd=writer)
             (scanner / 'pipeline_health.json').write_text('{"status":"OK"}')
+            source_head = run('rev-parse', 'HEAD', cwd=scanner).stdout
             previous = os.getcwd()
             try:
                 os.chdir(scanner)
                 with patch('sys.argv', ['publish_data.py']): publisher.main()
             finally:
                 os.chdir(previous)
-            self.assertEqual((scanner/'executor_status.json').read_text(), '{"keep":true}')
+            self.assertFalse((scanner/'executor_status.json').exists())
+            self.assertEqual(run('rev-parse', 'HEAD', cwd=scanner).stdout, source_head)
+            self.assertEqual(run('show', 'main:executor_status.json', cwd=remote).stdout, '{"keep":true}')
             self.assertEqual(run('show', 'main:pipeline_health.json', cwd=remote).stdout, '{"status":"OK"}')
 
     def test_generated_state_conflict_stops_publication(self):
@@ -63,6 +66,7 @@ class PublicationTests(unittest.TestCase):
             run('add', '.', cwd=writer); run('commit', '-m', 'newer scan', cwd=writer)
             run('push', 'origin', 'main', cwd=writer)
             (scanner / 'pipeline_health.json').write_text('{"status":"OK"}')
+            source_head = run('rev-parse', 'HEAD', cwd=scanner).stdout
             previous = os.getcwd()
             try:
                 os.chdir(scanner)

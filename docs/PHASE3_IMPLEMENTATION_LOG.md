@@ -29,3 +29,14 @@ All prospective data starts as TECHNICAL_PILOT, never held-out.
 - CI installs the existing executor requirements for its new test suite. V4/DL-V1 code and histories unchanged; no market replay needed for this isolated lot.
 - Rollback: stop legacy publication/daemon, retain central closure. Exposure ledger remains deferred, not claimed implemented.
 - Deployed daemon SHA and prior publicly committed private details cannot be verified/remediated from the repository alone: PENDING PRIVATE CONFIGURATION / DEPLOYMENT VERIFICATION.
+
+## Lot 3 — Independent critical monitoring
+
+- New isolation tests reproduced eager-buy import failure, candle calls preceding justified exits, and absence of a standalone workflow. After changes: 23 monitoring tests and 73 total tests pass; workflow YAML parses.
+- Dedicated monitoring workflow has its own timeout/concurrency, no needs dependency, a pinned release SHA and exact cryptography/cffi/pycparser dependencies. Current encrypted state is copied separately from main; only this workflow sends SMTP. CI runs monitoring/data/shadow/executor suites independently.
+- Quotes for every holding are assessed first. An exit/partial event prevents candle enrichment and optional buy imports. Fault injection at optional input boundaries covers six named external-failure contexts; no real external outage or email delivery is claimed.
+- Publisher commits/rebases only a temporary publication worktree, preserving executing HEAD. Concurrent distinct-file publication succeeds; conflicting same-state publication refuses. Test expectation updated to require the source checkout stay unchanged.
+- Private telemetry records successful evaluation intervals and account/book ages; failed/UNCONFIGURED cycles do not become successful monitoring. SMTP accepted followed by state-save failure is explicitly uncertain.
+- New buy module retains the original top-one selection until lot 8. Workflow new buys remain disabled until coherent manifests and fallback are validated. No V2 route exists.
+- Public live CI no longer commits observations back onto a review branch; validation artifacts remain uploadable. No historical source or journal changed. No V4/DL-V1 replay required for this isolated lot.
+- Rollback: pin previous validated monitoring SHA with current encrypted state; never restore a second sender. Real account, SMTP and seven-day cadence: PENDING PRIVATE CONFIGURATION. Release pin is recorded in the immediately following metadata commit after validation.

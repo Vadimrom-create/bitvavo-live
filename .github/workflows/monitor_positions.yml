@@ -1,0 +1,86 @@
+name: Read-only position monitoring
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '2-59/5 * * * *'
+permissions:
+  contents: write
+concurrency:
+  group: bitvavo-position-monitor-single-writer
+  cancel-in-progress: false
+jobs:
+  monitor:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          path: monitor-control
+      - name: Resolve validated immutable monitoring release
+        id: release
+        working-directory: monitor-control
+        run: |
+          python - <<'PY'
+          import json, os, re
+          release = json.load(open('config/monitor_release.json'))
+          assert re.fullmatch('[0-9a-f]{40}', release['code_commit'])
+          with open(os.environ['GITHUB_OUTPUT'], 'a') as out:
+              out.write('sha=' + release['code_commit'] + '\n')
+          PY
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ steps.release.outputs.sha }}
+          path: monitor-code
+          fetch-depth: 0
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          path: monitor-data
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Verify release dependencies and critical suite
+        id: critical
+        working-directory: monitor-code
+        run: |
+          python - <<'PY'
+          import hashlib, json
+          release = json.load(open('../monitor-control/config/monitor_release.json'))
+          assert hashlib.sha256(open('requirements-monitoring.txt', 'rb').read()).hexdigest() == release['dependencies_sha256']
+          PY
+          python -m pip install -r requirements-monitoring.txt
+          python scripts/run_tests.py monitoring
+      - name: Load current encrypted state independently from code
+        id: state
+        working-directory: monitor-code
+        run: |
+          git config user.name 'bitvavo-live-bot'
+          git config user.email 'actions@users.noreply.github.com'
+          git fetch origin main
+          python - <<'PY'
+          from pathlib import Path
+          import os, shutil, subprocess
+          for name in ('position_alert_state.enc.json', 'alert_state_v4.json', 'alert_candidates.json', 'scan_manifest.json'):
+              source = Path('../monitor-data') / name
+              if source.exists(): shutil.copy2(source, name)
+              else: Path(name).unlink(missing_ok=True)
+          sha = subprocess.check_output(['git', '-C', '../monitor-data', 'rev-parse', 'HEAD'], text=True).strip()
+          with open(os.environ['GITHUB_ENV'], 'a') as out: out.write('PUBLISH_BASE_SHA=' + sha + '\n')
+          PY
+      - name: Assess positions and deliver justified alerts
+        id: monitor
+        working-directory: monitor-code
+        env:
+          ALLOW_BUY_ALERTS: 'false'
+          BITVAVO_READ_API_KEY: ${{ secrets.BITVAVO_READ_API_KEY }}
+          BITVAVO_READ_API_SECRET: ${{ secrets.BITVAVO_READ_API_SECRET }}
+          POSITION_STATE_KEY: ${{ secrets.POSITION_STATE_KEY }}
+          POSITION_PLANS_JSON: ${{ secrets.POSITION_PLANS_JSON }}
+          ALERT_GMAIL_USER: ${{ vars.ALERT_GMAIL_USER }}
+          ALERT_EMAIL_TO: bellonirom@gmail.com
+          GMAIL_APP_PASSWORD: ${{ secrets.GMAIL_APP_PASSWORD }}
+        run: python scripts/send_useful_alert.py
+      - name: Persist state from separate publication checkout
+        if: always() && steps.state.outcome == 'success'
+        working-directory: monitor-code
+        run: python scripts/publish_data.py --alerts

@@ -166,7 +166,8 @@ class Positions(unittest.TestCase):
         with tempfile.TemporaryDirectory() as directory, patch.dict('os.environ', env, clear=True), \
                 patch.object(runner, 'STATE', str(Path(directory) / 'state.json')), \
                 patch.object(runner, 'ReadOnlyAccount') as private, patch.object(runner, 'PublicClient', Public), \
-                patch.object(runner, 'market_inputs', side_effect=inputs) as markets, \
+                patch.object(runner, 'market_quote', side_effect=lambda c, m: inputs(c, m, self.now)[0]) as markets, \
+                patch.object(runner, 'market_features', return_value=(self.features, [])), \
                 patch.object(runner.time, 'time', return_value=self.now), \
                 patch.object(runner.email_alert, 'send_email') as send:
             private.return_value.snapshot.return_value = account

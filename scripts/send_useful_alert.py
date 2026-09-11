@@ -14,31 +14,36 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 import email_alert
-from email_alert_v4 import select_events
 from monitoring.account import ReadOnlyAccount
 from monitoring.positions import BUY, management_event, mark_delivered, message, select_actions
 from monitoring.state import load_state, save_state
 from research.common import atomic_json, finite, freshness, read_json, utc
 from research.features import closed_candles, describe
 from research.http import PublicClient
-from research.risk import DEFAULTS, correlation, plan as make_plan
 
 STATE = 'position_alert_state.enc.json'
 STATUS = 'position_monitor_status.json'
 
 
-def market_inputs(client, market, now):
+def market_quote(client, market):
     book = client.get('/' + market + '/book', {'depth': 25}, cache=False)
-    quote = {'bid': finite(book['bids'][0][0]) if book.get('bids') else None,
-             'ask': finite(book['asks'][0][0]) if book.get('asks') else None,
-             'retrieved_at_utc': client.metadata('/' + market + '/book', {'depth': 25})['retrieved_at_utc']}
+    return {'bid': finite(book['bids'][0][0]) if book.get('bids') else None,
+            'ask': finite(book['asks'][0][0]) if book.get('asks') else None,
+            'retrieved_at_utc': client.metadata('/' + market + '/book', {'depth': 25})['retrieved_at_utc']}
+
+
+def market_features(client, market, now):
     try:
         raw = client.get('/' + market + '/candles', {'interval': '15m', 'limit': 100})
         candles = closed_candles(raw, '15m', now)
-        features = describe(candles, '15m')
+        return describe(candles, '15m'), candles
     except Exception:
-        # A stop breach needs a fresh executable quote, not an ATR history.
-        candles, features = [], {'valid': False}
+        return {'valid': False}, []
+
+
+def market_inputs(client, market, now):
+    quote = market_quote(client, market)
+    features, candles = market_features(client, market, now)
     return quote, features, candles
 
 
@@ -82,14 +87,16 @@ def run(status):
             issues.append('HELD_MARKET_UNAVAILABLE')
             continue
         try:
-            quote, features, candles = market_inputs(client, market, time.time())
+            quote = market_quote(client, market)
+            features, candles = {'valid': False}, []
             inputs[market] = (quote, features, candles)
             event, reason = management_event(balance, p, quote, features, metadata[market], account['orders'], time.time())
             observed[market]['assessment'] = reason
             if event:
                 events.append(event)
             if reason not in {'ACTION', 'NO_JUSTIFIED_ACTION', 'BELOW_ORDER_MINIMUM',
-                              'EQUIVALENT_EXIT_ORDER_ALREADY_OPEN', 'EQUIVALENT_PROFIT_ORDER_ALREADY_OPEN'}:
+                              'EQUIVALENT_EXIT_ORDER_ALREADY_OPEN', 'EQUIVALENT_PROFIT_ORDER_ALREADY_OPEN',
+                              'TRAILING_STRUCTURE_UNAVAILABLE'}:
                 issues.append(reason)
             bid = finite(quote['bid'])
             if bid is None:
@@ -107,51 +114,33 @@ def run(status):
     if not freshness(now=time.time(), retrieved=account['retrieved_at_utc'], max_retrieval_age=120)['ok']:
         events = []
         issues.append('ACCOUNT_SNAPSHOT_STALE')
-    eligible_buys = []
-    buy_state = state.get('buy_state', {'markets': {}})
-    if os.getenv('ALLOW_BUY_ALERTS') == 'true':
+    # Only after all executable quotes have been assessed may enrichment start.
+    if not events:
+        for market, (quote, _, _) in list(inputs.items()):
+            features, candles = market_features(client, market, time.time())
+            inputs[market] = (quote, features, candles)
+            event, reason = management_event(held[market], plans.get(market, {}), quote, features,
+                                              metadata[market], account['orders'], time.time())
+            observed[market]['assessment'] = reason
+            if event:
+                events.append(event)
+            elif reason == 'TRAILING_STRUCTURE_UNAVAILABLE':
+                issues.append(reason)
+    if not events and os.getenv('ALLOW_BUY_ALERTS') == 'true':
         try:
-            payload = read_json('alert_candidates.json', {})
-            prior_buys = state.get('buy_state')
-            if prior_buys is None:
-                prior_buys = read_json('alert_state_v4.json', {'markets': {}})
-            eligible_buys, buy_state = select_events(payload, prior_buys, time.time())
+            from monitoring.buy_candidates import candidates
+            events, buy_state = candidates(state, account, held, metadata, inputs, issues,
+                                           exposure, portfolio_risk, client, market_inputs)
             state['buy_state'] = buy_state
         except Exception:
-            # Corrupt prospecting files must not suppress a justified exit.
             issues.append('BUY_INPUT_UNAVAILABLE')
-    can_buy = not issues and not events and not any(o.get('side') == 'buy' for o in account['orders'])
-    if can_buy:
-        cash = next((b['available'] for b in account['balances'] if b['symbol'] == 'EUR'), 0)
-        cfg = {**DEFAULTS, 'cash_eur': cash, 'existing_exposure_eur': exposure,
-               'existing_risk_eur': portfolio_risk, 'existing_positions': len(held),
-               'portfolio_state': 'FRESH_READ_ONLY_ACCOUNT'}
-        for row in eligible_buys:
-            market = row['market']
-            if market in held or market not in metadata:
-                continue
-            quote, features, candles = market_inputs(client, market, time.time())
-            if not features.get('valid') or not freshness(now=time.time(), retrieved=quote['retrieved_at_utc'],
-                    candle_start_ms=features.get('last_closed_start_ms'), interval='15m', max_retrieval_age=90)['ok']:
-                continue
-            if any((c := correlation(candles, values[2])) is None or c >= .8 for values in inputs.values()):
-                continue
-            if not finite(row.get('last')) or not quote['ask'] or abs(quote['ask'] / row['last'] - 1) > .005:
-                continue
-            p = make_plan({**row, 'ask': quote['ask']}, features, metadata[market], cfg)
-            if not p['valid']:
-                continue
-            episode = buy_state['markets'][market]['episode']
-            events.append({'action': BUY, 'market': market, 'position_id': 'buy:' + market,
-                           'trigger_key': str(episode), 'price_eur': p['entry_eur'], 'amount': float(p['amount']),
-                           'stop_eur': p['stop_eur'], 'target_eur': p['tp1_eur'], 'trade_plan': p,
-                           'reason': 'Signal V4 valide, données fraîches et limites du portefeuille réel respectées.',
-                           'observed_at_utc': quote['retrieved_at_utc'], 'baseline_row': row})
     selected, state = select_actions(events, state, time.time())
     selected = [e for e in selected if freshness(now=time.time(), retrieved=e['observed_at_utc'], max_retrieval_age=90)['ok']]
     if not freshness(now=time.time(), retrieved=account['retrieved_at_utc'], max_retrieval_age=120)['ok']:
         selected = []
         issues.append('ACCOUNT_SNAPSHOT_STALE')
+    from monitoring.telemetry import record_cycle
+    record_cycle(state, status, account, inputs, len(held), issues, time.time())
     save_state(STATE, state_key, state)
     status.update(status='PARTIAL' if issues else 'OK', reason='SOME_CHECKS_UNAVAILABLE' if issues else 'CYCLE_COMPLETE',
                   buy_alerts='BLOCKED' if issues else 'REQUIRES_FRESH_VALID_SIGNAL_AND_ACCOUNT_LIMITS')
@@ -175,7 +164,11 @@ def run(status):
             previous.update(last_sent_ts=sent_at, sent_episode=previous['episode'],
                             opportunity=row['opportunity_score'], entry=row['entry_score'])
             state['buy_state']['last_global_sent_ts'] = sent_at
-    save_state(STATE, state_key, state)
+    try:
+        save_state(STATE, state_key, state)
+    except Exception:
+        status['email'] = 'SMTP_ACCEPTED_PERSISTENCE_UNCERTAIN'
+        raise
     status['email'] = 'DELIVERY_COMPLETED'
     return 0
 
@@ -185,7 +178,8 @@ def main():
     try:
         result = run(status)
     except Exception as exc:
-        status.update(status='ERROR', reason=type(exc).__name__, email='NO_DELIVERY_CONFIRMATION')
+        status.update(status='ERROR', reason=type(exc).__name__)
+        status.setdefault('email', 'NO_DELIVERY_CONFIRMATION')
         result = 2
     status['completed_at_utc'] = utc()
     atomic_json(STATUS, status)

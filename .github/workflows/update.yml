@@ -70,30 +70,6 @@ jobs:
           git config user.name 'bitvavo-live-bot'
           git config user.email 'actions@users.noreply.github.com'
           python scripts/publish_data.py
-      - name: Prepare isolated position supervision even if prospecting failed
-        if: always() && steps.tests.outcome == 'success'
-        run: |
-          git config user.name 'bitvavo-live-bot'
-          git config user.email 'actions@users.noreply.github.com'
-          git worktree add --detach /tmp/bitvavo-monitor HEAD
-      - name: Monitor every held position and send only justified actions
-        id: positions
-        if: always() && steps.tests.outcome == 'success'
-        working-directory: /tmp/bitvavo-monitor
-        env:
-          ALLOW_BUY_ALERTS: ${{ steps.publication.outcome == 'success' && steps.replay.outcome == 'success' }}
-          BITVAVO_READ_API_KEY: ${{ secrets.BITVAVO_READ_API_KEY }}
-          BITVAVO_READ_API_SECRET: ${{ secrets.BITVAVO_READ_API_SECRET }}
-          POSITION_STATE_KEY: ${{ secrets.POSITION_STATE_KEY }}
-          POSITION_PLANS_JSON: ${{ secrets.POSITION_PLANS_JSON }}
-          ALERT_GMAIL_USER: ${{ vars.ALERT_GMAIL_USER }}
-          ALERT_EMAIL_TO: bellonirom@gmail.com
-          GMAIL_APP_PASSWORD: ${{ secrets.GMAIL_APP_PASSWORD }}
-        run: python scripts/send_useful_alert.py
-      - name: Persist encrypted anti-spam state and monitoring availability
-        if: always() && steps.tests.outcome == 'success'
-        working-directory: /tmp/bitvavo-monitor
-        run: python scripts/publish_data.py --alerts
       - name: Prepare public feed
         run: |
           mkdir -p _site
@@ -102,7 +78,7 @@ jobs:
           cp market_control.txt market_control.json execution_snapshot.json _site/
           cp v5_report.json v5_report.md pipeline_health.json evaluation.json proposed_orders.json _site/
           cp decision_layer.json decision_layer.md _site/
-          cp /tmp/bitvavo-monitor/position_monitor_status.json _site/
+          test ! -f position_monitor_status.json || cp position_monitor_status.json _site/
           cat > _site/index.html <<'EOF'
           <!doctype html>
           <html lang="fr"><meta charset="utf-8"><title>Bitvavo — suivi V4 / V5</title>
