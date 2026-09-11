@@ -1,37 +1,36 @@
 # Bitvavo — V4 mesurée / infrastructure V5
 
-Scan UTC : 2026-09-11T17:57:02.810238+00:00
-État : OK | marchés EUR : 429 | V4 : 366 | données valides : 7
-Récupération : 2026-09-11T17:56:26.468350+00:00 | âge ticker : 144.9 s | durée : 146.1 s
+Scan UTC : 2026-09-11T18:20:45.604640+00:00
+État : OK | marchés EUR : 429 | V4 : 368 | données valides : 8
+Récupération : 2026-09-11T18:20:07.653759+00:00 | âge ticker : 149.2 s | durée : 150.2 s
 
 ## ACHÈTE — signal V4 et plan théorique
 
 AUCUN ACHAT VALIDÉ — cette absence ne valide pas les marchés aux données insuffisantes.
-Bougies utilisables : 5 min 28/429 ; 15 min 78/429.
+Bougies utilisables : 5 min 27/429 ; 15 min 72/429.
 Les trous de cotation restent visibles ; aucune bougie sans transaction n’est inventée.
 
 ## SURVEILLE
 
-- VET-EUR : 0.006325 € ; score 79.94/100 ; SURVEILLE ; WICK_SETUP
-- TAO-EUR : 203.67 € ; score 74.88/100 ; SURVEILLE ; seuil achat non atteint
-- WLD-EUR : 0.35188 € ; score 74.30/100 ; SURVEILLE ; seuil achat non atteint
-- PUMP-EUR : 0.0031994 € ; score 73.00/100 ; SURVEILLE ; seuil achat non atteint
+- ENSO-EUR : 0.8356 € ; score 78.13/100 ; SURVEILLE ; WICK_SETUP
+- VET-EUR : 0.006273 € ; score 75.42/100 ; SURVEILLE ; WICK_SETUP, STABILITY_HOLD
+- WLD-EUR : 0.34972 € ; score 75.42/100 ; SURVEILLE ; seuil achat non atteint
 
 ## Contrôle des hausses
 
 | Marché | Prix € | 24 h | État historique |
 |---|---:|---:|---|
-| RAY-EUR | 1.37274 | +22.63 % | INSUFFICIENT_HISTORY |
-| MET-EUR | 0.22662 | +21.26 % | EXCLUDED_BEFORE_MOVE |
-| DOGS-EUR | 4.5895e-05 | +17.14 % | DETECTED_EARLY |
-| BLUR-EUR | 0.016345 | +16.43 % | DETECTED_EARLY |
-| PUFFER-EUR | 0.016606 | +14.27 % | NO_CONFIRMED_SHORT_TERM_EVENT |
-| AERO-EUR | 0.52149 | +9.01 % | DETECTED_EARLY |
-| LSK-EUR | 0.10593 | +8.82 % | NO_CONFIRMED_SHORT_TERM_EVENT |
-| JUP-EUR | 0.20994 | +8.82 % | NO_CONFIRMED_SHORT_TERM_EVENT |
-| MERL-EUR | 0.02015 | +8.16 % | NO_CONFIRMED_SHORT_TERM_EVENT |
-| HNT-EUR | 0.45417 | +7.92 % | NO_CONFIRMED_SHORT_TERM_EVENT |
+| MET-EUR | 0.23003 | +24.89 % | EXCLUDED_BEFORE_MOVE |
+| RAY-EUR | 1.36323 | +22.38 % | EXCLUDED_BEFORE_MOVE |
+| DOGS-EUR | 4.6571e-05 | +18.86 % | DETECTED_EARLY |
+| BLUR-EUR | 0.016143 | +15.00 % | DETECTED_EARLY |
+| PUFFER-EUR | 0.01657 | +11.05 % | NO_CONFIRMED_SHORT_TERM_EVENT |
+| JUP-EUR | 0.21038 | +9.28 % | NO_CONFIRMED_SHORT_TERM_EVENT |
+| LSK-EUR | 0.10593 | +8.09 % | NO_CONFIRMED_SHORT_TERM_EVENT |
+| AERO-EUR | 0.51247 | +7.90 % | NO_CONFIRMED_SHORT_TERM_EVENT |
+| TAI-EUR | 0.003457 | +7.49 % | NO_CONFIRMED_SHORT_TERM_EVENT |
+| MERL-EUR | 0.020024 | +7.48 % | NO_CONFIRMED_SHORT_TERM_EVENT |
 
-Historique : 234 scans ; 100412 observations ; 49 épisodes d’achat évaluables.
+Historique : 235 scans ; 100841 observations ; 50 épisodes d’achat évaluables.
 V5 optimisée : aucune. Supériorité sur V4 : non démontrée. Probabilités : non calibrées.
 Le cash et le portefeuille du plan sont hypothétiques. Aucun ordre réel n’est envoyé.
