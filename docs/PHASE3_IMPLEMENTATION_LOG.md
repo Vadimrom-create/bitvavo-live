@@ -79,3 +79,19 @@ All prospective data starts as TECHNICAL_PILOT, never held-out.
 - Spread severity includes WIDE_SPREAD_RISK and WIDE_SPREAD with monotone constraints. All five real wick statuses are decoded; execution-only reasons are separated from price-confirmation reasons. No is_wick_setup dependency, numeric wick penalty or global prefix veto is introduced.
 - Raw data_quality, exclusions and V1 payloads are retained. The new interpretation is for the forthcoming versioned consumer; its inactive planning capability does not authorize a trade.
 - Rollback: disable the new consumer/view, preserve raw histories and block any new activation whose execution proof is unavailable.
+
+## Second resume checkpoint — 2026-09-11
+
+- Resume SHA `4223ab99848362ed4310dbe5b59f6e856fdd20bf`; clean branch `codex/astra-phase3-20260911`. Lots 1–7 have eight local commits (lot 3 has a separate validated-release pin). No phase-3 branch/commit has been published. Lot 8 had not yet been modified.
+- Remote main now `d5a450a728c2493ed2b525526941cffd7339d26a`, 70 data-only commits after phase start, no source/workflow diff. Last five scheduled runs successful, latest 34627687210. These remain pre-phase-3 workflows.
+- Rechecked immutable architectural document SHA256 `2583ebb02e91ee0dd4b7db94dd6b2a9b0108503423be787b30b20da6e27fe9c8`, remaining sections and launch/resume scope. No methodology/order change.
+- Previously validated: 91 tests; actual frozen V4 replay exact; 113 DL-V1 exact replays; both full pipeline fixture paths exact. Private/deployed validations remain pending. Restored executor dependencies lost in the resumed runtime; no code change needed for that environment issue.
+
+## Lot 8 — One eligible buy after local fallback
+
+- Reproduced top-AA rejection losing valid BB, stale-account traversal and multiple BUY actions at the final boundary. Five targeted tests pass, including real runner + simulated SMTP failure/retry and private encrypted delivery state. Full suite: 96 tests pass; independent critical suite: 23 pass.
+- ranked_eligible_events returns the full V4 ranking with unchanged cooldown/episode rules; select_events keeps the historical one-result interface. Global account/budget failures stop before candidate reads. Local held/correlation/drift/read failures permit the next candidate.
+- A bounded optional acquisition loop returns only the first valid candidate and checks the canonical current spread. Final action selection rejects all buys when management is pending and caps BUY at one. Freshness is rechecked immediately before simulated notification by the existing critical runner.
+- Pipeline publishes all qualified V4 alternatives for private fallback, without prematurely consuming hypothetical portfolio budget; its separate theoretical proposal output is capped at one. Actual private risk/portfolio checks remain in the final selector.
+- Only BB receives delivery markers after SMTP acknowledgement; failed delivery creates none. V2/non-V4 policy identities are refused. Optional-buy tests are kept outside the critical monitoring gate so a broken buy import cannot block exits.
+- Both pipeline/replay fixtures pass; no V4/DL-V1 source/history mutation. Rollback: disable optional new buys, retain position monitoring and current encrypted delivery state. Coherent buy manifests are added in lot 11 before workflow buy enablement is considered.

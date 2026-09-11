@@ -105,7 +105,11 @@ def select_actions(events, state, now):
     state = copy.deepcopy(state)
     deliveries = state.setdefault('deliveries', {})
     selected, seen = [], set()
+    management_pending = any(e['action'] != BUY for e in events)
+    buy_selected = False
     for event in sorted(events, key=lambda e: PRIORITY[e['action']]):
+        if event['action'] == BUY and (management_pending or buy_selected):
+            continue
         key = event.get('position_id', event['market'])
         if key in seen:
             continue
@@ -121,6 +125,8 @@ def select_actions(events, state, now):
         if event['action'] != SELL and now - state.get('last_nonurgent_sent_at', 0) < 1800:
             continue
         selected.append({**event, 'event_id': event_id})
+        if event['action'] == BUY:
+            buy_selected = True
     return selected, state
 
 

@@ -245,6 +245,7 @@ def run(data_policy=LEGACY_DATA):
         used['exposure'] += p['stake_eur']; used['risk'] += p['theoretical_loss_eur']; used['positions'] += 1
         obs['decision'] = 'ACHÈTE'
         buys.append(obs)
+        break  # At most one new theoretical proposal; full alternatives remain available for private fallback.
     health = {'status': 'OK', 'universe': len(markets), 'baseline_analyzed': len(captured['rows']),
               'valid_markets': sum(o['data_quality']['ok'] for o in observations),
               'valid_5m': sum(bool((o['features'].get('5m') or {}).get('valid')) for o in observations),
@@ -301,7 +302,10 @@ def run(data_policy=LEGACY_DATA):
     # Preserve raw baseline public outputs for audit; provide a separate, fresh,
     # quality-checked payload to the existing alert transport.
     alert_payload = {**baseline_output, 'generated_at_utc': utc(baseline_ts),
-                     'watch': [{**o['baseline'], 'data_quality': o['data_quality'], 'trade_plan': o['trade_plan']} for o in buys]}
+                     'decision_policy': POLICY, 'data_policy': output_data_policy, 'scan_id': scan_id,
+                     'watch': [{**o['baseline'], 'data_quality': o['data_quality']} for o in sorted(observations,
+                               key=lambda o: (o.get('baseline') or {}).get('opportunity_score', 0), reverse=True)
+                               if (o.get('baseline') or {}).get('buy_ready') and o['data_quality']['ok'] and o['category'] != 'TOO LATE']}
     atomic_json('alert_candidates.json', alert_payload)
     replay_input.update({'requests': client.records, 'consumptions': client.consumptions,
                          **identities(data_policy=output_data_policy), 'expected_baseline': baseline_output,
