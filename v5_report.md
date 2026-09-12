@@ -1,8 +1,8 @@
 # Bitvavo — V4 mesurée / infrastructure V5
 
-Scan UTC : 2026-09-12T21:32:15.096918+00:00
-État : OK | marchés EUR : 429 | V4 : 336 | données valides : 2
-Récupération : 2026-09-12T21:31:43.141764+00:00 | âge ticker : 141.2 s | durée : 142.5 s
+Scan UTC : 2026-09-12T21:46:15.801879+00:00
+État : OK | marchés EUR : 429 | V4 : 335 | données valides : 3
+Récupération : 2026-09-12T21:45:46.415122+00:00 | âge ticker : 136.0 s | durée : 136.7 s
 
 ## ACHÈTE — signal V4 et plan théorique
 
@@ -12,23 +12,24 @@ Les trous de cotation restent visibles ; aucune bougie sans transaction n’est 
 
 ## SURVEILLE
 
-- TAO-EUR : 200.76 € ; score 72.05/100 ; SURVEILLE ; WICK_SETUP
+- SOL-EUR : 87.636 € ; score 73.07/100 ; SURVEILLE ; STABILITY_HOLD
+- TAO-EUR : 200.74 € ; score 72.46/100 ; SURVEILLE ; WICK_SETUP
 
 ## Contrôle des hausses
 
 | Marché | Prix € | 24 h | État historique |
 |---|---:|---:|---|
-| LSK-EUR | 0.19393 | +64.67 % | DETECTED_EARLY |
-| REZ-EUR | 0.0036884 | +30.27 % | DETECTED_EARLY |
-| FLOCK-EUR | 0.066799 | +27.64 % | EXCLUDED_BEFORE_MOVE |
-| ILV-EUR | 3.2264 | +21.59 % | DETECTED_EARLY |
-| MTL-EUR | 0.25506 | +18.08 % | DETECTED_EARLY |
-| VTHO-EUR | 0.00057187 | +14.49 % | NO_CONFIRMED_SHORT_TERM_EVENT |
-| TREE-EUR | 0.038419 | +14.08 % | NO_CONFIRMED_SHORT_TERM_EVENT |
-| LRC-EUR | 0.008389 | +13.43 % | DETECTED_EARLY |
-| PUFFER-EUR | 0.017694 | +12.70 % | NO_CONFIRMED_SHORT_TERM_EVENT |
-| PUNDIX-EUR | 0.08802 | +10.76 % | NO_CONFIRMED_SHORT_TERM_EVENT |
+| LSK-EUR | 0.20057 | +71.97 % | DETECTED_EARLY |
+| FLOCK-EUR | 0.06752 | +29.01 % | EXCLUDED_BEFORE_MOVE |
+| REZ-EUR | 0.0035543 | +26.31 % | DETECTED_EARLY |
+| PUFFER-EUR | 0.019497 | +24.18 % | NO_CONFIRMED_SHORT_TERM_EVENT |
+| ILV-EUR | 3.2214 | +21.40 % | DETECTED_EARLY |
+| MTL-EUR | 0.25466 | +17.90 % | NO_CONFIRMED_SHORT_TERM_EVENT |
+| VTHO-EUR | 0.0005699 | +13.73 % | NO_CONFIRMED_SHORT_TERM_EVENT |
+| TREE-EUR | 0.038119 | +13.19 % | NO_CONFIRMED_SHORT_TERM_EVENT |
+| KAVA-EUR | 0.063171 | +11.38 % | NO_CONFIRMED_SHORT_TERM_EVENT |
+| PUNDIX-EUR | 0.0885 | +11.36 % | NO_CONFIRMED_SHORT_TERM_EVENT |
 
-Historique : 339 scans ; 145457 observations ; 54 épisodes d’achat évaluables.
+Historique : 340 scans ; 145886 observations ; 54 épisodes d’achat évaluables.
 V5 optimisée : aucune. Supériorité sur V4 : non démontrée. Probabilités : non calibrées.
 Le cash et le portefeuille du plan sont hypothétiques. Aucun ordre réel n’est envoyé.
