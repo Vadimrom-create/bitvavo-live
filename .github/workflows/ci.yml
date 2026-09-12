@@ -37,6 +37,8 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
+      - name: Fetch validated Bitvavo execution quotes
+        run: python scripts/live_quotes.py
       - name: Live scan, no email or real order
         run: python pipeline.py
       - name: Replay and compare with frozen V4
@@ -45,7 +47,7 @@ jobs:
         run: |
           git config user.name 'bitvavo-live-bot'
           git config user.email 'actions@users.noreply.github.com'
-          git add v5_report.json v5_report.md pipeline_health.json evaluation.json history/
+          git add live_quotes.json v5_report.json v5_report.md pipeline_health.json evaluation.json history/
           git commit -m 'Record public live validation and immutable observation journal'
           git push origin HEAD:${{ github.ref_name }}
       - uses: actions/upload-artifact@v4
@@ -54,6 +56,7 @@ jobs:
           name: public-live-validation
           retention-days: 30
           path: |
+            live_quotes.json
             v5_report.json
             v5_report.md
             pipeline_health.json
