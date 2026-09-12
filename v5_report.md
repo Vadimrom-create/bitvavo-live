@@ -1,13 +1,13 @@
 # Bitvavo — V4 mesurée / infrastructure V5
 
-Scan UTC : 2026-09-12T00:26:56.066689+00:00
-État : OK | marchés EUR : 429 | V4 : 361 | données valides : 0
-Récupération : 2026-09-12T00:26:25.852531+00:00 | âge ticker : 144.0 s | durée : 145.2 s
+Scan UTC : 2026-09-12T00:48:28.544777+00:00
+État : OK | marchés EUR : 429 | V4 : 359 | données valides : 0
+Récupération : 2026-09-12T00:47:41.961942+00:00 | âge ticker : 171.6 s | durée : 172.7 s
 
 ## ACHÈTE — signal V4 et plan théorique
 
 AUCUN ACHAT VALIDÉ — cette absence ne valide pas les marchés aux données insuffisantes.
-Bougies utilisables : 5 min 11/429 ; 15 min 39/429.
+Bougies utilisables : 5 min 10/429 ; 15 min 36/429.
 Les trous de cotation restent visibles ; aucune bougie sans transaction n’est inventée.
 
 Achats bruts V4 bloqués avant alerte :
@@ -20,17 +20,17 @@ Achats bruts V4 bloqués avant alerte :
 
 | Marché | Prix € | 24 h | État historique |
 |---|---:|---:|---|
-| LSK-EUR | 0.12408 | +22.34 % | DETECTED_EARLY |
-| TREE-EUR | 0.037753 | +14.85 % | NO_CONFIRMED_SHORT_TERM_EVENT |
-| CNPY-EUR | 0.21049 | +14.03 % | EXCLUDED_BEFORE_MOVE |
-| RAY-EUR | 1.43346 | +12.36 % | EXCLUDED_BEFORE_MOVE |
-| DOGS-EUR | 4.4609e-05 | +11.01 % | NO_CONFIRMED_SHORT_TERM_EVENT |
-| BILL-EUR | 0.012106 | +9.70 % | NO_CONFIRMED_SHORT_TERM_EVENT |
-| SOLV-EUR | 0.0039289 | +9.56 % | NO_CONFIRMED_SHORT_TERM_EVENT |
-| IKA-EUR | 0.0017307 | +8.43 % | NO_CONFIRMED_SHORT_TERM_EVENT |
-| BEAM-EUR | 0.0013869 | +8.43 % | NO_CONFIRMED_SHORT_TERM_EVENT |
-| JUP-EUR | 0.21178 | +8.35 % | NO_CONFIRMED_SHORT_TERM_EVENT |
+| LSK-EUR | 0.14392 | +41.67 % | DETECTED_EARLY |
+| CNPY-EUR | 0.22771 | +21.82 % | NO_CONFIRMED_SHORT_TERM_EVENT |
+| TREE-EUR | 0.037375 | +12.23 % | NO_CONFIRMED_SHORT_TERM_EVENT |
+| BILL-EUR | 0.012235 | +11.71 % | NO_CONFIRMED_SHORT_TERM_EVENT |
+| RAY-EUR | 1.42512 | +11.51 % | EXCLUDED_BEFORE_MOVE |
+| DOGS-EUR | 4.421e-05 | +9.82 % | NO_CONFIRMED_SHORT_TERM_EVENT |
+| VTHO-EUR | 0.00049929 | +9.73 % | NO_CONFIRMED_SHORT_TERM_EVENT |
+| ARK-EUR | 0.102 | +9.04 % | NO_CONFIRMED_SHORT_TERM_EVENT |
+| TRIA-EUR | 0.003176 | +8.88 % | NO_CONFIRMED_SHORT_TERM_EVENT |
+| MET-EUR | 0.20048 | +8.73 % | NO_CONFIRMED_SHORT_TERM_EVENT |
 
-Historique : 258 scans ; 110708 observations ; 52 épisodes d’achat évaluables.
+Historique : 259 scans ; 111137 observations ; 52 épisodes d’achat évaluables.
 V5 optimisée : aucune. Supériorité sur V4 : non démontrée. Probabilités : non calibrées.
 Le cash et le portefeuille du plan sont hypothétiques. Aucun ordre réel n’est envoyé.
