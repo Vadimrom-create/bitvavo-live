@@ -10,7 +10,7 @@ import subprocess
 import sys
 from pathlib import Path
 
-GENERATED = ['bitvavo_live.json', 'scan_feed.txt', 'early_watch.txt', 'early_watch.json', 'scan_history.json',
+GENERATED = ['bitvavo_live.json', 'live_quotes.json', 'scan_feed.txt', 'early_watch.txt', 'early_watch.json', 'scan_history.json',
              'signal_log.json', 'v4_watch.txt', 'v4_watch.json', 'v4_history.json', 'v4_signal_log.json',
              'v4_trend_cache.json', 'v4_watch_raw.txt', 'v4_watch_raw.json', 'v4_stability_state.json',
              'market_control.txt', 'market_control.json', 'execution_snapshot.json', 'v5_report.json', 'v5_report.md',
