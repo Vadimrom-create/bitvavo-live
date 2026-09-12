@@ -1,8 +1,8 @@
 # Bitvavo — V4 mesurée / infrastructure V5
 
-Scan UTC : 2026-09-12T07:32:13.374107+00:00
-État : OK | marchés EUR : 429 | V4 : 364 | données valides : 2
-Récupération : 2026-09-12T07:31:45.128978+00:00 | âge ticker : 137.6 s | durée : 138.7 s
+Scan UTC : 2026-09-12T07:35:54.505925+00:00
+État : OK | marchés EUR : 429 | V4 : 364 | données valides : 1
+Récupération : 2026-09-12T07:35:24.799924+00:00 | âge ticker : 135.9 s | durée : 136.7 s
 
 ## ACHÈTE — signal V4 et plan théorique
 
@@ -18,24 +18,22 @@ Achats bruts V4 bloqués avant alerte :
 
 ## SURVEILLE
 
-- TAO-EUR : 202.32 € ; score 91.10/100 ; SURVEILLE ; seuil achat non atteint
-- SUI-EUR : 0.62685 € ; score 78.02/100 ; SURVEILLE ; seuil achat non atteint
 
 ## Contrôle des hausses
 
 | Marché | Prix € | 24 h | État historique |
 |---|---:|---:|---|
-| LSK-EUR | 0.18499 | +56.08 % | DETECTED_EARLY |
-| VTHO-EUR | 0.00062469 | +38.96 % | DETECTED_EARLY |
+| LSK-EUR | 0.17946 | +52.86 % | DETECTED_EARLY |
+| VTHO-EUR | 0.00063103 | +37.85 % | DETECTED_EARLY |
+| TAI-EUR | 0.003791 | +12.33 % | NO_CONFIRMED_SHORT_TERM_EVENT |
+| CNPY-EUR | 0.21194 | +10.90 % | NO_CONFIRMED_SHORT_TERM_EVENT |
+| LRC-EUR | 0.008354 | +10.55 % | EXCLUDED_BEFORE_MOVE |
+| AIOZ-EUR | 0.0637 | +10.44 % | NO_CONFIRMED_SHORT_TERM_EVENT |
 | POWR-EUR | 0.048391 | +10.32 % | NO_CONFIRMED_SHORT_TERM_EVENT |
-| SOMI-EUR | 0.12554 | +10.06 % | NO_CONFIRMED_SHORT_TERM_EVENT |
-| AIOZ-EUR | 0.0637 | +9.96 % | NO_CONFIRMED_SHORT_TERM_EVENT |
-| BABY-EUR | 0.010059 | +9.89 % | NO_CONFIRMED_SHORT_TERM_EVENT |
-| TAI-EUR | 0.003705 | +9.78 % | NO_CONFIRMED_SHORT_TERM_EVENT |
-| TRIA-EUR | 0.003232 | +9.26 % | NO_CONFIRMED_SHORT_TERM_EVENT |
-| BIGTIME-EUR | 0.006111 | +9.07 % | NO_CONFIRMED_SHORT_TERM_EVENT |
-| BEAM-EUR | 0.0014181 | +9.03 % | NO_CONFIRMED_SHORT_TERM_EVENT |
+| SOMI-EUR | 0.12524 | +9.80 % | NO_CONFIRMED_SHORT_TERM_EVENT |
+| TRIA-EUR | 0.003247 | +9.44 % | NO_CONFIRMED_SHORT_TERM_EVENT |
+| BABY-EUR | 0.010059 | +9.12 % | NO_CONFIRMED_SHORT_TERM_EVENT |
 
-Historique : 284 scans ; 121862 observations ; 53 épisodes d’achat évaluables.
+Historique : 285 scans ; 122291 observations ; 53 épisodes d’achat évaluables.
 V5 optimisée : aucune. Supériorité sur V4 : non démontrée. Probabilités : non calibrées.
 Le cash et le portefeuille du plan sont hypothétiques. Aucun ordre réel n’est envoyé.
