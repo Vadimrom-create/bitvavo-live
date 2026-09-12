@@ -1,9 +1,8 @@
 #!/usr/bin/env python3
 """Fetch a fresh public Bitvavo execution quote snapshot.
 
-This module deliberately uses the dedicated /ticker/price and /ticker/book
-endpoints instead of treating the 24h ticker or a web page as a live quote.
-No API key is required and no account or order endpoint is used.
+Uses the dedicated /ticker/price and /ticker/book endpoints. No API key,
+account data or order endpoint is used.
 """
 from __future__ import annotations
 
@@ -20,6 +19,7 @@ if str(ROOT) not in sys.path:
 from research.http import PublicClient
 
 OUTPUT = Path("live_quotes.json")
+ETHFI_OUTPUT = Path("ethfi_live.json")
 MAX_CLOCK_SKEW_SECONDS = 30.0
 MAX_SNAPSHOT_AGE_SECONDS = 30.0
 
@@ -46,9 +46,6 @@ def _positive(value):
 
 def build_snapshot(client: PublicClient | None = None, now_fn=time.time):
     client = client or PublicClient()
-
-    # Exchange time is fetched immediately before the quotes. PublicClient
-    # computes server_offset from request midpoint to detect local/future clock bugs.
     exchange = client.get("/time", cache=False)
     exchange_time_ms = int(exchange["time"])
     if abs(client.server_offset) > MAX_CLOCK_SKEW_SECONDS:
@@ -85,19 +82,12 @@ def build_snapshot(client: PublicClient | None = None, now_fn=time.time):
 
     snapshot_age = max(0.0, now_fn() - received_at)
     future_timestamp = received_at > now_fn() + 2.0
-    valid = (
-        not future_timestamp
-        and snapshot_age <= MAX_SNAPSHOT_AGE_SECONDS
-        and abs(client.server_offset) <= MAX_CLOCK_SKEW_SECONDS
-        and bool(markets)
-    )
+    valid = not future_timestamp and snapshot_age <= MAX_SNAPSHOT_AGE_SECONDS and bool(markets)
     reasons = []
     if future_timestamp:
         reasons.append("INVALID_FUTURE_TIMESTAMP")
     if snapshot_age > MAX_SNAPSHOT_AGE_SECONDS:
         reasons.append("STALE_LIVE_SNAPSHOT")
-    if abs(client.server_offset) > MAX_CLOCK_SKEW_SECONDS:
-        reasons.append("EXCHANGE_CLOCK_SKEW")
     if not markets:
         reasons.append("NO_MARKETS")
 
@@ -122,6 +112,17 @@ def build_snapshot(client: PublicClient | None = None, now_fn=time.time):
 def write_snapshot(path: Path = OUTPUT, client: PublicClient | None = None):
     snapshot = build_snapshot(client=client)
     path.write_text(json.dumps(snapshot, ensure_ascii=False, separators=(",", ":")), encoding="utf-8")
+    ethfi = snapshot["markets"].get("ETHFI-EUR")
+    compact = {
+        "market": "ETHFI-EUR",
+        "source": snapshot["source"],
+        "received_at_utc": snapshot["received_at_utc"],
+        "exchange_time_ms": snapshot["exchange_time_ms"],
+        "exchange_clock_offset_seconds": snapshot["exchange_clock_offset_seconds"],
+        "snapshot_valid_at_write": snapshot["valid"],
+        "quote": ethfi,
+    }
+    ETHFI_OUTPUT.write_text(json.dumps(compact, ensure_ascii=False, separators=(",", ":")), encoding="utf-8")
     return snapshot
 
 
@@ -129,11 +130,7 @@ def main():
     snapshot = write_snapshot()
     ethfi = snapshot["markets"].get("ETHFI-EUR")
     if ethfi:
-        print(
-            "ETHFI-EUR "
-            f"last={ethfi['last']} bid={ethfi['best_bid']} ask={ethfi['best_ask']} "
-            f"received={snapshot['received_at_utc']} valid={snapshot['valid']}"
-        )
+        print(f"ETHFI-EUR last={ethfi['last']} bid={ethfi['best_bid']} ask={ethfi['best_ask']} received={snapshot['received_at_utc']} valid={snapshot['valid']}")
     else:
         print(f"ETHFI-EUR unavailable; snapshot valid={snapshot['valid']}")
     if not snapshot["valid"]:
