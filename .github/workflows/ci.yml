@@ -39,16 +39,21 @@ jobs:
           python-version: '3.12'
       - name: Fetch validated Bitvavo execution quotes
         run: python scripts/live_quotes.py
+      - name: Publish fresh quote immediately on review branch
+        run: |
+          git config user.name 'bitvavo-live-bot'
+          git config user.email 'actions@users.noreply.github.com'
+          git add live_quotes.json
+          git commit -m '[skip ci] Record validated Bitvavo live quotes'
+          git push origin HEAD:${{ github.ref_name }}
       - name: Live scan, no email or real order
         run: python pipeline.py
       - name: Replay and compare with frozen V4
         run: python -m research.replay runtime/replay-*.json.gz
       - name: Preserve validated public observations on this review branch
         run: |
-          git config user.name 'bitvavo-live-bot'
-          git config user.email 'actions@users.noreply.github.com'
-          git add live_quotes.json v5_report.json v5_report.md pipeline_health.json evaluation.json history/
-          git commit -m 'Record public live validation and immutable observation journal'
+          git add v5_report.json v5_report.md pipeline_health.json evaluation.json history/
+          git commit -m '[skip ci] Record public live validation and immutable observation journal'
           git push origin HEAD:${{ github.ref_name }}
       - uses: actions/upload-artifact@v4
         if: always()
