@@ -1,6 +1,6 @@
 # Decision Layer V1 — shadow
 
-Scan : 2026-09-12T06:32:42.470846+00:00
+Scan : 2026-09-12T06:50:32.868853+00:00
 Policy : DECISION_LAYER_V1_SHADOW au-dessus de V4_FROZEN_20260908
 
 Cette couche ne modifie aucun score V4 et ne peut envoyer aucun ordre.
@@ -10,13 +10,12 @@ Entry est un indicateur de timing, pas un veto structurel.
 
 - **MEILLEUR_ACHAT_IMMEDIAT** : aucun candidat matériel
 - **MEILLEURE_LIMITE_PASSIVE** : aucun candidat matériel
-- **MEILLEUR_LATENT_ACCELERATOR** : VTHO-EUR | action LATENT_ACCELERATOR | opportunité 7.503 | entrée 5.000 | trend 9.200 | rang 5.291
-  - Strong structural opportunity retained despite weak instantaneous entry.
+- **MEILLEUR_LATENT_ACCELERATOR** : aucun candidat matériel
 - **MEILLEUR_PULLBACK_REENTRY** : aucun candidat matériel
 
 ## Top cross-sectionnel
 
-1. VTHO-EUR — MEILLEUR_LATENT_ACCELERATOR — LATENT_ACCELERATOR — rank 5.291
+Aucun candidat ne remplit actuellement un bucket décisionnel.
 
 ## Garde-fous
 
