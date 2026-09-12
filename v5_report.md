@@ -1,38 +1,36 @@
 # Bitvavo — V4 mesurée / infrastructure V5
 
-Scan UTC : 2026-09-12T05:23:08.216594+00:00
-État : OK | marchés EUR : 429 | V4 : 360 | données valides : 3
-Récupération : 2026-09-12T05:22:37.669482+00:00 | âge ticker : 138.5 s | durée : 139.8 s
+Scan UTC : 2026-09-12T05:39:10.079026+00:00
+État : OK | marchés EUR : 429 | V4 : 361 | données valides : 1
+Récupération : 2026-09-12T05:38:40.435831+00:00 | âge ticker : 139.2 s | durée : 140.9 s
 
 ## ACHÈTE — signal V4 et plan théorique
 
 AUCUN ACHAT VALIDÉ — cette absence ne valide pas les marchés aux données insuffisantes.
-Bougies utilisables : 5 min 11/429 ; 15 min 25/429.
+Bougies utilisables : 5 min 12/429 ; 15 min 25/429.
 Les trous de cotation restent visibles ; aucune bougie sans transaction n’est inventée.
 
 Achats bruts V4 bloqués avant alerte :
-- VET-EUR : INVALID_15M, INVALID_5M, STALE_DAILY_PROFILE
+- VET-EUR : STABILITY_HOLD, INVALID_15M, INVALID_5M, STALE_DAILY_PROFILE
 
 ## SURVEILLE
 
-- ETH-EUR : 2166.36 € ; score 87.30/100 ; SURVEILLE ; WICK_SETUP
-- SOL-EUR : 87.621 € ; score 86.89/100 ; SURVEILLE ; seuil achat non atteint
 
 ## Contrôle des hausses
 
 | Marché | Prix € | 24 h | État historique |
 |---|---:|---:|---|
-| LSK-EUR | 0.16914 | +52.71 % | DETECTED_EARLY |
-| VTHO-EUR | 0.00064439 | +48.37 % | DETECTED_EARLY |
-| ARK-EUR | 0.10538 | +12.26 % | NO_CONFIRMED_SHORT_TERM_EVENT |
-| POWR-EUR | 0.048079 | +11.80 % | NO_CONFIRMED_SHORT_TERM_EVENT |
-| PUNDIX-EUR | 0.08798 | +10.60 % | DETECTED_EARLY |
-| TRIA-EUR | 0.003251 | +9.24 % | NO_CONFIRMED_SHORT_TERM_EVENT |
-| BIGTIME-EUR | 0.00609 | +8.69 % | NO_CONFIRMED_SHORT_TERM_EVENT |
-| HUMA-EUR | 0.019995 | +8.67 % | NO_CONFIRMED_SHORT_TERM_EVENT |
-| ALLO-EUR | 0.202568 | +8.30 % | NO_CONFIRMED_SHORT_TERM_EVENT |
-| AIOZ-EUR | 0.063935 | +8.28 % | NO_CONFIRMED_SHORT_TERM_EVENT |
+| LSK-EUR | 0.17119 | +53.73 % | DETECTED_EARLY |
+| VTHO-EUR | 0.00064064 | +46.62 % | DETECTED_EARLY |
+| ARK-EUR | 0.10587 | +12.78 % | NO_CONFIRMED_SHORT_TERM_EVENT |
+| LRC-EUR | 0.008508 | +12.60 % | NO_CONFIRMED_SHORT_TERM_EVENT |
+| IQ-EUR | 0.0007594 | +10.99 % | DETECTED_EARLY |
+| PUNDIX-EUR | 0.0887 | +10.68 % | DETECTED_EARLY |
+| AIOZ-EUR | 0.064512 | +10.12 % | NO_CONFIRMED_SHORT_TERM_EVENT |
+| TRIA-EUR | 0.003278 | +10.00 % | NO_CONFIRMED_SHORT_TERM_EVENT |
+| POWR-EUR | 0.0482 | +9.89 % | NO_CONFIRMED_SHORT_TERM_EVENT |
+| TAI-EUR | 0.003719 | +9.41 % | NO_CONFIRMED_SHORT_TERM_EVENT |
 
-Historique : 276 scans ; 118430 observations ; 52 épisodes d’achat évaluables.
+Historique : 277 scans ; 118859 observations ; 52 épisodes d’achat évaluables.
 V5 optimisée : aucune. Supériorité sur V4 : non démontrée. Probabilités : non calibrées.
 Le cash et le portefeuille du plan sont hypothétiques. Aucun ordre réel n’est envoyé.
