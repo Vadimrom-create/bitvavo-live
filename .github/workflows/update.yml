@@ -67,6 +67,7 @@ jobs:
             v5_report.json
             decision_layer.json
             live_quotes.json
+            ethfi_live.json
       - name: Publish complete data and history before notifying
         id: publication
         run: |
@@ -100,7 +101,7 @@ jobs:
       - name: Prepare public feed
         run: |
           mkdir -p _site
-          cp scan_feed.txt bitvavo_live.json live_quotes.json early_watch.txt early_watch.json _site/
+          cp scan_feed.txt bitvavo_live.json live_quotes.json ethfi_live.json early_watch.txt early_watch.json _site/
           cp v4_watch.txt v4_watch.json v4_watch_raw.txt v4_watch_raw.json _site/
           cp market_control.txt market_control.json execution_snapshot.json _site/
           cp v5_report.json v5_report.md pipeline_health.json evaluation.json proposed_orders.json _site/
@@ -111,6 +112,7 @@ jobs:
           <html lang="fr"><meta charset="utf-8"><title>Bitvavo — suivi V4 / V5</title>
           <h1>Bitvavo — V4 mesurée, infrastructure V5</h1>
           <p><a href="live_quotes.json">Cotations Bitvavo validées (last / bid / ask)</a></p>
+          <p><a href="ethfi_live.json">ETHFI-EUR — cotation compacte validée</a></p>
           <p><a href="v5_report.md">Dernier scan et contrôle des hausses</a></p>
           <p><a href="decision_layer.md">Decision Layer V1 — lecture shadow</a></p>
           <p><a href="pipeline_health.json">État et fraîcheur des données</a></p>
