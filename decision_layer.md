@@ -1,6 +1,6 @@
 # Decision Layer V1 + boucle de contrôle — shadow
 
-Scan : 2026-09-13T16:53:09.850639+00:00
+Scan : 2026-09-13T17:09:05.441419+00:00
 Policy : DECISION_LAYER_V1_SHADOW au-dessus de V4_FROZEN_20260908
 
 Cette couche ne modifie aucun score V4 et ne peut envoyer aucun ordre.
@@ -11,43 +11,43 @@ Entry est un indicateur de timing, pas un veto structurel.
 - **MEILLEUR_ACHAT_IMMEDIAT** : aucun candidat matériel
 - **MEILLEURE_LIMITE_PASSIVE** : aucun candidat matériel
 - **MEILLEUR_LATENT_ACCELERATOR** : aucun candidat matériel
-- **MEILLEUR_PULLBACK_REENTRY** : USELESS-EUR | action ATTENDS_REPRISE_OU_REENTREE | opportunité 7.753 | entrée 6.200 | trend 8.100 | rang 7.072
+- **MEILLEUR_PULLBACK_REENTRY** : USELESS-EUR | action ATTENDS_REPRISE_OU_REENTREE | opportunité 8.015 | entrée 6.950 | trend 8.100 | rang 7.208
   - Strong trend/opportunity retained through pullback; timing does not erase setup.
 
 ## Top cross-sectionnel
 
-1. USELESS-EUR — MEILLEUR_PULLBACK_REENTRY — ATTENDS_REPRISE_OU_REENTREE — rank 7.072
-2. VTHO-EUR — MEILLEUR_PULLBACK_REENTRY — ATTENDS_REPRISE_OU_REENTREE — rank 6.728
+1. USELESS-EUR — MEILLEUR_PULLBACK_REENTRY — ATTENDS_REPRISE_OU_REENTREE — rank 7.208
+2. VTHO-EUR — MEILLEUR_PULLBACK_REENTRY — ATTENDS_REPRISE_OU_REENTREE — rank 6.655
 
 ## Accélération indépendante
 
-- REZ-EUR — BUILDING_ACCELERATION — score 5.523/10 — DETECTED_BUT_TOO_LATE
+Aucune accélération indépendante confirmée ou en construction.
 
 ## Watchlist persistante 24–72 h
 
-- AIOZ-EUR — ACTIVE_NOW — score mémoire 8.153/10 — sources V4 — WATCH_ONLY
-- ICP-EUR — ACTIVE_NOW — score mémoire 7.921/10 — sources V4 — WATCH_ONLY
-- AERO-EUR — ACTIVE_NOW — score mémoire 7.909/10 — sources V4 — WATCH_ONLY
+- VET-EUR — ACTIVE_NOW — score mémoire 8.550/10 — sources ACCELERATION, DECISION_LAYER, V4 — WATCH_ONLY
+- UNI-EUR — ACTIVE_NOW — score mémoire 8.092/10 — sources V4 — WATCH_ONLY
+- ICP-EUR — ACTIVE_NOW — score mémoire 7.951/10 — sources V4 — WATCH_ONLY
+- AERO-EUR — ACTIVE_NOW — score mémoire 7.874/10 — sources V4 — WATCH_ONLY
 - PORTAL-EUR — MEMORY_24H — score mémoire 7.868/10 — sources V4 — MEMORY_ONLY
-- LIGHTER-EUR — ACTIVE_NOW — score mémoire 7.838/10 — sources V4 — WATCH_ONLY
-- ETHFI-EUR — ACTIVE_NOW — score mémoire 7.819/10 — sources V4 — WATCH_ONLY
-- VET-EUR — ACTIVE_NOW — score mémoire 7.709/10 — sources ACCELERATION, DECISION_LAYER, V4 — WATCH_ONLY
-- LDO-EUR — ACTIVE_NOW — score mémoire 7.695/10 — sources V4 — WATCH_ONLY
-- RED-EUR — MEMORY_24H — score mémoire 7.652/10 — sources V4 — MEMORY_ONLY
-- XVG-EUR — ACTIVE_NOW — score mémoire 7.635/10 — sources V4 — WATCH_ONLY
+- KAS-EUR — ACTIVE_NOW — score mémoire 7.786/10 — sources V4 — WATCH_ONLY
+- LDO-EUR — ACTIVE_NOW — score mémoire 7.729/10 — sources V4 — WATCH_ONLY
+- CAKE-EUR — ACTIVE_NOW — score mémoire 7.699/10 — sources V4 — WATCH_ONLY
+- AIOZ-EUR — ACTIVE_NOW — score mémoire 7.690/10 — sources V4 — WATCH_ONLY
+- ETHFI-EUR — ACTIVE_NOW — score mémoire 7.657/10 — sources V4 — WATCH_ONLY
 
 ## Audit des plus fortes hausses
 
-- LSK-EUR +313.63% — DETECTED_EARLY — couche NONE — action ENTRY_TIMING_OR_EXECUTION
-- CVC-EUR +52.48% — NOT_DETECTED — couche DATA — action NOT_APPLICABLE
-- VTHO-EUR +25.68% — DETECTED_EARLY — couche NONE — action ENTRY_TIMING_OR_EXECUTION
-- FIL-EUR +20.57% — DETECTED_EARLY — couche NONE — action INTERPRETATION
-- ARK-EUR +19.05% — DETECTED_EARLY — couche NONE — action INTERPRETATION
-- REZ-EUR +18.00% — DETECTED_EARLY — couche NONE — action INTERPRETATION
-- XTZ-EUR +15.01% — DETECTED_EARLY — couche NONE — action INTERPRETATION
-- BAT-EUR +13.12% — DETECTED_EARLY — couche NONE — action INTERPRETATION
-- STRAX-EUR +12.51% — NOT_DETECTED — couche DATA — action NOT_APPLICABLE
-- SCR-EUR +11.36% — NO_CONFIRMED_SHORT_TERM_EVENT — couche NOT_APPLICABLE — action NOT_APPLICABLE
+- LSK-EUR +300.33% — DETECTED_EARLY — couche NONE — action ENTRY_TIMING_OR_EXECUTION
+- CVC-EUR +51.80% — NOT_DETECTED — couche DATA — action NOT_APPLICABLE
+- FIL-EUR +26.27% — DETECTED_EARLY — couche NONE — action INTERPRETATION
+- VTHO-EUR +22.43% — DETECTED_EARLY — couche NONE — action ENTRY_TIMING_OR_EXECUTION
+- REZ-EUR +16.34% — DETECTED_EARLY — couche NONE — action INTERPRETATION
+- ARK-EUR +16.09% — DETECTED_EARLY — couche NONE — action INTERPRETATION
+- STRAX-EUR +14.15% — NOT_DETECTED — couche DATA — action NOT_APPLICABLE
+- ZKJ-EUR +13.58% — NOT_DETECTED — couche DATA — action NOT_APPLICABLE
+- BAT-EUR +13.38% — DETECTED_EARLY — couche NONE — action INTERPRETATION
+- XTZ-EUR +13.29% — DETECTED_EARLY — couche NONE — action INTERPRETATION
 
 ## Garde-fous
 
