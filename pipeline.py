@@ -19,6 +19,7 @@ from pathlib import Path
 
 from research.common import atomic_json, finite, freshness, read_json, timestamp, utc
 from research.evaluation import evaluate, market_control
+from research.feedback_loop import acceleration_signal
 from research.features import category, chase_risk, closed_candles, describe, nil_match, score_components, wick_setup
 from research.history import connect, ingest, new_candles, rebuild, recurrent, save_scan
 from research.http import PublicClient
@@ -85,9 +86,11 @@ def report_text(report):
     lines += ['', '## SURVEILLE', '']
     for obs in report['watch']:
         lines.append(f"- {obs['market']} : {obs['price_eur']:.8g} € ; score {(obs.get('baseline') or {}).get('opportunity_score', 0) * 10:.2f}/100 ; {obs['decision']} ; {', '.join(obs['exclusions']) or 'seuil achat non atteint'}")
-    lines += ['', '## Contrôle des hausses', '', '| Marché | Prix € | 24 h | État historique |', '|---|---:|---:|---|']
+    lines += ['', '## Contrôle des hausses', '',
+              '| Marché | Prix € | 24 h | Détection | Couche d’échec | Actionnabilité |',
+              '|---|---:|---:|---|---|---|']
     for r in report['market_control'][:10]:
-        lines.append(f"| {r['market']} | {r['price_eur']:.8g} | {r['change_24h_pct']:+.2f} % | {r['audit_state']} |")
+        lines.append(f"| {r['market']} | {r['price_eur']:.8g} | {r['change_24h_pct']:+.2f} % | {r['detection_state']} | {r['failure_layer']} | {r['actionability_layer']} |")
     ev = report['evaluation']
     lines += ['', f"Historique : {ev['scan_count']} scans ; {ev['observation_count']} observations ; {ev['complete_buy_episodes']} épisodes d’achat évaluables.",
               'V5 optimisée : aucune. Supériorité sur V4 : non démontrée. Probabilités : non calibrées.',
@@ -201,6 +204,9 @@ def run():
                               'candle15_close_ms': features.get('last_closed_close_ms')}}
         if not quality['ok']:
             obs['decision'] = 'DATA UNAVAILABLE'
+        # Independent shadow path: it may restore a market to the persistent
+        # watchlist, but it never changes V4 scoring or the email payload.
+        obs['acceleration'] = acceleration_signal(obs)
         observations.append(obs)
         candles5[name] = m5.get('candles', [])
     # Portfolio limits apply cumulatively to the same theoretical order batch.
@@ -254,7 +260,9 @@ def run():
     journal = save_scan('history', scan)
     ingest(db, scan)
     evaluation = evaluate(db)
-    control = market_control(db, observations, baseline_ts)
+    candles15 = {name: data['timeframes'].get('15m', {}).get('candles', [])
+                 for name, data in universe.items()}
+    control = market_control(db, observations, baseline_ts, candles15)
     watch = sorted([o for o in observations if o['decision'] == 'SURVEILLE'],
                    key=lambda o: (o.get('baseline') or {}).get('opportunity_score', 0), reverse=True)[:5]
     report = {'scan_id': scan_id, 'scan_at_utc': utc(baseline_ts), 'health': health, 'buy': buys, 'watch': watch,
