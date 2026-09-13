@@ -39,18 +39,21 @@ def acceleration_signal(obs: dict[str, Any]) -> dict[str, Any]:
     full EUR universe.  It is deliberately a shadow detector: confirmation can
     restore a market to the watchlist, but cannot make it email-eligible.
     """
-    quality = obs.get("data_quality") or {}
     f5 = (obs.get("features") or {}).get("5m") or {}
     f15 = (obs.get("features") or {}).get("15m") or {}
-    if not quality.get("ok") or not f5.get("valid") or not f15.get("valid"):
-        reasons = list(quality.get("reasons") or [])
-        reasons += list(f5.get("reasons") or []) + list(f15.get("reasons") or [])
+    # Capability-specific quality: book/enrichment failures can block an
+    # executable entry without invalidating closed-candle acceleration data.
+    # Conversely, invalid 5m/15m candles always fail this detector closed.
+    if not f5.get("valid") or not f15.get("valid"):
+        reasons = list(f5.get("reasons") or []) + list(f15.get("reasons") or [])
         return {
             "state": "DATA_UNAVAILABLE",
             "score": None,
             "detected": False,
             "components": {},
-            "reasons": sorted(set(reasons)) or ["INVALID_ACCELERATION_INPUT"],
+            "reasons": sorted(set(reasons)) or [
+                "INVALID_5M_ACCELERATION_INPUT" if not f5.get("valid") else "INVALID_15M_ACCELERATION_INPUT"
+            ],
             "buyability": "NOT_ASSESSED",
             "alert_eligible": False,
             "affects_baseline": False,

@@ -62,10 +62,17 @@ class AccelerationTests(unittest.TestCase):
 
     def test_invalid_data_fails_closed(self):
         obs = acceleration_obs()
-        obs["data_quality"] = {"ok": False, "reasons": ["MISSING_5M"]}
+        obs["features"]["5m"] = {"valid": False, "reasons": ["MISSING_5M"]}
         result = acceleration_signal(obs)
         self.assertEqual(result["state"], "DATA_UNAVAILABLE")
         self.assertFalse(result["detected"])
+
+    def test_unrelated_entry_input_failure_does_not_block_acceleration(self):
+        obs = acceleration_obs()
+        obs["data_quality"] = {"ok": False, "reasons": ["ENTRY_INPUTS_UNAVAILABLE"]}
+        result = acceleration_signal(obs)
+        self.assertEqual(result["state"], "CONFIRMED_ACCELERATION")
+        self.assertFalse(result["alert_eligible"])
 
     def test_memory_is_full_for_24h_decays_then_expires_at_72h(self):
         current = [{
