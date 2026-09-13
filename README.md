@@ -23,6 +23,7 @@ Tous les marchés EUR actifs reçoivent une collecte 5m/15m et un diagnostic exp
 | `research/features.py` | Features de bougies closes, mèches, volatilité, diagnostics et explication du score |
 | `research/history.py` | Journaux immuables gzip et index SQLite reconstructible |
 | `research/evaluation.py` | Horizons, seuils, censure des données absentes, faux négatifs et simulations |
+| `research/feedback_loop.py` | Détecteur d’accélération indépendant, mémoire candidats 24–72 h et séparation détection/achat |
 | `research/risk.py` | Stop structurel, sizing en EUR, plafonds cumulés et propositions dry-run |
 | `email_alert_v4.py` | Détection des épisodes d’achat V4 et cooldown historique |
 | `monitoring/`, `scripts/send_useful_alert.py` | Soldes en lecture seule, suivi de chaque position, quatre actions utiles, état chiffré |
@@ -49,6 +50,8 @@ Le workflow appelle le suivi des positions **à chaque cycle**, même si la pros
 Les quatre secrets d’activation et les règles précises sont décrits dans [le suivi des positions](docs/POSITION_MONITORING.md). Le statut public `position_monitor_status.json` distingue disponibilité et absence d’action ; il ne divulgue aucun actif, solde, coût de revient ou niveau privé. Le registre privé est chiffré et authentifié avant publication.
 
 Un achat continu identique est envoyé une seule fois, même en REENTRY_READY ; un nouvel épisode doit aussi respecter le délai de 4 heures par marché. Les actions non urgentes ont un délai global de 30 minutes. Une sortie sur stop préempte ce délai. Une proposition de stop doit améliorer son niveau, avec au moins une heure entre deux alertes. Un TP1 ou une sortie identique sur la même position ne se répète pas. Les nouvelles analyses d’achat sont publiées avant SMTP et l’état de livraison est persisté après. SMTP ne fournit pas d’idempotence : une panne après acceptation mais avant persistance peut encore laisser une livraison incertaine ; un fournisseur à clé d’idempotence ou un registre de livraison indépendant est nécessaire avant de promettre exactement un email.
+
+La boucle de contrôle shadow ajoute trois sorties mesurables sans assouplir les alertes : accélération indépendante sur bougies closes, `candidate_memory.json` avec score plein 24 h puis décroissance jusqu’à expiration à 72 h, et audit des top movers avec attribution `DATA` / `SCANNER_COVERAGE` / `SCANNER_SCORING` / `INTERPRETATION` ou timing d’entrée. Ni la mémoire ni l’accélération ne sont lues par le transport d’email ; seul `alert_candidates.json`, produit après validation actuelle du setup, peut alimenter une alerte d’achat.
 
 `proposed_orders.json` est toujours `dry_run=true`, statut `PROPOSED_REQUIRES_HUMAN_APPROVAL`. Aucun ordre n’est soumis. Le cash (1 200 €), la réserve (500 €), l’exposition existante et les frais sont des hypothèses de simulation, pas des soldes privés lus sur Bitvavo. Ne pas utiliser ces montants comme état actuel du compte. Le stop tient compte du support et de l’ATR ; les objectifs 2R/3R sont des scénarios, pas des projections de prix. La taille est arrondie vers le bas et tient compte du risque, des minimums d’ordre et des plafonds cumulés. Des propositions corrélées ou de corrélation inconnue nécessitent un examen et ne sont pas empilées automatiquement.
 

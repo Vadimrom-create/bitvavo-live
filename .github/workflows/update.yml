@@ -115,6 +115,7 @@ jobs:
           cp market_control.txt market_control.json execution_snapshot.json _site/
           cp v5_report.json v5_report.md pipeline_health.json evaluation.json proposed_orders.json _site/
           cp decision_layer.json decision_layer.md _site/
+          cp candidate_memory.json _site/
           cp /tmp/bitvavo-monitor/position_monitor_status.json _site/
           cat > _site/index.html <<'EOF'
           <!doctype html>
@@ -124,6 +125,7 @@ jobs:
           <p><a href="live_quotes.json">Cotations Bitvavo validées (last / bid / ask)</a></p>
           <p><a href="v5_report.md">Dernier scan et contrôle des hausses</a></p>
           <p><a href="decision_layer.md">Decision Layer V1 — lecture shadow</a></p>
+          <p><a href="candidate_memory.json">Watchlist persistante 24–72 h</a></p>
           <p><a href="pipeline_health.json">État et fraîcheur des données</a></p>
           <p><a href="position_monitor_status.json">Disponibilité du suivi des positions</a></p>
           <p><a href="evaluation.json">Mesures chronologiques</a></p>
