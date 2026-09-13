@@ -1,8 +1,8 @@
 # Bitvavo — V4 mesurée / infrastructure V5
 
-Scan UTC : 2026-09-13T00:50:00.111325+00:00
-État : OK | marchés EUR : 429 | V4 : 336 | données valides : 2
-Récupération : 2026-09-13T00:49:29.808471+00:00 | âge ticker : 140.6 s | durée : 141.8 s
+Scan UTC : 2026-09-13T01:03:14.069851+00:00
+État : OK | marchés EUR : 429 | V4 : 338 | données valides : 2
+Récupération : 2026-09-13T01:02:43.041024+00:00 | âge ticker : 147.3 s | durée : 148.3 s
 
 ## ACHÈTE — signal V4 et plan théorique
 
@@ -12,23 +12,23 @@ Les trous de cotation restent visibles ; aucune bougie sans transaction n’est 
 
 ## SURVEILLE
 
-- HYPE-EUR : 68.325 € ; score 84.56/100 ; SURVEILLE ; WICK_SETUP, STABILITY_HOLD
+- HYPE-EUR : 68.495 € ; score 73.49/100 ; SURVEILLE ; WICK_SETUP
 
 ## Contrôle des hausses
 
 | Marché | Prix € | 24 h | État historique |
 |---|---:|---:|---|
-| LSK-EUR | 0.29884 | +104.88 % | EXCLUDED_BEFORE_MOVE |
-| POWR-EUR | 0.060998 | +29.97 % | NO_CONFIRMED_SHORT_TERM_EVENT |
-| REZ-EUR | 0.0034899 | +24.37 % | EXCLUDED_BEFORE_MOVE |
-| FLOCK-EUR | 0.063788 | +22.83 % | NO_CONFIRMED_SHORT_TERM_EVENT |
-| MTL-EUR | 0.25618 | +15.82 % | EXCLUDED_BEFORE_MOVE |
-| KNC-EUR | 0.12619 | +14.41 % | NO_CONFIRMED_SHORT_TERM_EVENT |
-| ZRX-EUR | 0.098491 | +13.02 % | NO_CONFIRMED_SHORT_TERM_EVENT |
-| PUFFER-EUR | 0.01772 | +12.95 % | EXCLUDED_BEFORE_MOVE |
-| VTHO-EUR | 0.00057245 | +12.54 % | DETECTED_EARLY |
-| ILV-EUR | 3.065 | +12.41 % | EXCLUDED_BEFORE_MOVE |
+| LSK-EUR | 0.37293 | +163.35 % | EXCLUDED_BEFORE_MOVE |
+| POWR-EUR | 0.061667 | +32.14 % | NO_CONFIRMED_SHORT_TERM_EVENT |
+| REZ-EUR | 0.0035946 | +28.61 % | EXCLUDED_BEFORE_MOVE |
+| MTL-EUR | 0.27232 | +22.42 % | EXCLUDED_BEFORE_MOVE |
+| FLOCK-EUR | 0.063737 | +21.58 % | NO_CONFIRMED_SHORT_TERM_EVENT |
+| VTHO-EUR | 0.00059696 | +18.01 % | DETECTED_EARLY |
+| KNC-EUR | 0.12606 | +14.32 % | NO_CONFIRMED_SHORT_TERM_EVENT |
+| PUFFER-EUR | 0.018021 | +13.80 % | EXCLUDED_BEFORE_MOVE |
+| ZRX-EUR | 0.098647 | +13.20 % | NO_CONFIRMED_SHORT_TERM_EVENT |
+| ARK-EUR | 0.11351 | +11.87 % | NO_CONFIRMED_SHORT_TERM_EVENT |
 
-Historique : 351 scans ; 150605 observations ; 54 épisodes d’achat évaluables.
+Historique : 352 scans ; 151034 observations ; 54 épisodes d’achat évaluables.
 V5 optimisée : aucune. Supériorité sur V4 : non démontrée. Probabilités : non calibrées.
 Le cash et le portefeuille du plan sont hypothétiques. Aucun ordre réel n’est envoyé.
