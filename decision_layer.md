@@ -1,6 +1,6 @@
 # Decision Layer V1 — shadow
 
-Scan : 2026-09-13T01:20:47.354275+00:00
+Scan : 2026-09-13T01:37:20.656216+00:00
 Policy : DECISION_LAYER_V1_SHADOW au-dessus de V4_FROZEN_20260908
 
 Cette couche ne modifie aucun score V4 et ne peut envoyer aucun ordre.
@@ -10,13 +10,13 @@ Entry est un indicateur de timing, pas un veto structurel.
 
 - **MEILLEUR_ACHAT_IMMEDIAT** : aucun candidat matériel
 - **MEILLEURE_LIMITE_PASSIVE** : aucun candidat matériel
-- **MEILLEUR_LATENT_ACCELERATOR** : aucun candidat matériel
-- **MEILLEUR_PULLBACK_REENTRY** : USELESS-EUR | action ATTENDS_REPRISE_OU_REENTREE | opportunité 7.717 | entrée 6.900 | trend 8.100 | rang 7.232
-  - Strong trend/opportunity retained through pullback; timing does not erase setup.
+- **MEILLEUR_LATENT_ACCELERATOR** : VTHO-EUR | action LATENT_ACCELERATOR | opportunité 8.235 | entrée 5.550 | trend 9.200 | rang 7.094
+  - Strong structural opportunity retained despite weak instantaneous entry.
+- **MEILLEUR_PULLBACK_REENTRY** : aucun candidat matériel
 
 ## Top cross-sectionnel
 
-1. USELESS-EUR — MEILLEUR_PULLBACK_REENTRY — ATTENDS_REPRISE_OU_REENTREE — rank 7.232
+1. VTHO-EUR — MEILLEUR_LATENT_ACCELERATOR — LATENT_ACCELERATOR — rank 7.094
 
 ## Garde-fous
 
