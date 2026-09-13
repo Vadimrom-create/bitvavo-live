@@ -8,12 +8,14 @@ Ajout demandé lors de la reprise du 8 septembre 2026. Les poids, seuils et règ
 
 | Action | Justification requise | Principaux blocages |
 |---|---|---|
-| ACHÈTE | Achat V4 admissible, relecture validée, publication réussie, carnet récent, prix à moins de 0,5 % du signal, plan recalculé avec le solde réel | Position déjà détenue, ordre d’achat ouvert, risque/exposition/cash indisponible ou dépassé, corrélation forte ou inconnue, données insuffisantes |
+| ACHÈTE | Achat V4 admissible, relecture validée, publication réussie, carnet récent, prix à moins de 0,5 % du signal ; plan recalculé avec le solde réel si le compte privé est disponible, sinon plan public explicitement théorique | Avec compte : position déjà détenue, ordre d’achat ouvert, risque/exposition/cash indisponible ou dépassé, corrélation forte ou inconnue ; sans compte : spread >0,5 %, prix déplacé, structure ou plan public invalide |
 | VENDS | Prix acheteur récent inférieur ou égal au stop vérifié de la position | Solde ou carnet périmé, plan incohérent, ordre de sortie équivalent déjà présent |
 | PRENDS PARTIELLEMENT TES PROFITS | TP1 privé vérifié atteint, résultat estimé net positif, minimums respectés, spread ≤1 % | TP1 déjà confirmé, quantité déjà réduite au reliquat prévu, ordre limite équivalent déjà exécutable |
 | RELÈVE LE STOP | Support de bougies 15m closes valides et fraîches, buffer ATR, niveau supérieur au stop actuel et au seuil net de rentabilité | Structure absente, amélioration <max(0,5 ATR, 2 ticks), nouveau niveau inférieur à la dernière proposition, délai d’une heure |
 
 Priorité par position : sortie, profits partiels, stop, achat. Sans justification, **aucun email**. Un stop n’est jamais abaissé. Un stop proposé n’est jamais enregistré comme exécuté. Le franchissement d’un stop peut être contrôlé même sans historique de bougies ; il exige un carnet récent. Un stop-limit potentiellement bloqué ne suffit pas à supprimer une alerte de sortie. Les ordres de vente concurrents sont signalés dans l’email pour vérification humaine.
+
+Les alertes d’achat et la gestion des positions sont deux capacités séparées. Si les secrets du compte privé manquent, le workflow peut encore envoyer **ACHÈTE** à partir du seul fichier `alert_candidates.json` déjà filtré par le pipeline, après une seconde validation publique du carnet, du prix, des bougies closes et du plan. L’email précise alors que le solde et les positions réels n’ont pas été vérifiés. En revanche, **VENDS**, **PRENDS PARTIELLEMENT TES PROFITS** et **RELÈVE LE STOP** restent strictement indisponibles sans lecture privée du compte.
 
 Le solde doit dater de 120 secondes au plus et le carnet de 90 secondes au plus. Ces conditions sont revérifiées avant l’envoi. L’adaptateur refuse toute route autre que GET `/balance` et GET `/ordersOpen`, ainsi que les redirections HTTP. Aucun ordre, annulation ou retrait n’est possible par ce module.
 

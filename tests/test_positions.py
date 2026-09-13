@@ -133,8 +133,64 @@ class Positions(unittest.TestCase):
             status = {}
             self.assertEqual(runner.run(status), 0)
             self.assertEqual(status['status'], 'UNCONFIGURED')
-            self.assertEqual(status['buy_alerts'], 'BLOCKED_ACCOUNT_UNKNOWN')
+            self.assertEqual(status['position_actions'], 'BLOCKED_ACCOUNT_UNKNOWN')
+            self.assertEqual(status['buy_alerts'], 'BLOCKED_PUBLICATION_OR_REPLAY')
             send.assert_not_called()
+
+    def test_unconfigured_account_uses_public_buy_fallback_and_next_valid_candidate(self):
+        payload = {'generated_at_utc': utc(self.now), 'watch': [
+            {'market': 'FIRST-EUR', 'last': 12., 'buy_ready': True, 'action_status': 'BUY_READY',
+             'opportunity_score': 10., 'entry_score': 9., 'data_quality': {'ok': True}},
+            {'market': 'SECOND-EUR', 'last': 12., 'buy_ready': True, 'action_status': 'BUY_READY',
+             'opportunity_score': 9., 'entry_score': 8., 'data_quality': {'ok': True}},
+        ]}
+        state = {'markets': {}}
+        writes = []
+
+        class Public:
+            server_offset = 0
+            def __init__(self, **kwargs):
+                pass
+            def get(self, path):
+                if path == '/markets':
+                    return [dict(self_meta, market=market, quote='EUR', status='trading')
+                            for market in ('FIRST-EUR', 'SECOND-EUR')]
+                return {'time': 1800000000000}
+
+        self_meta = self.meta
+
+        def inputs(client, market, now):
+            ask = 12.2 if market == 'FIRST-EUR' else 12.01
+            return ({'bid': 12., 'ask': ask, 'retrieved_at_utc': utc(self.now)}, self.features, [])
+
+        def read(path, default):
+            return copy.deepcopy(payload if path == runner.BUY_INPUT else state)
+
+        def write(path, value):
+            writes.append((path, copy.deepcopy(value)))
+
+        env = {'ALLOW_BUY_ALERTS': 'true', 'ALERT_GMAIL_USER': 'unit-test',
+               'ALERT_EMAIL_TO': 'bellonirom@gmail.com', 'GMAIL_APP_PASSWORD': 'fake'}
+        with patch.dict('os.environ', env, clear=True), patch.object(runner, 'PublicClient', Public), \
+                patch.object(runner, 'market_inputs', side_effect=inputs), \
+                patch.object(runner, 'read_json', side_effect=read), \
+                patch.object(runner, 'atomic_json', side_effect=write), \
+                patch.object(runner.time, 'time', return_value=self.now), \
+                patch.object(runner.email_alert, 'send_email') as send:
+            status = {}
+            self.assertEqual(runner.run(status), 0)
+
+        self.assertEqual(status['status'], 'UNCONFIGURED')
+        self.assertEqual(status['position_actions'], 'BLOCKED_ACCOUNT_UNKNOWN')
+        self.assertEqual(status['buy_alerts'], 'PUBLIC_MARKET_VALIDATED')
+        self.assertEqual(status['email'], 'DELIVERY_COMPLETED')
+        self.assertEqual(status['public_buy_candidates_checked'], 2)
+        send.assert_called_once()
+        self.assertIn('ACHÈTE', send.call_args.args[3])
+        self.assertIn('SECOND-EUR', send.call_args.args[4])
+        delivered = writes[-1][1]
+        self.assertNotIn('last_sent_ts', delivered['markets']['FIRST-EUR'])
+        self.assertEqual(delivered['markets']['SECOND-EUR']['last_sent_ts'], self.now)
 
     def test_book_still_available_when_candles_fail(self):
         class Client:
@@ -165,6 +221,7 @@ class Positions(unittest.TestCase):
                'GMAIL_APP_PASSWORD': 'fake'}
         with tempfile.TemporaryDirectory() as directory, patch.dict('os.environ', env, clear=True), \
                 patch.object(runner, 'STATE', str(Path(directory) / 'state.json')), \
+                patch.object(runner, 'BUY_STATE', str(Path(directory) / 'buy_state.json')), \
                 patch.object(runner, 'ReadOnlyAccount') as private, patch.object(runner, 'PublicClient', Public), \
                 patch.object(runner, 'market_inputs', side_effect=inputs) as markets, \
                 patch.object(runner.time, 'time', return_value=self.now), \
