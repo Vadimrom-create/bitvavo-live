@@ -51,7 +51,7 @@ def price(x):
     return f'{v:.{d}f} €'
 
 
-def select_events(payload, state, now):
+def select_events(payload, state, now, limit=1):
     """A continuous identical signal is sent once, including REENTRY_READY.
 
     Observations persist even on empty scans. Delivery markers only change after
@@ -89,7 +89,7 @@ def select_events(payload, state, now):
     if last_global is not None and now - last_global < GLOBAL_COOLDOWN:
         return [], state
     events.sort(key=lambda r: (n(r.get('opportunity_score'), 0), n(r.get('entry_score'), 0)), reverse=True)
-    return events[:1], state
+    return (events if limit is None else events[:limit]), state
 
 
 def main() -> int:
