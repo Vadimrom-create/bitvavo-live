@@ -6,6 +6,7 @@ from research.common import finite, freshness, read_json
 from research.risk import DEFAULTS, correlation, plan as make_plan
 from monitoring.positions import BUY
 from research.quality import spread_diagnostic
+from research.publication import validate_buy_bundle
 
 
 def candidates(state, account, held, metadata, inputs, issues, exposure, portfolio_risk, client, market_inputs):
@@ -22,6 +23,11 @@ def candidates(state, account, held, metadata, inputs, issues, exposure, portfol
         issues.append('BUY_BUDGET_UNKNOWN')
         return [], buy_state
     payload = read_json('alert_candidates.json', {})
+    bundle = validate_buy_bundle(payload, read_json('scan_manifest.json', {}), time.time())
+    if not bundle['ok']:
+        issues.append('BUY_MANIFEST_UNAVAILABLE')
+        return [], buy_state
+    state['buy_bundle_consumption'] = bundle
     if payload.get('decision_policy', payload.get('policy', 'V4_FROZEN_20260908')) != 'V4_FROZEN_20260908':
         issues.append('NON_V4_BUY_ROUTE_REFUSED')
         return [], buy_state

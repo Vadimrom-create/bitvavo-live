@@ -34,16 +34,18 @@ class PublicClient:
     def key(path, params):
         return path + '?' + urllib.parse.urlencode(sorted((params or {}).items()))
 
-    def pace(self):
+    def pace(self, deadline=None):
         with self.lock:
             now = time.monotonic()
             scheduled = max(now, self.next_request, self.pause_until)
+            if deadline is not None and scheduled >= deadline:
+                raise RuntimeError('OPTIONAL_COLLECTION_DEADLINE')
             self.next_request = scheduled + self.spacing
         delay = scheduled - now
         if delay > 0:
             time.sleep(delay)
 
-    def _response(self, path, params=None, retries=None, cache=True):
+    def _response(self, path, params=None, retries=None, cache=True, deadline=None):
         if not (path in {'/time', '/markets', '/ticker/24h', '/ticker/book', '/ticker/price'}
                 or re.fullmatch(r'/[A-Z0-9]+-EUR/(candles|book|trades)', path)):
             raise ValueError('public_endpoint_not_allowed')
@@ -53,7 +55,7 @@ class PublicClient:
         if cached is not None:
             return cached
         for attempt in range(retries or self.retries):
-            self.pace()
+            self.pace() if deadline is None else self.pace(deadline)
             started = time.time()
             with self.lock:
                 self.request_sequence += 1
@@ -61,7 +63,8 @@ class PublicClient:
             try:
                 req = urllib.request.Request('https://api.bitvavo.com/v2' + key,
                     headers={'Accept': 'application/json', 'User-Agent': 'bitvavo-observatory/5.0'})
-                with urllib.request.urlopen(req, timeout=self.timeout) as response:
+                timeout = self.timeout if deadline is None else min(self.timeout, max(.001,deadline-time.monotonic()))
+                with urllib.request.urlopen(req, timeout=timeout) as response:
                     data = json.loads(response.read())
                     headers = response.headers
                 received = time.time()
@@ -105,11 +108,14 @@ class PublicClient:
                 elif code is not None and 400 <= code < 500:
                     break
                 if attempt + 1 < (retries or self.retries):
-                    time.sleep(min(8, 2 ** attempt))
+                    delay=min(8, 2 ** attempt)
+                    if deadline is not None and time.monotonic()+delay >= deadline:
+                        raise RuntimeError('OPTIONAL_COLLECTION_DEADLINE')
+                    time.sleep(delay)
         raise RuntimeError('public_api_failed:' + path)
 
-    def capture(self, path, params=None, retries=None, cache=True, *, consumer_id='legacy', cutoff=None):
-        record = self._response(path, params, retries, cache)
+    def capture(self, path, params=None, retries=None, cache=True, *, consumer_id='legacy', cutoff=None, deadline=None):
+        record = self._response(path, params, retries, cache) if deadline is None else self._response(path, params, retries, cache, deadline)
         if cutoff is not None and timestamp(record['retrieved_at_utc']) > timestamp(cutoff):
             raise ValueError('INPUT_NOT_AVAILABLE_AT_CUTOFF')
         key = self.key(path, params)

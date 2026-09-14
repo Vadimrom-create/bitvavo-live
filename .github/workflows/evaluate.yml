@@ -1,0 +1,55 @@
+name: Historical evaluation from immutable journals
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '17 */2 * * *'
+permissions:
+  contents: write
+concurrency:
+  group: bitvavo-evaluation-single-writer
+  cancel-in-progress: false
+jobs:
+  evaluate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    defaults:
+      run:
+        working-directory: evaluation-code
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          path: evaluation-code
+          fetch-depth: 0
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          path: evaluation-data
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: actions/cache@v4
+        with:
+          path: evaluation-code/runtime/evaluation_index
+          key: evaluation-index-v1-${{ github.run_id }}
+          restore-keys: evaluation-index-v1-
+      - name: Verify disposable index invariants
+        run: python -m unittest discover -s tests -p test_index.py -v
+      - name: Load current immutable journals into fixed evaluation code
+        run: |
+          git config user.name 'bitvavo-live-bot'
+          git config user.email 'actions@users.noreply.github.com'
+          git fetch origin main
+          python scripts/load_public_state.py --source ../evaluation-data --owner evaluation
+      - name: Rebuild or increment index and evaluate mature observations
+        run: python scripts/run_evaluation.py
+      - name: Publish evaluation-owned outputs
+        run: python scripts/publish_data.py --evaluation
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: evaluation-${{ github.run_id }}
+          path: |
+            evaluation-code/evaluation_manifest.json
+            evaluation-code/comparison_report.json
+            evaluation-code/evaluation.json

@@ -18,6 +18,7 @@ def run(journal,scan_id):
         previous=read_json(path)
         from research.input_contract import digest
         if previous['source_snapshot_sha256']!=digest(scan): raise ValueError('COMPARISON_COLLISION')
+        atomic_json('runtime/current_comparison.json',{'scan_id':scan_id,'journal':str(path)})
         return previous
     results={}
     for name,file in [('DL1','decision_layer.json'),('DL2','decision_layer_v2.json')]:

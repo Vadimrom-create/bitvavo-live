@@ -22,12 +22,14 @@ class ReadOnlyAccount:
         if not key or not secret:
             raise ValueError('READ_CREDENTIALS_MISSING')
         self.key, self.secret = key, secret
+        self.read_timings = {}
         self.opener = urllib.request.build_opener(NoRedirect())
 
     def get(self, endpoint):
         if endpoint not in self.ALLOWED:
             raise PermissionError('PRIVATE_ENDPOINT_NOT_ALLOWED')
-        ts = str(int(time.time() * 1000))
+        started=time.time();monotonic_start=time.monotonic()
+        ts = str(int(started * 1000))
         path = '/v2' + endpoint
         signature = hmac.new(self.secret.encode(), (ts + 'GET' + path).encode(), hashlib.sha256).hexdigest()
         request = urllib.request.Request('https://api.bitvavo.com' + path, method='GET', headers={
@@ -37,8 +39,11 @@ class ReadOnlyAccount:
         try:
             with self.opener.open(request, timeout=12) as response:
                 result = json.loads(response.read())
+                http_date=getattr(response,'headers',{}).get('Date')
             if not isinstance(result, list):
                 raise ValueError('INVALID_ACCOUNT_RESPONSE')
+            self.read_timings[endpoint]={'request_started_at_utc':utc(started),'retrieved_at_utc':utc(),
+                'duration_seconds':time.monotonic()-monotonic_start,'server_http_date':http_date,'market_asof_at_utc':None}
             return result
         except Exception:
             # Never include a request, account response, headers or secrets.
@@ -56,4 +61,5 @@ class ReadOnlyAccount:
                 raise ValueError('INVALID_BALANCE')
             normalized.append({'symbol': symbol, 'available': available, 'in_order': locked,
                                'amount': available + locked})
-        return {'retrieved_at_utc': retrieved, 'balances': normalized, 'orders': orders}
+        return {'retrieved_at_utc': retrieved, 'balances': normalized, 'orders': orders,
+                'input_timing':self.read_timings,'market_asof_at_utc':None}

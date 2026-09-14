@@ -1,119 +1,132 @@
-name: Bitvavo live data + frozen V4 + measurement + useful alerts
-
+name: Public prospection and isolated shadow decisions
 on:
   workflow_dispatch:
   schedule:
     - cron: '2-59/5 * * * *'
   push:
     branches: [main]
-    paths:
-      - '*.py'
-      - 'research/**'
-      - 'monitoring/**'
-      - 'requirements-monitoring.txt'
-      - 'scripts/**'
-      - 'tests/**'
-      - 'v4_config.json'
-      - 'decision_watchlist.json'
-      - '.github/workflows/update.yml'
-
+    paths: ['*.py', 'research/**', 'scripts/**', 'tests/**', 'v4_config.json', '.github/workflows/update.yml']
 permissions:
   contents: write
   pages: write
   id-token: write
-
 concurrency:
-  group: bitvavo-live
+  group: bitvavo-prospection-single-writer
   cancel-in-progress: false
-
 env:
   PYTHONHASHSEED: '0'
   DRY_RUN: 'true'
-
 jobs:
-  update:
+  scan:
     runs-on: ubuntu-latest
     timeout-minutes: 20
+    defaults:
+      run:
+        working-directory: scan-code
     steps:
       - uses: actions/checkout@v4
         with:
+          ref: ${{ github.sha }}
+          path: scan-code
+          fetch-depth: 0
+      - uses: actions/checkout@v4
+        with:
           ref: main
+          path: scan-data
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
-      - run: python -m pip install -r requirements-monitoring.txt -r executor/requirements.txt
-      - name: Critical tests and unchanged V4 scoring
-        id: tests
-        run: python -m unittest discover -s tests -v
-      - name: Collect, scan, record all markets and evaluate
-        run: python pipeline.py
-      - name: Verify exact V4 replay against frozen source
+      - run: python -m pip install -r requirements-monitoring.txt
+      - name: Validate acquisition and frozen scoring
+        run: python scripts/run_tests.py data
+      - name: Load current public state into fixed code
+        id: state
+        run: |
+          git config user.name 'bitvavo-live-bot'
+          git config user.email 'actions@users.noreply.github.com'
+          git fetch origin main
+          python scripts/load_public_state.py --source ../scan-data --owner prospection
+      - name: Collect corrected inputs and record the explicit scan
+        id: scan
+        run: |
+          if python pipeline.py --data-policy CORRECTED_INPUTS_V1; then
+            true
+          else
+            scan_exit=$?
+            test "$scan_exit" -eq 2
+          fi
+          test -f runtime/current_scan.json
+      - name: Run DL-V1 on this scan
+        id: v1
+        timeout-minutes: 2
+        continue-on-error: true
+        run: |
+          python - <<'PY'
+          from research.common import read_json
+          from scripts.run_shadow import run
+          c=read_json('runtime/current_scan.json')
+          run(c['journal'],c['scan_id'],'v1')
+          PY
+      - name: Run Opportunity-only DL-V2 in shadow
+        id: v2
+        timeout-minutes: 2
+        continue-on-error: true
+        run: |
+          python - <<'PY'
+          from research.common import read_json
+          from scripts.run_shadow import run
+          c=read_json('runtime/current_scan.json')
+          run(c['journal'],c['scan_id'],'v2')
+          PY
+      - name: Record comparison without future outcomes
+        id: comparison
+        timeout-minutes: 2
+        continue-on-error: true
+        run: |
+          python - <<'PY'
+          from research.common import read_json
+          from scripts.run_comparison import run
+          c=read_json('runtime/current_scan.json')
+          run(c['journal'],c['scan_id'])
+          PY
+      - name: Exact replay and coherent manifest
         id: replay
-        run: python -m research.replay runtime/replay-*.json.gz
-      - name: Run shadow Decision Layer V1 on the explicit scan
-        id: decision_layer
-        continue-on-error: true
+        run: python scripts/prepare_publication.py
+      - name: Publish owned scan outputs and confirmation receipt
+        id: publication
+        run: python scripts/publish_data.py
+      - name: Record every attempted cycle
+        if: always() && steps.state.outcome == 'success'
+        env:
+          OUTCOME_SCAN: ${{ steps.scan.outcome }}
+          OUTCOME_V1: ${{ steps.v1.outcome }}
+          OUTCOME_V2: ${{ steps.v2.outcome }}
+          OUTCOME_COMPARISON: ${{ steps.comparison.outcome }}
+          OUTCOME_REPLAY: ${{ steps.replay.outcome }}
+          OUTCOME_PUBLICATION: ${{ steps.publication.outcome }}
         run: |
-          python - <<'PY'
-          from research.common import read_json
-          from scripts.run_shadow import run
-          current = read_json('runtime/current_scan.json')
-          run(current['journal'], current['scan_id'], 'v1')
-          PY
-      - name: Run Opportunity baseline V2 in shadow
-        id: decision_layer_v2
-        continue-on-error: true
-        run: |
-          python - <<'PY'
-          from research.common import read_json
-          from scripts.run_shadow import run
-          current = read_json('runtime/current_scan.json')
-          run(current['journal'], current['scan_id'], 'v2')
-          PY
-      - name: Preserve raw replay inputs and failure diagnostics
+          python scripts/record_scan_attempt.py
+          python scripts/publish_data.py --attempt
+      - name: Preserve raw diagnostics even on failure
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: scan-replay-${{ github.run_id }}
           retention-days: 90
           path: |
-            runtime/replay-*.json.gz
-            pipeline_health.json
-            v5_report.json
-            decision_layer.json
-            decision_layer_v2.json
-      - name: Publish complete data and history before notifying
-        id: publication
-        run: |
-          git config user.name 'bitvavo-live-bot'
-          git config user.email 'actions@users.noreply.github.com'
-          python scripts/publish_data.py
-      - name: Prepare public feed
-        run: |
-          mkdir -p _site
-          cp scan_feed.txt bitvavo_live.json early_watch.txt early_watch.json _site/
-          cp v4_watch.txt v4_watch.json v4_watch_raw.txt v4_watch_raw.json _site/
-          cp market_control.txt market_control.json market_control_current.json market_control_history.json execution_snapshot.json _site/
-          cp v5_report.json v5_report.md pipeline_health.json evaluation.json proposed_orders.json _site/
-          test ! -f decision_layer.json || cp decision_layer.json decision_layer.md _site/
-          test ! -f decision_layer_v2.json || cp decision_layer_v2.json decision_layer_v2.md _site/
-          test ! -f position_monitor_status.json || cp position_monitor_status.json _site/
-          cat > _site/index.html <<'EOF'
-          <!doctype html>
-          <html lang="fr"><meta charset="utf-8"><title>Bitvavo — suivi V4 / V5</title>
-          <h1>Bitvavo — V4 mesurée, infrastructure V5</h1>
-          <p><a href="v5_report.md">Dernier scan et contrôle des hausses</a></p>
-          <p><a href="decision_layer.md">Decision Layer V1 — lecture shadow</a></p>
-          <p><a href="pipeline_health.json">État et fraîcheur des données</a></p>
-          <p><a href="position_monitor_status.json">Disponibilité du suivi des positions</a></p>
-          <p><a href="evaluation.json">Mesures chronologiques</a></p>
-          <p><a href="v4_watch.txt">Décisions V4</a> · <a href="v4_watch_raw.json">V4 avant stabilisation</a></p>
-          <p><a href="market_control_current.json">Présence dans les listes courantes</a> · <a href="market_control_history.json">Contrôle du journal complet</a> · <a href="execution_snapshot.json">Carnets publics</a></p>
-          <p><a href="proposed_orders.json">Propositions théoriques — validation humaine requise</a></p>
-          </html>
-          EOF
+            scan-code/runtime/replay-*.json.gz
+            scan-code/pipeline_health.json
+            scan-code/scan_manifest.json
+            scan-code/shadow_status.json
+            scan-code/scan_attempts/
+      - name: Prepare coherent public feed
+        if: success() && steps.publication.outcome == 'success'
+        run: python scripts/prepare_site.py
       - uses: actions/configure-pages@v5
+        if: success() && steps.publication.outcome == 'success'
       - uses: actions/upload-pages-artifact@v3
+        if: success() && steps.publication.outcome == 'success'
         with:
-          path: _site
+          path: scan-code/_site
       - uses: actions/deploy-pages@v4
+        if: success() && steps.publication.outcome == 'success'

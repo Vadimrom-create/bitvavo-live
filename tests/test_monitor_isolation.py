@@ -82,6 +82,35 @@ class MonitorIsolationTests(unittest.TestCase):
             eager = [n.module for n in tree.body if isinstance(n, ast.ImportFrom)]
             self.assertNotIn('research.risk', eager)
             self.assertNotIn('email_alert_v4', eager)
+        scan=(ROOT/'.github/workflows/update.yml').read_text()
+        evaluation=(ROOT/'.github/workflows/evaluate.yml').read_text()
+        self.assertIn('ref: ${{ github.sha }}',scan)
+        self.assertIn('ref: ${{ github.sha }}',evaluation)
+        self.assertNotIn('run_evaluation.py',scan)
+        self.assertNotIn('send_useful_alert',evaluation)
+        self.assertIn('prepare_publication.py',scan)
+        self.assertIn('continue-on-error: true',scan)
+
+    def test_persistence_delay_is_rechecked_before_smtp(self):
+        runner=load_runner();now=[1800000000.]
+        env=dict(BITVAVO_READ_API_KEY='fake',BITVAVO_READ_API_SECRET='fake',POSITION_STATE_KEY=Fernet.generate_key().decode(),
+                 POSITION_PLANS_JSON=json.dumps({'AAA-EUR':{'position_id':'a','verified':True,'initial_amount':10,'stop_eur':9}}),
+                 ALERT_GMAIL_USER='fake',ALERT_EMAIL_TO='bellonirom@gmail.com',GMAIL_APP_PASSWORD='fake')
+        account={'retrieved_at_utc':utc(now[0]),'balances':[{'symbol':'AAA','amount':10,'available':10}],'orders':[]}
+        quote={'bid':8,'ask':8.01,'retrieved_at_utc':utc(now[0])}
+        def public_get(path):
+            if path=='/time': return {'time':int(now[0]*1000)}
+            return [{'market':'AAA-EUR','quote':'EUR','status':'trading','tickSize':'.01','quantityDecimals':2,'minOrderInQuoteAsset':'5'}]
+        def delayed_save(*args): now[0]+=121
+        with tempfile.TemporaryDirectory() as d,patch.dict('os.environ',env,clear=True), \
+             patch.object(runner,'STATE',str(Path(d)/'state.json')),patch.object(runner,'ReadOnlyAccount') as private, \
+             patch.object(runner,'PublicClient') as public,patch.object(runner,'market_quote',return_value=quote), \
+             patch.object(runner.time,'time',side_effect=lambda:now[0]),patch.object(runner,'save_state',side_effect=delayed_save), \
+             patch.object(runner.email_alert,'send_email') as smtp:
+            private.return_value.snapshot.return_value=account
+            public.return_value.server_offset=0;public.return_value.get.side_effect=public_get
+            status={};runner.run(status)
+            smtp.assert_not_called();self.assertEqual(status['email'],'BLOCKED_FINAL_FRESHNESS')
 
 class MonitorTimingTests(unittest.TestCase):
     def test_only_successful_evaluations_advance_cadence(self):
@@ -93,3 +122,20 @@ class MonitorTimingTests(unittest.TestCase):
         self.assertEqual(status['timing']['interval_max_seconds'], 900)
         self.assertEqual(status['timing']['account_age_at_decision_seconds'], 2)
         self.assertEqual(status['timing']['slo'], 'NOT_YET_DEMONSTRATED')
+
+    def test_stale_account_or_book_is_not_successful_coverage(self):
+        from monitoring.telemetry import record_cycle
+        for stale_account,stale_book in ((True,False),(False,True)):
+            state,status={},{}
+            record_cycle(state,status,{'retrieved_at_utc':utc(800 if stale_account else 999)},
+                {'AAA-EUR':({'retrieved_at_utc':utc(800 if stale_book else 999),'bid':1,'ask':1.01},{},[])},1,[],1000)
+            self.assertFalse(status['timing']['successful_evaluation'])
+            self.assertEqual(state['monitor_timing']['successful_at'],[])
+
+    def test_unconfigured_availability_does_not_claim_private_monitoring(self):
+        from monitoring.telemetry import record_availability
+        previous={}
+        for t in (0,300,700): previous=record_availability(previous,{'status':'UNCONFIGURED'},t)
+        self.assertEqual(previous['successful_samples'],0)
+        self.assertEqual(previous['private_validation'],'PENDING PRIVATE CONFIGURATION')
+        self.assertEqual(previous['observed_unconfigured_seconds'],700)

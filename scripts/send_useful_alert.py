@@ -17,7 +17,7 @@ import email_alert
 from monitoring.account import ReadOnlyAccount
 from monitoring.positions import BUY, management_event, mark_delivered, message, select_actions
 from monitoring.state import load_state, save_state
-from research.common import atomic_json, finite, freshness, read_json, utc
+from research.common import atomic_json, finite, freshness, read_json, utc, timestamp
 from research.features import closed_candles, describe
 from research.http import PublicClient
 
@@ -30,7 +30,11 @@ def market_quote(client, market):
     book = response['data']
     return {'bid': finite(book['bids'][0][0]) if book.get('bids') else None,
             'ask': finite(book['asks'][0][0]) if book.get('asks') else None,
-            'retrieved_at_utc': response['retrieved_at_utc']}
+            'retrieved_at_utc': response['retrieved_at_utc'],
+            'market_asof_at_utc':response.get('market_asof_at_utc'),
+            'source_response_id':response.get('response_id'),
+            'request_started_at_utc':response.get('request_started_at_utc'),
+            'server_http_date':response.get('server_http_date')}
 
 
 def market_features(client, market, now):
@@ -51,6 +55,7 @@ def market_inputs(client, market, now):
 
 
 def run(status):
+    run_started=time.monotonic()
     key = os.getenv('BITVAVO_READ_API_KEY', '').strip()
     secret = os.getenv('BITVAVO_READ_API_SECRET', '').strip()
     state_key = os.getenv('POSITION_STATE_KEY', '').strip()
@@ -63,6 +68,7 @@ def run(status):
     if not isinstance(plans, dict):
         raise ValueError('INVALID_POSITION_PLANS')
     account = ReadOnlyAccount(key, secret).snapshot()
+    status.setdefault('durations',{})['account_seconds']=time.monotonic()-run_started
     if not freshness(now=time.time(), retrieved=account['retrieved_at_utc'], max_retrieval_age=120)['ok']:
         status.update(status='STALE', reason='ACCOUNT_SNAPSHOT_STALE', buy_alerts='BLOCKED')
         return 0
@@ -129,6 +135,12 @@ def run(status):
                 events.append(event)
             elif reason == 'TRAILING_STRUCTURE_UNAVAILABLE':
                 issues.append(reason)
+    from monitoring.telemetry import record_cycle
+    measurement_issues=list(issues)
+    if any(observed.get(m,{}).get('assessment')=='TRAILING_STRUCTURE_UNAVAILABLE' for m in held):
+        measurement_issues.append('TRAILING_STRUCTURE_UNAVAILABLE')
+    record_cycle(state, status, account, inputs, len(held), measurement_issues, time.time())
+    status['durations']['position_assessment_seconds']=time.monotonic()-run_started
     if not events and os.getenv('ALLOW_BUY_ALERTS') == 'true':
         try:
             from monitoring.buy_candidates import candidates
@@ -142,8 +154,8 @@ def run(status):
     if not freshness(now=time.time(), retrieved=account['retrieved_at_utc'], max_retrieval_age=120)['ok']:
         selected = []
         issues.append('ACCOUNT_SNAPSHOT_STALE')
-    from monitoring.telemetry import record_cycle
-    record_cycle(state, status, account, inputs, len(held), issues, time.time())
+    status['final_freshness']={'account_age_seconds':time.time()-timestamp(account['retrieved_at_utc']),
+                             'oldest_selected_quote_age_seconds':max((time.time()-timestamp(e['observed_at_utc']) for e in selected),default=None)}
     save_state(STATE, state_key, state)
     status.update(status='PARTIAL' if issues else 'OK', reason='SOME_CHECKS_UNAVAILABLE' if issues else 'CYCLE_COMPLETE',
                   buy_alerts='BLOCKED' if issues else 'REQUIRES_FRESH_VALID_SIGNAL_AND_ACCOUNT_LIMITS')
@@ -157,6 +169,11 @@ def run(status):
         status.update(email='CONFIG_MISSING_OR_RECIPIENT_MISMATCH')
         return 0
     subject, body = message(selected)
+    # State persistence and rendering take time too; recheck immediately before SMTP.
+    if not freshness(now=time.time(),retrieved=account['retrieved_at_utc'],max_retrieval_age=120)['ok'] or any(
+            not freshness(now=time.time(),retrieved=e['observed_at_utc'],max_retrieval_age=90)['ok'] for e in selected):
+        status['email']='BLOCKED_FINAL_FRESHNESS'
+        return 0
     email_alert.send_email(user, password, recipient, subject, body)
     sent_at = time.time()
     mark_delivered(state, selected, sent_at)
@@ -185,6 +202,12 @@ def main():
         status.setdefault('email', 'NO_DELIVERY_CONFIRMATION')
         result = 2
     status['completed_at_utc'] = utc()
+    try:
+        from monitoring.telemetry import record_availability
+        availability=record_availability(read_json('monitor_availability.json',{}),status,time.time())
+        atomic_json('monitor_availability.json',availability)
+    except Exception:
+        status['availability_record']='FAILED'  # Reporting failure cannot suppress an already justified exit.
     atomic_json(STATUS, status)
     print('POSITION_MONITOR ' + json.dumps(status))
     return result

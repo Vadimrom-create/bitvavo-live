@@ -17,6 +17,33 @@ def run(*args, cwd):
 
 
 class PublicationTests(unittest.TestCase):
+    def test_current_data_load_does_not_replace_code_or_revision(self):
+        from scripts.load_public_state import load
+        with tempfile.TemporaryDirectory() as d:
+            root=Path(d);code=root/'code';data=root/'data';code.mkdir();data.mkdir()
+            for p in (code,data):
+                run('init','--initial-branch=main',cwd=p)
+                run('config','user.name','Test',cwd=p);run('config','user.email','test@example.invalid',cwd=p)
+                (p/'pipeline.py').write_text('validated' if p==code else 'unreviewed')
+                (p/'v4_history.json').write_text('{}' if p==code else '{"latest":true}')
+                run('add','.',cwd=p);run('commit','-m','seed',cwd=p)
+            before=run('rev-parse','HEAD',cwd=code).stdout
+            load(data,code)
+            self.assertEqual((code/'pipeline.py').read_text(),'validated')
+            self.assertEqual((code/'v4_history.json').read_text(),'{"latest":true}')
+            self.assertEqual(run('rev-parse','HEAD',cwd=code).stdout,before)
+
+    def test_single_historical_file_divergence_is_refused_before_push(self):
+        with tempfile.TemporaryDirectory() as d:
+            root=Path(d)
+            run('init','--initial-branch=main',cwd=root)
+            run('config','user.name','Test',cwd=root);run('config','user.email','test@example.invalid',cwd=root)
+            p=root/'history_corrected/2026-09-11/s1.json.gz';p.parent.mkdir(parents=True);p.write_bytes(b'original')
+            run('add','.',cwd=root);run('commit','-m','seed',cwd=root)
+            p.write_bytes(b'changed')
+            with self.assertRaisesRegex(RuntimeError,'IMMUTABLE_JOURNAL_CONFLICT'):
+                publisher.publish([str(p.relative_to(root))],'must fail',source=root)
+
     def test_concurrent_executor_write_preserved(self):
         with tempfile.TemporaryDirectory() as d:
             root = Path(d)
@@ -40,7 +67,7 @@ class PublicationTests(unittest.TestCase):
             previous = os.getcwd()
             try:
                 os.chdir(scanner)
-                with patch('sys.argv', ['publish_data.py']): publisher.main()
+                publisher.publish(publisher.GENERATED,'test publication')
             finally:
                 os.chdir(previous)
             self.assertFalse((scanner/'executor_status.json').exists())
@@ -70,7 +97,7 @@ class PublicationTests(unittest.TestCase):
             previous = os.getcwd()
             try:
                 os.chdir(scanner)
-                with patch('sys.argv', ['publish_data.py']), self.assertRaises(RuntimeError): publisher.main()
+                with self.assertRaises(RuntimeError): publisher.publish(publisher.GENERATED,'test conflict')
             finally:
                 os.chdir(previous)
             self.assertEqual(run('show', 'main:pipeline_health.json', cwd=remote).stdout, '{"newer":true}')

@@ -27,6 +27,7 @@ class BuyFallbackTests(unittest.TestCase):
             return {**quote,'ask':101 if drift and m=='AA-EUR' else 100}, features, [{'t':1,'c':1}]
         meta={'tickSize':'.01','quantityDecimals':4,'minOrderInQuoteAsset':'5'}
         with patch.dict('os.environ',{'ALLOW_BUY_ALERTS':'true'}), patch.object(module.time,'time',return_value=NOW), \
+             patch.object(module,'validate_buy_bundle',return_value={'ok':True}), \
              patch.object(module,'read_json',return_value={'generated_at_utc':utc(NOW),'watch':rows}) as read, \
              patch.object(module,'correlation',side_effect=[.9,.1] if correlated else None), \
              patch.object(module,'make_plan',return_value={'valid':False} if reject_all else {'valid':True,'entry_eur':100,'amount':'1','stop_eur':95,'tp1_eur':110}):
@@ -76,6 +77,7 @@ class BuyFallbackTests(unittest.TestCase):
         def payload(path,default):
             return {'generated_at_utc':utc(NOW),'watch':rows} if path=='alert_candidates.json' else default
         with tempfile.TemporaryDirectory() as d, patch.dict('os.environ',env,clear=True), \
+             patch.object(module,'validate_buy_bundle',return_value={'ok':True}), \
              patch.object(runner,'STATE',str(Path(d)/'state.json')), patch.object(runner,'PublicClient',Public), \
              patch.object(runner,'ReadOnlyAccount') as private, patch.object(runner.time,'time',return_value=NOW), \
              patch.object(module,'read_json',side_effect=payload), patch.object(runner.email_alert,'send_email') as smtp, \
