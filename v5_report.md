@@ -1,8 +1,8 @@
 # Bitvavo — V4 mesurée / infrastructure V5
 
-Scan UTC : 2026-09-13T23:45:56.063321+00:00
-État : OK | marchés EUR : 429 | V4 : 370 | données valides : 5
-Récupération : 2026-09-13T23:45:21.190489+00:00 | âge ticker : 139.9 s | durée : 141.4 s
+Scan UTC : 2026-09-13T23:59:01.188277+00:00
+État : OK | marchés EUR : 429 | V4 : 370 | données valides : 4
+Récupération : 2026-09-13T23:58:26.505689+00:00 | âge ticker : 142.8 s | durée : 144.2 s
 
 ## ACHÈTE — signal V4 et plan théorique
 
@@ -12,25 +12,22 @@ Les trous de cotation restent visibles ; aucune bougie sans transaction n’est 
 
 ## SURVEILLE
 
-- WLD-EUR : 0.32804 € ; score 75.66/100 ; SURVEILLE ; seuil achat non atteint
-- NPC-EUR : 0.0179342 € ; score 75.02/100 ; SURVEILLE ; seuil achat non atteint
-- PEPE-EUR : 2.9096e-06 € ; score 72.17/100 ; SURVEILLE ; seuil achat non atteint
 
 ## Contrôle des hausses
 
 | Marché | Prix € | 24 h | Détection | Couche d’échec | Actionnabilité |
 |---|---:|---:|---|---|---|
-| LSK-EUR | 0.70441 | +145.58 % | NOT_DETECTED | SCANNER_SCORING | NOT_APPLICABLE |
-| CVC-EUR | 0.026631 | +35.18 % | NOT_DETECTED | DATA | NOT_APPLICABLE |
-| ZKJ-EUR | 0.006314 | +23.32 % | NOT_DETECTED | DATA | NOT_APPLICABLE |
-| IQ-EUR | 0.0008675 | +18.12 % | DETECTED_TOO_LATE | NONE | INTERPRETATION |
-| FIL-EUR | 0.82092 | +18.09 % | DETECTED_EARLY | NONE | INTERPRETATION |
-| VTHO-EUR | 0.00067832 | +15.90 % | DETECTED_EARLY | NONE | ENTRY_TIMING_OR_EXECUTION |
-| SOLV-EUR | 0.0045742 | +12.58 % | DETECTED_EARLY | NONE | INTERPRETATION |
-| BIRB-EUR | 0.06132 | +11.41 % | NO_CONFIRMED_SHORT_TERM_EVENT | NOT_APPLICABLE | NOT_APPLICABLE |
-| POWR-EUR | 0.053383 | +10.21 % | DETECTED_EARLY | NONE | INTERPRETATION |
-| ZIL-EUR | 0.0025489 | +8.92 % | DETECTED_EARLY | NONE | INTERPRETATION |
+| LSK-EUR | 0.68859 | +154.55 % | NOT_DETECTED | DATA | NOT_APPLICABLE |
+| CVC-EUR | 0.026808 | +36.08 % | NOT_DETECTED | DATA | NOT_APPLICABLE |
+| ZKJ-EUR | 0.006252 | +22.25 % | NOT_DETECTED | DATA | NOT_APPLICABLE |
+| IQ-EUR | 0.0008825 | +20.02 % | DETECTED_TOO_LATE | NONE | INTERPRETATION |
+| FIL-EUR | 0.82149 | +18.17 % | DETECTED_EARLY | NONE | INTERPRETATION |
+| VTHO-EUR | 0.00067347 | +17.16 % | DETECTED_EARLY | NONE | ENTRY_TIMING_OR_EXECUTION |
+| SOLV-EUR | 0.0046314 | +14.11 % | DETECTED_EARLY | NONE | INTERPRETATION |
+| POWR-EUR | 0.054692 | +11.92 % | DETECTED_EARLY | NONE | INTERPRETATION |
+| BIRB-EUR | 0.0604 | +9.74 % | NO_CONFIRMED_SHORT_TERM_EVENT | NOT_APPLICABLE | NOT_APPLICABLE |
+| ZIL-EUR | 0.0025489 | +8.95 % | DETECTED_EARLY | NONE | INTERPRETATION |
 
-Historique : 434 scans ; 186212 observations ; 63 épisodes d’achat évaluables.
+Historique : 435 scans ; 186641 observations ; 63 épisodes d’achat évaluables.
 V5 optimisée : aucune. Supériorité sur V4 : non démontrée. Probabilités : non calibrées.
 Le cash et le portefeuille du plan sont hypothétiques. Aucun ordre réel n’est envoyé.
