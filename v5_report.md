@@ -1,41 +1,48 @@
 # Bitvavo — V4 mesurée / infrastructure V5
 
-Scan UTC : 2026-09-14T02:19:41.073941+00:00
-État : OK | marchés EUR : 429 | V4 : 373 | données valides : 2
-Récupération : 2026-09-14T02:19:13.017662+00:00 | âge ticker : 138.8 s | durée : 139.5 s
+Scan UTC : 2026-09-14T02:37:14.184195+00:00
+État : OK | marchés EUR : 429 | V4 : 373 | données valides : 4
+Récupération : 2026-09-14T02:36:47.739552+00:00 | âge ticker : 142.1 s | durée : 143.0 s
 
 ## ACHÈTE — signal V4 et plan théorique
 
 AUCUN ACHAT VALIDÉ — cette absence ne valide pas les marchés aux données insuffisantes.
-Bougies utilisables : 5 min 17/429 ; 15 min 41/429.
+Bougies utilisables : 5 min 19/429 ; 15 min 41/429.
 Les trous de cotation restent visibles ; aucune bougie sans transaction n’est inventée.
 
 Achats bruts V4 bloqués avant alerte :
-- AVAX-EUR : WICK_SETUP, INVALID_5M, STALE_DAILY_PROFILE
-- BNB-EUR : INVALID_15M, INVALID_5M, STALE_DAILY_PROFILE
-- UNI-EUR : INVALID_5M, STALE_DAILY_PROFILE
+- AVAX-EUR : WICK_SETUP, STABILITY_HOLD, INVALID_5M, STALE_DAILY_PROFILE
+- BNB-EUR : INVALID_15M, INVALID_5M, MISSING_LATEST_CLOSED_CANDLE, STALE_DAILY_PROFILE
+- DOGE-EUR : INVALID_5M, STALE_DAILY_PROFILE
+- ETH-EUR : STALE_DAILY_PROFILE
+- LINK-EUR : WICK_SETUP, STALE_DAILY_PROFILE
+- PEPE-EUR : WICK_SETUP, STALE_DAILY_PROFILE
+- SOL-EUR : STALE_DAILY_PROFILE
+- SUI-EUR : STALE_DAILY_PROFILE
+- TAO-EUR : WICK_SETUP, STALE_DAILY_PROFILE
+- UNI-EUR : WICK_SETUP, STABILITY_HOLD, INVALID_5M, STALE_DAILY_PROFILE
 - VET-EUR : INVALID_5M, STALE_DAILY_PROFILE
-- WAL-EUR : WICK_SETUP, STABILITY_HOLD, INVALID_15M, INVALID_5M, STALE_DAILY_PROFILE
 
 ## SURVEILLE
 
-- LINK-EUR : 9.79 € ; score 84.80/100 ; SURVEILLE ; WICK_SETUP
+- BTC-EUR : 66920 € ; score 85.23/100 ; SURVEILLE ; seuil achat non atteint
+- ADA-EUR : 0.17948 € ; score 80.11/100 ; SURVEILLE ; seuil achat non atteint
 
 ## Contrôle des hausses
 
 | Marché | Prix € | 24 h | Détection | Couche d’échec | Actionnabilité |
 |---|---:|---:|---|---|---|
-| LSK-EUR | 0.76747 | +65.66 % | NOT_DETECTED | DATA | NOT_APPLICABLE |
-| CVC-EUR | 0.027943 | +28.74 % | NOT_DETECTED | DATA | NOT_APPLICABLE |
-| ZKJ-EUR | 0.006426 | +25.24 % | NOT_DETECTED | DATA | NOT_APPLICABLE |
-| FIL-EUR | 0.85592 | +21.53 % | DETECTED_EARLY | NONE | INTERPRETATION |
-| MTL-EUR | 0.31159 | +18.66 % | NOT_DETECTED | DATA | NOT_APPLICABLE |
-| VTHO-EUR | 0.00069282 | +16.00 % | DETECTED_EARLY | NONE | ENTRY_TIMING_OR_EXECUTION |
-| CPOOL-EUR | 0.019832 | +14.21 % | NOT_DETECTED | DATA | NOT_APPLICABLE |
-| IQ-EUR | 0.0008143 | +12.72 % | DETECTED_TOO_LATE | NONE | INTERPRETATION |
-| ARK-EUR | 0.1372 | +11.02 % | DETECTED_EARLY | NONE | INTERPRETATION |
-| REZ-EUR | 0.0038833 | +9.99 % | NOT_DETECTED | DATA | NOT_APPLICABLE |
+| LSK-EUR | 0.72721 | +44.14 % | NOT_DETECTED | DATA | NOT_APPLICABLE |
+| MTL-EUR | 0.3449 | +29.95 % | NOT_DETECTED | DATA | NOT_APPLICABLE |
+| FIL-EUR | 0.864 | +22.68 % | DETECTED_EARLY | NONE | INTERPRETATION |
+| CVC-EUR | 0.026182 | +22.66 % | NOT_DETECTED | DATA | NOT_APPLICABLE |
+| CPOOL-EUR | 0.02127 | +22.49 % | NOT_DETECTED | DATA | NOT_APPLICABLE |
+| ZKJ-EUR | 0.006164 | +18.33 % | NOT_DETECTED | DATA | NOT_APPLICABLE |
+| REZ-EUR | 0.0039089 | +15.31 % | NOT_DETECTED | DATA | NOT_APPLICABLE |
+| IQ-EUR | 0.000807 | +12.68 % | DETECTED_TOO_LATE | NONE | INTERPRETATION |
+| ARK-EUR | 0.14482 | +11.44 % | DETECTED_EARLY | NONE | INTERPRETATION |
+| ZIL-EUR | 0.00258 | +8.04 % | DETECTED_EARLY | NONE | INTERPRETATION |
 
-Historique : 442 scans ; 189644 observations ; 63 épisodes d’achat évaluables.
+Historique : 443 scans ; 190073 observations ; 63 épisodes d’achat évaluables.
 V5 optimisée : aucune. Supériorité sur V4 : non démontrée. Probabilités : non calibrées.
 Le cash et le portefeuille du plan sont hypothétiques. Aucun ordre réel n’est envoyé.
