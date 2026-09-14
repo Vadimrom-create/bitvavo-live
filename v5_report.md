@@ -1,35 +1,36 @@
 # Bitvavo — V4 mesurée / infrastructure V5
 
-Scan UTC : 2026-09-14T23:36:28.235055+00:00
-État : OK | marchés EUR : 429 | V4 : 363 | données valides : 3
-Récupération : 2026-09-14T23:35:54.527391+00:00 | âge ticker : 142.9 s | durée : 144.1 s
+Scan UTC : 2026-09-14T23:50:17.095783+00:00
+État : OK | marchés EUR : 429 | V4 : 364 | données valides : 4
+Récupération : 2026-09-14T23:49:42.433297+00:00 | âge ticker : 139.1 s | durée : 139.9 s
 
 ## ACHÈTE — signal V4 et plan théorique
 
 AUCUN ACHAT VALIDÉ — cette absence ne valide pas les marchés aux données insuffisantes.
-Bougies utilisables : 5 min 18/429 ; 15 min 55/429.
+Bougies utilisables : 5 min 16/429 ; 15 min 55/429.
 Les trous de cotation restent visibles ; aucune bougie sans transaction n’est inventée.
 
 ## SURVEILLE
 
-- VTHO-EUR : 0.00055652 € ; score 79.05/100 ; SURVEILLE ; seuil achat non atteint
-- FET-EUR : 0.1414 € ; score 75.26/100 ; SURVEILLE ; STABILITY_HOLD
+- VTHO-EUR : 0.00055312 € ; score 77.52/100 ; SURVEILLE ; seuil achat non atteint
+- LSK-EUR : 0.33874 € ; score 76.82/100 ; SURVEILLE ; WIDE_SPREAD_RISK, SELLER_HEAVY_BOOK
+- FET-EUR : 0.14142 € ; score 74.49/100 ; SURVEILLE ; seuil achat non atteint
 
 ## Contrôle des hausses
 
 | Marché | Prix € | 24 h | Détection | Couche d’échec | Actionnabilité |
 |---|---:|---:|---|---|---|
-| CNPY-EUR | 0.27344 | +39.80 % | NOT_DETECTED | DATA | NOT_APPLICABLE |
-| CAP-EUR | 0.0551874 | +36.00 % | NOT_DETECTED | DATA | NOT_APPLICABLE |
-| CPOOL-EUR | 0.023279 | +34.92 % | NOT_DETECTED | DATA | NOT_APPLICABLE |
-| ARK-EUR | 0.14694 | +23.22 % | NOT_DETECTED | DATA | NOT_APPLICABLE |
-| MTL-EUR | 0.27728 | +15.78 % | DETECTED_TOO_LATE | NONE | INTERPRETATION |
-| STRAX-EUR | 0.010721 | +15.38 % | DETECTED_EARLY | NONE | INTERPRETATION |
-| PENDLE-EUR | 2.0664 | +14.58 % | NO_CONFIRMED_SHORT_TERM_EVENT | NOT_APPLICABLE | NOT_APPLICABLE |
-| T-EUR | 0.0043043 | +13.98 % | DETECTED_EARLY | NONE | INTERPRETATION |
-| SENT-EUR | 0.013858 | +13.48 % | DETECTED_EARLY | NONE | INTERPRETATION |
-| NPC-EUR | 0.0197154 | +10.34 % | DETECTED_EARLY | NONE | INTERPRETATION |
+| CNPY-EUR | 0.27338 | +39.76 % | NOT_DETECTED | DATA | NOT_APPLICABLE |
+| CPOOL-EUR | 0.023442 | +35.86 % | NOT_DETECTED | DATA | NOT_APPLICABLE |
+| CAP-EUR | 0.0548636 | +35.69 % | NOT_DETECTED | DATA | NOT_APPLICABLE |
+| ARK-EUR | 0.14715 | +24.84 % | NOT_DETECTED | DATA | NOT_APPLICABLE |
+| STRAX-EUR | 0.0109 | +18.21 % | DETECTED_EARLY | NONE | INTERPRETATION |
+| MTL-EUR | 0.27728 | +15.34 % | DETECTED_TOO_LATE | NONE | INTERPRETATION |
+| T-EUR | 0.0043087 | +14.10 % | DETECTED_EARLY | NONE | INTERPRETATION |
+| PENDLE-EUR | 2.0574 | +14.08 % | NO_CONFIRMED_SHORT_TERM_EVENT | NOT_APPLICABLE | NOT_APPLICABLE |
+| SENT-EUR | 0.013746 | +12.27 % | DETECTED_EARLY | NONE | INTERPRETATION |
+| SIGN-EUR | 0.009228 | +9.75 % | NO_CONFIRMED_SHORT_TERM_EVENT | NOT_APPLICABLE | NOT_APPLICABLE |
 
-Historique : 510 scans ; 218816 observations ; 92 épisodes d’achat évaluables.
+Historique : 511 scans ; 219245 observations ; 92 épisodes d’achat évaluables.
 V5 optimisée : aucune. Supériorité sur V4 : non démontrée. Probabilités : non calibrées.
 Le cash et le portefeuille du plan sont hypothétiques. Aucun ordre réel n’est envoyé.
