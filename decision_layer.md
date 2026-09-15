@@ -1,6 +1,6 @@
 # Decision Layer V1 + boucle de contrôle — shadow
 
-Scan : 2026-09-15T04:00:39.283220+00:00
+Scan : 2026-09-15T04:23:30.903330+00:00
 Policy : DECISION_LAYER_V1_SHADOW au-dessus de V4_FROZEN_20260908
 
 Cette couche ne modifie aucun score V4 et ne peut envoyer aucun ordre.
@@ -11,11 +11,12 @@ Entry est un indicateur de timing, pas un veto structurel.
 - **MEILLEUR_ACHAT_IMMEDIAT** : aucun candidat matériel
 - **MEILLEURE_LIMITE_PASSIVE** : aucun candidat matériel
 - **MEILLEUR_LATENT_ACCELERATOR** : aucun candidat matériel
-- **MEILLEUR_PULLBACK_REENTRY** : aucun candidat matériel
+- **MEILLEUR_PULLBACK_REENTRY** : NEAR-EUR | action ATTENDS_REPRISE_OU_REENTREE | opportunité 7.751 | entrée 7.150 | trend 8.100 | rang 7.335
+  - Strong trend/opportunity retained through pullback; timing does not erase setup.
 
 ## Top cross-sectionnel
 
-Aucun candidat ne remplit actuellement un bucket décisionnel.
+1. NEAR-EUR — MEILLEUR_PULLBACK_REENTRY — ATTENDS_REPRISE_OU_REENTREE — rank 7.335
 
 ## Accélération indépendante
 
@@ -25,27 +26,27 @@ Aucune accélération indépendante confirmée ou en construction.
 
 - CAP-EUR — MEMORY_24H — score mémoire 9.037/10 — sources ACCELERATION — MEMORY_ONLY
 - CNPY-EUR — MEMORY_24H — score mémoire 8.734/10 — sources ACCELERATION, V4 — MEMORY_ONLY
-- XVG-EUR — ACTIVE_NOW — score mémoire 8.227/10 — sources V4 — WATCH_ONLY
-- PHA-EUR — ACTIVE_NOW — score mémoire 8.170/10 — sources V4 — WATCH_ONLY
-- VTHO-EUR — ACTIVE_NOW — score mémoire 8.124/10 — sources ACCELERATION, DECISION_LAYER, V4 — WATCH_ONLY
-- YB-EUR — ACTIVE_NOW — score mémoire 8.023/10 — sources V4 — WATCH_ONLY
-- SOMI-EUR — ACTIVE_NOW — score mémoire 7.931/10 — sources V4 — WATCH_ONLY
-- WLD-EUR — ACTIVE_NOW — score mémoire 7.758/10 — sources DECISION_LAYER, V4 — WATCH_ONLY
-- KAS-EUR — ACTIVE_NOW — score mémoire 7.758/10 — sources V4 — WATCH_ONLY
-- COTI-EUR — ACTIVE_NOW — score mémoire 7.752/10 — sources V4 — DETECTED_BUT_TOO_LATE
+- YB-EUR — ACTIVE_NOW — score mémoire 7.999/10 — sources V4 — WATCH_ONLY
+- PHA-EUR — ACTIVE_NOW — score mémoire 7.995/10 — sources V4 — WATCH_ONLY
+- VTHO-EUR — ACTIVE_NOW — score mémoire 7.932/10 — sources ACCELERATION, DECISION_LAYER, V4 — WATCH_ONLY
+- SOMI-EUR — ACTIVE_NOW — score mémoire 7.704/10 — sources V4 — WATCH_ONLY
+- LDO-EUR — ACTIVE_NOW — score mémoire 7.701/10 — sources V4 — WATCH_ONLY
+- KAS-EUR — ACTIVE_NOW — score mémoire 7.676/10 — sources V4 — WATCH_ONLY
+- ICP-EUR — ACTIVE_NOW — score mémoire 7.600/10 — sources V4 — WATCH_ONLY
+- ETHFI-EUR — ACTIVE_NOW — score mémoire 7.585/10 — sources V4 — WATCH_ONLY
 
 ## Audit des plus fortes hausses
 
-- CAP-EUR +41.95% — NOT_DETECTED — couche DATA — action NOT_APPLICABLE
-- CNPY-EUR +30.97% — NOT_DETECTED — couche DATA — action NOT_APPLICABLE
-- PUFFER-EUR +19.99% — INSUFFICIENT_HISTORY — couche HISTORY — action NOT_APPLICABLE
-- ASTR-EUR +18.29% — DETECTED_EARLY — couche NONE — action INTERPRETATION
-- ZIL-EUR +12.76% — DETECTED_EARLY — couche NONE — action INTERPRETATION
-- CVC-EUR +9.84% — DETECTED_EARLY — couche NONE — action INTERPRETATION
-- RED-EUR +9.46% — DETECTED_EARLY — couche NONE — action INTERPRETATION
+- CAP-EUR +33.76% — NOT_DETECTED — couche DATA — action NOT_APPLICABLE
+- CNPY-EUR +30.39% — NOT_DETECTED — couche DATA — action NOT_APPLICABLE
+- ASTR-EUR +19.05% — DETECTED_EARLY — couche NONE — action INTERPRETATION
+- PUFFER-EUR +15.66% — INSUFFICIENT_HISTORY — couche HISTORY — action NOT_APPLICABLE
+- RED-EUR +11.58% — DETECTED_EARLY — couche NONE — action INTERPRETATION
+- TREE-EUR +9.72% — DETECTED_EARLY — couche NONE — action INTERPRETATION
+- ZIL-EUR +9.64% — NO_CONFIRMED_SHORT_TERM_EVENT — couche NOT_APPLICABLE — action NOT_APPLICABLE
 - ACX-EUR +9.05% — NOT_DETECTED — couche DATA — action NOT_APPLICABLE
-- T-EUR +8.22% — DETECTED_EARLY — couche NONE — action INTERPRETATION
-- KNC-EUR +7.63% — DETECTED_EARLY — couche NONE — action INTERPRETATION
+- KAVA-EUR +7.68% — NO_CONFIRMED_SHORT_TERM_EVENT — couche NOT_APPLICABLE — action NOT_APPLICABLE
+- T-EUR +7.05% — DETECTED_EARLY — couche NONE — action INTERPRETATION
 
 ## Garde-fous
 
