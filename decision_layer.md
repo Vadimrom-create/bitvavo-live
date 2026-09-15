@@ -1,6 +1,6 @@
 # Decision Layer V1 + boucle de contrôle — shadow
 
-Scan : 2026-09-15T23:34:20.567026+00:00
+Scan : 2026-09-15T23:47:14.543367+00:00
 Policy : DECISION_LAYER_V1_SHADOW au-dessus de V4_FROZEN_20260908
 
 Cette couche ne modifie aucun score V4 et ne peut envoyer aucun ordre.
@@ -11,12 +11,11 @@ Entry est un indicateur de timing, pas un veto structurel.
 - **MEILLEUR_ACHAT_IMMEDIAT** : aucun candidat matériel
 - **MEILLEURE_LIMITE_PASSIVE** : aucun candidat matériel
 - **MEILLEUR_LATENT_ACCELERATOR** : aucun candidat matériel
-- **MEILLEUR_PULLBACK_REENTRY** : VTHO-EUR | action ATTENDS_REPRISE_OU_REENTREE | opportunité 7.780 | entrée 5.300 | trend 9.200 | rang 6.959
-  - Strong trend/opportunity retained through pullback; timing does not erase setup.
+- **MEILLEUR_PULLBACK_REENTRY** : aucun candidat matériel
 
 ## Top cross-sectionnel
 
-1. VTHO-EUR — MEILLEUR_PULLBACK_REENTRY — ATTENDS_REPRISE_OU_REENTREE — rank 6.959
+Aucun candidat ne remplit actuellement un bucket décisionnel.
 
 ## Accélération indépendante
 
@@ -24,29 +23,29 @@ Aucune accélération indépendante confirmée ou en construction.
 
 ## Watchlist persistante 24–72 h
 
-- ETHFI-EUR — ACTIVE_NOW — score mémoire 8.006/10 — sources V4 — WATCH_ONLY
-- XTZ-EUR — ACTIVE_NOW — score mémoire 7.908/10 — sources V4 — WATCH_ONLY
-- LDO-EUR — ACTIVE_NOW — score mémoire 7.897/10 — sources V4 — WATCH_ONLY
-- XVG-EUR — ACTIVE_NOW — score mémoire 7.885/10 — sources V4 — WATCH_ONLY
-- XPL-EUR — ACTIVE_NOW — score mémoire 7.745/10 — sources V4 — WATCH_ONLY
-- SOMI-EUR — ACTIVE_NOW — score mémoire 7.742/10 — sources V4 — WATCH_ONLY
-- VET-EUR — ACTIVE_NOW — score mémoire 7.717/10 — sources ACCELERATION, DECISION_LAYER, V4 — WATCH_ONLY
-- ICP-EUR — ACTIVE_NOW — score mémoire 7.711/10 — sources V4 — WATCH_ONLY
-- CAKE-EUR — ACTIVE_NOW — score mémoire 7.651/10 — sources V4 — WATCH_ONLY
+- LDO-EUR — ACTIVE_NOW — score mémoire 7.895/10 — sources V4 — WATCH_ONLY
+- ICP-EUR — ACTIVE_NOW — score mémoire 7.874/10 — sources V4 — WATCH_ONLY
+- XPL-EUR — ACTIVE_NOW — score mémoire 7.859/10 — sources V4 — WATCH_ONLY
+- XVG-EUR — ACTIVE_NOW — score mémoire 7.787/10 — sources V4 — WATCH_ONLY
+- SOMI-EUR — ACTIVE_NOW — score mémoire 7.722/10 — sources V4 — WATCH_ONLY
+- ETHFI-EUR — ACTIVE_NOW — score mémoire 7.717/10 — sources V4 — WATCH_ONLY
+- W-EUR — ACTIVE_NOW — score mémoire 7.666/10 — sources V4 — WATCH_ONLY
+- VET-EUR — ACTIVE_NOW — score mémoire 7.614/10 — sources ACCELERATION, DECISION_LAYER, V4 — WATCH_ONLY
 - YB-EUR — ACTIVE_NOW — score mémoire 7.598/10 — sources V4 — WATCH_ONLY
+- KAS-EUR — ACTIVE_NOW — score mémoire 7.583/10 — sources V4 — WATCH_ONLY
 
 ## Audit des plus fortes hausses
 
-- ALIGN-EUR +38.06% — DETECTED_EARLY — couche NONE — action INTERPRETATION
-- SAGA-EUR +33.37% — NOT_DETECTED — couche DATA — action NOT_APPLICABLE
-- PUFFER-EUR +31.59% — NOT_DETECTED — couche DATA — action NOT_APPLICABLE
-- LAPTOP-EUR +23.61% — INSUFFICIENT_HISTORY — couche HISTORY — action NOT_APPLICABLE
-- CNPY-EUR +23.13% — NOT_DETECTED — couche DATA — action NOT_APPLICABLE
-- SYN-EUR +18.17% — DETECTED_EARLY — couche NONE — action INTERPRETATION
-- VTHO-EUR +16.89% — DETECTED_EARLY — couche NONE — action ENTRY_TIMING_OR_EXECUTION
+- ALIGN-EUR +36.06% — DETECTED_EARLY — couche NONE — action INTERPRETATION
+- LAPTOP-EUR +29.13% — INSUFFICIENT_HISTORY — couche HISTORY — action NOT_APPLICABLE
+- SAGA-EUR +28.82% — NOT_DETECTED — couche DATA — action NOT_APPLICABLE
+- PUFFER-EUR +28.79% — NOT_DETECTED — couche DATA — action NOT_APPLICABLE
+- CNPY-EUR +21.33% — NOT_DETECTED — couche DATA — action NOT_APPLICABLE
+- SYN-EUR +18.66% — DETECTED_EARLY — couche NONE — action INTERPRETATION
+- VTHO-EUR +17.22% — DETECTED_EARLY — couche NONE — action ENTRY_TIMING_OR_EXECUTION
+- CROSS-EUR +17.01% — NOT_DETECTED — couche DATA — action NOT_APPLICABLE
+- ARB-EUR +13.88% — DETECTED_EARLY — couche NONE — action INTERPRETATION
 - ASTR-EUR +13.53% — DETECTED_EARLY — couche NONE — action INTERPRETATION
-- ARB-EUR +13.44% — DETECTED_EARLY — couche NONE — action INTERPRETATION
-- CROSS-EUR +11.49% — NOT_DETECTED — couche DATA — action NOT_APPLICABLE
 
 ## Garde-fous
 
