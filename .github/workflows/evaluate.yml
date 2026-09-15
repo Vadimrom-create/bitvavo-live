@@ -43,6 +43,11 @@ jobs:
           python scripts/load_public_state.py --source ../evaluation-data --owner evaluation
       - name: Rebuild or increment index and evaluate mature observations
         run: python scripts/run_evaluation.py
+      - name: Describe prospective pilot availability and paired dependence
+        id: pilot_report
+        continue-on-error: true
+        timeout-minutes: 5
+        run: python scripts/run_prospective.py report --publish
       - name: Publish evaluation-owned outputs
         run: python scripts/publish_data.py --evaluation
       - uses: actions/upload-artifact@v4
@@ -53,3 +58,8 @@ jobs:
             evaluation-code/evaluation_manifest.json
             evaluation-code/comparison_report.json
             evaluation-code/evaluation.json
+      - uses: actions/upload-artifact@v4
+        if: always() && steps.pilot_report.outcome == 'success'
+        with:
+          name: prospective-evaluation-${{ github.run_id }}
+          path: evaluation-code/prospective_report.json

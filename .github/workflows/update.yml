@@ -46,6 +46,11 @@ jobs:
           git config user.email 'actions@users.noreply.github.com'
           git fetch origin main
           python scripts/load_public_state.py --source ../scan-data --owner prospection
+      - name: Open versioned technical pilot before acquisition
+        id: pilot
+        continue-on-error: true
+        timeout-minutes: 1
+        run: python scripts/run_prospective.py start
       - name: Collect corrected inputs and record the explicit scan
         id: scan
         run: |
@@ -95,6 +100,14 @@ jobs:
       - name: Publish owned scan outputs and confirmation receipt
         id: publication
         run: python scripts/publish_data.py
+      - name: Preserve technical pilot enrollment independently
+        id: pilot_record
+        if: always() && steps.pilot.outcome == 'success' && steps.scan.outcome == 'success'
+        continue-on-error: true
+        timeout-minutes: 2
+        run: |
+          python scripts/run_prospective.py record
+          python scripts/publish_data.py --pilot
       - name: Record every attempted cycle
         if: always() && steps.state.outcome == 'success'
         env:
@@ -104,6 +117,8 @@ jobs:
           OUTCOME_COMPARISON: ${{ steps.comparison.outcome }}
           OUTCOME_REPLAY: ${{ steps.replay.outcome }}
           OUTCOME_PUBLICATION: ${{ steps.publication.outcome }}
+          OUTCOME_PILOT: ${{ steps.pilot.outcome }}
+          OUTCOME_PILOT_RECORD: ${{ steps.pilot_record.outcome }}
         run: |
           python scripts/record_scan_attempt.py
           python scripts/publish_data.py --attempt
@@ -119,6 +134,8 @@ jobs:
             scan-code/scan_manifest.json
             scan-code/shadow_status.json
             scan-code/scan_attempts/
+            scan-code/prospective_sessions/
+            scan-code/prospective_observations/
       - name: Prepare coherent public feed
         if: success() && steps.publication.outcome == 'success'
         run: python scripts/prepare_site.py

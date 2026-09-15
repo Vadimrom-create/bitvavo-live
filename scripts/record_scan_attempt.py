@@ -17,7 +17,7 @@ def run():
     current=read_json('runtime/current_scan.json',{})
     payload={'workflow_run_id':run_id,'attempt':attempt,'code_commit':code_revision(),'observed_at':utc(),
              'scan_id':current.get('scan_id'),'data_policy':current.get('data_policy'),
-             'steps':{k:os.getenv('OUTCOME_'+k,'unknown') for k in ('SCAN','V1','V2','COMPARISON','REPLAY','PUBLICATION')},
+             'steps':{k:os.getenv('OUTCOME_'+k,'unknown') for k in ('SCAN','V1','V2','COMPARISON','REPLAY','PUBLICATION','PILOT','PILOT_RECORD')},
              'source':'GITHUB_ACTIONS_OBSERVATION','private_data':False}
     immutable_json(Path('scan_attempts')/(run_id+'-'+attempt+'.json'),payload)
     return payload

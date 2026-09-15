@@ -29,9 +29,12 @@ ALERT_STATE = ['alert_state_v4.json', 'security_alert_state.json', 'position_ale
 EVALUATION_FILES = ['evaluation.json','evaluation_policies','evaluation_history','evaluation_manifest.json',
                     'market_control_history.json','comparison_report.json']
 OWNERS = {'prospection':GENERATED,'monitoring':ALERT_STATE,'evaluation':EVALUATION_FILES,
-          'publication_receipts':['publication_history'],'attempts':['scan_attempts']}
+          'publication_receipts':['publication_history'],'attempts':['scan_attempts'],
+          'pilot':['prospective_sessions','prospective_observations'],
+          'pilot_evaluation':['prospective_report.json','prospective_reports']}
 IMMUTABLE = {'history_corrected','history_legacy_diagnostics','decision_history_v2','decision_history_versioned',
-             'comparison_history','replay_history','scan_manifests','evaluation_history','publication_history','scan_attempts'}
+             'comparison_history','replay_history','scan_manifests','evaluation_history','publication_history','scan_attempts',
+             'prospective_sessions','prospective_observations','prospective_reports'}
 
 
 def git(*args, check=True, cwd=None):
@@ -100,6 +103,8 @@ def main():
         return publish(EVALUATION_FILES,'Record separately evaluated immutable observations')
     if '--attempt' in sys.argv:
         return publish(OWNERS['attempts'],'Record scan attempt availability')
+    if '--pilot' in sys.argv:
+        return publish(OWNERS['pilot'],'Record technical pilot enrollment without held-out claims')
     manifest=read_json('scan_manifest.json')
     current=read_json('runtime/current_scan.json')
     if not manifest or not current or current['scan_id']!=manifest['scan_id']:

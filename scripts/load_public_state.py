@@ -7,12 +7,13 @@ import subprocess
 import os
 
 STATE=['scan_history.json','signal_log.json','v4_history.json','v4_signal_log.json','v4_trend_cache.json','v4_stability_state.json','policy_state']
-JOURNALS=['history','history_corrected','history_legacy_diagnostics','comparison_history','publication_history','scan_attempts']
+JOURNALS=['history','history_corrected','history_legacy_diagnostics','comparison_history','publication_history','scan_attempts',
+          'prospective_sessions','prospective_observations']
 
 
 def load(source, target='.', owner='prospection'):
     source,target=Path(source).resolve(),Path(target).resolve()
-    names=STATE+['history_corrected','history_legacy_diagnostics'] if owner=='prospection' else JOURNALS
+    names=STATE+['history_corrected','history_legacy_diagnostics','prospective_sessions','prospective_observations'] if owner=='prospection' else JOURNALS
     before=subprocess.check_output(['git','-C',str(target),'rev-parse','HEAD'],text=True).strip()
     for name in names:
         src,dst=source/name,target/name
