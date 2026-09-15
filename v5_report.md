@@ -1,8 +1,8 @@
 # Bitvavo — V4 mesurée / infrastructure V5
 
-Scan UTC : 2026-09-15T07:02:39.860246+00:00
-État : OK | marchés EUR : 429 | V4 : 362 | données valides : 3
-Récupération : 2026-09-15T07:02:07.460130+00:00 | âge ticker : 138.3 s | durée : 139.2 s
+Scan UTC : 2026-09-15T07:25:52.917384+00:00
+État : OK | marchés EUR : 429 | V4 : 362 | données valides : 6
+Récupération : 2026-09-15T07:25:16.211186+00:00 | âge ticker : 145.1 s | durée : 146.0 s
 
 ## ACHÈTE — signal V4 et plan théorique
 
@@ -12,23 +12,25 @@ Les trous de cotation restent visibles ; aucune bougie sans transaction n’est 
 
 ## SURVEILLE
 
-- VTHO-EUR : 0.00063451 € ; score 78.05/100 ; SURVEILLE ; SELLER_HEAVY_BOOK, VERTICAL_SHORT_TERM
+- VTHO-EUR : 0.00062047 € ; score 76.35/100 ; SURVEILLE ; VERTICAL_SHORT_TERM
+- POWR-EUR : 0.05285 € ; score 75.24/100 ; SURVEILLE ; SPREAD_RISK
+- LSK-EUR : 0.36851 € ; score 72.59/100 ; SURVEILLE ; WIDE_SPREAD_RISK, VERTICAL_SHORT_TERM
 
 ## Contrôle des hausses
 
 | Marché | Prix € | 24 h | Détection | Couche d’échec | Actionnabilité |
 |---|---:|---:|---|---|---|
-| PUFFER-EUR | 0.02245 | +32.78 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
-| CAP-EUR | 0.0523313 | +27.33 % | NOT_DETECTED | DATA | NOT_APPLICABLE |
-| CNPY-EUR | 0.25885 | +19.71 % | NOT_DETECTED | DATA | NOT_APPLICABLE |
-| AXL-EUR | 0.044339 | +13.96 % | NOT_DETECTED | DATA | NOT_APPLICABLE |
-| ASTR-EUR | 0.0061329 | +12.88 % | DETECTED_EARLY | NONE | INTERPRETATION |
-| ACX-EUR | 0.0369 | +11.46 % | NOT_DETECTED | DATA | NOT_APPLICABLE |
-| LAPTOP-EUR | 0.21485 | +10.46 % | NOT_DETECTED | DATA | NOT_APPLICABLE |
-| CROSS-EUR | 0.107481 | +8.72 % | NOT_DETECTED | DATA | NOT_APPLICABLE |
-| ACE-EUR | 0.13877 | +7.90 % | NO_CONFIRMED_SHORT_TERM_EVENT | NOT_APPLICABLE | NOT_APPLICABLE |
-| CTR-EUR | 0.009914 | +7.21 % | NOT_DETECTED | DATA | NOT_APPLICABLE |
+| CAP-EUR | 0.0527253 | +28.12 % | NOT_DETECTED | DATA | NOT_APPLICABLE |
+| PUFFER-EUR | 0.021528 | +26.84 % | NOT_DETECTED | DATA | NOT_APPLICABLE |
+| CNPY-EUR | 0.26234 | +21.36 % | NOT_DETECTED | DATA | NOT_APPLICABLE |
+| ASTR-EUR | 0.00619 | +13.93 % | DETECTED_EARLY | NONE | INTERPRETATION |
+| ACX-EUR | 0.0369 | +11.82 % | NOT_DETECTED | DATA | NOT_APPLICABLE |
+| SAGA-EUR | 0.016724 | +11.11 % | NO_CONFIRMED_SHORT_TERM_EVENT | NOT_APPLICABLE | NOT_APPLICABLE |
+| CROSS-EUR | 0.108288 | +9.59 % | NOT_DETECTED | DATA | NOT_APPLICABLE |
+| CPOOL-EUR | 0.022355 | +8.56 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
+| CTR-EUR | 0.009907 | +7.14 % | NOT_DETECTED | DATA | NOT_APPLICABLE |
+| AXL-EUR | 0.041399 | +6.87 % | NOT_DETECTED | DATA | NOT_APPLICABLE |
 
-Historique : 533 scans ; 228683 observations ; 94 épisodes d’achat évaluables.
+Historique : 534 scans ; 229112 observations ; 94 épisodes d’achat évaluables.
 V5 optimisée : aucune. Supériorité sur V4 : non démontrée. Probabilités : non calibrées.
 Le cash et le portefeuille du plan sont hypothétiques. Aucun ordre réel n’est envoyé.
