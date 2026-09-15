@@ -1,39 +1,38 @@
 # Bitvavo — V4 mesurée / infrastructure V5
 
-Scan UTC : 2026-09-15T13:47:44.797124+00:00
-État : OK | marchés EUR : 429 | V4 : 370 | données valides : 3
-Récupération : 2026-09-15T13:47:15.466997+00:00 | âge ticker : 143.0 s | durée : 143.7 s
+Scan UTC : 2026-09-15T14:01:17.590164+00:00
+État : OK | marchés EUR : 429 | V4 : 369 | données valides : 9
+Récupération : 2026-09-15T14:00:47.400058+00:00 | âge ticker : 147.1 s | durée : 148.2 s
 
 ## ACHÈTE — signal V4 et plan théorique
 
 AUCUN ACHAT VALIDÉ — cette absence ne valide pas les marchés aux données insuffisantes.
-Bougies utilisables : 5 min 19/429 ; 15 min 57/429.
+Bougies utilisables : 5 min 18/429 ; 15 min 57/429.
 Les trous de cotation restent visibles ; aucune bougie sans transaction n’est inventée.
-
-Achats bruts V4 bloqués avant alerte :
-- VET-EUR : WICK_SETUP, STABILITY_HOLD, INVALID_5M, STALE_DAILY_PROFILE
 
 ## SURVEILLE
 
-- UNI-EUR : 5.7452 € ; score 88.93/100 ; SURVEILLE ; seuil achat non atteint
-- ADA-EUR : 0.17721 € ; score 85.82/100 ; SURVEILLE ; seuil achat non atteint
-- XRP-EUR : 1.21755 € ; score 65.25/100 ; SURVEILLE ; STABILITY_HOLD
+- SOL-EUR : 86.989 € ; score 86.96/100 ; SURVEILLE ; seuil achat non atteint
+- BTC-EUR : 66278 € ; score 85.23/100 ; SURVEILLE ; seuil achat non atteint
+- LINK-EUR : 9.8491 € ; score 78.38/100 ; SURVEILLE ; seuil achat non atteint
+- NPC-EUR : 0.0176381 € ; score 77.68/100 ; SURVEILLE ; WICK_SETUP
+- LSK-EUR : 0.329 € ; score 76.60/100 ; SURVEILLE ; WIDE_SPREAD_RISK
 
 ## Contrôle des hausses
 
 | Marché | Prix € | 24 h | Détection | Couche d’échec | Actionnabilité |
 |---|---:|---:|---|---|---|
-| CNPY-EUR | 0.29915 | +34.82 % | NOT_DETECTED | DATA | NOT_APPLICABLE |
-| ALIGN-EUR | 0.006685 | +33.19 % | DETECTED_EARLY | NONE | INTERPRETATION |
-| PUFFER-EUR | 0.02057 | +20.13 % | NOT_DETECTED | DATA | NOT_APPLICABLE |
-| GLMR-EUR | 0.005115 | +17.32 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
-| ASTR-EUR | 0.0060614 | +14.87 % | DETECTED_EARLY | NONE | INTERPRETATION |
-| SAGA-EUR | 0.016994 | +12.99 % | NOT_DETECTED | DATA | NOT_APPLICABLE |
-| VTHO-EUR | 0.00068432 | +12.96 % | DETECTED_EARLY | NONE | ENTRY_TIMING_OR_EXECUTION |
-| CROSS-EUR | 0.112419 | +12.47 % | NOT_DETECTED | DATA | NOT_APPLICABLE |
-| LAPTOP-EUR | 0.20701 | +9.44 % | DETECTED_EARLY | NONE | INTERPRETATION |
+| CNPY-EUR | 0.29779 | +33.71 % | NOT_DETECTED | DATA | NOT_APPLICABLE |
+| ALIGN-EUR | 0.006568 | +29.88 % | DETECTED_EARLY | NONE | INTERPRETATION |
+| PUFFER-EUR | 0.021195 | +22.20 % | NOT_DETECTED | DATA | NOT_APPLICABLE |
+| SAGA-EUR | 0.017776 | +16.79 % | NOT_DETECTED | DATA | NOT_APPLICABLE |
+| GLMR-EUR | 0.005073 | +15.77 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
+| ASTR-EUR | 0.0060373 | +14.42 % | DETECTED_EARLY | NONE | INTERPRETATION |
+| VTHO-EUR | 0.00067438 | +12.46 % | DETECTED_EARLY | NONE | ENTRY_TIMING_OR_EXECUTION |
+| CROSS-EUR | 0.111622 | +11.72 % | NOT_DETECTED | DATA | NOT_APPLICABLE |
+| LAPTOP-EUR | 0.20792 | +7.56 % | DETECTED_EARLY | NONE | INTERPRETATION |
 | INIT-EUR | 0.059356 | +6.52 % | NO_CONFIRMED_SHORT_TERM_EVENT | NOT_APPLICABLE | NOT_APPLICABLE |
 
-Historique : 554 scans ; 237692 observations ; 94 épisodes d’achat évaluables.
+Historique : 555 scans ; 238121 observations ; 94 épisodes d’achat évaluables.
 V5 optimisée : aucune. Supériorité sur V4 : non démontrée. Probabilités : non calibrées.
 Le cash et le portefeuille du plan sont hypothétiques. Aucun ordre réel n’est envoyé.

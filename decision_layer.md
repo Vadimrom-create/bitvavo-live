@@ -1,6 +1,6 @@
 # Decision Layer V1 + boucle de contrôle — shadow
 
-Scan : 2026-09-15T13:47:44.797124+00:00
+Scan : 2026-09-15T14:01:17.590164+00:00
 Policy : DECISION_LAYER_V1_SHADOW au-dessus de V4_FROZEN_20260908
 
 Cette couche ne modifie aucun score V4 et ne peut envoyer aucun ordre.
@@ -11,41 +11,42 @@ Entry est un indicateur de timing, pas un veto structurel.
 - **MEILLEUR_ACHAT_IMMEDIAT** : aucun candidat matériel
 - **MEILLEURE_LIMITE_PASSIVE** : aucun candidat matériel
 - **MEILLEUR_LATENT_ACCELERATOR** : aucun candidat matériel
-- **MEILLEUR_PULLBACK_REENTRY** : UNI-EUR | action ATTENDS_REPRISE_OU_REENTREE | opportunité 8.893 | entrée 6.750 | trend 7.750 | rang 7.931
+- **MEILLEUR_PULLBACK_REENTRY** : NPC-EUR | action ATTENDS_REPRISE_OU_REENTREE | opportunité 7.768 | entrée 6.400 | trend 7.750 | rang 7.191
   - Strong trend/opportunity retained through pullback; timing does not erase setup.
 
 ## Top cross-sectionnel
 
-1. UNI-EUR — MEILLEUR_PULLBACK_REENTRY — ATTENDS_REPRISE_OU_REENTREE — rank 7.931
+1. NPC-EUR — MEILLEUR_PULLBACK_REENTRY — ATTENDS_REPRISE_OU_REENTREE — rank 7.191
+2. FET-EUR — MEILLEUR_PULLBACK_REENTRY — ATTENDS_REPRISE_OU_REENTREE — rank 7.177
 
 ## Accélération indépendante
 
-- CNPY-EUR — BUILDING_ACCELERATION — score 5.784/10 — DETECTED_BUT_TOO_LATE
+- SAGA-EUR — BUILDING_ACCELERATION — score 4.801/10 — DETECTED_BUT_TOO_LATE
 
 ## Watchlist persistante 24–72 h
 
 - LAPTOP-EUR — MEMORY_24H — score mémoire 8.500/10 — sources ACCELERATION, V4 — MEMORY_ONLY
-- ETHFI-EUR — ACTIVE_NOW — score mémoire 7.995/10 — sources V4 — WATCH_ONLY
-- UNI-EUR — ACTIVE_NOW — score mémoire 7.931/10 — sources ACCELERATION, DECISION_LAYER, V4 — WATCH_ONLY
-- PHA-EUR — ACTIVE_NOW — score mémoire 7.907/10 — sources V4 — WATCH_ONLY
-- BNB-EUR — ACTIVE_NOW — score mémoire 7.888/10 — sources V4 — WATCH_ONLY
-- LDO-EUR — ACTIVE_NOW — score mémoire 7.883/10 — sources V4 — WATCH_ONLY
-- PEAQ-EUR — ACTIVE_NOW — score mémoire 7.741/10 — sources V4 — WATCH_ONLY
-- ICP-EUR — ACTIVE_NOW — score mémoire 7.731/10 — sources V4 — WATCH_ONLY
-- TIA-EUR — ACTIVE_NOW — score mémoire 7.702/10 — sources V4 — WATCH_ONLY
-- KAS-EUR — ACTIVE_NOW — score mémoire 7.586/10 — sources V4 — WATCH_ONLY
+- UNI-EUR — MEMORY_24H — score mémoire 7.931/10 — sources ACCELERATION, DECISION_LAYER, V4 — MEMORY_ONLY
+- LDO-EUR — ACTIVE_NOW — score mémoire 7.916/10 — sources V4 — WATCH_ONLY
+- NEAR-EUR — ACTIVE_NOW — score mémoire 7.890/10 — sources ACCELERATION, DECISION_LAYER, V4 — DETECTED_BUT_TOO_LATE
+- ETHFI-EUR — ACTIVE_NOW — score mémoire 7.875/10 — sources V4 — WATCH_ONLY
+- ICP-EUR — ACTIVE_NOW — score mémoire 7.710/10 — sources V4 — WATCH_ONLY
+- PROM-EUR — ACTIVE_NOW — score mémoire 7.708/10 — sources V4 — WATCH_ONLY
+- TIA-EUR — MEMORY_24H — score mémoire 7.702/10 — sources V4 — MEMORY_ONLY
+- KAS-EUR — ACTIVE_NOW — score mémoire 7.683/10 — sources V4 — WATCH_ONLY
+- RED-EUR — ACTIVE_NOW — score mémoire 7.635/10 — sources V4 — WATCH_ONLY
 
 ## Audit des plus fortes hausses
 
-- CNPY-EUR +34.82% — NOT_DETECTED — couche DATA — action NOT_APPLICABLE
-- ALIGN-EUR +33.19% — DETECTED_EARLY — couche NONE — action INTERPRETATION
-- PUFFER-EUR +20.13% — NOT_DETECTED — couche DATA — action NOT_APPLICABLE
-- GLMR-EUR +17.32% — INSUFFICIENT_HISTORY — couche HISTORY — action NOT_APPLICABLE
-- ASTR-EUR +14.87% — DETECTED_EARLY — couche NONE — action INTERPRETATION
-- SAGA-EUR +12.99% — NOT_DETECTED — couche DATA — action NOT_APPLICABLE
-- VTHO-EUR +12.96% — DETECTED_EARLY — couche NONE — action ENTRY_TIMING_OR_EXECUTION
-- CROSS-EUR +12.47% — NOT_DETECTED — couche DATA — action NOT_APPLICABLE
-- LAPTOP-EUR +9.44% — DETECTED_EARLY — couche NONE — action INTERPRETATION
+- CNPY-EUR +33.71% — NOT_DETECTED — couche DATA — action NOT_APPLICABLE
+- ALIGN-EUR +29.88% — DETECTED_EARLY — couche NONE — action INTERPRETATION
+- PUFFER-EUR +22.20% — NOT_DETECTED — couche DATA — action NOT_APPLICABLE
+- SAGA-EUR +16.79% — NOT_DETECTED — couche DATA — action NOT_APPLICABLE
+- GLMR-EUR +15.77% — INSUFFICIENT_HISTORY — couche HISTORY — action NOT_APPLICABLE
+- ASTR-EUR +14.42% — DETECTED_EARLY — couche NONE — action INTERPRETATION
+- VTHO-EUR +12.46% — DETECTED_EARLY — couche NONE — action ENTRY_TIMING_OR_EXECUTION
+- CROSS-EUR +11.72% — NOT_DETECTED — couche DATA — action NOT_APPLICABLE
+- LAPTOP-EUR +7.56% — DETECTED_EARLY — couche NONE — action INTERPRETATION
 - INIT-EUR +6.52% — NO_CONFIRMED_SHORT_TERM_EVENT — couche NOT_APPLICABLE — action NOT_APPLICABLE
 
 ## Garde-fous
