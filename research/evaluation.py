@@ -4,10 +4,13 @@ from __future__ import annotations
 import json
 import math
 import statistics
+from research.common import finite
 
 HORIZONS = {'15m': 900, '30m': 1800, '1h': 3600, '2h': 7200, '4h': 14400}
 THRESHOLDS = (5, 10, 15, 20, 30, 40)
+HISTORY_POLICY = 'HISTORY_CONTINUITY_V2'
 EVALUATION_SPEC = {
+    'evaluation_policy': HISTORY_POLICY,
     'primary_horizon': '4h', 'primary_threshold_pct': 5, 'max_adverse_before_target_pct': 5,
     'bar_resolution_minutes': 5, 'future_start': 'first complete 5m bar starting at or after scan',
     'minimum_useful_lead_minutes': 15, 'episode_separation_minutes': 240,
@@ -100,117 +103,77 @@ def before_move(db, market, onset_ts, price_now=None):
             payload = json.loads(row['payload'])
             result[label] = {'status': 'OBSERVED', 'scan_ts': row['ts'],
                              'offset_error_seconds': target - row['ts'], 'observation': payload}
-    signal_rows = db.execute(
-        'SELECT * FROM observations WHERE market=? AND ts>=? AND ts<? ORDER BY ts',
-        (market, onset_ts - 14400, onset_ts),
-    ).fetchall()
-    first = {'baseline': None, 'acceleration': None, 'decision_layer': None, 'buyable': None}
-    for row in signal_rows:
-        payload = json.loads(row['payload'])
-        baseline = payload.get('baseline') or {}
-        acceleration = payload.get('acceleration') or {}
-        if first['baseline'] is None and baseline.get('action_status') in {
-                'WATCH', 'ENTRY_WINDOW', 'BUY_READY', 'REENTRY_READY'}:
-            first['baseline'] = row
-        if first['acceleration'] is None and acceleration.get('detected'):
-            first['acceleration'] = row
-        if first['decision_layer'] is None:
-            # Classification is deterministic from the ex-ante observation;
-            # this does not reconstruct unavailable market data.
-            from research.decision_layer import classify
-            if classify(payload).get('bucket'):
-                first['decision_layer'] = row
-        plan = payload.get('trade_plan') or {}
-        if first['buyable'] is None and payload.get('decision') == 'ACHÈTE' and plan.get('valid'):
-            first['buyable'] = row
-    present = [(source, row) for source, row in first.items() if row is not None]
-    earliest_source, earliest = min(present, key=lambda item: item[1]['ts']) if present else (None, None)
-    return {
-        'lookbacks': result,
-        'first_signal_ts': earliest['ts'] if earliest else None,
-        'first_signal_source': earliest_source,
-        'first_signals': {source: row['ts'] if row else None for source, row in first.items()},
-        'remaining_to_current_pct': (
-            (price_now / earliest['price'] - 1) * 100
-            if earliest and earliest['price'] and price_now else None
-        ),
-    }
+    first = db.execute('SELECT * FROM observations WHERE market=? AND ts>=? AND ts<? AND detected=1 ORDER BY ts LIMIT 1',
+                       (market, onset_ts - 14400, onset_ts)).fetchone()
+    return {'lookbacks': result, 'first_signal_ts': first['ts'] if first else None,
+            'remaining_to_current_pct': (price_now / first['price'] - 1) * 100 if first and first['price'] and price_now else None}
 
 
-def _move_onset(db, market, now, candles15):
-    """First closed-bar +5% acceleration from a trailing one-hour low.
-
-    The current 100 closed 15m candles provide roughly 24h coverage without
-    permanently multiplying the 5m journal size.  Stored 5m candles remain a
-    fallback when the current 15m snapshot is unavailable.
-    """
-    if candles15:
-        bars, interval_ms, trailing = candles15[-100:], 900_000, 4
-    else:
-        bars = db.execute('SELECT * FROM candles WHERE market=? AND t>=? AND t<? ORDER BY t',
-                          (market, int((now - 18000) * 1000), int(now * 1000))).fetchall()
-        interval_ms, trailing = 300_000, 12
-    for i, bar in enumerate(bars):
-        if i < trailing:
+def short_event(bars, now):
+    unique = {}
+    for row in bars:
+        r = dict(row)
+        if any(finite(r.get(k)) is None for k in ('t','o','h','l','c','v')):
+            return {'onset_ts': None, 'status': 'INVALID_CANDLE'}
+        if r['t'] % 300000 or min(r['o'],r['h'],r['l'],r['c']) <= 0 or r['v'] < 0 or r['h'] < max(r['o'],r['l'],r['c']) or r['l'] > min(r['o'],r['h'],r['c']):
+            return {'onset_ts': None, 'status': 'INVALID_CANDLE'}
+        if r['t'] in unique and unique[r['t']] != r:
+            return {'onset_ts': None, 'status': 'CONFLICTING_CANDLE'}
+        unique[r['t']] = r
+    closed = sorted((r for r in unique.values() if r['t']+300000 <= now*1000), key=lambda r:r['t'])
+    gaps = len(closed) < 13
+    for i in range(12, len(closed)):
+        sequence = closed[i-12:i+1]
+        if any(b['t']-a['t'] != 300000 for a,b in zip(sequence,sequence[1:])):
+            gaps = True
             continue
-        prior = bars[i - trailing:i]
-        if any(b['t'] - a['t'] != interval_ms for a, b in zip(prior, prior[1:])):
-            continue
-        low = min(prior, key=lambda b: b['l'])
-        # Use the close, not a transient wick, to define a confirmed event.
-        if bar['c'] >= low['l'] * 1.05:
-            return low['t'] / 1000
-    return None
+        low = min(sequence[:-1], key=lambda r:r['l'])
+        if sequence[-1]['h'] >= low['l']*1.05:
+            return {'onset_ts': low['t']/1000, 'status': 'OBSERVABLE',
+                    'crossing_ts': sequence[-1]['t']/1000, 'reference_low_eur': low['l']}
+    return {'onset_ts': None, 'status': 'INSUFFICIENT_CONTINUITY' if gaps else 'NO_EVENT'}
 
 
-def _failure_layer(history):
-    observed = [r['observation'] for r in history.get('lookbacks', {}).values()
-                if r.get('status') == 'OBSERVED']
-    if len(observed) < len(HORIZONS):
-        return 'HISTORY'
-    valid = [o for o in observed if (o.get('data_quality') or {}).get('ok')]
-    if not valid:
-        return 'DATA'
-    if not any(o.get('baseline') for o in valid):
-        return 'SCANNER_COVERAGE'
-    return 'SCANNER_SCORING'
+def market_control_current(observations, v4, v3):
+    four = {r['market'] for r in v4.get('watch', [])}
+    three = {r['market'] for r in v3.get('watch', [])}
+    return [{'market': o['market'], 'in_current_v4_list': o['market'] in four,
+             'in_current_v3_list': o['market'] in three,
+             'presence': 'PRESENT_IN_CURRENT_PUBLISHED_LISTS' if o['market'] in four|three else 'ABSENT_FROM_CURRENT_PUBLISHED_LISTS'}
+            for o in observations]
 
 
-def _actionability_layer(history):
-    signals = history.get('first_signals') or {}
-    if signals.get('buyable') is not None:
-        return 'NONE'
-    if signals.get('decision_layer') is not None:
-        return 'ENTRY_TIMING_OR_EXECUTION'
-    if signals.get('baseline') is not None or signals.get('acceleration') is not None:
-        return 'INTERPRETATION'
-    return 'NOT_APPLICABLE'
-
-
-def market_control(db, observations, now, candles15=None):
+def market_control(db, observations, now):
     leaders = sorted([o for o in observations if o.get('change_24h_pct') is not None],
-                     key=lambda o: o['change_24h_pct'], reverse=True)[:20]
+                     key=lambda o: o['change_24h_pct'], reverse=True)
     out = []
     for obs in leaders:
         market = obs['market']
-        onset = _move_onset(db, market, now, (candles15 or {}).get(market, []))
-        history = before_move(db, market, onset, obs['price_eur']) if onset else {}
+        # Find a recent short-term acceleration independently from 24h rank:
+        # first 5% rise from a trailing one-hour low in the last four hours.
+        bars = db.execute('SELECT * FROM candles WHERE market=? AND t>=? AND t<? ORDER BY t',
+                          (market, int((now - 18000) * 1000), int(now * 1000))).fetchall()
+        event = short_event(bars, now)
+        onset = event['onset_ts']
+        history = before_move(db, market, onset, obs['price_eur']) if onset is not None else {}
+        ever = db.execute('SELECT MIN(ts) FROM observations WHERE market=? AND ts<=? AND detected=1',
+                          (market, now)).fetchone()[0]
         first_ts = history.get('first_signal_ts')
         observed = [r for r in history.get('lookbacks', {}).values() if r['status'] == 'OBSERVED']
         if onset is None:
-            state, layer = 'NO_CONFIRMED_SHORT_TERM_EVENT', 'NOT_APPLICABLE'
+            state = 'NO_CONFIRMED_SHORT_TERM_EVENT'
         elif first_ts is not None:
-            state = 'DETECTED_EARLY' if onset - first_ts >= 900 else 'DETECTED_TOO_LATE'
-            layer = 'NONE'
+            state = 'DETECTED_EARLY' if onset - first_ts >= 900 else 'DETECTED_LATE'
         elif len(observed) < len(HORIZONS):
-            state, layer = 'INSUFFICIENT_HISTORY', 'HISTORY'
+            state = 'INSUFFICIENT_HISTORY'
+        elif any((r['observation'].get('exclusions') or []) for r in observed):
+            state = 'EXCLUDED_BEFORE_MOVE'
         else:
-            state, layer = 'NOT_DETECTED', _failure_layer(history)
+            state = 'FALSE_NEGATIVE'
         out.append({'market': market, 'price_eur': obs['price_eur'], 'change_24h_pct': obs['change_24h_pct'],
                     'current_baseline_action': (obs.get('baseline') or {}).get('action_status'),
-                    'current_acceleration_state': (obs.get('acceleration') or {}).get('state'),
-                    'event_onset_ts': onset, 'audit_state': state, 'detection_state': state,
-                    'failure_layer': layer, 'actionability_layer': _actionability_layer(history), **history})
+                    'event_onset_ts': onset, 'event_observability': event['status'],
+                    'evaluation_policy': HISTORY_POLICY, 'first_detected_ever_ts': ever, 'audit_state': state, **history})
     return out
 
 

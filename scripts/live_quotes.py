@@ -6,7 +6,7 @@ account data or order endpoint is used.
 """
 from __future__ import annotations
 
-import json
+import math
 import sys
 import time
 from datetime import datetime, timezone
@@ -17,6 +17,8 @@ if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
 from research.http import PublicClient
+from research.common import atomic_json, timestamp
+from research.optional_publication import begin, seal
 
 OUTPUT = Path("live_quotes.json")
 ETHFI_OUTPUT = Path("ethfi_live.json")
@@ -41,7 +43,7 @@ def _positive(value):
         value = float(value)
     except (TypeError, ValueError):
         return None
-    return value if value > 0 else None
+    return value if math.isfinite(value) and value > 0 else None
 
 
 def build_snapshot(client: PublicClient | None = None, now_fn=time.time):
@@ -80,19 +82,22 @@ def build_snapshot(client: PublicClient | None = None, now_fn=time.time):
             "valid": valid,
         }
 
-    snapshot_age = max(0.0, now_fn() - received_at)
-    future_timestamp = received_at > now_fn() + 2.0
-    valid = not future_timestamp and snapshot_age <= MAX_SNAPSHOT_AGE_SECONDS and bool(markets)
+    checked_at = now_fn()
+    source_times = [timestamp(price_retrieved), timestamp(book_retrieved), received_at]
+    snapshot_age = max(0.0, checked_at - min(source_times))
+    future_timestamp = max(source_times) > checked_at + 2.0
+    valid_markets = any(row['valid'] for row in markets.values())
+    valid = not future_timestamp and snapshot_age <= MAX_SNAPSHOT_AGE_SECONDS and valid_markets
     reasons = []
     if future_timestamp:
         reasons.append("INVALID_FUTURE_TIMESTAMP")
     if snapshot_age > MAX_SNAPSHOT_AGE_SECONDS:
         reasons.append("STALE_LIVE_SNAPSHOT")
-    if not markets:
-        reasons.append("NO_MARKETS")
+    if not valid_markets:
+        reasons.append("NO_VALID_MARKETS")
 
     return {
-        "schema": "bitvavo_live_quotes_v1",
+        "schema": "bitvavo_live_quotes_v2",
         "source": "Bitvavo public REST API /ticker/price + /ticker/book",
         "requested_at_utc": _utc(requested_at),
         "received_at_utc": _utc(received_at),
@@ -110,8 +115,11 @@ def build_snapshot(client: PublicClient | None = None, now_fn=time.time):
 
 
 def write_snapshot(path: Path = OUTPUT, client: PublicClient | None = None):
+    attempt = begin('quotes')
     snapshot = build_snapshot(client=client)
-    path.write_text(json.dumps(snapshot, ensure_ascii=False, separators=(",", ":")), encoding="utf-8")
+    if not snapshot['valid']:
+        raise RuntimeError('LIVE_QUOTES_REJECTED:' + ','.join(snapshot['reasons']))
+    atomic_json(path, snapshot)
     ethfi = snapshot["markets"].get("ETHFI-EUR")
     compact = {
         "market": "ETHFI-EUR",
@@ -122,7 +130,8 @@ def write_snapshot(path: Path = OUTPUT, client: PublicClient | None = None):
         "snapshot_valid_at_write": snapshot["valid"],
         "quote": ethfi,
     }
-    ETHFI_OUTPUT.write_text(json.dumps(compact, ensure_ascii=False, separators=(",", ":")), encoding="utf-8")
+    atomic_json(ETHFI_OUTPUT, compact)
+    seal('quotes', attempt, [str(path), str(ETHFI_OUTPUT)], quote_policy=snapshot['schema'])
     return snapshot
 
 

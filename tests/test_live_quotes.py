@@ -1,6 +1,9 @@
 import unittest
 
 from scripts.live_quotes import build_snapshot
+from research.common import timestamp
+
+NOW = timestamp("2026-09-12T07:15:00+00:00")
 
 
 class FakeClient:
@@ -28,7 +31,7 @@ class FakeClient:
 class LiveQuotesTests(unittest.TestCase):
     def test_valid_ethfi_quote(self):
         times = iter([100.0, 101.0, 101.2, 101.3, 101.3])
-        snap = build_snapshot(FakeClient(), now_fn=lambda: next(times))
+        snap = build_snapshot(FakeClient(), now_fn=lambda: NOW + next(times) - 100)
         self.assertTrue(snap["valid"])
         row = snap["markets"]["ETHFI-EUR"]
         self.assertEqual(row["last"], 0.57)
@@ -43,7 +46,7 @@ class LiveQuotesTests(unittest.TestCase):
     def test_crossed_book_is_not_valid_market_quote(self):
         times = iter([100.0, 101.0, 101.1, 101.2, 101.2])
         client = FakeClient(book=[{"market": "ETHFI-EUR", "bid": "0.572", "ask": "0.571"}])
-        snap = build_snapshot(client, now_fn=lambda: next(times))
+        snap = build_snapshot(client, now_fn=lambda: NOW + next(times) - 100)
         self.assertFalse(snap["markets"]["ETHFI-EUR"]["valid"])
 
 

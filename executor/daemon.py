@@ -41,6 +41,7 @@ def parse_iso(s: str) -> datetime:
 def atomic_json(path: Path, data: dict[str, Any]) -> None:
     tmp = path.with_suffix(path.suffix + ".tmp")
     tmp.write_text(json.dumps(data, ensure_ascii=False, indent=2), encoding="utf-8")
+    tmp.chmod(0o600)
     tmp.replace(path)
 
 
@@ -49,7 +50,7 @@ class Executor:
         self.api_key = os.environ["BITVAVO_API_KEY"]
         self.api_secret = os.environ["BITVAVO_API_SECRET"]
         self.operator_id = int(os.getenv("BITVAVO_OPERATOR_ID", "26090701"))
-        self.dry_run = env_bool("DRY_RUN", True)
+        self.dry_run = True  # Legacy execution is closed, independent of environment.
         self.max_order_eur = Decimal(os.getenv("MAX_ORDER_EUR", "600"))
         self.max_total_new_exposure_eur = Decimal(os.getenv("MAX_TOTAL_NEW_EXPOSURE_EUR", "1200"))
         self.max_entry_price_drift_pct = Decimal(os.getenv("MAX_ENTRY_PRICE_DRIFT_PCT", "0.50"))
@@ -60,7 +61,7 @@ class Executor:
             "https://raw.githubusercontent.com/Vadimrom-create/bitvavo-live/main/trade_approval.json",
         )
         self.poll_seconds = float(os.getenv("POLL_SECONDS", "4"))
-        self.auto_cancel_unknown = env_bool("AUTO_CANCEL_UNKNOWN_ORDERS", False)
+        self.auto_cancel_unknown = False
         self.freeze_on_unknown = env_bool("SECURITY_FREEZE_ON_UNKNOWN", True)
         self.github_token = os.getenv("GITHUB_STATUS_TOKEN", "").strip()
         self.github_repo = os.getenv("GITHUB_STATUS_REPO", "Vadimrom-create/bitvavo-live")
@@ -79,7 +80,7 @@ class Executor:
     def _load_state(self) -> dict[str, Any]:
         default = {
             "version": 1,
-            "security_freeze": False,
+            "security_freeze": True,
             "seen_approval_ids": [],
             "authorized_client_order_ids": [],
             "orders": {},
@@ -88,11 +89,14 @@ class Executor:
             "started_at_utc": iso_now(),
         }
         if self.state_file.exists():
-            try:
-                loaded = json.loads(self.state_file.read_text(encoding="utf-8"))
-                default.update(loaded)
-            except Exception:
-                pass
+            loaded = json.loads(self.state_file.read_text(encoding="utf-8"))
+            if not isinstance(loaded, dict) or not isinstance(loaded.get("orders", {}), dict):
+                raise ValueError("INVALID_PRIVATE_STATE")
+            for key in ("seen_approval_ids", "authorized_client_order_ids"):
+                if key in loaded and not isinstance(loaded[key], list):
+                    raise ValueError("INVALID_PRIVATE_STATE")
+            default.update(loaded)
+        default["security_freeze"] = True
         return default
 
     def _save_state(self):
@@ -107,12 +111,15 @@ class Executor:
         row = {"ts_utc": iso_now(), "kind": kind, **payload}
         with self.event_log.open("a", encoding="utf-8") as f:
             f.write(json.dumps(row, ensure_ascii=False) + "\n")
-        print(json.dumps(row, ensure_ascii=False), flush=True)
+        self.event_log.chmod(0o600)
+        print(json.dumps({"ts_utc": row["ts_utc"], "status_code": "PRIVATE_EVENT_RECORDED"}), flush=True)
         return row
 
     def _publish_github_json(self, path: str, payload: dict[str, Any], message: str):
         if not self.github_token:
             return
+        payload = self.public_status()
+        message = "Update closed legacy executor status"
         api = f"https://api.github.com/repos/{self.github_repo}/contents/{path}"
         headers = {
             "Authorization": f"Bearer {self.github_token}",
@@ -135,24 +142,16 @@ class Executor:
         if r.status_code not in (200, 201):
             self._event("github_publish_error", path=path, status=r.status_code, response=r.text[:500])
 
+    def public_status(self):
+        # Closed schema: never serialize a caller payload or private state object.
+        return {
+            "schema_version": 2, "generated_at_utc": iso_now(), "online": True,
+            "dry_run": True, "security_freeze": bool(self.state.get("security_freeze", True)),
+            "execution_enabled": False, "status_code": "LEGACY_EXECUTION_DISABLED",
+        }
+
     def publish_status(self):
-        with self.lock:
-            safe = {
-                "generated_at_utc": iso_now(),
-                "online": True,
-                "dry_run": self.dry_run,
-                "operator_id": self.operator_id,
-                "security_freeze": bool(self.state.get("security_freeze")),
-                "auto_cancel_unknown_orders": self.auto_cancel_unknown,
-                "last_security_event": self.state.get("last_security_event"),
-                "last_approval_result": self.state.get("last_approval_result"),
-                "authorized_open_order_count": sum(
-                    1 for v in self.state.get("orders", {}).values()
-                    if v.get("status") not in {"filled", "canceled", "expired", "rejected"}
-                ),
-                "note": "Sanitized status only. No API keys, balances or private wallet holdings are published.",
-            }
-        self._publish_github_json("executor_status.json", safe, "Update private executor status")
+        self._publish_github_json("executor_status.json", self.public_status(), "Update closed executor status")
 
     def security_event(self, reason: str, event: dict[str, Any]):
         safe_event = {
@@ -188,7 +187,7 @@ class Executor:
             self.state["last_security_event"] = safe_event
         self._save_state()
         self._event("SECURITY_EVENT", **safe_event)
-        self._publish_github_json("security_event.json", safe_event, "SECURITY: unknown Bitvavo activity detected")
+        self._publish_github_json("security_event.json", self.public_status(), "SECURITY: unknown Bitvavo activity detected")
         self.publish_status()
 
     def is_authorized_event(self, event: dict[str, Any]) -> bool:
@@ -290,138 +289,10 @@ class Executor:
         return value.quantize(quantum, rounding=ROUND_DOWN)
 
     def validate_approval(self, a: dict[str, Any]) -> tuple[bool, str, dict[str, Any]]:
-        required = {"id", "status", "created_at_utc", "expires_at_utc", "market", "side", "order_type", "stake_eur", "reference_price"}
-        missing = sorted(required - set(a))
-        if missing:
-            return False, f"missing_fields:{','.join(missing)}", {}
-        if a.get("status") != "APPROVED_BY_USER":
-            return False, "status_not_approved", {}
-        if a.get("side") != "buy":
-            return False, "phase1_allows_buy_approvals_only", {}
-        if a.get("order_type") != "limit":
-            return False, "phase1_allows_limit_entries_only", {}
-        market = str(a["market"])
-        if market not in self.market_meta or not market.endswith("-EUR"):
-            return False, "unknown_or_non_eur_market", {}
-        stake = Decimal(str(a["stake_eur"]))
-        if stake <= 0 or stake > self.max_order_eur:
-            return False, "stake_outside_guardrail", {}
-        created = parse_iso(str(a["created_at_utc"]))
-        expires = parse_iso(str(a["expires_at_utc"]))
-        age = (utcnow() - created).total_seconds()
-        if age < -30 or age > self.approval_max_age or utcnow() > expires:
-            return False, "approval_stale_or_expired", {}
-        with self.lock:
-            if self.state.get("security_freeze"):
-                return False, "security_freeze_active", {}
-            if a["id"] in self.state.get("seen_approval_ids", []):
-                return False, "already_seen", {}
-
-        book = self.client.ticker_book(market)
-        best_bid = Decimal(str(book.get("bid")))
-        best_ask = Decimal(str(book.get("ask")))
-        mid = (best_bid + best_ask) / 2
-        spread_pct = (best_ask - best_bid) / mid * 100
-        if spread_pct > self.max_spread_pct:
-            return False, f"spread_too_wide:{spread_pct:.4f}%", {}
-
-        limit_price = Decimal(str(a.get("limit_price")))
-        reference_price = Decimal(str(a.get("reference_price")))
-        drift_pct = abs(mid / reference_price - 1) * 100
-        if drift_pct > self.max_entry_price_drift_pct:
-            return False, f"market_drifted:{drift_pct:.4f}%", {}
-        if limit_price <= 0:
-            return False, "invalid_limit_price", {}
-
-        meta = self.market_meta[market]
-        qdec = int(meta.get("quantityDecimals", 8))
-        amount = self._decimal_step_down(stake / limit_price, qdec)
-        if amount <= 0:
-            return False, "rounded_amount_zero", {}
-
-        execution_type = "IMMEDIATELY_EXECUTABLE_LIMIT" if limit_price >= best_ask else "PASSIVE_LIMIT_BELOW_MARKET"
-        context = {
-            "best_bid": str(best_bid),
-            "best_ask": str(best_ask),
-            "spread_pct": float(spread_pct),
-            "drift_pct": float(drift_pct),
-            "limit_price": str(limit_price),
-            "amount": format(amount, "f"),
-            "execution_type": execution_type,
-        }
-        return True, "ok", context
+        return False, "LEGACY_EXECUTION_DISABLED", {}
 
     def execute_approval(self, a: dict[str, Any], ctx: dict[str, Any]):
-        cid = str(uuid.uuid4())
-        result: dict[str, Any] = {
-            "approval_id": a["id"],
-            "processed_at_utc": iso_now(),
-            "market": a["market"],
-            "stake_eur": a["stake_eur"],
-            "limit_price": ctx["limit_price"],
-            "execution_type": ctx["execution_type"],
-            "dry_run": self.dry_run,
-        }
-
-        with self.lock:
-            self.state.setdefault("seen_approval_ids", []).append(a["id"])
-            self.state["seen_approval_ids"] = self.state["seen_approval_ids"][-500:]
-
-        if self.dry_run:
-            result.update({"status": "DRY_RUN_VALIDATED", "clientOrderId": None})
-            with self.lock:
-                self.state["last_approval_result"] = result
-            self._save_state()
-            self._event("dry_run_approval_validated", **result)
-            self.publish_status()
-            return
-
-        # Register the ID BEFORE the order request so the account stream cannot race the registry.
-        with self.lock:
-            self.state.setdefault("authorized_client_order_ids", []).append(cid)
-            self.state["authorized_client_order_ids"] = self.state["authorized_client_order_ids"][-1000:]
-            self.state.setdefault("orders", {})[cid] = {
-                "approval_id": a["id"],
-                "market": a["market"],
-                "status": "SUBMITTING",
-                "entry_plan": a,
-                "created_at_utc": iso_now(),
-            }
-        self._save_state()
-
-        try:
-            response = self.client.create_order(
-                market=a["market"],
-                side="buy",
-                order_type="limit",
-                client_order_id=cid,
-                amount=ctx["amount"],
-                price=ctx["limit_price"],
-                time_in_force="GTC",
-                post_only=False,
-            )
-            result.update({
-                "status": "ORDER_SUBMITTED",
-                "clientOrderId": cid,
-                "orderId": response.get("orderId") if isinstance(response, dict) else None,
-            })
-            with self.lock:
-                self.state["orders"][cid].update({
-                    "status": response.get("status", "submitted") if isinstance(response, dict) else "submitted",
-                    "orderId": response.get("orderId") if isinstance(response, dict) else None,
-                })
-                self.state["last_approval_result"] = result
-            self._save_state()
-            self._event("order_submitted", **result)
-            self.publish_status()
-        except Exception as exc:
-            result.update({"status": "ORDER_SUBMIT_FAILED", "clientOrderId": cid, "error": f"{type(exc).__name__}:{exc}"})
-            with self.lock:
-                self.state["orders"][cid]["status"] = "SUBMIT_FAILED"
-                self.state["last_approval_result"] = result
-            self._save_state()
-            self._event("order_submit_failed", **result)
-            self.publish_status()
+        raise PermissionError("LEGACY_EXECUTION_DISABLED")
 
     def approval_loop(self):
         while not self.stop_event.is_set():

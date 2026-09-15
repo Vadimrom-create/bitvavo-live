@@ -51,7 +51,7 @@ def price(x):
     return f'{v:.{d}f} €'
 
 
-def select_events(payload, state, now, limit=1):
+def ranked_eligible_events(payload, state, now):
     """A continuous identical signal is sent once, including REENTRY_READY.
 
     Observations persist even on empty scans. Delivery markers only change after
@@ -89,7 +89,13 @@ def select_events(payload, state, now, limit=1):
     if last_global is not None and now - last_global < GLOBAL_COOLDOWN:
         return [], state
     events.sort(key=lambda r: (n(r.get('opportunity_score'), 0), n(r.get('entry_score'), 0)), reverse=True)
-    return (events if limit is None else events[:limit]), state
+    return events, state
+
+
+def select_events(payload, state, now):
+    """Historical interface: one result, with the same episode/cooldown rules."""
+    rows, updated = ranked_eligible_events(payload, state, now)
+    return rows[:1], updated
 
 
 def main() -> int:

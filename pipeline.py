@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""One collect -> V3/V4 -> full-universe journal -> evaluate -> report cycle.
+"""One collect -> V3/V4 -> full-universe journal -> current report cycle.
 
 No trading credentials, no private executor and no email are invoked here.
 Publication and notification are separate workflow steps after this succeeds.
@@ -14,15 +14,20 @@ import json
 import os
 import time
 import uuid
+from functools import partial
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
 
 from research.common import atomic_json, finite, freshness, read_json, timestamp, utc
-from research.evaluation import evaluate, market_control
-from research.feedback_loop import acceleration_signal
+from research.evaluation import market_control_current, HISTORY_POLICY
 from research.features import category, chase_risk, closed_candles, describe, nil_match, score_components, wick_setup
-from research.history import connect, ingest, new_candles, rebuild, recurrent, save_scan
+from research.history import save_scan
+from research.cycle_state import recurrence, advance, load_cycle_state
 from research.http import PublicClient
+from research.policies import identities, LEGACY_DATA, CORRECTED_DATA, LEGACY_DIAGNOSTICS
+from research.v4_adapter import state_path
+from research.quality import assess as assess_quality
+from research.input_contract import code_revision, digest
 from research.risk import correlation, plan, proposed_order
 
 POLICY = 'V4_FROZEN_20260908'
@@ -37,25 +42,30 @@ def load_collector():
     return module
 
 
-def collect_universe(client, markets, ticker, now):
+def collect_universe(client, markets, ticker, now, budget_seconds=120, priority=()):
     """Every trading EUR market, including below the old liquidity prefilter."""
     results = {}
+    deadline=time.monotonic()+budget_seconds
+    priority=set(priority)
     def one(meta):
         name = meta['market']
         data = {'meta': meta, 'ticker': ticker.get(name, {}), 'timeframes': {}, 'errors': []}
         for interval in ('5m', '15m'):
             params = {'interval': interval, 'limit': 100}
             try:
-                raw = client.get('/' + name + '/candles', params)
-                record = client.metadata('/' + name + '/candles', params)
-                cs = closed_candles(raw, interval, now)
+                if time.monotonic()>=deadline: raise RuntimeError('OPTIONAL_COLLECTION_DEADLINE')
+                record = client.capture('/' + name + '/candles', params, consumer_id='diagnostics:'+name+':'+interval,deadline=deadline)
+                from research.features import candles_from_response
+                cs = candles_from_response(record, interval)
+                # Reception may be later than V4 readiness; never attribute this snapshot to that earlier decision.
                 data['timeframes'][interval] = {'candles': cs, 'features': describe(cs, interval),
-                                                'retrieved_at_utc': record['retrieved_at_utc']}
+                                                'retrieved_at_utc': record['retrieved_at_utc'],
+                                                'response_id': record['response_id'], 'source': {k:v for k,v in record.items() if k != 'data'}}
             except (ValueError, RuntimeError, KeyError) as exc:
                 data['errors'].append({'interval': interval, 'reason': str(exc)})
         return name, data
     with ThreadPoolExecutor(max_workers=8) as pool:
-        futures = [pool.submit(one, m) for m in markets]
+        futures = [pool.submit(one, m) for m in sorted(markets,key=lambda m:(m['market'] not in priority,m['market']))]
         for future in as_completed(futures):
             name, data = future.result()
             results[name] = data
@@ -86,34 +96,34 @@ def report_text(report):
     lines += ['', '## SURVEILLE', '']
     for obs in report['watch']:
         lines.append(f"- {obs['market']} : {obs['price_eur']:.8g} € ; score {(obs.get('baseline') or {}).get('opportunity_score', 0) * 10:.2f}/100 ; {obs['decision']} ; {', '.join(obs['exclusions']) or 'seuil achat non atteint'}")
-    lines += ['', '## Contrôle des hausses', '',
-              '| Marché | Prix € | 24 h | Détection | Couche d’échec | Actionnabilité |',
-              '|---|---:|---:|---|---|---|']
-    for r in report['market_control'][:10]:
-        lines.append(f"| {r['market']} | {r['price_eur']:.8g} | {r['change_24h_pct']:+.2f} % | {r['detection_state']} | {r['failure_layer']} | {r['actionability_layer']} |")
-    ev = report['evaluation']
-    lines += ['', f"Historique : {ev['scan_count']} scans ; {ev['observation_count']} observations ; {ev['complete_buy_episodes']} épisodes d’achat évaluables.",
-              'V5 optimisée : aucune. Supériorité sur V4 : non démontrée. Probabilités : non calibrées.',
-              'Le cash et le portefeuille du plan sont hypothétiques. Aucun ordre réel n’est envoyé.', '']
+    lines += ['', 'Historique : évaluation asynchrone ; consulter evaluation.json et son propre manifeste.',
+              'DL-V2 : baseline expérimentale shadow. Supériorité : non démontrée. Probabilités : non calibrées.',
+              'Les plans et le portefeuille sont théoriques. Aucun ordre réel n’est envoyé.', '']
     return '\n'.join(lines)
 
 
-def run():
+def run(data_policy=LEGACY_DATA):
     start = time.time()
     scan_id = time.strftime('%Y%m%dT%H%M%SZ', time.gmtime(start)) + '-' + uuid.uuid4().hex[:8]
     Path('runtime').mkdir(exist_ok=True)
-    before = {f: read_json(f, {}) for f in STATE_FILES}
+    corrected = data_policy == CORRECTED_DATA
+    history_root = 'history_corrected' if corrected else 'history_legacy_diagnostics'
+    output_data_policy = CORRECTED_DATA if corrected else LEGACY_DIAGNOSTICS
+    before = {str(state_path(f, corrected)): read_json(state_path(f, corrected), {}) for f in STATE_FILES}
     client = PublicClient()
     client.get('/time', cache=False)
     if abs(client.server_offset) > 30:
         raise RuntimeError('EXCHANGE_CLOCK_SKEW')
-    print('PIPELINE collect legacy inputs', flush=True)
+    if corrected:
+        from research.v4_adapter import install
+        client = install(client)
+    print('PIPELINE collect ' + data_policy, flush=True)
     collector = load_collector()
     collector.get_json = client.get
     collector.main()
     live = read_json('bitvavo_live.json')
     # Retain the actual input snapshots and baseline state for exact replay.
-    replay_input = {'scan_id': scan_id, 'source_commit': os.getenv('GITHUB_SHA'), 'state_before': before,
+    replay_input = {'scan_id': scan_id, 'source_commit': code_revision(), 'state_before': before,
                     'live': copy.deepcopy(live), 'baseline_manifest': read_json('baseline/v4_20260908/manifest.json')}
     import v3_common
     import early_detector
@@ -121,7 +131,7 @@ def run():
     import v4_stabilizer
     import market_control as legacy_control
     import execution_probe
-    v3_common.get_json = client.get
+    v3_common.get_json = partial(client.get, consumer_id='v4')
     legacy_control.get_json = client.get
     execution_probe.get_json = client.get
     print('PIPELINE baseline V3/V4', flush=True)
@@ -133,6 +143,7 @@ def run():
     v4_detector.main(audit_sink=observe)
     v4_stabilizer.main()
     baseline_output = read_json('v4_watch.json')
+    v4_ready_at = time.time()
     legacy_control.main()
     execution_probe.main()
     baseline_ts = captured['scan_ts']
@@ -144,11 +155,13 @@ def run():
     markets = sorted([m for m in markets_raw if m.get('quote') == 'EUR' and m.get('status') == 'trading'], key=lambda m: m['market'])
     tickers = {r['market']: r for r in client.get('/ticker/24h')}
     print(f'PIPELINE full EUR universe: {len(markets)} markets, closed 5m/15m candles', flush=True)
-    # Observation features must not include information after the baseline signal.
-    universe = collect_universe(client, markets, tickers, baseline_ts)
+    # Post-V4 diagnostics carry their own availability cutoff; they are not baseline inputs.
+    revalidate=[r['market'] for r in baseline_output['watch']]
+    universe = collect_universe(client, markets, tickers, baseline_ts, priority=revalidate)
     finish = time.time()
     ticker_at = client.metadata('/ticker/24h')['retrieved_at_utc']
-    db = rebuild('history', connect())
+    measurement_path = Path('policy_state') / output_data_policy / 'measurement_state.json'
+    measurement_state = load_cycle_state(measurement_path, history_root, baseline_ts)
     observations, candles5 = [], {}
     for meta in markets:
         name = meta['market']
@@ -163,10 +176,9 @@ def run():
         for interval, tf in (('5m', m5), ('15m', m15)):
             if not tf.get('features', {}).get('valid'):
                 quality['reasons'].append('INVALID_' + interval.upper())
-            # Candle freshness is assessed at the signal time, retrieval at the
-            # report time. Later-closing candles cannot leak into this signal.
+            # Diagnose the source-closed snapshot at its consumption time.
             if tf.get('candles'):
-                q = freshness(now=baseline_ts, retrieved=ticker_at,
+                q = freshness(now=finish, retrieved=tf.get('retrieved_at_utc'),
                               candle_start_ms=tf['candles'][-1]['t'], interval=interval)
                 quality['reasons'].extend(q['reasons'])
             else:
@@ -176,7 +188,7 @@ def run():
             if e.get('error') or 'NOT_ENTRY_ENRICHED' in baseline.get('risk_flags', []):
                 quality['reasons'].append('ENTRY_INPUTS_UNAVAILABLE')
             profile = baseline.get('trend_profile') or {}
-            if baseline.get('buy_ready') and (baseline_ts - finite(profile.get('updated_ts'), 0) > 3 * 3600):
+            if baseline_ts - finite(profile.get('updated_ts'), 0) > 3 * 3600:
                 quality['reasons'].append('STALE_DAILY_PROFILE')
         quality['reasons'] = sorted(set(quality['reasons']))
         quality['ok'] = not quality['reasons']
@@ -190,23 +202,23 @@ def run():
             exclusions.append('LEGACY_VOLUME_PREFILTER_OR_COLLECTION_FAILURE')
         exclusions += quality['reasons']
         trade = plan(row, features, meta) if row.get('buy_ready') and quality['ok'] else None
-        obs = {'market': name, 'price_eur': last, 'change_24h_pct': change24, 'baseline': baseline,
-               'category': cls, 'features': {'5m': m5.get('features'), '15m': features},
-               'score_components': score_components(row, before['v4_history.json'].get('markets', {}).get(name, {}), timestamp(live['generated_at_utc'])) if baseline else None,
+        obs = {'data_policy': output_data_policy, 'market': name, 'price_eur': last, 'change_24h_pct': change24, 'baseline': baseline,
+               'market_meta': meta, 'category': cls, 'features': {'5m': m5.get('features'), '15m': features},
+               'score_components': score_components(row, before[str(state_path('v4_history.json', corrected))].get('markets', {}).get(name, {}), timestamp(live['generated_at_utc'])) if baseline else None,
                'data_quality': quality, 'exclusions': exclusions, 'chase_risk': chase_risk(features, change24),
                'wick_setup': wick_setup(features, row), 'nil_match': nil_match(features),
-               'recurrence': recurrent(db, name, baseline_ts, cls), 'trade_plan': trade,
+               'recurrence': recurrence(measurement_state, name, baseline_ts, cls), 'trade_plan': trade,
                'probabilities': {'10': None, '20': None, '30': None, '40': None, 'status': 'NOT_CALIBRATED'},
                'decision': 'SURVEILLE' if cls in {'PRE-IGNITION', 'IGNITION'} else cls,
                'timestamps': {'ticker_retrieved_at_utc': ticker_at, 'scan_at_utc': utc(baseline_ts),
                               'exchange_time': client.metadata('/time')['data']['time'],
                               'candle15_start_ms': features.get('last_closed_start_ms'),
-                              'candle15_close_ms': features.get('last_closed_close_ms')}}
+                              'candle15_close_ms': features.get('last_closed_close_ms')},
+               'setup_evidence': {'closed_15m_tail': m15.get('candles', [])[-8:]},
+               'input_sources': {interval: data['timeframes'].get(interval, {}).get('source') for interval in ('5m','15m')}}
+        obs['quality_v2'] = assess_quality(obs, finish)
         if not quality['ok']:
             obs['decision'] = 'DATA UNAVAILABLE'
-        # Independent shadow path: it may restore a market to the persistent
-        # watchlist, but it never changes V4 scoring or the email payload.
-        obs['acceleration'] = acceleration_signal(obs)
         observations.append(obs)
         candles5[name] = m5.get('candles', [])
     # Portfolio limits apply cumulatively to the same theoretical order batch.
@@ -238,11 +250,19 @@ def run():
         used['exposure'] += p['stake_eur']; used['risk'] += p['theoretical_loss_eur']; used['positions'] += 1
         obs['decision'] = 'ACHÈTE'
         buys.append(obs)
+        break  # At most one new theoretical proposal; full alternatives remain available for private fallback.
     health = {'status': 'OK', 'universe': len(markets), 'baseline_analyzed': len(captured['rows']),
               'valid_markets': sum(o['data_quality']['ok'] for o in observations),
               'valid_5m': sum(bool((o['features'].get('5m') or {}).get('valid')) for o in observations),
               'valid_15m': sum(bool((o['features'].get('15m') or {}).get('valid')) for o in observations),
               'quality_scope': 'OK describes collection execution; per-market admissibility is separate',
+              'capability_coverage': {k:sum(o['quality_v2']['capabilities'][k]['available'] for o in observations)
+                                      for k in ('structure','entry','immediate','passive','retrace','outcome')},
+              'capability_coverage_by_category': {category:{k:sum(o['category']==category and o['quality_v2']['capabilities'][k]['available'] for o in observations)
+                  for k in ('structure','entry','immediate','passive','retrace','outcome')} for category in sorted({o['category'] for o in observations})},
+              'diagnostic_collection_budget_seconds':120,
+              'unenriched_markets':[m for m,v in universe.items() if v['errors']],
+              'revalidation_priority':revalidate,
               'collected_at_utc': live['generated_at_utc'], 'ticker_age_seconds': finish - timestamp(ticker_at),
               'duration_seconds': finish - start, 'api_error_count': len(client.errors),
               'api_errors': client.errors, 'exchange_clock_offset_seconds': client.server_offset,
@@ -253,35 +273,57 @@ def run():
             obs['decision'] = 'DATA UNAVAILABLE'
             obs['exclusions'].append('PIPELINE_DEGRADED')
         buys = []
-    scan = {'schema_version': 1, 'scan_id': scan_id, 'scan_ts': baseline_ts, 'scan_at_utc': utc(baseline_ts),
-            'policy': POLICY, 'source': 'live', 'observations': observations, 'candles_5m': new_candles(db, candles5),
+    measurement_next, candle_delta = advance(measurement_state, observations, candles5, baseline_ts)
+    scan = {'schema_version': 2, **identities(data_policy=output_data_policy),
+            'input_snapshot_id': scan_id, 'input_cutoff_at_utc': utc(finish),
+            'policy_ready_at': utc(v4_ready_at), 'diagnostics_ready_at': utc(finish),
+            'triggered_at': os.getenv('WORKFLOW_TRIGGERED_AT'), 'collection_started_at': utc(start),
+            'baseline_output': baseline_output,
+            'code_commit': code_revision(), 'scan_id': scan_id, 'scan_ts': baseline_ts, 'scan_at_utc': utc(baseline_ts),
+            'policy': POLICY, 'stage': os.getenv('PHASE3_STAGE', 'TECHNICAL_PILOT'),
+            'source': 'synthetic' if os.getenv('PHASE3_STAGE') == 'SIMULATED_FIXTURE' else 'live', 'observations': observations, 'candles_5m': candle_delta,
             'candle_storage': 'FIRST_SEEN_DELTA_REBUILD_ALL_JOURNALS',
-            'health': health, 'baseline_input_policy': 'legacy includes forming candles; closed diagnostics never change V4 scoring'}
-    journal = save_scan('history', scan)
-    ingest(db, scan)
-    evaluation = evaluate(db)
-    candles15 = {name: data['timeframes'].get('15m', {}).get('candles', [])
-                 for name, data in universe.items()}
-    control = market_control(db, observations, baseline_ts, candles15)
+            'health': health, 'baseline_input_policy': ('source-closed inputs and per-profile clocks; frozen V4 formulas'
+                if corrected else 'legacy includes forming candles; closed diagnostics never change V4 scoring')}
+    journal = save_scan(history_root, scan)
+    atomic_json('runtime/current_scan.json', {'scan_id':scan_id,'journal':str(journal),'data_policy':output_data_policy})
+    measurement_next.update(source_journal=str(journal), source_journal_sha256=hashlib.sha256(journal.read_bytes()).hexdigest())
+    measurement_next['state_sha256'] = digest(measurement_next)
+    atomic_json(measurement_path, measurement_next)
+    evaluation = {'status':'SEPARATE_EVALUATION_WORKFLOW','data_policy':output_data_policy}
+    control = {'status':'SEPARATE_EVALUATION_WORKFLOW','artifact':'market_control_history.json',
+               'absence_is_not_no_event':True}
+    current_control = market_control_current(observations, baseline_output, read_json('early_watch.json', {}))
+    control_meta = {'scan_id': scan_id, 'data_policy': output_data_policy, 'evaluation_policy': HISTORY_POLICY}
+    atomic_json('market_control_current.json', {**control_meta, 'scope': 'CURRENT_PUBLISHED_LISTS', 'markets': current_control})
+    legacy_alias = read_json('market_control.json', {})
+    legacy_alias.update(scope='CURRENT_PUBLISHED_LISTS', canonical_artifact='market_control_current.json',
+                        absence_meaning='Absent from current published lists; not a historical non-detection')
+    atomic_json('market_control.json', legacy_alias)
+    old_text = Path('market_control.txt').read_text()
+    Path('market_control.txt').write_text('PORTÉE : listes courantes publiées ; aucune conclusion historique.\n' + old_text)
     watch = sorted([o for o in observations if o['decision'] == 'SURVEILLE'],
                    key=lambda o: (o.get('baseline') or {}).get('opportunity_score', 0), reverse=True)[:5]
     report = {'scan_id': scan_id, 'scan_at_utc': utc(baseline_ts), 'health': health, 'buy': buys, 'watch': watch,
               'blocked_baseline_buys': [{'market': o['market'], 'exclusions': o['exclusions']} for o in observations
                                       if (o.get('baseline') or {}).get('buy_ready') and o not in buys],
-              'market_control': control, 'evaluation': evaluation, 'journal_path': str(journal),
+              'market_control': control, 'market_control_history': control, 'market_control_current': current_control, 'evaluation': evaluation, 'journal_path': str(journal),
               'orders': [proposed_order(o['trade_plan'], scan_id) for o in buys]}
     atomic_json('v5_report.json', report)
     text = report_text(report)
     Path('v5_report.md').write_text(text, encoding='utf-8')
     atomic_json('pipeline_health.json', health)
-    atomic_json('evaluation.json', evaluation)
     atomic_json('proposed_orders.json', {'dry_run': True, 'orders': report['orders']})
     # Preserve raw baseline public outputs for audit; provide a separate, fresh,
     # quality-checked payload to the existing alert transport.
     alert_payload = {**baseline_output, 'generated_at_utc': utc(baseline_ts),
-                     'watch': [{**o['baseline'], 'data_quality': o['data_quality'], 'trade_plan': o['trade_plan']} for o in buys]}
+                     'decision_policy': POLICY, 'data_policy': output_data_policy, 'scan_id': scan_id,
+                     'watch': [{**o['baseline'], 'data_quality': o['data_quality']} for o in sorted(observations,
+                               key=lambda o: (o.get('baseline') or {}).get('opportunity_score', 0), reverse=True)
+                               if (o.get('baseline') or {}).get('buy_ready') and o['data_quality']['ok'] and o['category'] != 'TOO LATE']}
     atomic_json('alert_candidates.json', alert_payload)
-    replay_input.update({'requests': client.records, 'expected_baseline': baseline_output,
+    replay_input.update({'requests': client.records, 'consumptions': client.consumptions,
+                         **identities(data_policy=output_data_policy), 'expected_baseline': baseline_output,
                          'expected_all_rows': captured['rows']})
     atomic_json('runtime/replay-' + scan_id + '.json.gz', replay_input)
     if os.getenv('GITHUB_STEP_SUMMARY'):
@@ -300,12 +342,14 @@ def run():
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--evaluate-only', action='store_true')
+    parser.add_argument('--data-policy', choices=[LEGACY_DATA, CORRECTED_DATA], default=LEGACY_DATA)
     args = parser.parse_args()
     if args.evaluate_only:
-        atomic_json('evaluation.json', evaluate(rebuild('history', connect())))
+        from scripts.run_evaluation import run as evaluate_separately
+        evaluate_separately()
         return 0
     try:
-        return run()
+        return run(args.data_policy)
     except Exception as exc:
         atomic_json('pipeline_health.json', {'status': 'FAILED', 'failed_at_utc': utc(),
                                            'error_type': type(exc).__name__, 'reason': str(exc)})

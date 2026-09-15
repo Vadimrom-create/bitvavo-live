@@ -14,166 +14,61 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 import email_alert
-from email_alert_v4 import select_events
 from monitoring.account import ReadOnlyAccount
 from monitoring.positions import BUY, management_event, mark_delivered, message, select_actions
 from monitoring.state import load_state, save_state
-from research.common import atomic_json, finite, freshness, read_json, utc
+from research.common import atomic_json, finite, freshness, read_json, utc, timestamp
 from research.features import closed_candles, describe
 from research.http import PublicClient
-from research.risk import DEFAULTS, correlation, plan as make_plan
 
 STATE = 'position_alert_state.enc.json'
 STATUS = 'position_monitor_status.json'
-BUY_INPUT = 'alert_candidates.json'
-BUY_STATE = 'alert_state_v4.json'
-MAX_BUY_PRICE_DRIFT = .005
-MAX_BUY_SPREAD = .005
+
+
+def market_quote(client, market):
+    response = client.capture('/' + market + '/book', {'depth': 25}, cache=False, consumer_id='monitor:'+market)
+    book = response['data']
+    return {'bid': finite(book['bids'][0][0]) if book.get('bids') else None,
+            'ask': finite(book['asks'][0][0]) if book.get('asks') else None,
+            'retrieved_at_utc': response['retrieved_at_utc'],
+            'market_asof_at_utc':response.get('market_asof_at_utc'),
+            'source_response_id':response.get('response_id'),
+            'request_started_at_utc':response.get('request_started_at_utc'),
+            'server_http_date':response.get('server_http_date')}
+
+
+def market_features(client, market, now):
+    try:
+        from research.features import candles_from_response
+        response = client.capture('/' + market + '/candles', {'interval': '15m', 'limit': 100},
+                                  consumer_id='monitor:'+market)
+        candles = candles_from_response(response, '15m')
+        return describe(candles, '15m'), candles
+    except Exception:
+        return {'valid': False}, []
 
 
 def market_inputs(client, market, now):
-    book = client.get('/' + market + '/book', {'depth': 25}, cache=False)
-    quote = {'bid': finite(book['bids'][0][0]) if book.get('bids') else None,
-             'ask': finite(book['asks'][0][0]) if book.get('asks') else None,
-             'retrieved_at_utc': client.metadata('/' + market + '/book', {'depth': 25})['retrieved_at_utc']}
-    try:
-        raw = client.get('/' + market + '/candles', {'interval': '15m', 'limit': 100})
-        candles = closed_candles(raw, '15m', now)
-        features = describe(candles, '15m')
-    except Exception:
-        # A stop breach needs a fresh executable quote, not an ATR history.
-        candles, features = [], {'valid': False}
+    quote = market_quote(client, market)
+    features, candles = market_features(client, market, now)
     return quote, features, candles
 
 
-def smtp_credentials():
-    user = os.getenv('ALERT_GMAIL_USER', '').strip()
-    recipient = os.getenv('ALERT_EMAIL_TO', '').strip()
-    password = os.getenv('GMAIL_APP_PASSWORD', '').strip().replace(' ', '')
-    if recipient.lower() != 'bellonirom@gmail.com' or not user or not password:
-        return None
-    return user, password, recipient
-
-
-def public_buy_event(row, buy_state, client, metadata, now):
-    """Revalidate a published V4 buy with fresh public execution data.
-
-    This deliberately makes no claim about holdings or live cash. Those checks
-    remain exclusive to the read-only private-account path below.
-    """
-    market = row.get('market')
-    if not market or market not in metadata:
-        return None, 'MARKET_UNAVAILABLE'
-    quote, features, _ = market_inputs(client, market, now)
-    bid, ask, signal_price = finite(quote.get('bid')), finite(quote.get('ask')), finite(row.get('last'))
-    if bid is None or ask is None or signal_price is None or not 0 < bid <= ask:
-        return None, 'INVALID_BOOK'
-    if ask / bid - 1 > MAX_BUY_SPREAD:
-        return None, 'SPREAD_TOO_WIDE'
-    if abs(ask / signal_price - 1) > MAX_BUY_PRICE_DRIFT:
-        return None, 'PRICE_MOVED'
-    if not features.get('valid') or not freshness(
-            now=now, retrieved=quote.get('retrieved_at_utc'),
-            candle_start_ms=features.get('last_closed_start_ms'), interval='15m',
-            max_retrieval_age=90)['ok']:
-        return None, 'STALE_OR_INVALID_STRUCTURE'
-    trade = make_plan({**row, 'ask': ask}, features, metadata[market])
-    if not trade.get('valid'):
-        return None, trade.get('reason', 'INVALID_PLAN')
-    episode = buy_state['markets'][market].get('episode', 0)
-    return {
-        'action': BUY,
-        'market': market,
-        'position_id': 'public-buy:' + market,
-        'trigger_key': str(episode),
-        'price_eur': trade['entry_eur'],
-        'amount': float(trade['amount']),
-        'stop_eur': trade['stop_eur'],
-        'target_eur': trade['tp1_eur'],
-        'trade_plan': trade,
-        'reason': ('Signal V4 validé ; carnet, prix et structure de marché encore compatibles '
-                   'avec une entrée. Solde et positions Bitvavo non vérifiés.'),
-        'observed_at_utc': quote['retrieved_at_utc'],
-        'baseline_row': row,
-    }, None
-
-
-def run_public_buy_fallback(status):
-    """Keep prospecting alerts available when private supervision is disabled."""
-    status['position_actions'] = 'BLOCKED_ACCOUNT_UNKNOWN'
-    if os.getenv('ALLOW_BUY_ALERTS') != 'true':
-        status.update(buy_alerts='BLOCKED_PUBLICATION_OR_REPLAY', email='NONE')
-        return 0
-    now = time.time()
-    payload = read_json(BUY_INPUT, {})
-    buy_state = read_json(BUY_STATE, {'markets': {}})
-    candidates, buy_state = select_events(payload, buy_state, now, limit=None)
-    # Persist observation/episode transitions even when the scan is empty. SMTP
-    # delivery markers are still written only after a successful send.
-    atomic_json(BUY_STATE, buy_state)
-    if not candidates:
-        status.update(buy_alerts='PUBLIC_MARKET_VALIDATION_READY', email='NONE')
-        return 0
-    client = PublicClient(timeout=10, retries=2)
-    client.get('/time')
-    if abs(client.server_offset) > 30:
-        status.update(buy_alerts='PUBLIC_VALIDATION_UNAVAILABLE', email='NONE')
-        return 2
-    metadata = {m['market']: m for m in client.get('/markets')
-                if m.get('quote') == 'EUR' and m.get('status') == 'trading'}
-    selected = None
-    checked = 0
-    validation_errors = 0
-    for row in candidates:
-        checked += 1
-        try:
-            selected, _ = public_buy_event(row, buy_state, client, metadata, time.time())
-        except Exception:
-            selected = None
-            validation_errors += 1
-        if selected:
-            break
-    status['public_buy_candidates_checked'] = checked
-    if not selected:
-        if validation_errors:
-            status.update(buy_alerts='PUBLIC_VALIDATION_UNAVAILABLE', email='NONE')
-            return 2
-        status.update(buy_alerts='NO_MARKET_VALIDATED_CANDIDATE', email='NONE')
-        return 0
-    credentials = smtp_credentials()
-    if credentials is None:
-        status.update(buy_alerts='BLOCKED_SMTP_CONFIG', email='CONFIG_MISSING_OR_RECIPIENT_MISMATCH')
-        return 2
-    _, body = message([selected])
-    subject = f"ACHÈTE — {selected['market']} — Bitvavo"
-    email_alert.send_email(*credentials, subject, body)
-    sent_at = time.time()
-    market = selected['market']
-    row = selected['baseline_row']
-    previous = buy_state['markets'][market]
-    previous.update(last_sent_ts=sent_at, sent_episode=previous.get('episode', 0),
-                    opportunity=row.get('opportunity_score'), entry=row.get('entry_score'),
-                    price=row.get('last'), status=row.get('action_status'))
-    buy_state['last_global_sent_ts'] = sent_at
-    buy_state['updated_at_utc'] = utc(sent_at)
-    atomic_json(BUY_STATE, buy_state)
-    status.update(buy_alerts='PUBLIC_MARKET_VALIDATED', email='DELIVERY_COMPLETED')
-    return 0
-
-
 def run(status):
+    run_started=time.monotonic()
     key = os.getenv('BITVAVO_READ_API_KEY', '').strip()
     secret = os.getenv('BITVAVO_READ_API_SECRET', '').strip()
     state_key = os.getenv('POSITION_STATE_KEY', '').strip()
     if not key or not secret or not state_key:
         status.update(status='UNCONFIGURED', reason='READ_ACCOUNT_OR_ENCRYPTION_SECRET_MISSING',
-                      account_aware_buy_alerts='BLOCKED_ACCOUNT_UNKNOWN')
-        return run_public_buy_fallback(status)
+                      buy_alerts='BLOCKED_ACCOUNT_UNKNOWN')
+        return 0
     state = load_state(STATE, state_key)
     plans = json.loads(os.getenv('POSITION_PLANS_JSON', '{}'))
     if not isinstance(plans, dict):
         raise ValueError('INVALID_POSITION_PLANS')
     account = ReadOnlyAccount(key, secret).snapshot()
+    status.setdefault('durations',{})['account_seconds']=time.monotonic()-run_started
     if not freshness(now=time.time(), retrieved=account['retrieved_at_utc'], max_retrieval_age=120)['ok']:
         status.update(status='STALE', reason='ACCOUNT_SNAPSHOT_STALE', buy_alerts='BLOCKED')
         return 0
@@ -201,14 +96,16 @@ def run(status):
             issues.append('HELD_MARKET_UNAVAILABLE')
             continue
         try:
-            quote, features, candles = market_inputs(client, market, time.time())
+            quote = market_quote(client, market)
+            features, candles = {'valid': False}, []
             inputs[market] = (quote, features, candles)
             event, reason = management_event(balance, p, quote, features, metadata[market], account['orders'], time.time())
             observed[market]['assessment'] = reason
             if event:
                 events.append(event)
             if reason not in {'ACTION', 'NO_JUSTIFIED_ACTION', 'BELOW_ORDER_MINIMUM',
-                              'EQUIVALENT_EXIT_ORDER_ALREADY_OPEN', 'EQUIVALENT_PROFIT_ORDER_ALREADY_OPEN'}:
+                              'EQUIVALENT_EXIT_ORDER_ALREADY_OPEN', 'EQUIVALENT_PROFIT_ORDER_ALREADY_OPEN',
+                              'TRAILING_STRUCTURE_UNAVAILABLE'}:
                 issues.append(reason)
             bid = finite(quote['bid'])
             if bid is None:
@@ -226,70 +123,58 @@ def run(status):
     if not freshness(now=time.time(), retrieved=account['retrieved_at_utc'], max_retrieval_age=120)['ok']:
         events = []
         issues.append('ACCOUNT_SNAPSHOT_STALE')
-    eligible_buys = []
-    buy_state = state.get('buy_state', {'markets': {}})
-    if os.getenv('ALLOW_BUY_ALERTS') == 'true':
+    # Only after all executable quotes have been assessed may enrichment start.
+    if not events:
+        for market, (quote, _, _) in list(inputs.items()):
+            features, candles = market_features(client, market, time.time())
+            inputs[market] = (quote, features, candles)
+            event, reason = management_event(held[market], plans.get(market, {}), quote, features,
+                                              metadata[market], account['orders'], time.time())
+            observed[market]['assessment'] = reason
+            if event:
+                events.append(event)
+            elif reason == 'TRAILING_STRUCTURE_UNAVAILABLE':
+                issues.append(reason)
+    from monitoring.telemetry import record_cycle
+    measurement_issues=list(issues)
+    if any(observed.get(m,{}).get('assessment')=='TRAILING_STRUCTURE_UNAVAILABLE' for m in held):
+        measurement_issues.append('TRAILING_STRUCTURE_UNAVAILABLE')
+    record_cycle(state, status, account, inputs, len(held), measurement_issues, time.time())
+    status['durations']['position_assessment_seconds']=time.monotonic()-run_started
+    if not events and os.getenv('ALLOW_BUY_ALERTS') == 'true':
         try:
-            payload = read_json('alert_candidates.json', {})
-            prior_buys = state.get('buy_state')
-            if prior_buys is None:
-                prior_buys = read_json(BUY_STATE, {'markets': {}})
-            eligible_buys, buy_state = select_events(payload, prior_buys, time.time(), limit=None)
+            from monitoring.buy_candidates import candidates
+            events, buy_state = candidates(state, account, held, metadata, inputs, issues,
+                                           exposure, portfolio_risk, client, market_inputs)
             state['buy_state'] = buy_state
-            # The public buy state contains no account data and remains the
-            # canonical bridge if private supervision is later unavailable.
-            atomic_json(BUY_STATE, buy_state)
         except Exception:
-            # Corrupt prospecting files must not suppress a justified exit.
             issues.append('BUY_INPUT_UNAVAILABLE')
-    can_buy = not issues and not events and not any(o.get('side') == 'buy' for o in account['orders'])
-    if can_buy:
-        cash = next((b['available'] for b in account['balances'] if b['symbol'] == 'EUR'), 0)
-        cfg = {**DEFAULTS, 'cash_eur': cash, 'existing_exposure_eur': exposure,
-               'existing_risk_eur': portfolio_risk, 'existing_positions': len(held),
-               'portfolio_state': 'FRESH_READ_ONLY_ACCOUNT'}
-        for row in eligible_buys:
-            market = row['market']
-            if market in held or market not in metadata:
-                continue
-            quote, features, candles = market_inputs(client, market, time.time())
-            if not features.get('valid') or not freshness(now=time.time(), retrieved=quote['retrieved_at_utc'],
-                    candle_start_ms=features.get('last_closed_start_ms'), interval='15m', max_retrieval_age=90)['ok']:
-                continue
-            if any((c := correlation(candles, values[2])) is None or c >= .8 for values in inputs.values()):
-                continue
-            if not finite(row.get('last')) or not quote['ask'] or abs(quote['ask'] / row['last'] - 1) > .005:
-                continue
-            p = make_plan({**row, 'ask': quote['ask']}, features, metadata[market], cfg)
-            if not p['valid']:
-                continue
-            episode = buy_state['markets'][market]['episode']
-            events.append({'action': BUY, 'market': market, 'position_id': 'buy:' + market,
-                           'trigger_key': str(episode), 'price_eur': p['entry_eur'], 'amount': float(p['amount']),
-                           'stop_eur': p['stop_eur'], 'target_eur': p['tp1_eur'], 'trade_plan': p,
-                           'reason': 'Signal V4 valide, données fraîches et limites du portefeuille réel respectées.',
-                           'observed_at_utc': quote['retrieved_at_utc'], 'baseline_row': row})
-            # Keep the existing one-proposed-buy limit, but apply it after all
-            # final eligibility checks so a rejected top row cannot mask the
-            # next admissible candidate.
-            break
     selected, state = select_actions(events, state, time.time())
     selected = [e for e in selected if freshness(now=time.time(), retrieved=e['observed_at_utc'], max_retrieval_age=90)['ok']]
     if not freshness(now=time.time(), retrieved=account['retrieved_at_utc'], max_retrieval_age=120)['ok']:
         selected = []
         issues.append('ACCOUNT_SNAPSHOT_STALE')
+    status['final_freshness']={'account_age_seconds':time.time()-timestamp(account['retrieved_at_utc']),
+                             'oldest_selected_quote_age_seconds':max((time.time()-timestamp(e['observed_at_utc']) for e in selected),default=None)}
     save_state(STATE, state_key, state)
     status.update(status='PARTIAL' if issues else 'OK', reason='SOME_CHECKS_UNAVAILABLE' if issues else 'CYCLE_COMPLETE',
                   buy_alerts='BLOCKED' if issues else 'REQUIRES_FRESH_VALID_SIGNAL_AND_ACCOUNT_LIMITS')
     if not selected:
         status['email'] = 'NONE'
         return 0
-    credentials = smtp_credentials()
-    if credentials is None:
+    user = os.getenv('ALERT_GMAIL_USER', '').strip()
+    recipient = os.getenv('ALERT_EMAIL_TO', '').strip()
+    password = os.getenv('GMAIL_APP_PASSWORD', '').strip().replace(' ', '')
+    if recipient.lower() != 'bellonirom@gmail.com' or not user or not password:
         status.update(email='CONFIG_MISSING_OR_RECIPIENT_MISMATCH')
         return 0
     subject, body = message(selected)
-    email_alert.send_email(*credentials, subject, body)
+    # State persistence and rendering take time too; recheck immediately before SMTP.
+    if not freshness(now=time.time(),retrieved=account['retrieved_at_utc'],max_retrieval_age=120)['ok'] or any(
+            not freshness(now=time.time(),retrieved=e['observed_at_utc'],max_retrieval_age=90)['ok'] for e in selected):
+        status['email']='BLOCKED_FINAL_FRESHNESS'
+        return 0
+    email_alert.send_email(user, password, recipient, subject, body)
     sent_at = time.time()
     mark_delivered(state, selected, sent_at)
     for e in selected:
@@ -299,10 +184,11 @@ def run(status):
             previous.update(last_sent_ts=sent_at, sent_episode=previous['episode'],
                             opportunity=row['opportunity_score'], entry=row['entry_score'])
             state['buy_state']['last_global_sent_ts'] = sent_at
-    if 'buy_state' in state:
-        state['buy_state']['updated_at_utc'] = utc(sent_at)
-        atomic_json(BUY_STATE, state['buy_state'])
-    save_state(STATE, state_key, state)
+    try:
+        save_state(STATE, state_key, state)
+    except Exception:
+        status['email'] = 'SMTP_ACCEPTED_PERSISTENCE_UNCERTAIN'
+        raise
     status['email'] = 'DELIVERY_COMPLETED'
     return 0
 
@@ -312,9 +198,16 @@ def main():
     try:
         result = run(status)
     except Exception as exc:
-        status.update(status='ERROR', reason=type(exc).__name__, email='NO_DELIVERY_CONFIRMATION')
+        status.update(status='ERROR', reason=type(exc).__name__)
+        status.setdefault('email', 'NO_DELIVERY_CONFIRMATION')
         result = 2
     status['completed_at_utc'] = utc()
+    try:
+        from monitoring.telemetry import record_availability
+        availability=record_availability(read_json('monitor_availability.json',{}),status,time.time())
+        atomic_json('monitor_availability.json',availability)
+    except Exception:
+        status['availability_record']='FAILED'  # Reporting failure cannot suppress an already justified exit.
     atomic_json(STATUS, status)
     print('POSITION_MONITOR ' + json.dumps(status))
     return result

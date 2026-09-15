@@ -18,7 +18,7 @@ class BitvavoError(RuntimeError):
 class BitvavoClient:
     """Minimal Bitvavo REST client for the private executor.
 
-    The API key is expected to have only View + Trade permissions, never Withdraw.
+    Only read-only credentials are appropriate. All mutations are disabled centrally.
     """
 
     def __init__(self, api_key: str, api_secret: str, operator_id: int, access_window: int = 10_000):
@@ -38,6 +38,8 @@ class BitvavoClient:
                 body: dict[str, Any] | None = None, private: bool = True,
                 timeout: float = 15.0) -> Any:
         method = method.upper()
+        if method != "GET":
+            raise PermissionError("LEGACY_EXECUTION_DISABLED")
         path = "/v2" + endpoint
         query = urllib.parse.urlencode(params or {}, doseq=True)
         path_with_query = path + ("?" + query if query else "")
@@ -54,7 +56,7 @@ class BitvavoClient:
                 "Bitvavo-Access-Signature": self._signature(ts, method, path_with_query, body_text),
             })
 
-        response = self.session.request(method, url, headers=headers, data=(body_text or None), timeout=timeout)
+        response = self.session.request(method, url, headers=headers, data=(body_text or None), timeout=timeout, allow_redirects=False)
         try:
             data = response.json()
         except Exception:

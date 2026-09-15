@@ -99,41 +99,15 @@ class AccelerationTests(unittest.TestCase):
         self.assertEqual(select_events(payload, {}, NOW)[0], [])
 
 
-class TopMoverAuditTests(unittest.TestCase):
-    def setUp(self):
-        self.db = connect()
-
-    def tearDown(self):
-        self.db.close()
-
-    def _scan(self, ts, sid):
-        obs = {
-            "market": "MOVE-EUR", "price_eur": 1.0, "decision": "NO SETUP",
-            "category": "NO SETUP", "baseline": None, "exclusions": [],
-            "data_quality": {"ok": True, "reasons": []},
-            "features": {"5m": {"valid": True}, "15m": {"valid": True}},
-            "acceleration": {"detected": False, "state": "NO_ACCELERATION"},
-        }
-        ingest(self.db, {"scan_id": sid, "scan_ts": ts, "policy": "TEST", "observations": [obs]})
-
-    def test_false_negative_is_attributed_to_scanner_coverage(self):
-        start = NOW - 5 * 3600
-        for idx, seconds in enumerate(HORIZONS.values()):
-            self._scan(start - seconds, f"s{idx}")
-        candles = []
-        for i in range(20):
-            close = 106 if i >= 4 else 100
-            candles.append({
-                "t": int((start + i * 900) * 1000), "o": close,
-                "h": close, "l": 100 if i < 4 else 105, "c": close, "v": 10,
-            })
-        current = [{
-            "market": "MOVE-EUR", "price_eur": 1.1, "change_24h_pct": 10,
-            "baseline": None, "acceleration": {"state": "NO_ACCELERATION"},
-        }]
-        row = market_control(self.db, current, NOW, {"MOVE-EUR": candles})[0]
-        self.assertEqual(row["detection_state"], "NOT_DETECTED")
-        self.assertEqual(row["failure_layer"], "SCANNER_COVERAGE")
+class MultilayerDiagnosticTests(unittest.TestCase):
+    def test_missing_baseline_is_descriptive_coverage_not_reference_false_negative(self):
+        from research.feedback_diagnostics import layers
+        obs = acceleration_obs()
+        result = layers(obs, acceleration_signal(obs), None, utc(NOW))
+        self.assertEqual(result['diagnostic_layer'], 'SCANNER_COVERAGE')
+        self.assertEqual(result['attribution'], 'DESCRIPTIVE_NOT_CAUSAL')
+        self.assertNotIn('false_negative', result)
+        self.assertEqual(result['reference_event_policy'], 'HISTORY_CONTINUITY_V2_UNCHANGED')
 
 
 if __name__ == "__main__":
