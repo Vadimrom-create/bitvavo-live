@@ -1,6 +1,6 @@
 # Decision Layer V1 + boucle de contrôle — shadow
 
-Scan : 2026-09-16T13:01:06.606083+00:00
+Scan : 2026-09-16T13:23:51.470109+00:00
 Policy : DECISION_LAYER_V1_SHADOW au-dessus de V4_FROZEN_20260908
 
 Cette couche ne modifie aucun score V4 et ne peut envoyer aucun ordre.
@@ -11,46 +11,43 @@ Entry est un indicateur de timing, pas un veto structurel.
 - **MEILLEUR_ACHAT_IMMEDIAT** : aucun candidat matériel
 - **MEILLEURE_LIMITE_PASSIVE** : aucun candidat matériel
 - **MEILLEUR_LATENT_ACCELERATOR** : aucun candidat matériel
-- **MEILLEUR_PULLBACK_REENTRY** : NEAR-EUR | action ATTENDS_REPRISE_OU_REENTREE | opportunité 7.650 | entrée 7.500 | trend 8.100 | rang 7.137
-  - Strong trend/opportunity retained through pullback; timing does not erase setup.
+- **MEILLEUR_PULLBACK_REENTRY** : TAO-EUR | action ATTENDS_REPRISE_OU_REENTREE | opportunité 7.133 | entrée 6.450 | trend 7.650 | rang 7.031
+  - Trend remains strong; candidate retained for re-entry instead of discarded.
 
 ## Top cross-sectionnel
 
-1. NEAR-EUR — MEILLEUR_PULLBACK_REENTRY — ATTENDS_REPRISE_OU_REENTREE — rank 7.137
-2. USELESS-EUR — MEILLEUR_PULLBACK_REENTRY — ATTENDS_REPRISE_OU_REENTREE — rank 6.921
+1. TAO-EUR — MEILLEUR_PULLBACK_REENTRY — ATTENDS_REPRISE_OU_REENTREE — rank 7.031
+2. USELESS-EUR — MEILLEUR_PULLBACK_REENTRY — ATTENDS_REPRISE_OU_REENTREE — rank 6.719
 
 ## Accélération indépendante
 
-- IOST-EUR — CONFIRMED_ACCELERATION — score 8.811/10 — DETECTED_BUT_TOO_LATE
-- SYN-EUR — BUILDING_ACCELERATION — score 5.500/10 — DETECTED_BUT_TOO_LATE
-- USELESS-EUR — BUILDING_ACCELERATION — score 5.134/10 — DETECTED_BUT_TOO_LATE
-- ARB-EUR — BUILDING_ACCELERATION — score 4.904/10 — DETECTED_BUT_TOO_LATE
+Aucune accélération indépendante confirmée ou en construction.
 
 ## Watchlist persistante 24–72 h
 
-- IOST-EUR — ACTIVE_NOW — score mémoire 8.811/10 — sources ACCELERATION, V4 — DETECTED_BUT_TOO_LATE
-- KAS-EUR — ACTIVE_NOW — score mémoire 8.189/10 — sources V4 — WATCH_ONLY
-- LDO-EUR — ACTIVE_NOW — score mémoire 8.018/10 — sources V4 — WATCH_ONLY
-- ETHFI-EUR — ACTIVE_NOW — score mémoire 7.934/10 — sources V4 — WATCH_ONLY
-- DOT-EUR — ACTIVE_NOW — score mémoire 7.911/10 — sources DECISION_LAYER, V4 — DETECTED_BUT_TOO_LATE
-- XVG-EUR — ACTIVE_NOW — score mémoire 7.844/10 — sources V4 — WATCH_ONLY
-- ICP-EUR — ACTIVE_NOW — score mémoire 7.832/10 — sources V4 — WATCH_ONLY
-- VTHO-EUR — ACTIVE_NOW — score mémoire 7.768/10 — sources ACCELERATION, DECISION_LAYER, V4 — WATCH_ONLY
-- SOMI-EUR — ACTIVE_NOW — score mémoire 7.752/10 — sources V4 — WATCH_ONLY
-- CAKE-EUR — ACTIVE_NOW — score mémoire 7.735/10 — sources V4 — WATCH_ONLY
+- IOST-EUR — MEMORY_24H — score mémoire 8.811/10 — sources ACCELERATION, V4 — MEMORY_ONLY
+- VTHO-EUR — ACTIVE_NOW — score mémoire 7.986/10 — sources ACCELERATION, DECISION_LAYER, V4 — WATCH_ONLY
+- DOT-EUR — ACTIVE_NOW — score mémoire 7.952/10 — sources DECISION_LAYER, V4 — DETECTED_BUT_TOO_LATE
+- KAS-EUR — ACTIVE_NOW — score mémoire 7.876/10 — sources V4 — WATCH_ONLY
+- LDO-EUR — ACTIVE_NOW — score mémoire 7.807/10 — sources V4 — WATCH_ONLY
+- ETHFI-EUR — ACTIVE_NOW — score mémoire 7.738/10 — sources V4 — WATCH_ONLY
+- SOMI-EUR — ACTIVE_NOW — score mémoire 7.683/10 — sources V4 — WATCH_ONLY
+- UNI-EUR — MEMORY_24H — score mémoire 7.629/10 — sources ACCELERATION, DECISION_LAYER, V4 — MEMORY_ONLY
+- ALGO-EUR — MEMORY_24H — score mémoire 7.613/10 — sources V4 — MEMORY_ONLY
+- ICP-EUR — ACTIVE_NOW — score mémoire 7.599/10 — sources V4 — WATCH_ONLY
 
 ## Audit des plus fortes hausses
 
-- SYN-EUR +115.07% — DETECTED_EARLY — couche NONE — action INTERPRETATION
-- LSK-EUR +63.44% — DETECTED_EARLY — couche NONE — action ENTRY_TIMING_OR_EXECUTION
-- CNPY-EUR +20.53% — DETECTED_EARLY — couche NONE — action INTERPRETATION
-- ARB-EUR +19.76% — DETECTED_EARLY — couche NONE — action INTERPRETATION
-- FOLD-EUR +19.04% — NOT_DETECTED — couche DATA — action NOT_APPLICABLE
-- IOST-EUR +18.06% — DETECTED_EARLY — couche NONE — action INTERPRETATION
-- USELESS-EUR +13.08% — DETECTED_EARLY — couche NONE — action ENTRY_TIMING_OR_EXECUTION
-- HEI-EUR +12.85% — INSUFFICIENT_HISTORY — couche HISTORY — action NOT_APPLICABLE
-- ZKJ-EUR +11.17% — DETECTED_EARLY — couche NONE — action INTERPRETATION
-- G-EUR +7.13% — NOT_DETECTED — couche DATA — action NOT_APPLICABLE
+- SYN-EUR +116.45% — DETECTED_EARLY — couche NONE — action INTERPRETATION
+- LSK-EUR +47.28% — DETECTED_EARLY — couche NONE — action ENTRY_TIMING_OR_EXECUTION
+- TREAD-EUR +27.37% — NO_CONFIRMED_SHORT_TERM_EVENT — couche NOT_APPLICABLE — action NOT_APPLICABLE
+- ARB-EUR +19.16% — DETECTED_EARLY — couche NONE — action INTERPRETATION
+- FOLD-EUR +18.65% — NOT_DETECTED — couche DATA — action NOT_APPLICABLE
+- HEI-EUR +14.50% — INSUFFICIENT_HISTORY — couche HISTORY — action NOT_APPLICABLE
+- USELESS-EUR +14.35% — DETECTED_EARLY — couche NONE — action ENTRY_TIMING_OR_EXECUTION
+- CNPY-EUR +14.28% — DETECTED_EARLY — couche NONE — action INTERPRETATION
+- IOST-EUR +14.16% — DETECTED_EARLY — couche NONE — action INTERPRETATION
+- ZKJ-EUR +10.94% — DETECTED_EARLY — couche NONE — action INTERPRETATION
 
 ## Garde-fous
 
