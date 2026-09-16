@@ -1,6 +1,6 @@
 # Decision Layer V1 + boucle de contrôle — shadow
 
-Scan : 2026-09-16T22:38:46.404080+00:00
+Scan : 2026-09-16T22:53:01.972540+00:00
 Policy : DECISION_LAYER_V1_SHADOW au-dessus de V4_FROZEN_20260908
 
 Cette couche ne modifie aucun score V4 et ne peut envoyer aucun ordre.
@@ -19,35 +19,33 @@ Aucun candidat ne remplit actuellement un bucket décisionnel.
 
 ## Accélération indépendante
 
-- SYN-EUR — BUILDING_ACCELERATION — score 5.923/10 — DETECTED_BUT_TOO_LATE
-- HNT-EUR — BUILDING_ACCELERATION — score 5.369/10 — DETECTED_BUT_TOO_LATE
-- LAPTOP-EUR — BUILDING_ACCELERATION — score 5.149/10 — REQUIRES_V4_ENTRY_AND_EXECUTION_VALIDATION
+Aucune accélération indépendante confirmée ou en construction.
 
 ## Watchlist persistante 24–72 h
 
-- VET-EUR — ACTIVE_NOW — score mémoire 8.064/10 — sources ACCELERATION, DECISION_LAYER, V4 — WATCH_ONLY
-- ETHFI-EUR — ACTIVE_NOW — score mémoire 8.014/10 — sources V4 — WATCH_ONLY
-- VTHO-EUR — ACTIVE_NOW — score mémoire 8.013/10 — sources ACCELERATION, DECISION_LAYER, V4 — WATCH_ONLY
+- ETHFI-EUR — ACTIVE_NOW — score mémoire 8.035/10 — sources V4 — WATCH_ONLY
 - LDO-EUR — ACTIVE_NOW — score mémoire 7.935/10 — sources V4 — WATCH_ONLY
+- VTHO-EUR — ACTIVE_NOW — score mémoire 7.931/10 — sources ACCELERATION, DECISION_LAYER, V4 — WATCH_ONLY
+- VET-EUR — ACTIVE_NOW — score mémoire 7.906/10 — sources ACCELERATION, DECISION_LAYER, V4 — WATCH_ONLY
+- XVG-EUR — ACTIVE_NOW — score mémoire 7.881/10 — sources V4 — WATCH_ONLY
 - AKT-EUR — MEMORY_24H — score mémoire 7.849/10 — sources DECISION_LAYER, V4 — MEMORY_ONLY
-- SOMI-EUR — ACTIVE_NOW — score mémoire 7.824/10 — sources V4 — WATCH_ONLY
-- STRK-EUR — ACTIVE_NOW — score mémoire 7.769/10 — sources V4 — WATCH_ONLY
-- ICP-EUR — ACTIVE_NOW — score mémoire 7.761/10 — sources V4 — WATCH_ONLY
-- SIGN-EUR — ACTIVE_NOW — score mémoire 7.698/10 — sources V4 — WATCH_ONLY
-- LINEA-EUR — MEMORY_24H — score mémoire 7.666/10 — sources V4 — MEMORY_ONLY
+- ICP-EUR — ACTIVE_NOW — score mémoire 7.807/10 — sources V4 — WATCH_ONLY
+- SIGN-EUR — ACTIVE_NOW — score mémoire 7.804/10 — sources V4 — WATCH_ONLY
+- SOMI-EUR — ACTIVE_NOW — score mémoire 7.803/10 — sources V4 — WATCH_ONLY
+- KAS-EUR — ACTIVE_NOW — score mémoire 7.741/10 — sources DECISION_LAYER, V4 — WATCH_ONLY
 
 ## Audit des plus fortes hausses
 
-- SYN-EUR +78.62% — NOT_DETECTED — couche DATA — action NOT_APPLICABLE
-- LSK-EUR +43.81% — DETECTED_EARLY — couche NONE — action ENTRY_TIMING_OR_EXECUTION
-- HNT-EUR +37.03% — NOT_DETECTED — couche DATA — action NOT_APPLICABLE
-- HEI-EUR +31.22% — INSUFFICIENT_HISTORY — couche HISTORY — action NOT_APPLICABLE
-- FOLD-EUR +24.91% — NOT_DETECTED — couche DATA — action NOT_APPLICABLE
-- DGB-EUR +17.68% — NOT_DETECTED — couche DATA — action NOT_APPLICABLE
-- AGI-EUR +13.86% — NOT_DETECTED — couche DATA — action NOT_APPLICABLE
-- IOST-EUR +13.78% — DETECTED_EARLY — couche NONE — action INTERPRETATION
-- RAY-EUR +12.47% — DETECTED_EARLY — couche NONE — action INTERPRETATION
+- SYN-EUR +64.50% — NOT_DETECTED — couche DATA — action NOT_APPLICABLE
+- LSK-EUR +40.51% — DETECTED_EARLY — couche NONE — action ENTRY_TIMING_OR_EXECUTION
+- HEI-EUR +33.51% — INSUFFICIENT_HISTORY — couche HISTORY — action NOT_APPLICABLE
+- HNT-EUR +31.23% — NOT_DETECTED — couche DATA — action NOT_APPLICABLE
+- FOLD-EUR +25.41% — NOT_DETECTED — couche DATA — action NOT_APPLICABLE
+- DGB-EUR +21.81% — NOT_DETECTED — couche DATA — action NOT_APPLICABLE
+- IOST-EUR +13.69% — DETECTED_EARLY — couche NONE — action INTERPRETATION
+- AGI-EUR +12.95% — NOT_DETECTED — couche DATA — action NOT_APPLICABLE
 - LIGHTER-EUR +11.96% — DETECTED_EARLY — couche NONE — action INTERPRETATION
+- RAY-EUR +11.51% — DETECTED_EARLY — couche NONE — action INTERPRETATION
 
 ## Garde-fous
 
