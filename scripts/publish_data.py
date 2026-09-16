@@ -21,7 +21,7 @@ GENERATED = ['bitvavo_live.json', 'scan_feed.txt', 'early_watch.txt', 'early_wat
              'signal_log.json', 'v4_watch.txt', 'v4_watch.json', 'v4_history.json', 'v4_signal_log.json',
              'v4_trend_cache.json', 'v4_watch_raw.txt', 'v4_watch_raw.json', 'v4_stability_state.json',
              'market_control.txt', 'market_control.json', 'market_control_current.json', 'execution_snapshot.json', 'v5_report.json', 'v5_report.md',
-             'pipeline_health.json', 'proposed_orders.json', 'alert_candidates.json',
+             'pipeline_health.json', 'proposed_orders.json', 'alert_candidates.json', 'universe_surveillance.json',
              'decision_layer.json', 'decision_layer.md', 'history_corrected', 'history_legacy_diagnostics', 'policy_state', 'decision_layer_v2.json', 'decision_layer_v2.md',
              'decision_history_v2', 'decision_history_versioned', 'comparison_history', 'replay_history',
              'scan_manifest.json', 'scan_manifests', 'shadow_status.json']

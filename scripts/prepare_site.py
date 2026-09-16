@@ -23,6 +23,7 @@ def run():
     links=[('v5_report.md','Dernier scan et plans théoriques'),('v4_watch.txt','Décisions V4'),
            ('decision_layer.md','DL-V1 shadow'),('decision_layer_v2.md','DL-V2 Opportunity shadow'),
            ('market_control_current.json','Présence dans les listes courantes'),('pipeline_health.json','Qualité et fraîcheur'),
+           ('universe_surveillance.json','Surveillance publique de tous les marchés — distincte de l’admissibilité au trading'),
            ('scan_manifest.json','Identité du scan et des sorties')]
     # Optional failures must not leak a previous production into this site.
     from research.optional_publication import validate, OUTPUTS

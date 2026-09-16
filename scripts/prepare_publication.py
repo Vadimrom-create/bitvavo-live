@@ -11,7 +11,7 @@ from research.publication import build_manifest, file_hash, immutable_json
 
 PUBLIC_FILES=['bitvavo_live.json','scan_feed.txt','early_watch.txt','early_watch.json','v4_watch.txt','v4_watch.json',
               'v4_watch_raw.txt','v4_watch_raw.json','market_control.txt','market_control.json','market_control_current.json',
-              'execution_snapshot.json','v5_report.json','v5_report.md','pipeline_health.json','proposed_orders.json','alert_candidates.json']
+              'execution_snapshot.json','v5_report.json','v5_report.md','pipeline_health.json','proposed_orders.json','alert_candidates.json','universe_surveillance.json']
 
 
 def run():

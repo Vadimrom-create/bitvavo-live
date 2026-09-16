@@ -29,6 +29,7 @@ from research.v4_adapter import state_path
 from research.quality import assess as assess_quality
 from research.input_contract import code_revision, digest
 from research.risk import correlation, plan, proposed_order
+from research.surveillance import collect_public_watch
 
 POLICY = 'V4_FROZEN_20260908'
 STATE_FILES = ['scan_history.json', 'signal_log.json', 'v4_history.json', 'v4_signal_log.json',
@@ -82,8 +83,11 @@ def report_text(report):
     buys = report['buy']
     if not buys:
         lines.append('AUCUN ACHAT VALIDÉ — cette absence ne valide pas les marchés aux données insuffisantes.' if h['status'] == 'OK' else 'SCAN INCOMPLET — aucune recommandation d’achat publiée')
-    lines += [f"Bougies utilisables : 5 min {h.get('valid_5m', 0)}/{h['universe']} ; 15 min {h.get('valid_15m', 0)}/{h['universe']}.",
+    lines += [f"Séries de 25 bougies continues (fraîcheur contrôlée séparément) : 5 min {h.get('valid_5m', 0)}/{h['universe']} ; 15 min {h.get('valid_15m', 0)}/{h['universe']}.",
               'Les trous de cotation restent visibles ; aucune bougie sans transaction n’est inventée.']
+    if 'surveillance_coverage' in h:
+        lines += [f"Surveillance publique ticker/carnet : {h['surveillance_coverage'].get('PUBLIC_MARKET_WATCH',0)}/{h['universe']} marchés.",
+                  'Détail de chaque marché et intervalles absents : universe_surveillance.json. Cette surveillance ne valide pas un achat.']
     if report.get('blocked_baseline_buys'):
         lines += ['', 'Achats bruts V4 bloqués avant alerte :']
         for row in report['blocked_baseline_buys']:
@@ -158,6 +162,8 @@ def run(data_policy=LEGACY_DATA):
     # Post-V4 diagnostics carry their own availability cutoff; they are not baseline inputs.
     revalidate=[r['market'] for r in baseline_output['watch']]
     universe = collect_universe(client, markets, tickers, baseline_ts, priority=revalidate)
+    surveillance = collect_public_watch(client, markets, universe)
+    surveillance.update(scan_id=scan_id, data_policy=output_data_policy, code_commit=code_revision())
     finish = time.time()
     ticker_at = client.metadata('/ticker/24h')['retrieved_at_utc']
     measurement_path = Path('policy_state') / output_data_policy / 'measurement_state.json'
@@ -256,6 +262,10 @@ def run(data_policy=LEGACY_DATA):
               'valid_5m': sum(bool((o['features'].get('5m') or {}).get('valid')) for o in observations),
               'valid_15m': sum(bool((o['features'].get('15m') or {}).get('valid')) for o in observations),
               'quality_scope': 'OK describes collection execution; per-market admissibility is separate',
+              'surveillance_coverage': surveillance['status_counts'],
+              'surveillance_policy': surveillance['surveillance_policy'],
+              'surveillance_representation_policy': surveillance['representation_policy'],
+              'surveillance_errors': surveillance['collection_errors'],
               'capability_coverage': {k:sum(o['quality_v2']['capabilities'][k]['available'] for o in observations)
                                       for k in ('structure','entry','immediate','passive','retrace','outcome')},
               'capability_coverage_by_category': {category:{k:sum(o['category']==category and o['quality_v2']['capabilities'][k]['available'] for o in observations)
@@ -283,6 +293,7 @@ def run(data_policy=LEGACY_DATA):
             'policy': POLICY, 'stage': os.getenv('PHASE3_STAGE', 'TECHNICAL_PILOT'),
             'source': 'synthetic' if os.getenv('PHASE3_STAGE') == 'SIMULATED_FIXTURE' else 'live', 'observations': observations, 'candles_5m': candle_delta,
             'candle_storage': 'FIRST_SEEN_DELTA_REBUILD_ALL_JOURNALS',
+            'surveillance': surveillance,
             'health': health, 'baseline_input_policy': ('source-closed inputs and per-profile clocks; frozen V4 formulas'
                 if corrected else 'legacy includes forming candles; closed diagnostics never change V4 scoring')}
     journal = save_scan(history_root, scan)
@@ -313,6 +324,7 @@ def run(data_policy=LEGACY_DATA):
     text = report_text(report)
     Path('v5_report.md').write_text(text, encoding='utf-8')
     atomic_json('pipeline_health.json', health)
+    atomic_json('universe_surveillance.json', surveillance)
     atomic_json('proposed_orders.json', {'dry_run': True, 'orders': report['orders']})
     # Preserve raw baseline public outputs for audit; provide a separate, fresh,
     # quality-checked payload to the existing alert transport.
