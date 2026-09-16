@@ -1,8 +1,8 @@
 # Bitvavo — V4 mesurée / infrastructure V5
 
-Scan UTC : 2026-09-16T17:18:53.921211+00:00
-État : OK | marchés EUR : 430 | V4 : 386 | données valides : 2
-Récupération : 2026-09-16T17:18:23.065728+00:00 | âge ticker : 138.6 s | durée : 140.2 s
+Scan UTC : 2026-09-16T17:34:57.082995+00:00
+État : OK | marchés EUR : 430 | V4 : 386 | données valides : 3
+Récupération : 2026-09-16T17:34:24.216611+00:00 | âge ticker : 137.0 s | durée : 139.1 s
 
 ## ACHÈTE — signal V4 et plan théorique
 
@@ -12,24 +12,25 @@ Les trous de cotation restent visibles ; aucune bougie sans transaction n’est 
 
 ## SURVEILLE
 
-- NEAR-EUR : 2.1345 € ; score 74.46/100 ; SURVEILLE ; seuil achat non atteint
-- FET-EUR : 0.13066 € ; score 73.29/100 ; SURVEILLE ; WICK_SETUP
+- FET-EUR : 0.13061 € ; score 74.95/100 ; SURVEILLE ; WICK_SETUP
+- NEAR-EUR : 2.1383 € ; score 74.64/100 ; SURVEILLE ; seuil achat non atteint
+- TAO-EUR : 187.48 € ; score 72.61/100 ; SURVEILLE ; WICK_SETUP
 
 ## Contrôle des hausses
 
 | Marché | Prix € | 24 h | Détection | Couche d’échec | Actionnabilité |
 |---|---:|---:|---|---|---|
-| SYN-EUR | 0.153799 | +107.81 % | DETECTED_EARLY | NONE | INTERPRETATION |
-| LSK-EUR | 0.7305 | +105.41 % | DETECTED_EARLY | NONE | ENTRY_TIMING_OR_EXECUTION |
-| HEI-EUR | 0.125231 | +27.72 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
-| CNPY-EUR | 0.34572 | +18.08 % | NOT_DETECTED | DATA | NOT_APPLICABLE |
-| FOLD-EUR | 0.043552 | +13.29 % | NOT_DETECTED | DATA | NOT_APPLICABLE |
-| AGI-EUR | 0.003984 | +9.18 % | NO_CONFIRMED_SHORT_TERM_EVENT | NOT_APPLICABLE | NOT_APPLICABLE |
-| RAY-EUR | 1.15112 | +9.11 % | NO_CONFIRMED_SHORT_TERM_EVENT | NOT_APPLICABLE | NOT_APPLICABLE |
-| SOSO-EUR | 0.27356 | +8.40 % | NOT_DETECTED | DATA | NOT_APPLICABLE |
-| USELESS-EUR | 0.196616 | +8.40 % | DETECTED_EARLY | NONE | ENTRY_TIMING_OR_EXECUTION |
-| NEX-EUR | 9.251e-07 | +6.90 % | NO_CONFIRMED_SHORT_TERM_EVENT | NOT_APPLICABLE | NOT_APPLICABLE |
+| SYN-EUR | 0.154422 | +111.09 % | NOT_DETECTED | DATA | NOT_APPLICABLE |
+| LSK-EUR | 0.72871 | +107.99 % | DETECTED_EARLY | NONE | ENTRY_TIMING_OR_EXECUTION |
+| HEI-EUR | 0.128613 | +30.49 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
+| CNPY-EUR | 0.34631 | +14.67 % | NOT_DETECTED | DATA | NOT_APPLICABLE |
+| FOLD-EUR | 0.043248 | +12.79 % | NOT_DETECTED | DATA | NOT_APPLICABLE |
+| RAY-EUR | 1.1561 | +8.77 % | NO_CONFIRMED_SHORT_TERM_EVENT | NOT_APPLICABLE | NOT_APPLICABLE |
+| AGI-EUR | 0.003948 | +8.19 % | NO_CONFIRMED_SHORT_TERM_EVENT | NOT_APPLICABLE | NOT_APPLICABLE |
+| SOSO-EUR | 0.27206 | +7.81 % | NOT_DETECTED | DATA | NOT_APPLICABLE |
+| NEX-EUR | 9.3e-07 | +7.49 % | NO_CONFIRMED_SHORT_TERM_EVENT | NOT_APPLICABLE | NOT_APPLICABLE |
+| USELESS-EUR | 0.1962 | +6.34 % | DETECTED_EARLY | NONE | ENTRY_TIMING_OR_EXECUTION |
 
-Historique : 646 scans ; 277174 observations ; 102 épisodes d’achat évaluables.
+Historique : 647 scans ; 277604 observations ; 102 épisodes d’achat évaluables.
 V5 optimisée : aucune. Supériorité sur V4 : non démontrée. Probabilités : non calibrées.
 Le cash et le portefeuille du plan sont hypothétiques. Aucun ordre réel n’est envoyé.
