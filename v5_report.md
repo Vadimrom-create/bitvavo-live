@@ -1,33 +1,35 @@
 # Bitvavo — V4 mesurée / infrastructure V5
 
-Scan UTC : 2026-09-16T08:56:13.560138+00:00
-État : OK | marchés EUR : 429 | V4 : 388 | données valides : 2
-Récupération : 2026-09-16T08:55:37.978278+00:00 | âge ticker : 139.8 s | durée : 140.7 s
+Scan UTC : 2026-09-16T09:16:52.805011+00:00
+État : OK | marchés EUR : 429 | V4 : 389 | données valides : 3
+Récupération : 2026-09-16T09:16:22.442089+00:00 | âge ticker : 136.2 s | durée : 137.1 s
 
 ## ACHÈTE — signal V4 et plan théorique
 
 AUCUN ACHAT VALIDÉ — cette absence ne valide pas les marchés aux données insuffisantes.
-Bougies utilisables : 5 min 23/429 ; 15 min 40/429.
+Bougies utilisables : 5 min 20/429 ; 15 min 42/429.
 Les trous de cotation restent visibles ; aucune bougie sans transaction n’est inventée.
 
 ## SURVEILLE
 
+- LINK-EUR : 9.3516 € ; score 78.23/100 ; SURVEILLE ; WICK_SETUP
+- TAO-EUR : 186.2 € ; score 73.42/100 ; SURVEILLE ; seuil achat non atteint
 
 ## Contrôle des hausses
 
 | Marché | Prix € | 24 h | Détection | Couche d’échec | Actionnabilité |
 |---|---:|---:|---|---|---|
-| SYN-EUR | 0.151715 | +118.63 % | DETECTED_EARLY | NONE | INTERPRETATION |
-| LSK-EUR | 0.46037 | +23.76 % | DETECTED_EARLY | NONE | ENTRY_TIMING_OR_EXECUTION |
-| USELESS-EUR | 0.210905 | +21.75 % | DETECTED_EARLY | NONE | ENTRY_TIMING_OR_EXECUTION |
-| LMWR-EUR | 0.010288 | +20.17 % | NOT_DETECTED | DATA | NOT_APPLICABLE |
-| ARB-EUR | 0.13304 | +15.23 % | DETECTED_EARLY | NONE | INTERPRETATION |
-| ALIGN-EUR | 0.005559 | +11.47 % | DETECTED_EARLY | NONE | INTERPRETATION |
-| FOLD-EUR | 0.044027 | +9.92 % | NOT_DETECTED | DATA | NOT_APPLICABLE |
-| CNPY-EUR | 0.29702 | +9.31 % | DETECTED_EARLY | NONE | INTERPRETATION |
-| GLMR-EUR | 0.0052 | +8.31 % | DETECTED_EARLY | NONE | INTERPRETATION |
+| SYN-EUR | 0.157036 | +127.04 % | DETECTED_EARLY | NONE | INTERPRETATION |
+| LSK-EUR | 0.46361 | +26.36 % | DETECTED_EARLY | NONE | ENTRY_TIMING_OR_EXECUTION |
+| USELESS-EUR | 0.212012 | +21.74 % | DETECTED_EARLY | NONE | ENTRY_TIMING_OR_EXECUTION |
+| LMWR-EUR | 0.010329 | +20.65 % | NOT_DETECTED | DATA | NOT_APPLICABLE |
+| ARB-EUR | 0.13382 | +15.57 % | DETECTED_EARLY | NONE | INTERPRETATION |
+| ALIGN-EUR | 0.005567 | +11.16 % | DETECTED_EARLY | NONE | INTERPRETATION |
+| FOLD-EUR | 0.044279 | +10.90 % | NOT_DETECTED | DATA | NOT_APPLICABLE |
+| CNPY-EUR | 0.30213 | +10.67 % | DETECTED_EARLY | NONE | INTERPRETATION |
 | G-EUR | 0.0036271 | +7.14 % | NOT_DETECTED | DATA | NOT_APPLICABLE |
+| SIGN-EUR | 0.009364 | +5.65 % | NO_CONFIRMED_SHORT_TERM_EVENT | NOT_APPLICABLE | NOT_APPLICABLE |
 
-Historique : 619 scans ; 265577 observations ; 99 épisodes d’achat évaluables.
+Historique : 620 scans ; 266006 observations ; 99 épisodes d’achat évaluables.
 V5 optimisée : aucune. Supériorité sur V4 : non démontrée. Probabilités : non calibrées.
 Le cash et le portefeuille du plan sont hypothétiques. Aucun ordre réel n’est envoyé.
