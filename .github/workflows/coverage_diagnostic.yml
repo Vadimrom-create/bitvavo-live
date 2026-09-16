@@ -1,0 +1,26 @@
+name: Public universe coverage diagnostic (no pilot)
+on:
+  workflow_dispatch:
+  push:
+    branches: ['codex/astra-coverage-20260916']
+    paths: ['scripts/measure_public_coverage.py', '.github/workflows/coverage_diagnostic.yml']
+permissions:
+  contents: read
+jobs:
+  coverage:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: python scripts/measure_public_coverage.py
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: public-coverage-${{ github.sha }}
+          path: runtime/public-coverage.json.gz
+          retention-days: 30
