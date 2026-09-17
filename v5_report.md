@@ -1,33 +1,38 @@
 # Bitvavo — V4 mesurée / infrastructure V5
 
-Scan UTC : 2026-09-17T04:37:41.071651+00:00
-État : OK | marchés EUR : 430 | V4 : 377 | données valides : 2
-Récupération : 2026-09-17T04:37:09.537726+00:00 | âge ticker : 146.7 s | durée : 147.5 s
+Scan UTC : 2026-09-17T04:54:17.541722+00:00
+État : OK | marchés EUR : 430 | V4 : 376 | données valides : 2
+Récupération : 2026-09-17T04:53:47.093595+00:00 | âge ticker : 137.4 s | durée : 139.3 s
 
 ## ACHÈTE — signal V4 et plan théorique
 
 AUCUN ACHAT VALIDÉ — cette absence ne valide pas les marchés aux données insuffisantes.
-Bougies utilisables : 5 min 15/430 ; 15 min 37/430.
+Bougies utilisables : 5 min 15/430 ; 15 min 38/430.
 Les trous de cotation restent visibles ; aucune bougie sans transaction n’est inventée.
+
+Achats bruts V4 bloqués avant alerte :
+- AAVE-EUR : INVALID_15M, INVALID_5M, STALE_DAILY_PROFILE
+- UNI-EUR : WICK_SETUP, INVALID_5M, STALE_DAILY_PROFILE
 
 ## SURVEILLE
 
+- SUI-EUR : 0.62842 € ; score 73.52/100 ; SURVEILLE ; seuil achat non atteint
 
 ## Contrôle des hausses
 
 | Marché | Prix € | 24 h | Détection | Couche d’échec | Actionnabilité |
 |---|---:|---:|---|---|---|
-| SYN-EUR | 0.156045 | +66.47 % | DETECTED_EARLY | NONE | INTERPRETATION |
-| FOLD-EUR | 0.0583 | +30.05 % | NOT_DETECTED | DATA | NOT_APPLICABLE |
-| HNT-EUR | 0.427 | +22.74 % | NOT_DETECTED | DATA | NOT_APPLICABLE |
-| QUID-EUR | 0.058524 | +17.66 % | DETECTED_TOO_LATE | NONE | INTERPRETATION |
-| USELESS-EUR | 0.232337 | +17.22 % | DETECTED_EARLY | NONE | ENTRY_TIMING_OR_EXECUTION |
-| LIGHTER-EUR | 4.1924 | +17.04 % | DETECTED_EARLY | NONE | INTERPRETATION |
-| IOST-EUR | 0.0007636 | +16.24 % | DETECTED_EARLY | NONE | INTERPRETATION |
-| VVV-EUR | 21.7149 | +15.97 % | DETECTED_EARLY | NONE | INTERPRETATION |
-| NEAR-EUR | 2.3158 | +13.63 % | DETECTED_EARLY | NONE | ENTRY_TIMING_OR_EXECUTION |
-| AVA-EUR | 0.15409 | +12.18 % | DETECTED_EARLY | NONE | INTERPRETATION |
+| SYN-EUR | 0.155179 | +73.60 % | DETECTED_EARLY | NONE | INTERPRETATION |
+| FOLD-EUR | 0.058007 | +29.31 % | NOT_DETECTED | DATA | NOT_APPLICABLE |
+| HNT-EUR | 0.43054 | +24.07 % | NOT_DETECTED | DATA | NOT_APPLICABLE |
+| USELESS-EUR | 0.237542 | +20.71 % | DETECTED_EARLY | NONE | ENTRY_TIMING_OR_EXECUTION |
+| QUID-EUR | 0.059389 | +19.40 % | DETECTED_TOO_LATE | NONE | INTERPRETATION |
+| LIGHTER-EUR | 4.2508 | +18.67 % | DETECTED_EARLY | NONE | INTERPRETATION |
+| MOODENG-EUR | 0.038559 | +17.86 % | DETECTED_EARLY | NONE | INTERPRETATION |
+| VVV-EUR | 21.9287 | +17.11 % | DETECTED_EARLY | NONE | INTERPRETATION |
+| NEAR-EUR | 2.3421 | +15.20 % | DETECTED_EARLY | NONE | ENTRY_TIMING_OR_EXECUTION |
+| IOST-EUR | 0.0007522 | +13.04 % | DETECTED_EARLY | NONE | INTERPRETATION |
 
-Historique : 685 scans ; 293944 observations ; 115 épisodes d’achat évaluables.
+Historique : 686 scans ; 294374 observations ; 115 épisodes d’achat évaluables.
 V5 optimisée : aucune. Supériorité sur V4 : non démontrée. Probabilités : non calibrées.
 Le cash et le portefeuille du plan sont hypothétiques. Aucun ordre réel n’est envoyé.
