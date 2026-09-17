@@ -144,3 +144,7 @@ class ApiBudgetTests(unittest.TestCase):
         from email.utils import formatdate
         self.budget.observe({'Retry-After':formatdate(2100,usegmt=True)},429,now=100)
         self.assertEqual(self.budget.reserve(1),2001)
+
+    def test_same_process_clients_share_transaction_mutex(self):
+        peer=WeightedBudget(self.path,clock=self.clock.time,sleeper=self.clock.sleep)
+        self.assertIs(peer._local_lock,self.budget._local_lock)

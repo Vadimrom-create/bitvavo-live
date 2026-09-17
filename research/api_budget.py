@@ -11,11 +11,14 @@ import os
 from pathlib import Path
 import sqlite3
 import tempfile
+import threading
 import time
 from email.utils import parsedate_to_datetime
 
 LIMIT = 750
 WINDOW = 61.0
+_LOCAL_LOCKS = {}
+_LOCAL_LOCKS_GUARD = threading.Lock()
 
 
 def weight(path, params=None):
@@ -34,6 +37,8 @@ def default_path():
 class WeightedBudget:
     def __init__(self, path=None, *, clock=None, sleeper=None):
         self.path = str(path if path is not None else default_path())
+        with _LOCAL_LOCKS_GUARD:
+            self._local_lock = _LOCAL_LOCKS.setdefault(os.path.abspath(self.path), threading.RLock())
         self.clock = clock or time.monotonic
         self.sleep = sleeper or time.sleep
         with self.connect() as db:
@@ -44,12 +49,16 @@ class WeightedBudget:
 
     @contextmanager
     def connect(self):
-        db = sqlite3.connect(self.path, timeout=1)
-        try:
-            with db:
-                yield db
-        finally:
-            db.close()
+        # SQLite arbitrates processes. Serialize same-process threads first so
+        # many connections cannot starve one another on a slow CI filesystem.
+        # No quota sleep or network operation occurs inside this short lock.
+        with self._local_lock:
+            db = sqlite3.connect(self.path, timeout=5)
+            try:
+                with db:
+                    yield db
+            finally:
+                db.close()
 
     def reserve(self, points, deadline=None):
         """Charge every attempted request, including failed requests and retries."""

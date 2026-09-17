@@ -91,7 +91,7 @@ URL/params caching is retained.
 
 ## Validation and reproducibility
 
-* `python scripts/run_tests.py all` (executor dependencies required): 209 tests,
+* `python scripts/run_tests.py all` (executor dependencies required): 210 tests,
   no failure or skip in the final local validation.
 * `python -m unittest discover -s tests -p test_api_budget.py`: weighted reserve,
   two real processes, invalid headers, conservative remaining/reset, shared 429,
@@ -119,3 +119,13 @@ Revert this acquisition-only commit if needed; do not rewrite historical logs or
 change policy identities. A rollback loses weighted quota coordination; retain
 single-consumer scheduling. No database migration of market data is involved.
 The capacity tests and telemetry are validation artifacts, not held-out evidence.
+
+## CI contention correction
+
+The first CI run (35257054528) exposed SQLite writer starvation under the
+16-thread virtual stress (`database is locked`), despite local success. A
+path-scoped process mutex now serializes those short transactions before SQLite
+coordinates separate processes. Connections are closed after each transaction;
+network operations and quota sleeps remain outside both locks. A regression
+checks that separate clients share that mutex. This is a coordination fix, not a
+relaxation of the stress assertion or a quota increase.
