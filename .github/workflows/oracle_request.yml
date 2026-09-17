@@ -34,8 +34,35 @@ jobs:
           git config user.name 'bitvavo-live-bot'
           git config user.email 'actions@users.noreply.github.com'
           git add oracle_requested_probe.json
-          if ! git diff --cached --quiet; then
-            git commit -m 'Record requested Oracle public probe'
-            git pull --rebase origin main
-            git push origin HEAD:main
+
+          if git diff --cached --quiet; then
+            echo 'No probe change to publish.'
+            exit 0
           fi
+
+          git commit -m 'Record requested Oracle public probe'
+
+          # main is written by several independent workflows. A push can lose
+          # the race even after a successful rebase, so refetch/rebase/retry.
+          for attempt in 1 2 3 4 5 6; do
+            echo "Publish attempt ${attempt}/6"
+            git fetch origin main
+
+            if ! git rebase origin/main; then
+              git rebase --abort || true
+              echo 'Rebase conflict while publishing oracle_requested_probe.json' >&2
+              exit 1
+            fi
+
+            if git push origin HEAD:main; then
+              echo 'Probe published successfully.'
+              exit 0
+            fi
+
+            if [ "${attempt}" -lt 6 ]; then
+              sleep $((attempt * 2))
+            fi
+          done
+
+          echo 'Failed to publish probe after 6 attempts.' >&2
+          exit 1
