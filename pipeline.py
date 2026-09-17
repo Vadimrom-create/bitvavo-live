@@ -277,8 +277,12 @@ def run(data_policy=LEGACY_DATA):
               'collected_at_utc': live['generated_at_utc'], 'ticker_age_seconds': finish - timestamp(ticker_at),
               'duration_seconds': finish - start, 'api_error_count': len(client.errors),
               'api_errors': client.errors, 'exchange_clock_offset_seconds': client.server_offset,
+              'api_budget': {'scope':'HOST_PUBLIC_IP', 'points_per_window':750, 'window_seconds':61,
+                             'wait_thread_seconds':client.budget_wait_seconds,
+                             'collection_horizon_seconds':300,
+                             'freshness_abandoned_calls':sum(e.get('error')=='COLLECTION_FRESHNESS_DEADLINE' for e in client.errors)},
               'ignored_markets': [{'market': m['market'], 'reason': m.get('status')} for m in markets_raw if m.get('quote') == 'EUR' and m.get('status') != 'trading']}
-    if health['ticker_age_seconds'] > 300 or not markets or len(captured['rows']) < .5 * len(markets):
+    if health['api_budget']['freshness_abandoned_calls'] or health['ticker_age_seconds'] > 300 or not markets or len(captured['rows']) < .5 * len(markets):
         health['status'] = 'DEGRADED'
         for obs in buys:
             obs['decision'] = 'DATA UNAVAILABLE'

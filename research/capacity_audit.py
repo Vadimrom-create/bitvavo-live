@@ -16,12 +16,7 @@ HEADERS = ('bitvavo-ratelimit-limit', 'bitvavo-ratelimit-remaining',
            'bitvavo-ratelimit-resetat', 'bitvavo-ratelimit-reset', 'retry-after', 'date')
 
 
-def weight(path, params=None):
-    if path == '/ticker/24h':
-        return 1 if (params or {}).get('market') else 25
-    if path.endswith('/trades'):
-        return 5
-    return 1
+from research.api_budget import weight
 
 
 def rolling_peak(attempts, seconds=60):

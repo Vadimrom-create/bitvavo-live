@@ -12,10 +12,14 @@ import urllib.parse
 import urllib.request
 
 from research.common import utc, timestamp
+from research.api_budget import WeightedBudget, weight
 
 
 class PublicClient:
-    def __init__(self, timeout=12, retries=3, requests_per_second=12):
+    def __init__(self, timeout=12, retries=3, requests_per_second=12, *, budget=None, max_elapsed_seconds=300):
+        self.budget = budget if budget is not None else WeightedBudget()
+        self.collection_deadline = time.monotonic() + max_elapsed_seconds
+        self.budget_wait_seconds = 0.0
         self.timeout, self.retries = timeout, retries
         self.spacing = 1 / requests_per_second
         self.lock = threading.Lock()
@@ -35,6 +39,7 @@ class PublicClient:
         return path + '?' + urllib.parse.urlencode(sorted((params or {}).items()))
 
     def pace(self, deadline=None):
+        deadline = min(self.collection_deadline, deadline if deadline is not None else float('inf'))
         with self.lock:
             now = time.monotonic()
             scheduled = max(now, self.next_request, self.pause_until)
@@ -54,8 +59,22 @@ class PublicClient:
             cached = self.cache.get(key) if cache else None
         if cached is not None:
             return cached
+        effective_deadline = min(self.collection_deadline, deadline if deadline is not None else float('inf'))
+        reason = ('COLLECTION_FRESHNESS_DEADLINE' if effective_deadline == self.collection_deadline
+                  else 'OPTIONAL_COLLECTION_DEADLINE')
+        def expired(cause=None):
+            with self.lock:
+                self.errors.append({'path':path, 'params':params or {}, 'error':reason, 'cause':cause, 'at':utc()})
+            raise RuntimeError(reason)
         for attempt in range(retries or self.retries):
-            self.pace() if deadline is None else self.pace(deadline)
+            if time.monotonic() >= effective_deadline: expired()
+            try:
+                self.pace() if deadline is None else self.pace(effective_deadline)
+                waited = self.budget.reserve(weight(path, params), effective_deadline)
+                with self.lock: self.budget_wait_seconds += waited
+            except RuntimeError as exc:
+                expired(str(exc))
+            if time.monotonic() >= effective_deadline: expired()
             started = time.time()
             with self.lock:
                 self.request_sequence += 1
@@ -63,19 +82,15 @@ class PublicClient:
             try:
                 req = urllib.request.Request('https://api.bitvavo.com/v2' + key,
                     headers={'Accept': 'application/json', 'User-Agent': 'bitvavo-observatory/5.0'})
-                timeout = self.timeout if deadline is None else min(self.timeout, max(.001,deadline-time.monotonic()))
+                timeout = min(self.timeout, max(.001,effective_deadline-time.monotonic()))
                 with urllib.request.urlopen(req, timeout=timeout) as response:
                     data = json.loads(response.read())
                     headers = response.headers
                 received = time.time()
                 if isinstance(data, dict) and data.get('errorCode'):
                     raise ValueError('bitvavo_error_' + str(data['errorCode']))
-                remaining = headers.get('bitvavo-ratelimit-remaining')
-                reset = headers.get('bitvavo-ratelimit-resetat')
-                if remaining is not None and reset is not None and float(remaining) < 40:
-                    wait = max(0, float(reset) / 1000 - received + 1)
-                    with self.lock:
-                        self.pause_until = max(self.pause_until, time.monotonic() + wait)
+                self.budget.observe(headers, now=received)
+                if time.monotonic() >= effective_deadline: expired()
                 record = {'path': path, 'params': params or {}, 'request_started_at_utc': utc(started),
                           'retrieved_at_utc': utc(received), 'server_http_date': headers.get('Date'), 'data': data,
                           'request_id': request_id, 'server_offset_seconds': self.server_offset,
@@ -94,23 +109,16 @@ class PublicClient:
                 with self.lock:
                     self.errors.append({'path': path, 'attempt': attempt + 1,
                                         'error': type(exc).__name__, 'http_status': code, 'at': utc()})
+                self.budget.observe(getattr(exc, 'headers', {}) or {}, status=code)
                 if code in {403, 429}:
-                    # Respect an exchange ban/reset; do not retry rapidly or rotate IPs.
-                    delay = 60.0
-                    try:
-                        reset = exc.headers.get('bitvavo-ratelimit-resetat')
-                        retry = exc.headers.get('Retry-After')
-                        delay = max(delay, float(retry or 0), float(reset or 0) / 1000 - time.time() + 1)
-                    except (TypeError, ValueError):
-                        pass
-                    with self.lock:
-                        self.pause_until = max(self.pause_until, time.monotonic() + delay)
-                elif code is not None and 400 <= code < 500:
+                    # Shared cooldown is persisted before failing this logical call.
                     break
+                if code is not None and 400 <= code < 500:
+                    break
+                if time.monotonic() >= effective_deadline: expired(type(exc).__name__)
                 if attempt + 1 < (retries or self.retries):
                     delay=min(8, 2 ** attempt)
-                    if deadline is not None and time.monotonic()+delay >= deadline:
-                        raise RuntimeError('OPTIONAL_COLLECTION_DEADLINE')
+                    if time.monotonic()+delay >= effective_deadline: expired()
                     time.sleep(delay)
         raise RuntimeError('public_api_failed:' + path)
 
