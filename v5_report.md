@@ -1,13 +1,13 @@
 # Bitvavo — V4 mesurée / infrastructure V5
 
-Scan UTC : 2026-09-17T21:54:55.706850+00:00
-État : OK | marchés EUR : 430 | V4 : 350 | données valides : 4
-Récupération : 2026-09-17T21:54:21.233964+00:00 | âge ticker : 141.5 s | durée : 143.3 s
+Scan UTC : 2026-09-17T22:02:10.116395+00:00
+État : OK | marchés EUR : 430 | V4 : 349 | données valides : 4
+Récupération : 2026-09-17T22:01:36.157506+00:00 | âge ticker : 152.9 s | durée : 153.9 s
 
 ## ACHÈTE — signal V4 et plan théorique
 
 AUCUN ACHAT VALIDÉ — cette absence ne valide pas les marchés aux données insuffisantes.
-Bougies utilisables : 5 min 24/430 ; 15 min 70/430.
+Bougies utilisables : 5 min 23/430 ; 15 min 69/430.
 Les trous de cotation restent visibles ; aucune bougie sans transaction n’est inventée.
 
 Achats bruts V4 bloqués avant alerte :
@@ -15,24 +15,24 @@ Achats bruts V4 bloqués avant alerte :
 
 ## SURVEILLE
 
-- LSK-EUR : 0.39316 € ; score 78.98/100 ; SURVEILLE ; SPREAD_RISK, SELLER_HEAVY_BOOK, WICK_SETUP
-- DOT-EUR : 0.929 € ; score 73.70/100 ; SURVEILLE ; seuil achat non atteint
+- LSK-EUR : 0.39236 € ; score 77.58/100 ; SURVEILLE ; SELLER_HEAVY_BOOK, WICK_SETUP
+- DOT-EUR : 0.923 € ; score 72.53/100 ; SURVEILLE ; seuil achat non atteint
 
 ## Contrôle des hausses
 
 | Marché | Prix € | 24 h | Détection | Couche d’échec | Actionnabilité |
 |---|---:|---:|---|---|---|
-| AVA-EUR | 0.2403 | +80.76 % | DETECTED_EARLY | NONE | INTERPRETATION |
-| COTI-EUR | 0.021718 | +44.29 % | DETECTED_EARLY | NONE | INTERPRETATION |
-| CROSS-EUR | 0.159076 | +42.34 % | DETECTED_EARLY | NONE | INTERPRETATION |
-| CNPY-EUR | 0.47078 | +41.18 % | DETECTED_EARLY | NONE | INTERPRETATION |
-| TREAD-EUR | 0.50852 | +39.54 % | NOT_DETECTED | DATA | NOT_APPLICABLE |
+| AVA-EUR | 0.23735 | +78.54 % | DETECTED_EARLY | NONE | INTERPRETATION |
+| TREAD-EUR | 0.51364 | +46.90 % | NOT_DETECTED | DATA | NOT_APPLICABLE |
+| CNPY-EUR | 0.48878 | +45.44 % | DETECTED_EARLY | NONE | INTERPRETATION |
+| CROSS-EUR | 0.160168 | +43.32 % | DETECTED_EARLY | NONE | INTERPRETATION |
+| COTI-EUR | 0.0215 | +42.84 % | DETECTED_EARLY | NONE | INTERPRETATION |
 | AGI-EUR | 0.00503 | +26.76 % | NOT_DETECTED | DATA | NOT_APPLICABLE |
-| G-EUR | 0.0046626 | +23.80 % | DETECTED_EARLY | NONE | INTERPRETATION |
-| PEAQ-EUR | 0.025015 | +20.61 % | DETECTED_EARLY | NONE | INTERPRETATION |
-| UNI-EUR | 6.7674 | +19.91 % | DETECTED_EARLY | NONE | ENTRY_TIMING_OR_EXECUTION |
-| DRIFT-EUR | 0.012063 | +18.66 % | DETECTED_EARLY | NONE | INTERPRETATION |
+| G-EUR | 0.0046492 | +23.45 % | DETECTED_EARLY | NONE | INTERPRETATION |
+| UNI-EUR | 6.7248 | +20.32 % | DETECTED_EARLY | NONE | ENTRY_TIMING_OR_EXECUTION |
+| PEAQ-EUR | 0.02484 | +19.76 % | DETECTED_EARLY | NONE | INTERPRETATION |
+| DRIFT-EUR | 0.012052 | +18.55 % | DETECTED_EARLY | NONE | INTERPRETATION |
 
-Historique : 744 scans ; 319314 observations ; 137 épisodes d’achat évaluables.
+Historique : 745 scans ; 319744 observations ; 138 épisodes d’achat évaluables.
 V5 optimisée : aucune. Supériorité sur V4 : non démontrée. Probabilités : non calibrées.
 Le cash et le portefeuille du plan sont hypothétiques. Aucun ordre réel n’est envoyé.
