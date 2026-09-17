@@ -1,41 +1,38 @@
 # Bitvavo — V4 mesurée / infrastructure V5
 
-Scan UTC : 2026-09-17T15:06:19.443045+00:00
-État : OK | marchés EUR : 430 | V4 : 376 | données valides : 9
-Récupération : 2026-09-17T15:05:46.881187+00:00 | âge ticker : 148.5 s | durée : 149.7 s
+Scan UTC : 2026-09-17T15:26:10.236086+00:00
+État : OK | marchés EUR : 430 | V4 : 376 | données valides : 8
+Récupération : 2026-09-17T15:25:34.837009+00:00 | âge ticker : 149.8 s | durée : 153.6 s
 
 ## ACHÈTE — signal V4 et plan théorique
 
 AUCUN ACHAT VALIDÉ — cette absence ne valide pas les marchés aux données insuffisantes.
-Bougies utilisables : 5 min 33/430 ; 15 min 62/430.
+Bougies utilisables : 5 min 32/430 ; 15 min 61/430.
 Les trous de cotation restent visibles ; aucune bougie sans transaction n’est inventée.
-
-Achats bruts V4 bloqués avant alerte :
-- VET-EUR : STABILITY_HOLD, INVALID_5M, STALE_DAILY_PROFILE
 
 ## SURVEILLE
 
-- SYRUP-EUR : 0.17746 € ; score 86.67/100 ; SURVEILLE ; seuil achat non atteint
-- VTHO-EUR : 0.00058761 € ; score 79.68/100 ; SURVEILLE ; seuil achat non atteint
-- HBAR-EUR : 0.065724 € ; score 75.23/100 ; SURVEILLE ; seuil achat non atteint
-- FET-EUR : 0.14089 € ; score 73.25/100 ; SURVEILLE ; STABILITY_HOLD
-- XLM-EUR : 0.1604 € ; score 68.52/100 ; SURVEILLE ; STABILITY_HOLD
+- VTHO-EUR : 0.00058434 € ; score 80.28/100 ; SURVEILLE ; seuil achat non atteint
+- VET-EUR : 0.0062345 € ; score 78.83/100 ; SURVEILLE ; seuil achat non atteint
+- FET-EUR : 0.13979 € ; score 75.96/100 ; SURVEILLE ; WICK_SETUP
+- SYRUP-EUR : 0.177 € ; score 73.61/100 ; SURVEILLE ; WICK_SETUP, STABILITY_HOLD
+- XLM-EUR : 0.16061 € ; score 58.83/100 ; SURVEILLE ; STABILITY_HOLD
 
 ## Contrôle des hausses
 
 | Marché | Prix € | 24 h | Détection | Couche d’échec | Actionnabilité |
 |---|---:|---:|---|---|---|
-| AVA-EUR | 0.26862 | +103.47 % | DETECTED_EARLY | NONE | INTERPRETATION |
-| AGI-EUR | 0.0053 | +36.77 % | NOT_DETECTED | DATA | NOT_APPLICABLE |
-| CROSS-EUR | 0.131005 | +23.12 % | NOT_DETECTED | DATA | NOT_APPLICABLE |
-| QUID-EUR | 0.058365 | +20.44 % | DETECTED_TOO_LATE | NONE | INTERPRETATION |
-| PEAQ-EUR | 0.024295 | +20.42 % | DETECTED_EARLY | NONE | INTERPRETATION |
-| UNI-EUR | 6.264 | +18.88 % | DETECTED_EARLY | NONE | INTERPRETATION |
-| TREAD-EUR | 0.42076 | +18.63 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
-| EDEN-EUR | 0.046647 | +17.53 % | DETECTED_EARLY | NONE | INTERPRETATION |
-| COTI-EUR | 0.017452 | +17.43 % | DETECTED_EARLY | NONE | INTERPRETATION |
-| HNT-EUR | 0.40331 | +17.37 % | DETECTED_TOO_LATE | NONE | INTERPRETATION |
+| AVA-EUR | 0.2572 | +94.77 % | DETECTED_EARLY | NONE | INTERPRETATION |
+| AGI-EUR | 0.004939 | +25.42 % | NOT_DETECTED | DATA | NOT_APPLICABLE |
+| PEAQ-EUR | 0.024541 | +21.23 % | DETECTED_EARLY | NONE | INTERPRETATION |
+| TREAD-EUR | 0.40033 | +20.95 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
+| CROSS-EUR | 0.128944 | +20.71 % | NOT_DETECTED | DATA | NOT_APPLICABLE |
+| UNI-EUR | 6.249 | +17.76 % | DETECTED_EARLY | NONE | INTERPRETATION |
+| COTI-EUR | 0.017374 | +17.22 % | DETECTED_EARLY | NONE | INTERPRETATION |
+| HNT-EUR | 0.40454 | +17.20 % | DETECTED_TOO_LATE | NONE | INTERPRETATION |
+| NEAR-EUR | 2.4747 | +16.82 % | DETECTED_EARLY | NONE | ENTRY_TIMING_OR_EXECUTION |
+| QUID-EUR | 0.056572 | +16.74 % | DETECTED_TOO_LATE | NONE | INTERPRETATION |
 
-Historique : 719 scans ; 308564 observations ; 126 épisodes d’achat évaluables.
+Historique : 720 scans ; 308994 observations ; 126 épisodes d’achat évaluables.
 V5 optimisée : aucune. Supériorité sur V4 : non démontrée. Probabilités : non calibrées.
 Le cash et le portefeuille du plan sont hypothétiques. Aucun ordre réel n’est envoyé.
