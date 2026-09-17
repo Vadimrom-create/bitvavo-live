@@ -157,7 +157,8 @@ def run(data_policy=LEGACY_DATA):
         baseline_rows[name] = row
     markets_raw = client.get('/markets')
     markets = sorted([m for m in markets_raw if m.get('quote') == 'EUR' and m.get('status') == 'trading'], key=lambda m: m['market'])
-    tickers = {r['market']: r for r in client.get('/ticker/24h')}
+    ticker_record = client.capture('/ticker/24h')
+    tickers = {r['market']: r for r in ticker_record['data']}
     print(f'PIPELINE full EUR universe: {len(markets)} markets, closed 5m/15m candles', flush=True)
     # Post-V4 diagnostics carry their own availability cutoff; they are not baseline inputs.
     revalidate=[r['market'] for r in baseline_output['watch']]
@@ -165,7 +166,7 @@ def run(data_policy=LEGACY_DATA):
     surveillance = collect_public_watch(client, markets, universe)
     surveillance.update(scan_id=scan_id, data_policy=output_data_policy, code_commit=code_revision())
     finish = time.time()
-    ticker_at = client.metadata('/ticker/24h')['retrieved_at_utc']
+    ticker_at = ticker_record['retrieved_at_utc']
     measurement_path = Path('policy_state') / output_data_policy / 'measurement_state.json'
     measurement_state = load_cycle_state(measurement_path, history_root, baseline_ts)
     observations, candles5 = [], {}

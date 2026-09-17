@@ -68,6 +68,41 @@ class PublicSurveillanceTests(unittest.TestCase):
         self.assertEqual(result['status_counts'],{'PUBLIC_SNAPSHOT_UNAVAILABLE':2})
         self.assertTrue(all('MISSING_BOOK' in r['reasons'] for r in result['markets']))
 
+    def test_later_watch_does_not_retime_the_ticker_consumed_by_trading(self):
+        import subprocess,sys,tempfile
+        from pathlib import Path
+        root=Path(__file__).resolve().parents[1]
+        fixture=(root/'tests/fixtures/public_scenario.py').read_text()
+        injection='''
+original_capture=PublicClient.capture
+def dated_capture(self, path, params=None, *args, **kwargs):
+    if path=='/ticker/24h' and kwargs.get('consumer_id')!='surveillance:ticker':
+        with patch('time.time', return_value=NOW-120):
+            return original_capture(self,path,params,*args,**kwargs)
+    return original_capture(self,path,params,*args,**kwargs)
+PublicClient.capture=dated_capture
+'''
+        fixture=fixture.replace("with patch('urllib.request.urlopen'",injection+"\nwith patch('urllib.request.urlopen'")
+        with tempfile.TemporaryDirectory() as d:
+            work=Path(d)
+            for f in root.glob('*.py'):(work/f.name).symlink_to(f)
+            (work/'v4_config.json').write_bytes((root/'v4_config.json').read_bytes())
+            (work/'baseline').symlink_to(root/'baseline',target_is_directory=True)
+            script=work/'fixture.py';script.write_text(fixture)
+            run=subprocess.run([sys.executable,str(script),str(root),'CORRECTED_INPUTS_V1'],cwd=work,capture_output=True,text=True,timeout=60)
+            self.assertEqual(run.returncode,0,run.stderr)
+            from research.common import read_json,timestamp
+            current=read_json(work/'runtime/current_scan.json');scan=read_json(work/current['journal'])
+            replay=read_json(next((work/'runtime').glob('replay-*.json.gz')))
+            tickers=[r for r in replay['requests'] if r['path']=='/ticker/24h']
+            self.assertEqual(len(tickers),2)
+            self.assertAlmostEqual(timestamp(tickers[1]['retrieved_at_utc'])-timestamp(tickers[0]['retrieved_at_utc']),120,places=5)
+            for o in scan['observations']:
+                self.assertEqual(o['timestamps']['ticker_retrieved_at_utc'],tickers[0]['retrieved_at_utc'])
+            for o in scan['surveillance']['markets']:
+                self.assertEqual(o['retrieved_at_utc']['ticker'],tickers[1]['retrieved_at_utc'])
+            self.assertAlmostEqual(scan['health']['ticker_age_seconds'],120,places=5)
+
     def test_crossed_nonfinite_and_stale_quotes_are_refused(self):
         for bad in ('nan','inf','-1','2'):
             with self.subTest(bad=bad):
