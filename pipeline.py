@@ -247,6 +247,8 @@ def run():
         captured.update({'rows': copy.deepcopy(rows), 'enriched': copy.deepcopy(enriched),
                          'generated_at_utc': generated, 'scan_ts': time.time()})
     v4_detector.main(audit_sink=observe)
+    # Preserve the exact frozen V4 raw output before the operational adaptive layer.
+    frozen_raw_baseline = copy.deepcopy(read_json('v4_watch.json'))
     from research.adaptive_entry import promote_and_enrich, patch_watch_output
     adaptive_audit = promote_and_enrich(
         captured['rows'], captured['enriched'], captured['generated_at_utc'],
@@ -419,7 +421,9 @@ def run():
     alert_payload = {**baseline_output, 'generated_at_utc': utc(baseline_ts),
                      'watch': [{**o['baseline'], 'data_quality': o['data_quality'], 'trade_plan': o['trade_plan']} for o in buys]}
     atomic_json('alert_candidates.json', alert_payload)
-    replay_input.update({'requests': client.records, 'expected_baseline': baseline_output,
+    replay_input.update({'requests': client.records,
+                         'expected_raw_baseline': frozen_raw_baseline,
+                         'expected_baseline': baseline_output,
                          'expected_all_rows': captured['rows']})
     atomic_json('runtime/replay-' + scan_id + '.json.gz', replay_input)
     if os.getenv('GITHUB_STEP_SUMMARY'):
