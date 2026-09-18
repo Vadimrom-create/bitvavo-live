@@ -26,7 +26,7 @@ def connect(path=':memory:'):
     db = sqlite3.connect(path)
     db.row_factory = sqlite3.Row
     db.executescript('''
-        CREATE TABLE IF NOT EXISTS scans(id TEXT PRIMARY KEY, ts REAL, policy TEXT, source TEXT);
+        CREATE TABLE IF NOT EXISTS scans(id TEXT PRIMARY KEY, ts REAL, policy TEXT, operational_policy TEXT, source_commit TEXT, source TEXT);
         CREATE TABLE IF NOT EXISTS observations(scan_id TEXT, market TEXT, ts REAL, price REAL,
             detected INTEGER, buy INTEGER, decision TEXT, payload TEXT,
             PRIMARY KEY(scan_id, market));
@@ -42,7 +42,7 @@ def ingest(db, scan):
     if db.execute('SELECT 1 FROM scans WHERE id=?', (sid,)).fetchone():
         return
     with db:
-        db.execute('INSERT INTO scans VALUES (?,?,?,?)', (sid, ts, scan['policy'], scan.get('source', 'live')))
+        db.execute('INSERT INTO scans VALUES (?,?,?,?,?,?)', (sid, ts, scan['policy'], scan.get('operational_policy'), scan.get('source_commit'), scan.get('source', 'live')))
         for obs in scan['observations']:
             baseline = obs.get('baseline') or {}
             action = baseline.get('action_status', 'UNOBSERVED')
