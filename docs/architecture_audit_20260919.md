@@ -72,6 +72,8 @@ Mesure sur 39 intervalles récents entre rapports publiés :
 
 Impact : un mouvement qui naît entre deux publications peut être détecté après une grande partie de son impulsion.
 
+Mesure d'un replay réel réussi : 1 574 requêtes publiques enregistrées sur ~147.6 s pour un seul cycle, dont 427 appels candles 15m/100, 427 appels candles 5m/100, des enrichissements 40/50 barres, 154 carnets et les contrôles associés. Le pipeline repaie donc plusieurs lectures sémantiquement proches au lieu de maintenir un état marché canonique.
+
 Correctif cible : sortir le radar temps réel de GitHub Actions. GitHub doit devenir audit/replay/release, pas l'horloge de trading.
 
 ## P1 — Fortes sources de faux négatifs
@@ -138,6 +140,8 @@ Correctif cible : après évaluation/versioning, faire de la Decision Layer un a
 
 Le collecteur legacy résume la dernière bougie retournée sans filtre explicite de bougie close. Le pipeline full-universe, lui, utilise closed_candles().
 
+Preuve réelle : dans le snapshot de 23:23 UTC, HYPE-EUR contenait comme dernière bougie 15m une bougie ouverte à 23:15 et fermant à 23:30 ; elle était donc encore en formation au moment du scoring.
+
 Impact :
 - scoring potentiellement fondé sur une bougie en formation ;
 - validation fondée sur une bougie close ;
@@ -178,11 +182,12 @@ Correctif cible : alimenter ce contrôle par toutes les rows V4, pas la vue publ
 ### P2.2 Évaluation historique mélange plusieurs architectures
 
 Snapshot :
-- 839 scans ;
+- ~840 scans ;
 - ~360k observations ;
-- 515 épisodes d'achat ;
-- 182 épisodes complets ;
-- EV théorique par trade rempli ~ -3.38 EUR ;
+- ~516 épisodes d'achat ;
+- ~183 épisodes complets ;
+- seulement 2 trades théoriques avec plan/exécution suffisamment complets pour calculer l'EV ;
+- EV affichée ~ -3.38 EUR, donc échantillon beaucoup trop petit pour une conclusion ;
 - à 4h/+5% : recall ~30.4 %, précision détection ~19.7 %, précision buy ~8.1 %.
 
 Mais l'historique mélange les versions successives du système et la majorité des outcomes est censurée.
@@ -205,7 +210,17 @@ Conséquence :
 - mais le système ne connaît pas réellement le cash, les positions, les ordres manuels et le risque déjà engagé ;
 - VENDS / PRENDS TES PROFITS / RELÈVE LE STOP ne peut pas fonctionner correctement à partir du compte réel.
 
-### P2.4 Validation finale n'utilise pas encore toute la microstructure disponible
+### P2.4 Cooldown global d'alerte
+
+email_alert_v4.py applique :
+- 30 min de cooldown global tous marchés confondus ;
+- 4 h de cooldown par marché.
+
+Le fallback public valide les candidats puis envoie seulement le premier candidat validé. Après cet email, le cooldown global peut retarder/supprimer une deuxième opportunité indépendante.
+
+Correctif cible : dédupliquer par épisode/marché et regrouper plusieurs candidats simultanés dans un même message, plutôt que bloquer le marché B parce que le marché A a envoyé une alerte.
+
+### P2.5 Validation finale n'utilise pas encore toute la microstructure disponible
 
 send_useful_alert.py vérifie prix, spread, drift, 15m et plan de risque.
 Oracle sait déjà fournir profondeur, slippage et flux de trades publics.
