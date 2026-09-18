@@ -7,9 +7,15 @@ import tempfile
 import unittest
 
 from research.adaptive_entry import promotion_signal, promote_and_enrich
+import research.replay as replay_module
 
 
 class AdaptiveEntryTests(unittest.TestCase):
+    def test_replay_preserves_raw_and_legacy_runners(self):
+        self.assertIn("v4_detector.main()", replay_module.RAW_RUNNER)
+        self.assertNotIn("v4_stabilizer.main()", replay_module.RAW_RUNNER)
+        self.assertIn("v4_stabilizer.main()", replay_module.FULL_RUNNER)
+
     def test_emerging_mover_is_promoted(self):
         row = {
             "market": "TEST-EUR",
