@@ -247,6 +247,16 @@ def run():
         captured.update({'rows': copy.deepcopy(rows), 'enriched': copy.deepcopy(enriched),
                          'generated_at_utc': generated, 'scan_ts': time.time()})
     v4_detector.main(audit_sink=observe)
+    from research.adaptive_entry import promote_and_enrich, patch_watch_output
+    adaptive_audit = promote_and_enrich(
+        captured['rows'], captured['enriched'], captured['generated_at_utc'],
+        captured['scan_ts'], live.get('details') or {}
+    )
+    patch_watch_output(captured['rows'], captured['enriched'], adaptive_audit)
+    print('ADAPTIVE_ENTRY ' + json.dumps({
+        'promoted': adaptive_audit.get('promoted_count'),
+        'total_enriched': adaptive_audit.get('total_enriched_count'),
+    }, ensure_ascii=False), flush=True)
     v4_stabilizer.main()
     baseline_output = read_json('v4_watch.json')
     legacy_control.main()
@@ -289,7 +299,9 @@ def run():
                 quality['reasons'].append('MISSING_' + interval.upper())
         if baseline:
             e = captured['enriched'].get(name, {})
-            if e.get('error') or 'NOT_ENTRY_ENRICHED' in baseline.get('risk_flags', []):
+            # Entry enrichment is a selection/capability state, not market-data quality.
+            # Only a real enrichment error belongs in data_quality.
+            if e.get('error'):
                 quality['reasons'].append('ENTRY_INPUTS_UNAVAILABLE')
             profile = baseline.get('trend_profile') or {}
             if baseline.get('buy_ready') and (baseline_ts - finite(profile.get('updated_ts'), 0) > 3 * 3600):
@@ -306,8 +318,15 @@ def run():
             exclusions.append('LEGACY_VOLUME_PREFILTER_OR_COLLECTION_FAILURE')
         exclusions += quality['reasons']
         trade = plan(row, features, meta) if row.get('buy_ready') and quality['ok'] else None
+        entry_enrichment = (
+            'ERROR' if baseline and (captured['enriched'].get(name) or {}).get('error')
+            else 'AVAILABLE' if baseline and name in captured['enriched']
+            else 'NOT_SELECTED' if baseline
+            else 'NOT_APPLICABLE'
+        )
         obs = {'market': name, 'price_eur': last, 'change_24h_pct': change24, 'baseline': baseline,
                'category': cls, 'features': {'5m': m5.get('features'), '15m': features},
+               'entry_enrichment': entry_enrichment,
                'score_components': score_components(row, before['v4_history.json'].get('markets', {}).get(name, {}), timestamp(live['generated_at_utc'])) if baseline else None,
                'data_quality': quality, 'exclusions': exclusions, 'chase_risk': chase_risk(features, change24),
                'wick_setup': wick_setup(features, row), 'nil_match': nil_match(features),
