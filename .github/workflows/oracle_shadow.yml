@@ -1,0 +1,34 @@
+name: Oracle enriched public probe shadow
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '*/5 * * * *'
+  push:
+    branches: [main]
+    paths:
+      - 'scripts/oracle_probe_snapshot.py'
+      - '.github/workflows/oracle_shadow.yml'
+
+permissions:
+  contents: write
+
+concurrency:
+  group: oracle-public-probe-shadow
+  cancel-in-progress: true
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Fetch enriched Oracle public probes
+        run: python scripts/oracle_probe_snapshot.py
+      - name: Publish sanitized shadow snapshot safely
+        run: python scripts/publish_data.py --oracle-shadow

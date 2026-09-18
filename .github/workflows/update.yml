@@ -141,7 +141,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: scan-replay-${{ github.run_id }}
+          name: scan-replay-${{ github.run_id }}-${{ github.run_attempt }}
           retention-days: 90
           path: |
             scan-code/runtime/replay-*.json.gz
@@ -162,6 +162,9 @@ jobs:
       - uses: actions/upload-pages-artifact@v3
         if: success() && steps.publication.outcome == 'success'
         with:
+          name: github-pages-${{ github.run_id }}-${{ github.run_attempt }}
           path: scan-code/_site
       - uses: actions/deploy-pages@v4
         if: success() && steps.publication.outcome == 'success'
+        with:
+          artifact_name: github-pages-${{ github.run_id }}-${{ github.run_attempt }}
