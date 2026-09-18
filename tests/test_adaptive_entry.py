@@ -45,6 +45,43 @@ class AdaptiveEntryTests(unittest.TestCase):
         self.assertIn("RANK_SURGE", signal["reasons"])
         self.assertIn("HIGH_IGNITION", signal["reasons"])
 
+    def test_large_movers_cannot_be_crowded_out_by_persistent_watchlist(self):
+        rows = []
+        history = {"version": 4, "markets": {}}
+        for i in range(30):
+            market = f"W{i}-EUR"
+            rows.append({
+                "market": market, "quote_volume_24h_eur": 500_000,
+                "change_24h_pct": 1.0, "m15": {},
+                "trajectory": {"drank_15m": 100},
+                "ignition_score": 8.0, "opportunity_score": 8.0,
+                "risk_flags": ["NOT_ENTRY_ENRICHED"],
+            })
+            history["markets"][market] = {"watch_until_ts": 2_000}
+        for market, change in (("F-EUR", 60.0), ("G-EUR", 50.0)):
+            rows.append({
+                "market": market, "quote_volume_24h_eur": 1_000_000,
+                "change_24h_pct": change, "m15": {}, "trajectory": {},
+                "ignition_score": 4.0, "opportunity_score": 4.0,
+                "risk_flags": ["NOT_ENTRY_ENRICHED"],
+            })
+
+        def fake_enrich(market, _details):
+            return market, {"error": "TEST_ONLY"}
+
+        with tempfile.TemporaryDirectory() as d:
+            old = os.getcwd()
+            try:
+                os.chdir(d)
+                Path("v4_history.json").write_text(json.dumps(history), encoding="utf-8")
+                audit = promote_and_enrich(rows, {}, "2026-09-19T00:00:00+00:00", 1_000,
+                                           {}, enrich_func=fake_enrich)
+            finally:
+                os.chdir(old)
+        promoted = {row["market"] for row in audit["promoted"]}
+        self.assertIn("F-EUR", promoted)
+        self.assertIn("G-EUR", promoted)
+
     def test_promoted_market_is_re_evaluated_in_same_cycle_with_frozen_entry_rules(self):
         row = {
             "market": "TEST-EUR",
