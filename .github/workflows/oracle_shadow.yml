@@ -35,8 +35,23 @@ jobs:
           git config user.name 'bitvavo-live-bot'
           git config user.email 'actions@users.noreply.github.com'
           git add oracle_live_probe.json
-          if ! git diff --cached --quiet; then
-            git commit -m 'Record Oracle enriched public probe shadow'
-            git pull --rebase origin main
-            git push origin HEAD:main
+          if git diff --cached --quiet; then
+            exit 0
           fi
+          git commit -m 'Record Oracle enriched public probe shadow'
+          for attempt in 1 2 3 4 5 6; do
+            git fetch origin main
+            if ! git rebase origin/main; then
+              git rebase --abort || true
+              echo 'Rebase conflict while publishing oracle_live_probe.json' >&2
+              exit 1
+            fi
+            if git push origin HEAD:main; then
+              exit 0
+            fi
+            if [ "${attempt}" -lt 6 ]; then
+              sleep $((attempt * 2))
+            fi
+          done
+          echo 'Failed to publish Oracle shadow after 6 attempts.' >&2
+          exit 1
