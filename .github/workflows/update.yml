@@ -130,7 +130,7 @@ jobs:
           cp scan_feed.txt bitvavo_live.json live_quotes.json ethfi_live.json early_watch.txt early_watch.json _site/
           cp v4_watch.txt v4_watch.json v4_watch_raw.txt v4_watch_raw.json _site/
           cp market_control.txt market_control.json execution_snapshot.json _site/
-          cp v5_report.json v5_report.md pipeline_health.json data_quality_audit.json data_quality_audit.md evaluation.json proposed_orders.json _site/
+          cp v5_report.json v5_report.md pipeline_health.json data_quality_audit.json data_quality_audit.md adaptive_enrichment.json evaluation.json proposed_orders.json _site/
           cp decision_layer.json decision_layer.md _site/
           cp candidate_memory.json _site/
           cp /tmp/bitvavo-monitor/position_monitor_status.json _site/
@@ -143,7 +143,7 @@ jobs:
           <p><a href="v5_report.md">Dernier scan et contrôle des hausses</a></p>
           <p><a href="decision_layer.md">Decision Layer V1 — lecture shadow</a></p>
           <p><a href="candidate_memory.json">Watchlist persistante 24–72 h</a></p>
-          <p><a href="pipeline_health.json">État et fraîcheur des données</a></p>\n          <p><a href="data_quality_audit.md">Audit des rejets de données</a></p>
+          <p><a href="pipeline_health.json">État et fraîcheur des données</a></p>\n          <p><a href="data_quality_audit.md">Audit des rejets de données</a></p>\n          <p><a href="adaptive_enrichment.json">Audit enrichissement adaptatif</a></p>
           <p><a href="position_monitor_status.json">Disponibilité du suivi des positions</a></p>
           <p><a href="evaluation.json">Mesures chronologiques</a></p>
           <p><a href="v4_watch.txt">Décisions V4</a> · <a href="v4_watch_raw.json">V4 avant stabilisation</a></p>
