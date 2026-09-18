@@ -255,9 +255,16 @@ def evaluate(db):
         episodes.append({'market': obs['market'], 'ts': obs['ts'], 'future': future, 'trade': trade})
     complete_episodes = [e for e in episodes if e['future']['status'] == 'COMPLETE']
     trades = [e['trade'] for e in episodes if e['trade']['status'] == 'COMPLETE']
+    cohort_rows = db.execute(
+        "SELECT COALESCE(operational_policy,'LEGACY_UNVERSIONED') AS operational_policy, "
+        "COUNT(*) AS scans, MIN(ts) AS first_ts, MAX(ts) AS last_ts "
+        "FROM scans GROUP BY COALESCE(operational_policy,'LEGACY_UNVERSIONED') ORDER BY first_ts"
+    ).fetchall()
+    cohorts = [dict(r) for r in cohort_rows]
     return {'evaluation_spec': EVALUATION_SPEC, 'by_horizon': results,
             'observation_count': db.execute('SELECT COUNT(*) FROM observations').fetchone()[0],
             'scan_count': db.execute('SELECT COUNT(*) FROM scans').fetchone()[0],
+            'operational_policy_cohorts': cohorts,
             'false_negative_examples': diagnostics, 'buy_episodes': len(episodes),
             'complete_buy_episodes': len(complete_episodes),
             'median_buy_mae_pct': statistics.median(e['future']['mae_pct'] for e in complete_episodes) if complete_episodes else None,
@@ -270,4 +277,5 @@ def evaluate(db):
             'limitations': ['Overlapping observations are not independent; use episode counts.',
                            '5m OHLC cannot reveal tick-level stop/target order or executable depth.',
                            'No calibrated probabilities or statistical superiority claim.',
-                           'Old V4 signal logs are not substituted for missing decision history.']}
+                           'Old V4 signal logs are not substituted for missing decision history.',
+                           'Aggregate metrics mix legacy cohorts; use operational_policy cohorts for post-change claims.']}
