@@ -392,6 +392,7 @@ def run():
               'collected_at_utc': live['generated_at_utc'], 'ticker_age_seconds': finish - timestamp(ticker_at),
               'duration_seconds': finish - start, 'api_error_count': len(client.errors),
               'api_errors': client.errors, 'exchange_clock_offset_seconds': client.server_offset,
+              'trend_cache_guard': trend_guard,
               'ignored_markets': [{'market': m['market'], 'reason': m.get('status')} for m in markets_raw if m.get('quote') == 'EUR' and m.get('status') != 'trading']}
     if health['ticker_age_seconds'] > 300 or not markets or len(captured['rows']) < .5 * len(markets):
         health['status'] = 'DEGRADED'
