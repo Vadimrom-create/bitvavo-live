@@ -228,6 +228,15 @@ def run():
     collector.get_json = client.get
     collector.main()
     live = read_json('bitvavo_live.json')
+    from research.trend_cache_guard import ensure_fresh_trend_cache
+    trend_guard = ensure_fresh_trend_cache(
+        client,
+        [r.get('market') for r in live.get('markets', []) if isinstance(r, dict) and r.get('market')],
+        timestamp(live['generated_at_utc']),
+    )
+    # Replay must start from the actually refreshed cache state used by V4.
+    before['v4_trend_cache.json'] = read_json('v4_trend_cache.json', {})
+    print('TREND_CACHE_GUARD ' + json.dumps(trend_guard, ensure_ascii=False), flush=True)
     # Retain the actual input snapshots and baseline state for exact replay.
     replay_input = {'scan_id': scan_id, 'source_commit': os.getenv('GITHUB_SHA'), 'state_before': before,
                     'live': copy.deepcopy(live), 'baseline_manifest': read_json('baseline/v4_20260908/manifest.json')}
