@@ -44,8 +44,9 @@ def management_event(balance, plan, quote, features, meta, orders, now):
     precision = 10 ** -int(meta.get('quantityDecimals', 8))
     if initial is None or initial <= 0 or total > initial + precision or stop is None or stop <= 0:
         return None, 'POSITION_PLAN_MISMATCH'
+    orders_known = isinstance(orders, list)
     active = [o for o in orders if o.get('market') == market and o.get('side') == 'sell'
-              and o.get('status') in {'new', 'partiallyFilled', 'awaitingTrigger'}]
+              and o.get('status') in {'new', 'partiallyFilled', 'awaitingTrigger'}] if orders_known else []
     full_stops = [o for o in active if o.get('orderType') in {'stopLoss', 'stopLossLimit'}
                   and finite(o.get('amountRemaining'), 0) >= total - precision
                   and finite(o.get('triggerAmount', o.get('triggerPrice')), 0) > 0]
@@ -53,6 +54,7 @@ def management_event(balance, plan, quote, features, meta, orders, now):
     stop = max([stop] + [finite(o.get('triggerAmount', o.get('triggerPrice'))) for o in full_stops])
     event = {'market': market, 'position_id': str(plan['position_id']), 'price_eur': bid,
              'stop_eur': stop, 'amount': total, 'requires_human_approval': True, 'dry_run': True,
+             'open_orders_known': orders_known,
              'observed_at_utc': quote['retrieved_at_utc'], 'action': None}
     if bid <= stop:
         already_pending = any(o.get('orderType') in {'market', 'stopLoss'} and
@@ -62,7 +64,7 @@ def management_event(balance, plan, quote, features, meta, orders, now):
         if already_pending:
             return None, 'EQUIVALENT_EXIT_ORDER_ALREADY_OPEN'
         return {**event, 'action': SELL, 'reason': 'Le prix acheteur a franchi le stop de gestion vérifié.',
-                'review_open_orders_first': bool(active), 'trigger_key': 'stop_breach'}, 'ACTION'
+                'review_open_orders_first': (not orders_known) or bool(active), 'trigger_key': 'stop_breach'}, 'ACTION'
     if cost is None or cost <= 0:
         return None, 'VERIFIED_COST_BASIS_MISSING'
     fee = finite(plan.get('fee_rate', .0025))
@@ -82,7 +84,7 @@ def management_event(balance, plan, quote, features, meta, orders, now):
         if quantity * bid >= minimum and quantity >= finite(meta.get('minOrderInBaseAsset'), 0) and (ask / bid - 1) <= .01:
             return {**event, 'action': PARTIAL, 'amount': quantity, 'target_eur': tp1,
                     'reason': 'TP1 vérifié atteint, gain estimé positif après frais et glissement.',
-                    'review_open_orders_first': bool(active), 'trigger_key': 'tp1'}, 'ACTION'
+                    'review_open_orders_first': (not orders_known) or bool(active), 'trigger_key': 'tp1'}, 'ACTION'
     if not features.get('valid') or not freshness(now=now, retrieved=quote['retrieved_at_utc'],
             candle_start_ms=features.get('last_closed_start_ms'), interval='15m')['ok']:
         return None, 'TRAILING_STRUCTURE_UNAVAILABLE'
@@ -92,7 +94,7 @@ def management_event(balance, plan, quote, features, meta, orders, now):
         if candidate - stop >= max(.5 * atr, 2 * tick) and candidate > cost * (1 + friction) / (1 - friction):
             return {**event, 'action': TRAIL, 'new_stop_eur': candidate,
                     'reason': 'Support confirmé sur bougies closes ; nouveau stop au-dessus du seuil net de rentabilité.',
-                    'review_open_orders_first': bool(active), 'trigger_key': 'trail'}, 'ACTION'
+                    'review_open_orders_first': (not orders_known) or bool(active), 'trigger_key': 'trail'}, 'ACTION'
     return None, 'NO_JUSTIFIED_ACTION'
 
 
@@ -139,7 +141,9 @@ def message(events):
                   f"Stop : {e.get('new_stop_eur', e.get('stop_eur')):.10g} €"]
         if e.get('target_eur'):
             lines.append(f"Objectif : {e['target_eur']:.10g} €")
-        if e.get('review_open_orders_first'):
+        if e.get('open_orders_known') is False:
+            lines.append("Ordres ouverts non lisibles avec la clé API View access : vérifie les ordres Bitvavo existants avant toute intervention.")
+        elif e.get('review_open_orders_first'):
             lines.append('Vérifie les ordres de vente existants avant de modifier la position ou le stop.')
         lines += [f"Observation UTC : {e['observed_at_utc']}", '']
     lines.append('Validation humaine requise. Aucun ordre transmis. Vérifie le carnet avant toute action.')

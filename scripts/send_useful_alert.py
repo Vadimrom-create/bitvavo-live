@@ -161,6 +161,19 @@ def run_public_buy_fallback(status):
     return 0
 
 
+def view_only_buy_guard(account):
+    """Fail closed for private BUY alerts when reserved EUR may hide an open buy."""
+    eur = next((b for b in account.get('balances', []) if b.get('symbol') == 'EUR'), None)
+    if eur is None:
+        return False, 'BLOCKED_EUR_BALANCE_UNAVAILABLE'
+    available, locked = finite(eur.get('available')), finite(eur.get('in_order'))
+    if available is None or locked is None or min(available, locked) < 0:
+        return False, 'BLOCKED_EUR_BALANCE_INVALID'
+    if locked > 0:
+        return False, 'BLOCKED_EUR_IN_ORDER_UNKNOWN'
+    return True, 'READY_VIEW_ONLY_BALANCE'
+
+
 def run(status):
     key = os.getenv('BITVAVO_READ_API_KEY', '').strip()
     secret = os.getenv('BITVAVO_READ_API_SECRET', '').strip()
@@ -174,6 +187,12 @@ def run(status):
     if not isinstance(plans, dict):
         raise ValueError('INVALID_POSITION_PLANS')
     account = ReadOnlyAccount(key, secret).snapshot()
+    if (account.get('access_mode') != 'VIEW_ONLY_BALANCE' or
+            account.get('open_orders_visibility') != 'UNAVAILABLE_VIEW_ONLY'):
+        raise ValueError('STRICT_VIEW_ONLY_ACCOUNT_CONTRACT_REQUIRED')
+    status.update(account_access='VIEW_ONLY_BALANCE',
+                  open_orders='UNAVAILABLE_VIEW_ONLY',
+                  position_actions='VIEW_ONLY_BALANCE_MANUAL_ORDER_CHECK')
     if not freshness(now=time.time(), retrieved=account['retrieved_at_utc'], max_retrieval_age=120)['ok']:
         status.update(status='STALE', reason='ACCOUNT_SNAPSHOT_STALE', buy_alerts='BLOCKED')
         return 0
@@ -203,7 +222,9 @@ def run(status):
         try:
             quote, features, candles = market_inputs(client, market, time.time())
             inputs[market] = (quote, features, candles)
-            event, reason = management_event(balance, p, quote, features, metadata[market], account['orders'], time.time())
+            # Open-order details are intentionally unavailable: reading them would
+            # require a Bitvavo trading permission. Management stays conservative.
+            event, reason = management_event(balance, p, quote, features, metadata[market], None, time.time())
             observed[market]['assessment'] = reason
             if event:
                 events.append(event)
@@ -242,7 +263,9 @@ def run(status):
         except Exception:
             # Corrupt prospecting files must not suppress a justified exit.
             issues.append('BUY_INPUT_UNAVAILABLE')
-    can_buy = not issues and not events and not any(o.get('side') == 'buy' for o in account['orders'])
+    buy_guard_ok, buy_guard_status = view_only_buy_guard(account)
+    status['account_aware_buy_alerts'] = buy_guard_status
+    can_buy = not issues and not events and buy_guard_ok
     if can_buy:
         cash = next((b['available'] for b in account['balances'] if b['symbol'] == 'EUR'), 0)
         cfg = {**DEFAULTS, 'cash_eur': cash, 'existing_exposure_eur': exposure,
@@ -279,8 +302,10 @@ def run(status):
         selected = []
         issues.append('ACCOUNT_SNAPSHOT_STALE')
     save_state(STATE, state_key, state)
+    buy_status = ('BLOCKED' if issues else
+                  ('REQUIRES_FRESH_VALID_SIGNAL_AND_ACCOUNT_LIMITS' if buy_guard_ok else buy_guard_status))
     status.update(status='PARTIAL' if issues else 'OK', reason='SOME_CHECKS_UNAVAILABLE' if issues else 'CYCLE_COMPLETE',
-                  buy_alerts='BLOCKED' if issues else 'REQUIRES_FRESH_VALID_SIGNAL_AND_ACCOUNT_LIMITS')
+                  buy_alerts=buy_status)
     if not selected:
         status['email'] = 'NONE'
         return 0

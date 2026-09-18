@@ -1,4 +1,8 @@
-"""Minimal GET-only account adapter; no private payload enters public replay."""
+"""Strict view-only Bitvavo account adapter; no private payload enters public replay.
+
+Only /balance is permitted. Open-order endpoints require trading permission on
+Bitvavo and are intentionally unavailable to this monitor.
+"""
 from __future__ import annotations
 
 import hashlib
@@ -16,7 +20,9 @@ class NoRedirect(urllib.request.HTTPRedirectHandler):
 
 
 class ReadOnlyAccount:
-    ALLOWED = {'/balance', '/ordersOpen'}
+    ALLOWED = {'/balance'}
+    ACCESS_MODE = 'VIEW_ONLY_BALANCE'
+    OPEN_ORDERS_VISIBILITY = 'UNAVAILABLE_VIEW_ONLY'
 
     def __init__(self, key, secret):
         if not key or not secret:
@@ -47,7 +53,6 @@ class ReadOnlyAccount:
     def snapshot(self):
         balances = self.get('/balance')
         retrieved = utc()
-        orders = self.get('/ordersOpen')
         normalized = []
         for row in balances:
             available, locked = finite(row.get('available')), finite(row.get('inOrder'))
@@ -56,4 +61,9 @@ class ReadOnlyAccount:
                 raise ValueError('INVALID_BALANCE')
             normalized.append({'symbol': symbol, 'available': available, 'in_order': locked,
                                'amount': available + locked})
-        return {'retrieved_at_utc': retrieved, 'balances': normalized, 'orders': orders}
+        return {
+            'retrieved_at_utc': retrieved,
+            'balances': normalized,
+            'access_mode': self.ACCESS_MODE,
+            'open_orders_visibility': self.OPEN_ORDERS_VISIBILITY,
+        }

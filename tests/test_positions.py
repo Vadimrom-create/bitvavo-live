@@ -111,10 +111,36 @@ class Positions(unittest.TestCase):
     def test_private_adapter_has_no_trading_route(self):
         client = ReadOnlyAccount('unit-test-key', 'unit-test-secret')
         with patch.object(client.opener, 'open') as network:
-            for endpoint in ['/order', '/withdrawal', '/balance?redirect=https://example.org']:
+            self.assertEqual(client.ALLOWED, {'/balance'})
+            for endpoint in ['/ordersOpen', '/order', '/withdrawal', '/balance?redirect=https://example.org']:
                 with self.assertRaises(PermissionError):
                     client.get(endpoint)
             network.assert_not_called()
+
+    def test_view_only_snapshot_reads_balance_only(self):
+        client = ReadOnlyAccount('unit-test-key', 'unit-test-secret')
+        rows = [{'symbol': 'EUR', 'available': '100', 'inOrder': '25'},
+                {'symbol': 'ABC', 'available': '8', 'inOrder': '2'}]
+        with patch.object(client, 'get', return_value=rows) as get:
+            snapshot = client.snapshot()
+        get.assert_called_once_with('/balance')
+        self.assertNotIn('orders', snapshot)
+        self.assertEqual(snapshot['access_mode'], 'VIEW_ONLY_BALANCE')
+        self.assertEqual(snapshot['open_orders_visibility'], 'UNAVAILABLE_VIEW_ONLY')
+        self.assertEqual(snapshot['balances'][1]['amount'], 10)
+
+    def test_unknown_open_orders_never_claim_equivalent_order_absent(self):
+        self.quote.update(bid=8.9, ask=8.91)
+        event, reason = self.assess(orders=None)
+        self.assertEqual((event['action'], reason), (SELL, 'ACTION'))
+        self.assertFalse(event['open_orders_known'])
+        self.assertTrue(event['review_open_orders_first'])
+
+    def test_view_only_buy_guard_blocks_reserved_eur(self):
+        account = {'balances': [{'symbol': 'EUR', 'available': 100., 'in_order': 25., 'amount': 125.}]}
+        self.assertEqual(runner.view_only_buy_guard(account), (False, 'BLOCKED_EUR_IN_ORDER_UNKNOWN'))
+        account['balances'][0]['in_order'] = 0.
+        self.assertEqual(runner.view_only_buy_guard(account), (True, 'READY_VIEW_ONLY_BALANCE'))
 
     def test_encrypted_state_rebuild_and_tamper_refusal(self):
         key = Fernet.generate_key().decode()
@@ -205,7 +231,10 @@ class Positions(unittest.TestCase):
 
     def test_every_holding_checked_without_prospecting_and_smtp_failure_retry(self):
         account = {'retrieved_at_utc': utc(self.now), 'balances': [self.balance,
-                   {**self.balance, 'symbol': 'XYZ'}], 'orders': []}
+                   {**self.balance, 'symbol': 'XYZ'}, {'symbol': 'EUR', 'amount': 100.,
+                    'available': 100., 'in_order': 0.}],
+                   'access_mode': 'VIEW_ONLY_BALANCE',
+                   'open_orders_visibility': 'UNAVAILABLE_VIEW_ONLY'}
         metadata = [dict(self.meta, market=m, quote='EUR', status='trading') for m in ['ABC-EUR', 'XYZ-EUR']]
         class Public:
             server_offset = 0
