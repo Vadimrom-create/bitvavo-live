@@ -27,6 +27,7 @@ from research.http import PublicClient
 from research.risk import correlation, plan, proposed_order
 
 POLICY = 'V4_FROZEN_20260908'
+OPERATIONAL_POLICY = 'V4_FROZEN_20260908+ADAPTIVE_ENTRY_V1+TREND_GUARD_V1'
 STATE_FILES = ['scan_history.json', 'signal_log.json', 'v4_history.json', 'v4_signal_log.json',
                'v4_trend_cache.json', 'v4_stability_state.json', 'v4_config.json']
 
@@ -400,8 +401,10 @@ def run():
             obs['decision'] = 'DATA UNAVAILABLE'
             obs['exclusions'].append('PIPELINE_DEGRADED')
         buys = []
-    scan = {'schema_version': 1, 'scan_id': scan_id, 'scan_ts': baseline_ts, 'scan_at_utc': utc(baseline_ts),
-            'policy': POLICY, 'source': 'live', 'observations': observations, 'candles_5m': new_candles(db, candles5),
+    scan = {'schema_version': 2, 'scan_id': scan_id, 'scan_ts': baseline_ts, 'scan_at_utc': utc(baseline_ts),
+            'policy': POLICY, 'operational_policy': OPERATIONAL_POLICY,
+            'source_commit': os.getenv('GITHUB_SHA'), 'source': 'live',
+            'observations': observations, 'candles_5m': new_candles(db, candles5),
             'candle_storage': 'FIRST_SEEN_DELTA_REBUILD_ALL_JOURNALS',
             'health': health, 'baseline_input_policy': 'legacy includes forming candles; closed diagnostics never change V4 scoring'}
     journal = save_scan('history', scan)
@@ -412,7 +415,31 @@ def run():
     control = market_control(db, observations, baseline_ts, candles15)
     watch = sorted([o for o in observations if o['decision'] == 'SURVEILLE'],
                    key=lambda o: (o.get('baseline') or {}).get('opportunity_score', 0), reverse=True)[:5]
-    report = {'scan_id': scan_id, 'scan_at_utc': utc(baseline_ts), 'health': health, 'buy': buys, 'watch': watch,
+    funnel = {
+        'schema': 'decision_funnel_v1',
+        'scan_id': scan_id,
+        'operational_policy': OPERATIONAL_POLICY,
+        'source_commit': os.getenv('GITHUB_SHA'),
+        'active_eur_markets': len(markets),
+        'legacy_collector_markets': len(live.get('markets', [])),
+        'v4_scored_markets': len(captured['rows']),
+        'v4_base_entry_enriched': adaptive_audit.get('base_enriched_count'),
+        'adaptive_candidates': adaptive_audit.get('candidate_count'),
+        'adaptive_promoted': adaptive_audit.get('promoted_count'),
+        'total_entry_enriched': adaptive_audit.get('total_enriched_count'),
+        'valid_5m': sum(bool((o['features'].get('5m') or {}).get('valid')) for o in observations),
+        'valid_15m': sum(bool((o['features'].get('15m') or {}).get('valid')) for o in observations),
+        'data_quality_ok': sum(o['data_quality']['ok'] for o in observations),
+        'v4_watch_or_better': sum((o.get('baseline') or {}).get('action_status') in {'WATCH','ENTRY_WINDOW','BUY_READY','REENTRY_READY'} for o in observations),
+        'v4_entry_window_or_better': sum((o.get('baseline') or {}).get('action_status') in {'ENTRY_WINDOW','BUY_READY','REENTRY_READY'} for o in observations),
+        'v4_buy_ready': sum(bool((o.get('baseline') or {}).get('buy_ready')) for o in observations),
+        'final_buy': len(buys),
+        'drop_reason_counts': dict(Counter(reason for o in observations for reason in o.get('exclusions', []))),
+    }
+    atomic_json('decision_funnel.json', funnel)
+    report = {'scan_id': scan_id, 'scan_at_utc': utc(baseline_ts),
+              'operational_policy': OPERATIONAL_POLICY, 'source_commit': os.getenv('GITHUB_SHA'),
+              'health': health, 'decision_funnel': funnel, 'buy': buys, 'watch': watch,
               'blocked_baseline_buys': [{'market': o['market'], 'exclusions': o['exclusions']} for o in observations
                                       if (o.get('baseline') or {}).get('buy_ready') and o not in buys],
               'market_control': control, 'evaluation': evaluation, 'journal_path': str(journal),
