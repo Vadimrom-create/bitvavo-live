@@ -14,6 +14,8 @@ from v3_common import f, maybe, pct
 from v4_common import load_v4_history, save_json, suggested_trade_plan, V4_HISTORY
 
 EXTRA_ENRICH_CAP = 24
+URGENT_MOVER_CAP = 12
+ACCELERATION_CAP = 8
 MIN_PROMOTION_VOLUME_EUR = 75_000
 MIN_WATCH_VOLUME_EUR = 30_000
 AUDIT_PATH = Path("adaptive_enrichment.json")
@@ -171,7 +173,50 @@ def promote_and_enrich(rows: list[dict], enriched: dict, generated: str, now_ts:
             candidates.append((signal["score"], f(row.get("quote_volume_24h_eur")), market, signal, row))
 
     candidates.sort(key=lambda x: (x[0], x[1]), reverse=True)
-    selected = candidates[:EXTRA_ENRICH_CAP]
+
+    # One global ranking let persistent-watch candidates crowd out fresh movers.
+    # Reserve capacity for current movement and acceleration first; fill the
+    # remainder by overall score. This changes selection only, never V4 scoring.
+    selected = []
+    selected_markets = set()
+    def take(pool, limit):
+        for item in pool:
+            market = item[2]
+            if market in selected_markets:
+                continue
+            selected.append(item)
+            selected_markets.add(market)
+            if sum(1 for x in selected if x in pool) >= limit:
+                break
+
+    urgent = sorted(
+        [x for x in candidates if any(r in x[3]["reasons"] for r in ("LARGE_MOVER_24H", "EMERGING_MOVER_24H"))],
+        key=lambda x: (f(x[4].get("change_24h_pct")), x[0], x[1]),
+        reverse=True,
+    )
+    acceleration = sorted(
+        [x for x in candidates if any(r in x[3]["reasons"] for r in
+             ("RANK_SURGE", "FAST_PRICE_ACCELERATION", "M15_IMPULSE", "H1_ACCELERATION", "VOLUME_SPIKE", "VOLUME_ACCELERATION"))],
+        key=lambda x: (x[0], x[1]),
+        reverse=True,
+    )
+
+    for item in urgent[:URGENT_MOVER_CAP]:
+        selected.append(item); selected_markets.add(item[2])
+    accel_added = 0
+    for item in acceleration:
+        if item[2] in selected_markets:
+            continue
+        selected.append(item); selected_markets.add(item[2]); accel_added += 1
+        if accel_added >= ACCELERATION_CAP:
+            break
+    for item in candidates:
+        if len(selected) >= EXTRA_ENRICH_CAP:
+            break
+        if item[2] in selected_markets:
+            continue
+        selected.append(item); selected_markets.add(item[2])
+    selected = selected[:EXTRA_ENRICH_CAP]
     promoted = []
     details = live_details or {}
 
@@ -218,6 +263,8 @@ def promote_and_enrich(rows: list[dict], enriched: dict, generated: str, now_ts:
         "mode": "OPERATIONAL_SAME_CYCLE",
         "base_enriched_count": len(existing),
         "extra_cap": EXTRA_ENRICH_CAP,
+        "urgent_mover_cap": URGENT_MOVER_CAP,
+        "acceleration_cap": ACCELERATION_CAP,
         "candidate_count": len(candidates),
         "promoted_count": len(promoted),
         "total_enriched_count": len(enriched),
