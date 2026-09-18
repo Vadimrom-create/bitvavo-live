@@ -1,0 +1,33 @@
+name: Oracle on-demand public probe
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'oracle_probe_request.json'
+      - 'scripts/oracle_probe_request.py'
+      - '.github/workflows/oracle_request.yml'
+
+permissions:
+  contents: write
+
+concurrency:
+  group: oracle-on-demand-probe
+  cancel-in-progress: true
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Fetch requested Oracle public probe
+        run: python scripts/oracle_probe_request.py
+      - name: Publish requested probe safely
+        run: python scripts/publish_data.py --oracle-request

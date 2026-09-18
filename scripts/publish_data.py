@@ -34,6 +34,8 @@ OWNERS = {'prospection':GENERATED,'monitoring':ALERT_STATE,'evaluation':EVALUATI
           'pilot_evaluation':['prospective_report.json','prospective_reports']}
 OWNERS.update(quotes=['live_quotes.json','ethfi_live.json','quotes_manifest.json','producer_manifests/quotes'],
               feedback=['feedback_report.json','feedback_state','feedback_history','feedback_manifest.json','producer_manifests/feedback'])
+OWNERS.update(oracle_request=['oracle_requested_probe.json'],
+              oracle_shadow=['oracle_live_probe.json'])
 IMMUTABLE = {'history_corrected','history_legacy_diagnostics','decision_history_v2','decision_history_versioned',
              'comparison_history','replay_history','scan_manifests','evaluation_history','publication_history','scan_attempts',
              'prospective_sessions','prospective_observations','prospective_reports'}
@@ -96,6 +98,10 @@ def publish(files, message, source=None, base_sha=None, branch='main'):
 
 
 def main():
+    if '--oracle-request' in sys.argv:
+        return publish(OWNERS['oracle_request'],'Record requested Oracle public probe')
+    if '--oracle-shadow' in sys.argv:
+        return publish(OWNERS['oracle_shadow'],'Record Oracle enriched public probe shadow')
     from research.common import read_json
     from research.input_contract import digest
     from research.publication import file_hash, immutable_json
