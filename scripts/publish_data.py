@@ -14,7 +14,7 @@ GENERATED = ['bitvavo_live.json', 'live_quotes.json', 'ethfi_live.json', 'scan_f
              'signal_log.json', 'v4_watch.txt', 'v4_watch.json', 'v4_history.json', 'v4_signal_log.json',
              'v4_trend_cache.json', 'v4_watch_raw.txt', 'v4_watch_raw.json', 'v4_stability_state.json',
              'market_control.txt', 'market_control.json', 'execution_snapshot.json', 'v5_report.json', 'v5_report.md',
-             'pipeline_health.json', 'data_quality_audit.json', 'data_quality_audit.md', 'adaptive_enrichment.json', 'evaluation.json', 'proposed_orders.json', 'alert_candidates.json', 'history',
+             'pipeline_health.json', 'trend_cache_guard.json', 'data_quality_audit.json', 'data_quality_audit.md', 'adaptive_enrichment.json', 'evaluation.json', 'proposed_orders.json', 'alert_candidates.json', 'history',
              'decision_layer.json', 'decision_layer.md', 'candidate_memory.json', 'decision_history']
 ALERT_STATE = ['alert_state_v4.json', 'security_alert_state.json', 'position_alert_state.enc.json', 'position_monitor_status.json']
 
