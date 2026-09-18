@@ -1,6 +1,6 @@
 # Decision Layer V1 + boucle de contrôle — shadow
 
-Scan : 2026-09-18T03:59:11.600505+00:00
+Scan : 2026-09-18T04:20:25.845821+00:00
 Policy : DECISION_LAYER_V1_SHADOW au-dessus de V4_FROZEN_20260908
 
 Cette couche ne modifie aucun score V4 et ne peut envoyer aucun ordre.
@@ -11,46 +11,44 @@ Entry est un indicateur de timing, pas un veto structurel.
 - **MEILLEUR_ACHAT_IMMEDIAT** : aucun candidat matériel
 - **MEILLEURE_LIMITE_PASSIVE** : aucun candidat matériel
 - **MEILLEUR_LATENT_ACCELERATOR** : aucun candidat matériel
-- **MEILLEUR_PULLBACK_REENTRY** : USELESS-EUR | action ATTENDS_REPRISE_OU_REENTREE | opportunité 9.105 | entrée 7.750 | trend 8.100 | rang 7.912
+- **MEILLEUR_PULLBACK_REENTRY** : SYRUP-EUR | action ATTENDS_REPRISE_OU_REENTREE | opportunité 9.157 | entrée 7.050 | trend 7.950 | rang 8.004
   - Strong trend/opportunity retained through pullback; timing does not erase setup.
 
 ## Top cross-sectionnel
 
-1. USELESS-EUR — MEILLEUR_PULLBACK_REENTRY — ATTENDS_REPRISE_OU_REENTREE — rank 7.912
-2. SYRUP-EUR — MEILLEUR_PULLBACK_REENTRY — ATTENDS_REPRISE_OU_REENTREE — rank 7.686
-3. DOT-EUR — MEILLEUR_PULLBACK_REENTRY — ATTENDS_REPRISE_OU_REENTREE — rank 7.243
+1. SYRUP-EUR — MEILLEUR_PULLBACK_REENTRY — ATTENDS_REPRISE_OU_REENTREE — rank 8.004
+2. DOT-EUR — MEILLEUR_PULLBACK_REENTRY — ATTENDS_REPRISE_OU_REENTREE — rank 7.387
+3. USELESS-EUR — MEILLEUR_PULLBACK_REENTRY — ATTENDS_REPRISE_OU_REENTREE — rank 7.345
 
 ## Accélération indépendante
 
-- ARB-EUR — CONFIRMED_ACCELERATION — score 7.749/10 — DETECTED_BUT_TOO_LATE
-- USELESS-EUR — CONFIRMED_ACCELERATION — score 7.016/10 — DETECTED_BUT_TOO_LATE
-- WLD-EUR — BUILDING_ACCELERATION — score 6.165/10 — DETECTED_BUT_TOO_LATE
+Aucune accélération indépendante confirmée ou en construction.
 
 ## Watchlist persistante 24–72 h
 
 - CNPY-EUR — MEMORY_24H — score mémoire 9.527/10 — sources ACCELERATION, V4 — MEMORY_ONLY
-- LDO-EUR — ACTIVE_NOW — score mémoire 8.485/10 — sources V4 — WATCH_ONLY
-- SOMI-EUR — ACTIVE_NOW — score mémoire 8.271/10 — sources V4 — WATCH_ONLY
-- VET-EUR — ACTIVE_NOW — score mémoire 8.252/10 — sources ACCELERATION, DECISION_LAYER, V4 — WATCH_ONLY
-- ETHFI-EUR — ACTIVE_NOW — score mémoire 8.189/10 — sources V4 — WATCH_ONLY
-- YB-EUR — ACTIVE_NOW — score mémoire 8.151/10 — sources V4 — WATCH_ONLY
-- ICP-EUR — ACTIVE_NOW — score mémoire 8.069/10 — sources V4 — WATCH_ONLY
-- ENS-EUR — ACTIVE_NOW — score mémoire 8.054/10 — sources V4 — WATCH_ONLY
-- VTHO-EUR — ACTIVE_NOW — score mémoire 7.963/10 — sources ACCELERATION, DECISION_LAYER, V4 — WATCH_ONLY
-- XVG-EUR — ACTIVE_NOW — score mémoire 7.952/10 — sources V4 — WATCH_ONLY
+- LDO-EUR — ACTIVE_NOW — score mémoire 8.393/10 — sources V4 — WATCH_ONLY
+- ETHFI-EUR — ACTIVE_NOW — score mémoire 8.292/10 — sources V4 — DETECTED_BUT_TOO_LATE
+- SOMI-EUR — ACTIVE_NOW — score mémoire 8.282/10 — sources V4 — WATCH_ONLY
+- SYRUP-EUR — ACTIVE_NOW — score mémoire 8.004/10 — sources ACCELERATION, DECISION_LAYER, V4 — WATCH_ONLY
+- YB-EUR — ACTIVE_NOW — score mémoire 8.000/10 — sources V4 — WATCH_ONLY
+- VET-EUR — ACTIVE_NOW — score mémoire 7.992/10 — sources ACCELERATION, DECISION_LAYER, V4 — WATCH_ONLY
+- VTHO-EUR — ACTIVE_NOW — score mémoire 7.983/10 — sources ACCELERATION, DECISION_LAYER, V4 — WATCH_ONLY
+- XVG-EUR — ACTIVE_NOW — score mémoire 7.975/10 — sources V4 — WATCH_ONLY
+- FORM-EUR — ACTIVE_NOW — score mémoire 7.974/10 — sources V4 — DETECTED_BUT_TOO_LATE
 
 ## Audit des plus fortes hausses
 
-- TREAD-EUR +55.33% — DETECTED_EARLY — couche NONE — action INTERPRETATION
-- AVA-EUR +47.47% — NOT_DETECTED — couche DATA — action NOT_APPLICABLE
-- COTI-EUR +39.13% — DETECTED_EARLY — couche NONE — action INTERPRETATION
-- ARB-EUR +35.74% — DETECTED_EARLY — couche NONE — action INTERPRETATION
-- DRIFT-EUR +33.44% — DETECTED_EARLY — couche NONE — action INTERPRETATION
-- NEAR-EUR +29.12% — DETECTED_EARLY — couche NONE — action ENTRY_TIMING_OR_EXECUTION
-- CROSS-EUR +28.72% — DETECTED_EARLY — couche NONE — action INTERPRETATION
-- UNI-EUR +26.66% — DETECTED_EARLY — couche NONE — action INTERPRETATION
-- CNPY-EUR +25.55% — DETECTED_EARLY — couche NONE — action INTERPRETATION
-- APT-EUR +22.31% — DETECTED_EARLY — couche NONE — action INTERPRETATION
+- AVA-EUR +52.23% — NOT_DETECTED — couche DATA — action NOT_APPLICABLE
+- TREAD-EUR +41.51% — DETECTED_EARLY — couche NONE — action INTERPRETATION
+- COTI-EUR +35.86% — DETECTED_EARLY — couche NONE — action INTERPRETATION
+- ARB-EUR +35.81% — DETECTED_EARLY — couche NONE — action INTERPRETATION
+- DRIFT-EUR +32.01% — DETECTED_EARLY — couche NONE — action INTERPRETATION
+- NEAR-EUR +31.30% — DETECTED_EARLY — couche NONE — action ENTRY_TIMING_OR_EXECUTION
+- CNPY-EUR +27.66% — DETECTED_EARLY — couche NONE — action INTERPRETATION
+- UNI-EUR +27.54% — DETECTED_EARLY — couche NONE — action INTERPRETATION
+- CROSS-EUR +24.01% — DETECTED_EARLY — couche NONE — action INTERPRETATION
+- AGI-EUR +22.23% — NOT_DETECTED — couche DATA — action NOT_APPLICABLE
 
 ## Garde-fous
 
