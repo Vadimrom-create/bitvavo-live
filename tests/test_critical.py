@@ -181,6 +181,15 @@ class HistoryEvaluationTests(unittest.TestCase):
         scan = sample_scan(); ingest(self.db, scan); ingest(self.db, scan)
         self.assertEqual(self.db.execute('SELECT COUNT(*) FROM observations').fetchone()[0], 1)
 
+    def test_operational_policy_and_commit_are_preserved(self):
+        s = sample_scan()
+        s['operational_policy'] = 'TEST_OPERATIONAL_V1'
+        s['source_commit'] = 'abc123'
+        ingest(self.db, s)
+        row = self.db.execute('SELECT operational_policy,source_commit FROM scans WHERE id=?', ('a',)).fetchone()
+        self.assertEqual(row['operational_policy'], 'TEST_OPERATIONAL_V1')
+        self.assertEqual(row['source_commit'], 'abc123')
+
     def test_recurring_deduplicates_same_15m_period(self):
         ingest(self.db, sample_scan(NOW, 'a', True))
         ingest(self.db, sample_scan(NOW+60, 'b', True))
