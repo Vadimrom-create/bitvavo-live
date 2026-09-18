@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import argparse
 import copy
+from collections import Counter
 import hashlib
 import importlib.util
 import json
@@ -17,7 +18,7 @@ import uuid
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
 
-from research.common import atomic_json, finite, freshness, read_json, timestamp, utc
+from research.common import INTERVAL_MS, atomic_json, finite, freshness, read_json, timestamp, utc
 from research.evaluation import evaluate, market_control
 from research.feedback_loop import acceleration_signal
 from research.features import category, chase_risk, closed_candles, describe, nil_match, score_components, wick_setup
@@ -50,6 +51,7 @@ def collect_universe(client, markets, ticker, now):
                 record = client.metadata('/' + name + '/candles', params)
                 cs = closed_candles(raw, interval, now)
                 data['timeframes'][interval] = {'candles': cs, 'features': describe(cs, interval),
+                                                'raw_count': len(raw), 'closed_count': len(cs),
                                                 'retrieved_at_utc': record['retrieved_at_utc']}
             except (ValueError, RuntimeError, KeyError) as exc:
                 data['errors'].append({'interval': interval, 'reason': str(exc)})
@@ -60,6 +62,120 @@ def collect_universe(client, markets, ticker, now):
             name, data = future.result()
             results[name] = data
     return results
+
+
+def _interval_quality_snapshot(tf, interval):
+    candles = list(tf.get('candles') or [])
+    features = tf.get('features') or {}
+    duration = INTERVAL_MS[interval]
+    recent = candles[-25:]
+    gaps = []
+    for left, right in zip(recent, recent[1:]):
+        delta = int(right['t']) - int(left['t'])
+        steps = delta // duration if delta >= 0 and delta % duration == 0 else None
+        if steps != 1:
+            missing = max(0, steps - 1) if isinstance(steps, int) else None
+            gaps.append({'from_start_ms': int(left['t']), 'to_start_ms': int(right['t']),
+                         'missing_intervals': missing})
+    span_slots = None
+    coverage_pct = None
+    if len(recent) >= 2:
+        delta = int(recent[-1]['t']) - int(recent[0]['t'])
+        if delta >= 0 and delta % duration == 0:
+            span_slots = delta // duration + 1
+            coverage_pct = round(len(recent) / span_slots * 100, 2) if span_slots else None
+    return {
+        'raw_count': tf.get('raw_count'),
+        'closed_count': tf.get('closed_count', len(candles)),
+        'feature_valid': bool(features.get('valid')),
+        'feature_reasons': list(features.get('reasons') or []),
+        'bars_reported': features.get('bars'),
+        'gap_count_last_25_observed': len(gaps),
+        'missing_intervals_last_25_observed': sum(g['missing_intervals'] or 0 for g in gaps),
+        'largest_missing_run_last_25_observed': max([g['missing_intervals'] or 0 for g in gaps], default=0),
+        'coverage_pct_over_span_last_25_observed': coverage_pct,
+        'last_closed_start_ms': features.get('last_closed_start_ms'),
+        'last_closed_close_ms': features.get('last_closed_close_ms'),
+    }
+
+
+def build_data_quality_audit(observations, universe, scan_id, scan_at_utc):
+    quality_reasons = Counter()
+    reasons_5m = Counter()
+    reasons_15m = Counter()
+    combinations = Counter()
+    rows = []
+    for obs in observations:
+        name = obs['market']
+        qreasons = tuple(sorted(obs.get('data_quality', {}).get('reasons') or []))
+        quality_reasons.update(qreasons)
+        combinations[' + '.join(qreasons) if qreasons else 'OK'] += 1
+        tf5 = universe[name]['timeframes'].get('5m', {})
+        tf15 = universe[name]['timeframes'].get('15m', {})
+        d5 = _interval_quality_snapshot(tf5, '5m')
+        d15 = _interval_quality_snapshot(tf15, '15m')
+        reasons_5m.update(d5['feature_reasons'] or (['MISSING_FEATURES'] if not d5['feature_valid'] else []))
+        reasons_15m.update(d15['feature_reasons'] or (['MISSING_FEATURES'] if not d15['feature_valid'] else []))
+        baseline = obs.get('baseline') or {}
+        ticker = universe[name].get('ticker') or {}
+        quote_volume = finite(baseline.get('quote_volume_24h_eur'), finite(ticker.get('volumeQuote'), 0))
+        rows.append({
+            'market': name,
+            'data_quality_ok': bool(obs.get('data_quality', {}).get('ok')),
+            'quality_reasons': list(qreasons),
+            'change_24h_pct': obs.get('change_24h_pct'),
+            'quote_volume_24h_eur': quote_volume,
+            'baseline_present': bool(obs.get('baseline')),
+            '5m': d5,
+            '15m': d15,
+        })
+    rejected = [r for r in rows if not r['data_quality_ok']]
+    return {
+        'schema': 'data_quality_audit_v1',
+        'scan_id': scan_id,
+        'scan_at_utc': scan_at_utc,
+        'universe': len(rows),
+        'strategy_grade': sum(r['data_quality_ok'] for r in rows),
+        'rejected': len(rejected),
+        'valid_5m': sum(r['5m']['feature_valid'] for r in rows),
+        'valid_15m': sum(r['15m']['feature_valid'] for r in rows),
+        'both_intervals_feature_valid': sum(r['5m']['feature_valid'] and r['15m']['feature_valid'] for r in rows),
+        'quality_reason_counts': dict(quality_reasons.most_common()),
+        'feature_failure_counts_5m': dict(reasons_5m.most_common()),
+        'feature_failure_counts_15m': dict(reasons_15m.most_common()),
+        'quality_reason_combinations': dict(combinations.most_common()),
+        'top_volume_rejected': sorted(rejected, key=lambda r: finite(r['quote_volume_24h_eur'], 0), reverse=True)[:30],
+        'top_positive_movers_rejected': sorted(rejected, key=lambda r: finite(r['change_24h_pct'], -1e9), reverse=True)[:30],
+        'rows': rows,
+        'interpretation_note': 'Observability only: this audit does not change V4 scores, validity rules, alerts or orders.'
+    }
+
+
+def data_quality_audit_text(audit):
+    lines = ['# Audit qualité des données Bitvavo', '',
+             f"Scan : {audit['scan_at_utc']} ({audit['scan_id']})",
+             f"Univers : {audit['universe']} | strategy-grade : {audit['strategy_grade']} | rejetés : {audit['rejected']}",
+             f"5m valides : {audit['valid_5m']} | 15m valides : {audit['valid_15m']} | deux intervalles valides : {audit['both_intervals_feature_valid']}", '',
+             '## Causes de rejet globales', '', '| Cause | Marchés |', '|---|---:|']
+    for reason, count in audit['quality_reason_counts'].items():
+        lines.append(f'| {reason} | {count} |')
+    lines += ['', '## Causes intrinsèques 5m', '', '| Cause | Marchés |', '|---|---:|']
+    for reason, count in audit['feature_failure_counts_5m'].items():
+        lines.append(f'| {reason} | {count} |')
+    lines += ['', '## Causes intrinsèques 15m', '', '| Cause | Marchés |', '|---|---:|']
+    for reason, count in audit['feature_failure_counts_15m'].items():
+        lines.append(f'| {reason} | {count} |')
+    lines += ['', '## Marchés rejetés les plus liquides', '',
+              '| Marché | Vol. 24h € | 24h | Causes | 5m bars/gaps manquants | 15m bars/gaps manquants |',
+              '|---|---:|---:|---|---:|---:|']
+    for row in audit['top_volume_rejected'][:20]:
+        m5, m15 = row['5m'], row['15m']
+        ch = row['change_24h_pct']
+        chs = f'{ch:+.2f}%' if isinstance(ch, (int, float)) else 'n/a'
+        lines.append(f"| {row['market']} | {finite(row['quote_volume_24h_eur'], 0):.0f} | {chs} | {', '.join(row['quality_reasons'])} | {m5['closed_count']}/{m5['missing_intervals_last_25_observed']} | {m15['closed_count']}/{m15['missing_intervals_last_25_observed']} |")
+    lines += ['', 'Lecture : bars/gaps manquants = nombre de bougies closes reçues / nombre d’intervalles sans bougie à l’intérieur des 25 dernières bougies observées.',
+              'Ce fichier est purement diagnostique : aucune règle de trading n’est modifiée.', '']
+    return '\n'.join(lines)
 
 
 def report_text(report):
@@ -274,6 +390,9 @@ def run():
     text = report_text(report)
     Path('v5_report.md').write_text(text, encoding='utf-8')
     atomic_json('pipeline_health.json', health)
+    data_quality_audit = build_data_quality_audit(observations, universe, scan_id, utc(baseline_ts))
+    atomic_json('data_quality_audit.json', data_quality_audit)
+    Path('data_quality_audit.md').write_text(data_quality_audit_text(data_quality_audit), encoding='utf-8')
     atomic_json('evaluation.json', evaluation)
     atomic_json('proposed_orders.json', {'dry_run': True, 'orders': report['orders']})
     # Preserve raw baseline public outputs for audit; provide a separate, fresh,
