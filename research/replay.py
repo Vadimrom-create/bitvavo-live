@@ -11,7 +11,22 @@ import tempfile
 
 from research.common import read_json, atomic_json
 
-RUNNER = '''
+RAW_RUNNER = '''
+import json,sys
+from pathlib import Path
+sys.path.insert(0,sys.argv[1])
+sys.path.append(sys.argv[2])
+from research.http import ReplayClient
+from research.common import read_json
+snapshot=read_json(sys.argv[3])
+client=ReplayClient(snapshot['requests'])
+import v3_common,early_detector,v4_detector
+v3_common.get_json=client.get
+early_detector.main()
+v4_detector.main()
+'''
+
+FULL_RUNNER = '''
 import json,sys
 from pathlib import Path
 sys.path.insert(0,sys.argv[1])
