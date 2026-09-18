@@ -28,7 +28,7 @@ v4_stabilizer.main()
 '''
 
 
-def replay(snapshot_path, reference=False):
+def replay(snapshot_path, reference=False, raw=False):
     root = Path(__file__).resolve().parents[1]
     snapshot_path = Path(snapshot_path).resolve()
     snapshot = read_json(snapshot_path)
@@ -38,7 +38,8 @@ def replay(snapshot_path, reference=False):
             atomic_json(Path(temp) / name, value)
         atomic_json(Path(temp) / 'bitvavo_live.json', snapshot['live'])
         env = {**os.environ, 'PYTHONHASHSEED': '0'}
-        result = subprocess.run([sys.executable, '-c', RUNNER, str(source), str(root), str(snapshot_path)],
+        runner = RAW_RUNNER if raw else FULL_RUNNER
+        result = subprocess.run([sys.executable, '-c', runner, str(source), str(root), str(snapshot_path)],
                                 cwd=temp, env=env, capture_output=True, text=True, timeout=120)
         if result.returncode:
             raise RuntimeError('baseline_replay_failed: ' + result.stderr[-1500:])
@@ -46,12 +47,15 @@ def replay(snapshot_path, reference=False):
 
 
 def compare(path):
-    reference = replay(path, True)
-    instrumented = replay(path, False)
-    original = read_json(path)['expected_baseline']
+    snapshot = read_json(path)
+    raw = 'expected_raw_baseline' in snapshot
+    reference = replay(path, True, raw=raw)
+    instrumented = replay(path, False, raw=raw)
+    original = snapshot['expected_raw_baseline'] if raw else snapshot['expected_baseline']
     return {'reference_equals_instrumented': reference == instrumented,
             'reference_equals_recorded_live': reference == original,
-            'reference_watch_count': len(reference.get('watch', []))}
+            'reference_watch_count': len(reference.get('watch', [])),
+            'mode': 'RAW_FROZEN_V4' if raw else 'LEGACY_STABILIZED_V4'}
 
 
 if __name__ == '__main__':
