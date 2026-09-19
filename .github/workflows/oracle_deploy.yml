@@ -1,0 +1,57 @@
+name: Deploy Oracle public probe
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'oracle/bitvavo_public_probe.py'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: oracle-production-deploy
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+
+      - name: Validate deployable Python
+        run: python -m py_compile oracle/bitvavo_public_probe.py
+
+      - name: Configure restricted SSH
+        env:
+          DEPLOY_KEY: ${{ secrets.ORACLE_DEPLOY_SSH_KEY }}
+          KNOWN_HOSTS: ${{ secrets.ORACLE_DEPLOY_KNOWN_HOSTS }}
+        run: |
+          test -n "$DEPLOY_KEY"
+          test -n "$KNOWN_HOSTS"
+          install -d -m 0700 "$HOME/.ssh"
+          printf '%s\n' "$DEPLOY_KEY" > "$HOME/.ssh/oracle_deploy"
+          printf '%s\n' "$KNOWN_HOSTS" > "$HOME/.ssh/known_hosts"
+          chmod 0600 "$HOME/.ssh/oracle_deploy" "$HOME/.ssh/known_hosts"
+
+      - name: Deploy exact main commit with rollback healthcheck
+        run: |
+          ssh -i "$HOME/.ssh/oracle_deploy" \
+            -o BatchMode=yes \
+            -o IdentitiesOnly=yes \
+            -o StrictHostKeyChecking=yes \
+            -o ConnectTimeout=10 \
+            bitvavo-deploy@144.24.206.128 "deploy $GITHUB_SHA"
+
+      - name: Verify health after deployment
+        run: |
+          ssh -i "$HOME/.ssh/oracle_deploy" \
+            -o BatchMode=yes \
+            -o IdentitiesOnly=yes \
+            -o StrictHostKeyChecking=yes \
+            -o ConnectTimeout=10 \
+            bitvavo-deploy@144.24.206.128 health
