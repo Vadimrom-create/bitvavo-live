@@ -1,0 +1,78 @@
+name: Oracle restricted control
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'oracle_control_request.json'
+  workflow_dispatch:
+    inputs:
+      action:
+        description: Restricted Oracle action
+        required: true
+        type: choice
+        options:
+          - health
+          - status
+          - restart
+          - logs
+
+permissions:
+  contents: read
+
+concurrency:
+  group: oracle-restricted-control
+  cancel-in-progress: false
+
+jobs:
+  control:
+    runs-on: ubuntu-latest
+    timeout-minutes: 4
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+
+      - name: Resolve and validate action
+        id: request
+        env:
+          DISPATCH_ACTION: ${{ inputs.action }}
+        run: |
+          python - <<'PY' >> "$GITHUB_OUTPUT"
+          import json, os
+          from pathlib import Path
+          action = (os.environ.get("DISPATCH_ACTION") or "").strip()
+          if not action:
+              path = Path("oracle_control_request.json")
+              if not path.exists():
+                  raise SystemExit("oracle_control_request.json missing")
+              payload = json.loads(path.read_text(encoding="utf-8"))
+              action = str(payload.get("action") or "").strip()
+          allowed = {"health", "status", "restart", "logs"}
+          if action not in allowed:
+              raise SystemExit(f"action not allowed: {action!r}")
+          print(f"action={action}")
+          PY
+
+      - name: Configure restricted SSH
+        env:
+          DEPLOY_KEY: ${{ secrets.ORACLE_DEPLOY_SSH_KEY }}
+          KNOWN_HOSTS: ${{ secrets.ORACLE_DEPLOY_KNOWN_HOSTS }}
+        run: |
+          test -n "$DEPLOY_KEY"
+          test -n "$KNOWN_HOSTS"
+          install -d -m 0700 "$HOME/.ssh"
+          printf '%s\n' "$DEPLOY_KEY" > "$HOME/.ssh/oracle_deploy"
+          printf '%s\n' "$KNOWN_HOSTS" > "$HOME/.ssh/known_hosts"
+          chmod 0600 "$HOME/.ssh/oracle_deploy" "$HOME/.ssh/known_hosts"
+
+      - name: Run restricted command
+        env:
+          ACTION: ${{ steps.request.outputs.action }}
+        run: |
+          ssh -i "$HOME/.ssh/oracle_deploy" \
+            -o BatchMode=yes \
+            -o IdentitiesOnly=yes \
+            -o StrictHostKeyChecking=yes \
+            -o ConnectTimeout=10 \
+            bitvavo-deploy@144.24.206.128 "$ACTION"
