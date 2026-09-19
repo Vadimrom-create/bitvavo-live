@@ -7,6 +7,7 @@ from __future__ import annotations
 
 import json
 import os
+import smtplib
 import sys
 import time
 from pathlib import Path
@@ -53,6 +54,28 @@ def smtp_credentials():
     if recipient.lower() != 'bellonirom@gmail.com' or not user or not password:
         return None
     return user, password, recipient
+
+
+def send_with_status(status, credentials, subject, body):
+    """Send without converting an alert-transport outage into a scan failure.
+
+    Delivery markers are written only after this returns True, so a failed SMTP
+    attempt remains retryable on the next cycle.
+    """
+    try:
+        email_alert.send_email(*credentials, subject, body)
+    except smtplib.SMTPAuthenticationError:
+        status.update(alert_transport='DEGRADED',
+                      alert_transport_reason='SMTPAuthenticationError',
+                      email='DELIVERY_PENDING_RETRY')
+        return False
+    except (smtplib.SMTPException, OSError, TimeoutError) as exc:
+        status.update(alert_transport='DEGRADED',
+                      alert_transport_reason=type(exc).__name__,
+                      email='DELIVERY_PENDING_RETRY')
+        return False
+    status.update(alert_transport='OK', alert_transport_reason=None)
+    return True
 
 
 def public_buy_event(row, buy_state, client, metadata, now):
@@ -146,7 +169,9 @@ def run_public_buy_fallback(status):
         return 2
     _, body = message([selected])
     subject = f"ACHÈTE — {selected['market']} — Bitvavo"
-    email_alert.send_email(*credentials, subject, body)
+    if not send_with_status(status, credentials, subject, body):
+        status['buy_alerts'] = 'PUBLIC_MARKET_VALIDATED_DELIVERY_PENDING'
+        return 0
     sent_at = time.time()
     market = selected['market']
     row = selected['baseline_row']
@@ -314,7 +339,8 @@ def run(status):
         status.update(email='CONFIG_MISSING_OR_RECIPIENT_MISMATCH')
         return 0
     subject, body = message(selected)
-    email_alert.send_email(*credentials, subject, body)
+    if not send_with_status(status, credentials, subject, body):
+        return 0
     sent_at = time.time()
     mark_delivered(state, selected, sent_at)
     for e in selected:
