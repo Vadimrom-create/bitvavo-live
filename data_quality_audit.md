@@ -1,53 +1,53 @@
 # Audit qualité des données Bitvavo
 
-Scan : 2026-09-19T22:49:06.323693+00:00 (20260919T224732Z-a4562d19)
-Univers : 427 | strategy-grade : 31 | rejetés : 396
-5m valides : 33 | 15m valides : 76 | deux intervalles valides : 32
+Scan : 2026-09-19T23:02:22.874844+00:00 (20260919T230021Z-d0666203)
+Univers : 427 | strategy-grade : 30 | rejetés : 397
+5m valides : 31 | 15m valides : 75 | deux intervalles valides : 30
 
 ## Causes de rejet globales
 
 | Cause | Marchés |
 |---|---:|
-| INVALID_5M | 394 |
-| INVALID_15M | 351 |
-| MISSING_LATEST_CLOSED_CANDLE | 265 |
+| INVALID_5M | 396 |
+| INVALID_15M | 352 |
+| MISSING_LATEST_CLOSED_CANDLE | 276 |
 
 ## Causes intrinsèques 5m
 
 | Cause | Marchés |
 |---|---:|
-| CANDLE_GAPS | 394 |
+| CANDLE_GAPS | 396 |
 
 ## Causes intrinsèques 15m
 
 | Cause | Marchés |
 |---|---:|
-| CANDLE_GAPS | 351 |
+| CANDLE_GAPS | 352 |
 
 ## Marchés rejetés les plus liquides
 
 | Marché | Vol. 24h € | 24h | Causes | 5m bars/gaps manquants | 15m bars/gaps manquants |
 |---|---:|---:|---|---:|---:|
-| USDC-EUR | 2662122 | -0.05% | INVALID_5M | 99/4 | 99/0 |
-| UNI-EUR | 2159645 | -1.96% | INVALID_5M | 99/1 | 99/0 |
-| CAP-EUR | 2027902 | -15.98% | INVALID_5M | 99/3 | 99/0 |
-| PUMP-EUR | 1861139 | -1.21% | INVALID_5M | 99/3 | 99/0 |
-| APT-EUR | 1655507 | +0.89% | INVALID_15M, INVALID_5M | 99/4 | 100/1 |
-| LTC-EUR | 1499017 | -0.79% | MISSING_LATEST_CLOSED_CANDLE | 99/0 | 99/0 |
-| STRK-EUR | 1403537 | +0.10% | INVALID_5M | 99/3 | 99/0 |
-| CNPY-EUR | 1403482 | -21.91% | INVALID_5M | 99/1 | 100/0 |
-| ARB-EUR | 1252231 | -5.87% | INVALID_5M | 99/1 | 100/0 |
-| OP-EUR | 1225083 | +1.49% | INVALID_5M, MISSING_LATEST_CLOSED_CANDLE | 100/5 | 100/0 |
-| SKY-EUR | 1035324 | -1.20% | INVALID_15M, INVALID_5M, MISSING_LATEST_CLOSED_CANDLE | 99/11 | 99/4 |
-| POL-EUR | 1022672 | -1.40% | INVALID_5M | 99/6 | 100/0 |
-| FIL-EUR | 890795 | +4.11% | INVALID_5M | 99/4 | 99/0 |
-| AAVE-EUR | 879926 | +2.31% | INVALID_5M | 99/2 | 99/0 |
-| HEI-EUR | 871288 | +12.88% | INVALID_5M, MISSING_LATEST_CLOSED_CANDLE | 100/7 | 100/0 |
-| DOT-EUR | 870436 | -0.86% | INVALID_5M, MISSING_LATEST_CLOSED_CANDLE | 99/2 | 99/0 |
-| MORPHO-EUR | 840722 | +6.28% | INVALID_15M, INVALID_5M | 99/3 | 99/1 |
-| STX-EUR | 830874 | +8.53% | INVALID_5M | 99/1 | 99/0 |
-| SAGA-EUR | 811394 | +1.27% | INVALID_5M, MISSING_LATEST_CLOSED_CANDLE | 99/9 | 99/0 |
-| COTI-EUR | 801409 | -11.12% | INVALID_5M, MISSING_LATEST_CLOSED_CANDLE | 99/9 | 100/0 |
+| USDC-EUR | 2652829 | -0.05% | INVALID_5M | 99/4 | 100/0 |
+| CAP-EUR | 2029917 | -16.18% | INVALID_5M | 99/3 | 100/0 |
+| PUMP-EUR | 1824772 | -1.82% | INVALID_5M, MISSING_LATEST_CLOSED_CANDLE | 100/3 | 100/0 |
+| DOGE-EUR | 1594414 | -0.49% | INVALID_5M | 99/1 | 99/0 |
+| APT-EUR | 1590026 | +1.84% | INVALID_15M, INVALID_5M | 100/1 | 100/1 |
+| LTC-EUR | 1528572 | -0.13% | INVALID_5M | 99/1 | 99/0 |
+| STRK-EUR | 1409765 | +1.61% | INVALID_5M | 99/3 | 100/0 |
+| EPIC-EUR | 1239428 | +11.44% | INVALID_5M | 99/1 | 100/0 |
+| ARB-EUR | 1234688 | -6.26% | INVALID_5M | 100/1 | 100/0 |
+| OP-EUR | 1232216 | +2.60% | INVALID_5M | 100/8 | 100/0 |
+| SKY-EUR | 1029344 | -1.04% | INVALID_15M, INVALID_5M, MISSING_LATEST_CLOSED_CANDLE | 100/8 | 100/4 |
+| POL-EUR | 1008359 | -1.45% | INVALID_5M, MISSING_LATEST_CLOSED_CANDLE | 99/6 | 99/0 |
+| FIL-EUR | 904156 | +3.73% | INVALID_5M | 99/4 | 100/0 |
+| DOT-EUR | 887914 | -1.12% | INVALID_5M | 99/2 | 99/0 |
+| AAVE-EUR | 875208 | +1.97% | INVALID_5M | 100/3 | 100/0 |
+| HEI-EUR | 870890 | +12.48% | INVALID_15M, INVALID_5M, MISSING_LATEST_CLOSED_CANDLE | 99/11 | 100/1 |
+| STX-EUR | 833368 | +8.49% | INVALID_5M | 99/1 | 100/0 |
+| MORPHO-EUR | 823353 | +4.68% | INVALID_15M, INVALID_5M | 100/2 | 100/1 |
+| SAGA-EUR | 811884 | +1.03% | INVALID_15M, INVALID_5M | 100/15 | 100/1 |
+| COTI-EUR | 790135 | -10.94% | INVALID_5M | 99/11 | 100/0 |
 
 Lecture : bars/gaps manquants = nombre de bougies closes reçues / nombre d’intervalles sans bougie à l’intérieur des 25 dernières bougies observées.
 Ce fichier est purement diagnostique : aucune règle de trading n’est modifiée.
