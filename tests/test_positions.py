@@ -1,6 +1,7 @@
 import copy
 import importlib.util
 import json
+import smtplib
 import tempfile
 import unittest
 from pathlib import Path
@@ -256,9 +257,12 @@ class Positions(unittest.TestCase):
                 patch.object(runner.time, 'time', return_value=self.now), \
                 patch.object(runner.email_alert, 'send_email') as send:
             private.return_value.snapshot.return_value = account
-            send.side_effect = RuntimeError('SMTP unavailable')
-            with self.assertRaises(RuntimeError):
-                runner.run({})
+            send.side_effect = smtplib.SMTPAuthenticationError(535, b'bad credentials')
+            degraded = {}
+            self.assertEqual(runner.run(degraded), 0)
+            self.assertEqual(degraded['alert_transport'], 'DEGRADED')
+            self.assertEqual(degraded['alert_transport_reason'], 'SMTPAuthenticationError')
+            self.assertEqual(degraded['email'], 'DELIVERY_PENDING_RETRY')
             self.assertEqual({c.args[1] for c in markets.call_args_list}, {'ABC-EUR', 'XYZ-EUR'})
             self.assertEqual(load_state(runner.STATE, key)['deliveries'], {})
             send.side_effect = None
