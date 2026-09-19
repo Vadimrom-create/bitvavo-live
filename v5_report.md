@@ -1,59 +1,55 @@
 # Bitvavo — V4 mesurée / infrastructure V5
 
-Scan UTC : 2026-09-19T10:57:49.476246+00:00
-État : OK | marchés EUR : 427 | V4 : 394 | données valides : 33
-Récupération : 2026-09-19T10:57:19.698432+00:00 | âge ticker : 144.9 s | durée : 145.8 s
+Scan UTC : 2026-09-19T11:17:27.360546+00:00
+État : OK | marchés EUR : 427 | V4 : 393 | données valides : 34
+Récupération : 2026-09-19T11:16:58.980947+00:00 | âge ticker : 151.3 s | durée : 152.4 s
 
 ## ACHÈTE — signal V4 et plan théorique
 
-Bougies utilisables : 5 min 35/427 ; 15 min 83/427.
+Bougies utilisables : 5 min 36/427 ; 15 min 79/427.
 Les trous de cotation restent visibles ; aucune bougie sans transaction n’est inventée.
 
 Achats bruts V4 bloqués avant alerte :
 - AAVE-EUR : STABILITY_HOLD, INVALID_5M
+- DOGE-EUR : WICK_SETUP, INSUFFICIENT_NET_RISK_REWARD
 - HBAR-EUR : INVALID_5M
-- JUP-EUR : WICK_SETUP, STABILITY_HOLD, INVALID_5M
 - KAS-EUR : STABILITY_HOLD, INVALID_5M
-- LINK-EUR : INSUFFICIENT_NET_RISK_REWARD
-- NPC-EUR : WICK_SETUP, INVALID_5M
-- ONDO-EUR : WICK_SETUP, INSUFFICIENT_NET_RISK_REWARD
-- OP-EUR : WICK_SETUP, CHASE_RISK, INVALID_5M
-- QNT-EUR : INVALID_5M
-- SYRUP-EUR : WICK_SETUP, INVALID_5M
-- TAO-EUR : BELOW_EXCHANGE_MINIMUM
+- ONDO-EUR : INSUFFICIENT_NET_RISK_REWARD
+- PEPE-EUR : INSUFFICIENT_NET_RISK_REWARD
+- POL-EUR : INVALID_5M, MISSING_LATEST_CLOSED_CANDLE
+- PYTH-EUR : WICK_SETUP, INVALID_15M, INVALID_5M
+- RENDER-EUR : WICK_SETUP, INVALID_5M
+- SHIB-EUR : INVALID_15M, INVALID_5M, MISSING_LATEST_CLOSED_CANDLE
 - VET-EUR : CHASE_RISK, BASELINE_BUY_CHASE_CONTRADICTION
-- WAL-EUR : STABILITY_HOLD, INVALID_15M, INVALID_5M
+- WAL-EUR : WICK_SETUP, CHASE_RISK, INVALID_15M, INVALID_5M
 - WIF-EUR : STABILITY_HOLD, INVALID_15M, INVALID_5M
-- SUI-EUR : 0.743 € | IGNITION | score 88.33/100 | entrée 7.75/10
-  Entrée 0.74328 € ; stop 0.71243 € ; TP1 0.80498 € ; TP2 0.83583 € ; montant 248.14 € ; risque théorique 12.00 € ; R/R net 1.57.
-  Chase risk : 5.546/10 (diagnostic non calibré). Probabilités +10/+20/+30/+40 % : indisponibles.
-- APT-EUR : 0.6392 € | IGNITION | score 83.52/100 | entrée 6.60/10
-  Entrée 0.6408 € ; stop 0.6148 € ; TP1 0.6928 € ; TP2 0.7188 € ; montant 250.00 € ; risque théorique 11.86 € ; R/R net 1.56.
-  Chase risk : 3.257/10 (diagnostic non calibré). Probabilités +10/+20/+30/+40 % : indisponibles.
+- SUI-EUR : 0.74713 € | IGNITION | score 90.54/100 | entrée 7.70/10
+  Entrée 0.74752 € ; stop 0.71468 € ; TP1 0.81319 € ; TP2 0.84603 € ; montant 236.32 € ; risque théorique 12.00 € ; R/R net 1.59.
+  Chase risk : 5.631/10 (diagnostic non calibré). Probabilités +10/+20/+30/+40 % : indisponibles.
 
 ## SURVEILLE
 
-- LINK-EUR : 10.9064 € ; score 87.69/100 ; SURVEILLE ; INSUFFICIENT_NET_RISK_REWARD
-- ONDO-EUR : 0.35434 € ; score 81.53/100 ; SURVEILLE ; WICK_SETUP, INSUFFICIENT_NET_RISK_REWARD
-- PLUME-EUR : 0.0126491 € ; score 80.73/100 ; SURVEILLE ; SELLER_HEAVY_BOOK
-- HYPE-EUR : 79.713 € ; score 80.17/100 ; SURVEILLE ; WICK_SETUP, STABILITY_HOLD
-- TAO-EUR : 232.46 € ; score 80.13/100 ; SURVEILLE ; BELOW_EXCHANGE_MINIMUM
+- ONDO-EUR : 0.35689 € ; score 87.91/100 ; SURVEILLE ; INSUFFICIENT_NET_RISK_REWARD
+- DOGE-EUR : 0.076553 € ; score 83.96/100 ; SURVEILLE ; WICK_SETUP, INSUFFICIENT_NET_RISK_REWARD
+- PEPE-EUR : 3.3199e-06 € ; score 81.77/100 ; SURVEILLE ; INSUFFICIENT_NET_RISK_REWARD
+- HYPE-EUR : 79.88 € ; score 80.09/100 ; SURVEILLE ; WICK_SETUP
+- XLM-EUR : 0.16832 € ; score 79.32/100 ; SURVEILLE ; seuil achat non atteint
 
 ## Contrôle des hausses
 
 | Marché | Prix € | 24 h | Détection | Couche d’échec | Actionnabilité |
 |---|---:|---:|---|---|---|
-| ZAMA-EUR | 0.071853 | +46.67 % | DETECTED_EARLY | NONE | INTERPRETATION |
-| SYN-EUR | 0.219255 | +43.48 % | NOT_DETECTED | DATA | NOT_APPLICABLE |
-| SAGA-EUR | 0.024505 | +34.74 % | DETECTED_TOO_LATE | NONE | INTERPRETATION |
-| STRK-EUR | 0.03883 | +30.33 % | DETECTED_EARLY | NONE | INTERPRETATION |
-| EDGE-EUR | 0.075 | +29.97 % | NOT_DETECTED | DATA | NOT_APPLICABLE |
-| F-EUR | 0.0036556 | +27.43 % | NOT_DETECTED | DATA | NOT_APPLICABLE |
-| HEI-EUR | 0.145566 | +27.26 % | DETECTED_EARLY | NONE | INTERPRETATION |
-| XTZ-EUR | 0.29245 | +25.84 % | DETECTED_EARLY | NONE | INTERPRETATION |
-| ZIG-EUR | 0.046686 | +24.43 % | DETECTED_EARLY | NONE | INTERPRETATION |
-| QKC-EUR | 0.0026618 | +24.30 % | NOT_DETECTED | DATA | NOT_APPLICABLE |
+| SYN-EUR | 0.212946 | +40.76 % | NOT_DETECTED | DATA | NOT_APPLICABLE |
+| ZAMA-EUR | 0.066111 | +39.52 % | DETECTED_EARLY | NONE | INTERPRETATION |
+| SAGA-EUR | 0.024315 | +34.53 % | DETECTED_TOO_LATE | NONE | INTERPRETATION |
+| STRK-EUR | 0.039242 | +33.72 % | DETECTED_EARLY | NONE | INTERPRETATION |
+| EDGE-EUR | 0.076179 | +31.67 % | NOT_DETECTED | DATA | NOT_APPLICABLE |
+| HEI-EUR | 0.148606 | +31.38 % | DETECTED_EARLY | NONE | INTERPRETATION |
+| F-EUR | 0.0036976 | +28.46 % | NOT_DETECTED | DATA | NOT_APPLICABLE |
+| ZIG-EUR | 0.046874 | +25.27 % | DETECTED_EARLY | NONE | INTERPRETATION |
+| XTZ-EUR | 0.29274 | +25.18 % | DETECTED_EARLY | NONE | INTERPRETATION |
+| EPIC-EUR | 0.39 | +24.26 % | DETECTED_EARLY | NONE | INTERPRETATION |
 
-Historique : 883 scans ; 378820 observations ; 192 épisodes d’achat évaluables.
+Historique : 884 scans ; 379247 observations ; 192 épisodes d’achat évaluables.
 V5 optimisée : aucune. Supériorité sur V4 : non démontrée. Probabilités : non calibrées.
 Le cash et le portefeuille du plan sont hypothétiques. Aucun ordre réel n’est envoyé.
