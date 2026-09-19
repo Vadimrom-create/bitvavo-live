@@ -108,6 +108,7 @@ jobs:
           git worktree add --detach /tmp/bitvavo-monitor HEAD
       - name: Monitor every held position and send only justified actions
         id: positions
+        continue-on-error: true
         if: always() && steps.tests.outcome == 'success'
         working-directory: /tmp/bitvavo-monitor
         env:

@@ -55,6 +55,8 @@ jobs:
           PY
 
       - name: Configure restricted SSH
+        id: ssh_setup
+        continue-on-error: true
         env:
           DEPLOY_KEY: ${{ secrets.ORACLE_DEPLOY_SSH_KEY }}
           KNOWN_HOSTS: ${{ secrets.ORACLE_DEPLOY_KNOWN_HOSTS }}
@@ -67,6 +69,7 @@ jobs:
           chmod 0600 "$HOME/.ssh/oracle_deploy" "$HOME/.ssh/known_hosts"
 
       - name: Run restricted command
+        if: steps.ssh_setup.outcome == 'success'
         env:
           ACTION: ${{ steps.request.outputs.action }}
         run: |
@@ -76,3 +79,9 @@ jobs:
             -o StrictHostKeyChecking=yes \
             -o ConnectTimeout=10 \
             bitvavo-deploy@144.24.206.128 "$ACTION"
+
+      - name: Report unavailable restricted control channel
+        if: steps.ssh_setup.outcome != 'success'
+        run: |
+          echo "::warning::Oracle restricted control unavailable: SSH secrets are not configured."
+          echo "ORACLE_CONTROL_UNAVAILABLE"
