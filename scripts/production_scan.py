@@ -225,13 +225,14 @@ def main() -> int:
         atomic_json(
             CANDIDATES,
             {
-                "schema": "production_alert_candidates_v3",
+                "schema": "production_alert_candidates_v4",
                 "generated_at_utc": utc(),
                 "policy": "SOLAIRE_FULL_UNIVERSE_DIRECT_ACCELERATION",
                 "oracle_required": False,
                 "hosted_probe_required": False,
                 "v4_required": False,
                 "decision_layer_required": False,
+                "tracking": [],
                 "watch": [],
             },
         )
