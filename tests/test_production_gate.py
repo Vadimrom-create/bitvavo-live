@@ -1,9 +1,11 @@
 import unittest
+from unittest.mock import patch
 
 from research.common import utc
 from research.production_acceleration import acceleration_signal
 from research.production_alerts import mark_sent, select_events
 from research.production_gate import ACCELERATION_ACTION, build_alert_payload
+from scripts.production_scan import observation as scan_observation
 
 
 def confirmed(score=7.1, evidence=4):
@@ -95,6 +97,31 @@ class PureAccelerationTests(unittest.TestCase):
         result = acceleration_signal(obs)
         self.assertEqual(result["state"], "CONFIRMED_ACCELERATION")
         self.assertEqual(result["buyability"], "REQUIRES_FINAL_EXECUTION_VALIDATION")
+
+
+class ProductionFreshnessTests(unittest.TestCase):
+    def test_post_signal_retrieval_time_is_not_a_future_data_error(self):
+        signal = 1_788_883_200.0
+        data = {
+            "meta": {"market": "TEST-EUR"},
+            "timeframes": {
+                "5m": {
+                    "features": {"valid": True},
+                    "candles": [{"t": int((signal - 300) * 1000)}],
+                    "retrieved_at_utc": utc(signal + 60),
+                },
+                "15m": {
+                    "features": {"valid": True},
+                    "candles": [{"t": int((signal - 900) * 1000)}],
+                    "retrieved_at_utc": utc(signal + 65),
+                },
+            },
+        }
+        ticker = {"last": "1", "open": "1", "volumeQuote": "100000"}
+        with patch("scripts.production_scan.time.time", return_value=signal + 70):
+            obs = scan_observation(data, ticker, signal, utc(signal + 1))
+        self.assertTrue(obs["data_quality"]["ok"], obs["data_quality"])
+        self.assertNotIn("FUTURE_RETRIEVAL_TIMESTAMP", obs["data_quality"]["reasons"])
 
 
 class ProductionAlertPolicyTests(unittest.TestCase):
