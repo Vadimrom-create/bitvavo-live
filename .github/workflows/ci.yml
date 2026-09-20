@@ -4,7 +4,7 @@ on:
   pull_request:
   push:
     branches: [main, 'codex/**']
-    paths: ['**.py', 'tests/**', '.github/workflows/**', 'baseline/**', 'oracle/**', 'requirements-monitoring.txt']
+    paths: ['**.py', 'tests/**', '.github/workflows/**', 'baseline/**', 'oracle/**', 'render.yaml', 'requirements-monitoring.txt']
   workflow_dispatch:
 
 permissions:
@@ -25,10 +25,13 @@ jobs:
       - run: python -m pip install -r requirements-monitoring.txt
       - run: python -m unittest discover -s tests -v
         name: Critical tests
-      - name: Validate Oracle deployment sources
+      - name: Validate live probe deployment sources
         run: |
           python -m py_compile oracle/bitvavo_public_probe.py scripts/oracle_probe_snapshot.py scripts/oracle_probe_request.py
           bash -n oracle/install_bitvavo_public_probe.sh oracle/bootstrap_oracle_deploy.sh
+          grep -q 'healthCheckPath: /health' render.yaml
+          grep -q 'autoDeployTrigger: checksPass' render.yaml
+          grep -q 'startCommand: python oracle/bitvavo_public_probe.py' render.yaml
   public-live-smoke:
     if: github.event_name == 'push' && startsWith(github.ref, 'refs/heads/codex/')
     needs: tests
