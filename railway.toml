@@ -1,0 +1,8 @@
+[build]
+buildCommand = "python -m py_compile oracle/bitvavo_public_probe.py"
+
+[deploy]
+startCommand = "python oracle/bitvavo_public_probe.py"
+healthcheckPath = "/health"
+healthcheckTimeout = 60
+restartPolicyType = "ALWAYS"
