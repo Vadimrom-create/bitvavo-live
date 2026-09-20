@@ -12,6 +12,7 @@ from __future__ import annotations
 import json
 import sys
 import time
+from collections import Counter
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
 
@@ -82,15 +83,24 @@ def observation(
     for interval, features in (("5m", f5), ("15m", f15)):
         if not features.get("valid"):
             quality["reasons"].append("INVALID_" + interval.upper())
+
+        # Retrieval freshness and signal-time candle admissibility are distinct.
+        # The request naturally completes after signal_ts; that must not be
+        # misclassified as FUTURE_RETRIEVAL_TIMESTAMP. closed_candles() already
+        # excludes every bar that was not closed at signal_ts.
+        retrieved_at = data["timeframes"][interval].get("retrieved_at_utc")
+        retrieval_q = freshness(now=time.time(), retrieved=retrieved_at)
+        quality["reasons"].extend(retrieval_q["reasons"])
+
         candles = data["timeframes"][interval]["candles"]
         if candles:
-            q = freshness(
+            candle_q = freshness(
                 now=signal_ts,
-                retrieved=data["timeframes"][interval].get("retrieved_at_utc"),
+                retrieved=utc(signal_ts),
                 candle_start_ms=candles[-1]["t"],
                 interval=interval,
             )
-            quality["reasons"].extend(q["reasons"])
+            quality["reasons"].extend(candle_q["reasons"])
         else:
             quality["reasons"].append("MISSING_" + interval.upper())
     quality["reasons"] = sorted(set(quality["reasons"]))
@@ -160,6 +170,14 @@ def run() -> dict:
         for o in observations
         if (o.get("acceleration") or {}).get("state") == "BUILDING_ACCELERATION"
     ]
+    quality_failures = Counter(
+        reason
+        for o in observations
+        for reason in (o.get("data_quality") or {}).get("reasons", [])
+    )
+    quality_ok_count = sum(
+        (o.get("data_quality") or {}).get("ok", False) for o in observations
+    )
     status = {
         "schema": "solaire_direct_scan_v2",
         "checked_at_utc": utc(),
@@ -172,9 +190,9 @@ def run() -> dict:
         "decision_layer_required": False,
         "active_eur_markets": len(markets),
         "markets_collected": len(universe),
-        "quality_ok": sum(
-            (o.get("data_quality") or {}).get("ok", False) for o in observations
-        ),
+        "quality_ok": quality_ok_count,
+        "quality_pct": round(100.0 * quality_ok_count / len(markets), 2) if markets else 0.0,
+        "quality_failure_counts": dict(quality_failures.most_common()),
         "building_accelerations": len(building),
         "confirmed_accelerations": len(confirmed),
         "alert_candidates": len(payload["watch"]),
