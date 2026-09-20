@@ -7,6 +7,7 @@ It collects enriched microstructure only for currently relevant EUR markets.
 from __future__ import annotations
 
 import json
+import os
 import re
 import urllib.parse
 import urllib.request
