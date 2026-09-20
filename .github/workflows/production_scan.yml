@@ -1,4 +1,4 @@
-name: Production direct Bitvavo scan
+name: Solaire direct Bitvavo scan
 
 on:
   workflow_dispatch:
@@ -8,9 +8,10 @@ on:
       - 'scripts/production_scan.py'
       - 'scripts/send_production_buy_alert.py'
       - 'research/production_gate.py'
-      - 'research/feedback_loop.py'
+      - 'research/production_acceleration.py'
+      - 'research/production_alerts.py'
       - 'research/features.py'
-      - 'email_alert_v4.py'
+      - 'research/risk.py'
       - '.github/workflows/production_scan.yml'
   schedule:
     - cron: '1-59/5 * * * *'
