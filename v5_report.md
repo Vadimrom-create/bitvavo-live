@@ -1,8 +1,8 @@
 # Bitvavo — V4 mesurée / infrastructure V5
 
-Scan UTC : 2026-09-20T06:18:56.067773+00:00
+Scan UTC : 2026-09-20T06:39:19.611427+00:00
 État : OK | marchés EUR : 427 | V4 : 394 | données valides : 25
-Récupération : 2026-09-20T06:18:21.750412+00:00 | âge ticker : 146.2 s | durée : 146.9 s
+Récupération : 2026-09-20T06:38:49.407017+00:00 | âge ticker : 150.4 s | durée : 151.4 s
 
 ## ACHÈTE — signal V4 et plan théorique
 
@@ -10,31 +10,25 @@ AUCUN ACHAT VALIDÉ — cette absence ne valide pas les marchés aux données in
 Bougies utilisables : 5 min 27/427 ; 15 min 64/427.
 Les trous de cotation restent visibles ; aucune bougie sans transaction n’est inventée.
 
-Achats bruts V4 bloqués avant alerte :
-- UNI-EUR : CHASE_RISK, BASELINE_BUY_CHASE_CONTRADICTION
-
 ## SURVEILLE
 
-- HYPE-EUR : 79.331 € ; score 77.00/100 ; SURVEILLE ; WICK_SETUP
-- USELESS-EUR : 0.226016 € ; score 75.17/100 ; SURVEILLE ; seuil achat non atteint
-- PEPE-EUR : 3.49e-06 € ; score 73.47/100 ; SURVEILLE ; WICK_SETUP
-- TAO-EUR : 221.86 € ; score 72.59/100 ; SURVEILLE ; seuil achat non atteint
+- HYPE-EUR : 79.147 € ; score 73.38/100 ; SURVEILLE ; WICK_SETUP
 
 ## Contrôle des hausses
 
 | Marché | Prix € | 24 h | Détection | Couche d’échec | Actionnabilité |
 |---|---:|---:|---|---|---|
-| CELR-EUR | 0.0041336 | +104.26 % | NOT_DETECTED | DATA | NOT_APPLICABLE |
-| G-EUR | 0.0125517 | +95.03 % | DETECTED_EARLY | NONE | INTERPRETATION |
-| ZAMA-EUR | 0.074946 | +39.23 % | DETECTED_EARLY | NONE | INTERPRETATION |
-| C-EUR | 0.07385 | +28.16 % | DETECTED_EARLY | NONE | INTERPRETATION |
-| SKL-EUR | 0.0043818 | +27.40 % | DETECTED_EARLY | NONE | INTERPRETATION |
-| CTSI-EUR | 0.027614 | +21.96 % | NOT_DETECTED | DATA | NOT_APPLICABLE |
-| ZIL-EUR | 0.0032271 | +19.20 % | DETECTED_EARLY | NONE | INTERPRETATION |
-| STX-EUR | 0.28309 | +17.16 % | DETECTED_EARLY | NONE | INTERPRETATION |
-| AVAX-EUR | 8.4525 | +15.04 % | DETECTED_EARLY | NONE | ENTRY_TIMING_OR_EXECUTION |
-| ARK-EUR | 0.14052 | +14.72 % | NO_CONFIRMED_SHORT_TERM_EVENT | NOT_APPLICABLE | NOT_APPLICABLE |
+| CELR-EUR | 0.0042435 | +109.69 % | NOT_DETECTED | DATA | NOT_APPLICABLE |
+| G-EUR | 0.012739 | +94.32 % | DETECTED_EARLY | NONE | INTERPRETATION |
+| ZAMA-EUR | 0.074066 | +37.16 % | DETECTED_EARLY | NONE | INTERPRETATION |
+| C-EUR | 0.074566 | +31.61 % | DETECTED_EARLY | NONE | INTERPRETATION |
+| SKL-EUR | 0.0043526 | +26.84 % | DETECTED_EARLY | NONE | INTERPRETATION |
+| CTSI-EUR | 0.027958 | +23.48 % | NOT_DETECTED | DATA | NOT_APPLICABLE |
+| ZIL-EUR | 0.0032368 | +19.56 % | DETECTED_EARLY | NONE | INTERPRETATION |
+| ARK-EUR | 0.14333 | +15.98 % | NO_CONFIRMED_SHORT_TERM_EVENT | NOT_APPLICABLE | NOT_APPLICABLE |
+| SOLV-EUR | 0.0039902 | +15.45 % | DETECTED_EARLY | NONE | INTERPRETATION |
+| ONG-EUR | 0.078819 | +14.64 % | NOT_DETECTED | DATA | NOT_APPLICABLE |
 
-Historique : 957 scans ; 410418 observations ; 225 épisodes d’achat évaluables.
+Historique : 958 scans ; 410845 observations ; 225 épisodes d’achat évaluables.
 V5 optimisée : aucune. Supériorité sur V4 : non démontrée. Probabilités : non calibrées.
 Le cash et le portefeuille du plan sont hypothétiques. Aucun ordre réel n’est envoyé.
