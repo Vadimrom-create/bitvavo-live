@@ -1,10 +1,6 @@
-name: Oracle restricted control
+name: Legacy Oracle restricted control (manual only)
 
 on:
-  push:
-    branches: [main]
-    paths:
-      - 'oracle_control_request.json'
   workflow_dispatch:
     inputs:
       action:
