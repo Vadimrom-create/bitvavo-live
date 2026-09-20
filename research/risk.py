@@ -60,7 +60,7 @@ def plan(row, features, meta, config=None, reserved=None):
             'tp1_eur': tp1, 'tp2_eur': tp2, 'stake_eur': stake,
             'theoretical_loss_eur': float(amount) * risk_per_unit, 'net_rr_tp1': rr,
             'stop_distance_pct': unit_risk / entry * 100,
-            'scenario': 'V4 setup; invalidation below recent support and ATR buffer',
+            'scenario': 'Validated market setup; invalidation below recent support and ATR buffer',
             'target_note': '2R/3R scenarios, not forecasts; achievable reward not calibrated',
             'main_risk': 'Failed breakout, spread widening or gap through stop',
             'cost_assumptions': {'fee_rate_each_side': cfg['fee_rate'], 'slippage_rate_each_side': cfg['slippage_rate']},

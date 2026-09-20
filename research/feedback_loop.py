@@ -1,9 +1,8 @@
-"""Shadow acceleration detection and 24-72h candidate memory.
+"""Independent acceleration detection and 24-72h candidate memory.
 
-These diagnostics never mutate frozen V4 scores and never feed the production
-email payload.  Their purpose is to surface candidates that deserve continued
-attention and to make misses measurable without turning every weak signal into
-an execution alert.
+These diagnostics never mutate frozen V4 scores. Confirmed acceleration can be
+considered by the separate production gate, which still requires data quality,
+liquidity and a fresh final execution validation before an email is sent.
 """
 from __future__ import annotations
 
@@ -36,8 +35,8 @@ def acceleration_signal(obs: dict[str, Any]) -> dict[str, Any]:
     """Detect short-term acceleration independently from V4 scoring.
 
     The detector uses only closed 5m/15m diagnostics already collected for the
-    full EUR universe.  It is deliberately a shadow detector: confirmation can
-    restore a market to the watchlist, but cannot make it email-eligible.
+    full EUR universe. Detection alone is never enough to send an email; a
+    separate production gate and fresh execution validation remain mandatory.
     """
     f5 = (obs.get("features") or {}).get("5m") or {}
     f15 = (obs.get("features") or {}).get("15m") or {}
@@ -103,7 +102,7 @@ def acceleration_signal(obs: dict[str, Any]) -> dict[str, Any]:
     elif too_late:
         buyability = "DETECTED_BUT_TOO_LATE"
     else:
-        buyability = "REQUIRES_V4_ENTRY_AND_EXECUTION_VALIDATION"
+        buyability = "REQUIRES_FINAL_EXECUTION_VALIDATION"
     return {
         "state": state,
         "score": score,

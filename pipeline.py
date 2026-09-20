@@ -25,9 +25,10 @@ from research.features import category, chase_risk, closed_candles, describe, ni
 from research.history import connect, ingest, new_candles, rebuild, recurrent, save_scan
 from research.http import PublicClient
 from research.risk import correlation, plan, proposed_order
+from research.production_gate import build_alert_payload
 
 POLICY = 'V4_FROZEN_20260908'
-OPERATIONAL_POLICY = 'V4_FROZEN_20260908+ADAPTIVE_ENTRY_V1+TREND_GUARD_V1'
+OPERATIONAL_POLICY = 'V4_BENCHMARK+FULL_UNIVERSE_DIRECT_GATE_V1+TREND_GUARD_V1'
 STATE_FILES = ['scan_history.json', 'signal_log.json', 'v4_history.json', 'v4_signal_log.json',
                'v4_trend_cache.json', 'v4_stability_state.json', 'v4_config.json']
 
@@ -91,6 +92,8 @@ def _interval_quality_snapshot(tf, interval):
         'feature_valid': bool(features.get('valid')),
         'feature_reasons': list(features.get('reasons') or []),
         'bars_reported': features.get('bars'),
+        'trade_bars_last25': features.get('trade_bars_last25'),
+        'no_trade_bars_last25': features.get('no_trade_bars_last25'),
         'gap_count_last_25_observed': len(gaps),
         'missing_intervals_last_25_observed': sum(g['missing_intervals'] or 0 for g in gaps),
         'largest_missing_run_last_25_observed': max([g['missing_intervals'] or 0 for g in gaps], default=0),
@@ -190,7 +193,7 @@ def report_text(report):
     if not buys:
         lines.append('AUCUN ACHAT VALIDÉ — cette absence ne valide pas les marchés aux données insuffisantes.' if h['status'] == 'OK' else 'SCAN INCOMPLET — aucune recommandation d’achat publiée')
     lines += [f"Bougies utilisables : 5 min {h.get('valid_5m', 0)}/{h['universe']} ; 15 min {h.get('valid_15m', 0)}/{h['universe']}.",
-              'Les trous de cotation restent visibles ; aucune bougie sans transaction n’est inventée.']
+              'Les intervalles sans transaction sont représentés explicitement à volume 0 ; aucune transaction n’est inventée.']
     if report.get('blocked_baseline_buys'):
         lines += ['', 'Achats bruts V4 bloqués avant alerte :']
         for row in report['blocked_baseline_buys']:
@@ -337,6 +340,7 @@ def run():
             else 'NOT_APPLICABLE'
         )
         obs = {'market': name, 'price_eur': last, 'change_24h_pct': change24, 'baseline': baseline,
+               'quote_volume_24h_eur': finite(row.get('quote_volume_24h_eur'), finite(t.get('volumeQuote'), 0)),
                'category': cls, 'features': {'5m': m5.get('features'), '15m': features},
                'entry_enrichment': entry_enrichment,
                'score_components': score_components(row, before['v4_history.json'].get('markets', {}).get(name, {}), timestamp(live['generated_at_utc'])) if baseline else None,
@@ -351,8 +355,9 @@ def run():
                               'candle15_close_ms': features.get('last_closed_close_ms')}}
         if not quality['ok']:
             obs['decision'] = 'DATA UNAVAILABLE'
-        # Independent shadow path: it may restore a market to the persistent
-        # watchlist, but it never changes V4 scoring or the email payload.
+        # Independent full-universe path. It never changes frozen V4 scoring;
+        # the production gate may promote only confirmed acceleration and the
+        # email transport will still revalidate fresh execution data.
         obs['acceleration'] = acceleration_signal(obs)
         observations.append(obs)
         candles5[name] = m5.get('candles', [])
@@ -453,10 +458,10 @@ def run():
     Path('data_quality_audit.md').write_text(data_quality_audit_text(data_quality_audit), encoding='utf-8')
     atomic_json('evaluation.json', evaluation)
     atomic_json('proposed_orders.json', {'dry_run': True, 'orders': report['orders']})
-    # Preserve raw baseline public outputs for audit; provide a separate, fresh,
-    # quality-checked payload to the existing alert transport.
-    alert_payload = {**baseline_output, 'generated_at_utc': utc(baseline_ts),
-                     'watch': [{**o['baseline'], 'data_quality': o['data_quality'], 'trade_plan': o['trade_plan']} for o in buys]}
+    # Production alerts no longer depend on V4 preselection. Frozen V4 remains
+    # an auditable source, while confirmed full-universe acceleration may also
+    # enter the same final fresh execution gate.
+    alert_payload = build_alert_payload(observations, buys, utc(baseline_ts))
     atomic_json('alert_candidates.json', alert_payload)
     replay_input.update({'requests': client.records,
                          'expected_raw_baseline': frozen_raw_baseline,

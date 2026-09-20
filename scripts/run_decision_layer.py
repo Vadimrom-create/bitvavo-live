@@ -2,8 +2,9 @@
 """Run Decision Layer V1 after the frozen scanner pipeline.
 
 Reads the newest immutable scan journal, writes a latest public decision report
-and an append-only per-scan decision journal. It never changes V3/V4 output,
-alert_candidates.json, proposed_orders.json or any execution path.
+and an append-only per-scan decision journal. It never changes V3/V4 output.
+The separate production gate may use its classifications as context, while
+confirmed full-universe acceleration can qualify without V4 preselection.
 """
 from __future__ import annotations
 
@@ -135,7 +136,7 @@ def main() -> int:
             "accelerations": accelerations,
             "candidate_memory": memory,
             "top_mover_audit": top_movers,
-            "alert_integration": False,
+            "alert_integration": "CONFIRMED_ACCELERATION_VIA_PRODUCTION_GATE",
         },
     }
     atomic_json("decision_layer.json", payload)

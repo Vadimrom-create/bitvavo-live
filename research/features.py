@@ -8,8 +8,14 @@ from research.common import INTERVAL_MS, finite
 
 
 def closed_candles(raw, interval, now):
+    """Return canonical closed bars, explicitly representing zero-trade gaps.
+
+    Bitvavo documents missing candle intervals as periods with zero trades.
+    Those intervals are represented with the previous close as OHLC, zero
+    volume and bar_status=NO_TRADE. No transaction is invented.
+    """
     duration = INTERVAL_MS[interval]
-    result = {}
+    observed = {}
     for r in raw:
         if not isinstance(r, list) or len(r) < 6:
             raise ValueError('invalid_ohlcv_shape')
@@ -20,11 +26,48 @@ def closed_candles(raw, interval, now):
         if t != int(t) or int(t) % duration or min(o, h, l, c) <= 0 or v < 0 or h < max(o, c, l) or l > min(o, c, h):
             raise ValueError('invalid_ohlcv_values')
         if t + duration <= now * 1000:
-            row = {'t': int(t), 'o': o, 'h': h, 'l': l, 'c': c, 'v': v}
-            if int(t) in result and result[int(t)] != row:
+            row = {'t': int(t), 'o': o, 'h': h, 'l': l, 'c': c, 'v': v,
+                   'bar_status': 'CLOSED_TRADE'}
+            if int(t) in observed and observed[int(t)] != row:
                 raise ValueError('conflicting_candle')
-            result[int(t)] = row
-    return sorted(result.values(), key=lambda r: r['t'])
+            observed[int(t)] = row
+    if not observed:
+        return []
+
+    latest_closed_start = (int(now * 1000) // duration) * duration - duration
+    if latest_closed_start < min(observed):
+        return sorted(observed.values(), key=lambda r: r['t'])
+
+    # Feature calculations need at most 25 bars today, but keep 100 canonical
+    # intervals for diagnostics while avoiding huge fills on very illiquid pairs.
+    window_start = latest_closed_start - 99 * duration
+    ordered_times = sorted(observed)
+    anchors = [t for t in ordered_times if t <= window_start]
+    if anchors:
+        anchor_t = anchors[-1]
+    else:
+        anchor_t = ordered_times[0]
+        window_start = min(window_start, anchor_t)
+
+    previous_close = observed[anchor_t]['c']
+    canonical = []
+    t = max(window_start, anchor_t)
+    # Align to the interval boundary even if the chosen anchor predates window_start.
+    if t % duration:
+        t -= t % duration
+    while t <= latest_closed_start:
+        row = observed.get(t)
+        if row is not None:
+            previous_close = row['c']
+            canonical.append(row)
+        elif previous_close is not None:
+            canonical.append({
+                't': t, 'o': previous_close, 'h': previous_close,
+                'l': previous_close, 'c': previous_close, 'v': 0.0,
+                'bar_status': 'NO_TRADE',
+            })
+        t += duration
+    return canonical
 
 
 def pct(a, b):
@@ -49,7 +92,11 @@ def describe(cs, interval):
     vr = sum(v[-4:]) / sum(v[-8:-4]) if sum(v[-8:-4]) else None
     prior_vr = sum(v[-8:-4]) / sum(v[-12:-8]) if sum(v[-12:-8]) else None
     returns = [math.log(b / a) for a, b in zip(c[-21:-1], c[-20:])]
+    recent25 = cs[-25:]
+    no_trade_bars = sum(r.get('bar_status') == 'NO_TRADE' for r in recent25)
     return {'valid': not gaps, 'reasons': ['CANDLE_GAPS'] if gaps else [], 'bars': len(cs),
+            'trade_bars_last25': len(recent25) - no_trade_bars,
+            'no_trade_bars_last25': no_trade_bars,
             'last_closed_start_ms': cs[-1]['t'], 'last_closed_close_ms': cs[-1]['t'] + duration,
             'last_close_eur': c[-1], 'return_1bar_pct': pct(c[-1], c[-2]),
             'return_4bar_pct': pct(c[-1], c[-5]), 'return_16bar_pct': pct(c[-1], c[-17]),

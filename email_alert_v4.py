@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Email transport for V4 BUY_READY / REENTRY_READY signals. No second trading filter."""
+"""Episode/cooldown transport for normalized production buy candidates."""
 from __future__ import annotations
 
 import json
@@ -17,6 +17,7 @@ STATE = Path('alert_state_v4.json')
 GLOBAL_COOLDOWN = 30 * 60
 MARKET_COOLDOWN = 4 * 3600
 MAX_SNAPSHOT_AGE = 15 * 60
+ACTIONABLE_STATUSES = {'BUY_READY', 'REENTRY_READY', 'ACCELERATION_READY'}
 
 
 def n(x, default=None):
@@ -65,7 +66,7 @@ def select_events(payload, state, now, limit=1):
         return [], state
     eligible = {r['market']: r for r in payload.get('watch', [])
                 if r.get('market') and r.get('buy_ready')
-                and r.get('action_status') in {'BUY_READY', 'REENTRY_READY'}
+                and r.get('action_status') in ACTIONABLE_STATUSES
                 and r.get('data_quality', {}).get('ok', True)}
     events = []
     for m in sorted(set(state['markets']) | set(eligible)):
@@ -81,14 +82,18 @@ def select_events(payload, state, now, limit=1):
         episode = int(previous.get('episode', 0))
         last = n(previous.get('last_sent_ts'))
         new_episode = last is None or episode != previous.get('sent_episode', 0)
-        improved = (n(row.get('opportunity_score'), 0) - n(previous.get('opportunity'), 0) >= .7
-                    and n(row.get('entry_score'), 0) - n(previous.get('entry'), 0) >= .5)
+        if row.get('action_status') == 'ACCELERATION_READY':
+            improved = n(row.get('signal_score'), 0) - n(previous.get('signal_score'), 0) >= .7
+        else:
+            improved = (n(row.get('opportunity_score'), 0) - n(previous.get('opportunity'), 0) >= .7
+                        and n(row.get('entry_score'), 0) - n(previous.get('entry'), 0) >= .5)
         if (new_episode or improved) and (last is None or now - last >= MARKET_COOLDOWN):
             events.append(row)
     last_global = n(state.get('last_global_sent_ts'))
     if last_global is not None and now - last_global < GLOBAL_COOLDOWN:
         return [], state
-    events.sort(key=lambda r: (n(r.get('opportunity_score'), 0), n(r.get('entry_score'), 0)), reverse=True)
+    events.sort(key=lambda r: (n(r.get('signal_score'), n(r.get('opportunity_score'), 0)),
+                               n(r.get('entry_score'), 0)), reverse=True)
     return (events if limit is None else events[:limit]), state
 
 
@@ -105,8 +110,8 @@ def main() -> int:
     state.setdefault('markets',{})
     now=time.time()
     last_global=n(state.get('last_global_sent_ts'))
-    candidates=[r for r in payload.get('watch',[]) if isinstance(r,dict) and r.get('buy_ready') and r.get('action_status') in {'BUY_READY','REENTRY_READY'}]
-    candidates.sort(key=lambda r:(n(r.get('opportunity_score'),0),n(r.get('entry_score'),0)), reverse=True)
+    candidates=[r for r in payload.get('watch',[]) if isinstance(r,dict) and r.get('buy_ready') and r.get('action_status') in ACTIONABLE_STATUSES]
+    candidates.sort(key=lambda r:(n(r.get('signal_score'),n(r.get('opportunity_score'),0)),n(r.get('entry_score'),0)), reverse=True)
     selected=[]
     if test:
         selected=candidates[:1] or [r for r in payload.get('watch',[])[:1] if isinstance(r,dict)]
@@ -139,7 +144,7 @@ def main() -> int:
     if not test:
         state['last_global_sent_ts']=now
         previous=state['markets'].get(str(m),{})
-        state['markets'][str(m)]={**previous,'last_sent_ts':now,'sent_episode':previous.get('episode',0),'opportunity':r.get('opportunity_score'),'entry':r.get('entry_score'),'price':r.get('last'),'status':r.get('action_status')}
+        state['markets'][str(m)]={**previous,'last_sent_ts':now,'sent_episode':previous.get('episode',0),'opportunity':r.get('opportunity_score'),'entry':r.get('entry_score'),'signal_score':r.get('signal_score'),'signal_source':r.get('signal_source'),'price':r.get('last'),'status':r.get('action_status')}
         state['updated_at_utc']=datetime.now(timezone.utc).isoformat(); save(STATE,state)
     print(f"EMAIL_V4_SENT recipient={recipient} market={m} test={test}")
     return 0

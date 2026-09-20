@@ -71,6 +71,18 @@ class FeatureTests(unittest.TestCase):
         cs = candles(); cs.pop(-5)
         self.assertFalse(describe(cs, '15m')['valid'])
 
+    def test_bitvavo_zero_trade_gap_is_canonicalized_without_inventing_volume(self):
+        cs = raw(candles())
+        missing_t = cs[-5][0]
+        cs.pop(-5)
+        clean = closed_candles(cs, '15m', NOW + 60)
+        filled = next(r for r in clean if r['t'] == missing_t)
+        self.assertEqual(filled['bar_status'], 'NO_TRADE')
+        self.assertEqual(filled['v'], 0.0)
+        self.assertEqual(filled['o'], filled['c'])
+        self.assertTrue(describe(clean, '15m')['valid'])
+        self.assertGreaterEqual(describe(clean, '15m')['no_trade_bars_last25'], 1)
+
     def test_atr(self):
         f = describe(candles(), '15m')
         self.assertAlmostEqual(f['atr14_eur'], 2)
