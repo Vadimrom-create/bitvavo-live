@@ -45,7 +45,21 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
-      - name: Live scan, no email or real order
+      - name: Direct production live scan, no email
+        run: python scripts/production_scan.py
+      - name: Validate direct production scan output
+        run: |
+          python - <<'PY'
+          import json
+          status = json.load(open('production_scan_status.json'))
+          assert status['status'] == 'OK', status
+          assert status['active_eur_markets'] >= 300, status
+          assert status['markets_collected'] == status['active_eur_markets'], status
+          payload = json.load(open('production_alert_candidates.json'))
+          assert payload['oracle_required'] is False
+          assert payload['hosted_probe_required'] is False
+          PY
+      - name: Research live scan, no email or real order
         run: python pipeline.py
       - name: Replay and compare with frozen V4
         run: python -m research.replay runtime/replay-*.json.gz
@@ -59,6 +73,8 @@ jobs:
           name: public-live-validation
           retention-days: 30
           path: |
+            production_scan_status.json
+            production_alert_candidates.json
             v5_report.json
             v5_report.md
             pipeline_health.json
