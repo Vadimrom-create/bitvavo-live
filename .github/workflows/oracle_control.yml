@@ -69,6 +69,8 @@ jobs:
           chmod 0600 "$HOME/.ssh/oracle_deploy" "$HOME/.ssh/known_hosts"
 
       - name: Run restricted command
+        id: control
+        continue-on-error: true
         if: steps.ssh_setup.outcome == 'success'
         env:
           ACTION: ${{ steps.request.outputs.action }}
@@ -85,3 +87,10 @@ jobs:
         run: |
           echo "::warning::Oracle restricted control unavailable: SSH secrets are not configured."
           echo "ORACLE_CONTROL_UNAVAILABLE"
+
+
+      - name: Report unavailable Oracle target without failing workflow plumbing
+        if: steps.ssh_setup.outcome == 'success' && steps.control.outcome != 'success'
+        run: |
+          echo "::warning::Oracle target did not answer the restricted control command."
+          echo "ORACLE_TARGET_UNAVAILABLE"
