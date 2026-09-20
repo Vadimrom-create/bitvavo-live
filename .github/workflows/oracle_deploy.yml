@@ -24,10 +24,13 @@ jobs:
           ref: ${{ github.sha }}
 
       - name: Validate deployable Python
+        id: validation
+        continue-on-error: true
         run: python -m py_compile oracle/bitvavo_public_probe.py
 
       - name: Configure restricted SSH
         id: ssh_setup
+        if: steps.validation.outcome == 'success'
         continue-on-error: true
         env:
           DEPLOY_KEY: ${{ secrets.ORACLE_DEPLOY_SSH_KEY }}
@@ -41,7 +44,7 @@ jobs:
           chmod 0600 "$HOME/.ssh/oracle_deploy" "$HOME/.ssh/known_hosts"
 
       - name: Deploy exact main commit with rollback healthcheck
-        if: steps.ssh_setup.outcome == 'success'
+        if: steps.validation.outcome == 'success' && steps.ssh_setup.outcome == 'success'
         run: |
           ssh -i "$HOME/.ssh/oracle_deploy" \
             -o BatchMode=yes \
@@ -51,7 +54,7 @@ jobs:
             bitvavo-deploy@144.24.206.128 "deploy $GITHUB_SHA"
 
       - name: Verify health after deployment
-        if: steps.ssh_setup.outcome == 'success'
+        if: steps.validation.outcome == 'success' && steps.ssh_setup.outcome == 'success'
         run: |
           ssh -i "$HOME/.ssh/oracle_deploy" \
             -o BatchMode=yes \
@@ -62,7 +65,14 @@ jobs:
 
 
       - name: Report deployment channel not bootstrapped
-        if: steps.ssh_setup.outcome != 'success'
+        if: steps.validation.outcome == 'success' && steps.ssh_setup.outcome != 'success'
         run: |
           echo "::warning::Oracle deployment skipped: restricted SSH secrets are not configured yet."
           echo "ORACLE_DEPLOY_UNCONFIGURED"
+
+
+      - name: Report invalid Oracle source without deployment
+        if: steps.validation.outcome != 'success'
+        run: |
+          echo "::warning::Oracle source failed syntax validation; deployment skipped. CI remains the authoritative failure signal."
+          echo "ORACLE_DEPLOY_SKIPPED_INVALID_SOURCE"
