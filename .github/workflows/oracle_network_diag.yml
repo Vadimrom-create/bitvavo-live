@@ -1,10 +1,6 @@
-name: Oracle network diagnostic
+name: Legacy Oracle network diagnostic (manual only)
 
 on:
-  push:
-    branches: [main]
-    paths:
-      - '.github/workflows/oracle_network_diag.yml'
   workflow_dispatch:
 
 permissions:
