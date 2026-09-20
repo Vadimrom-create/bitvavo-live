@@ -41,31 +41,10 @@ jobs:
         run: python pipeline.py
       - name: Replay and compare with frozen V4
         run: python -m research.replay runtime/replay-*.json.gz
-      - name: Preserve validated public observations on this review branch
+      - name: Keep review validation ephemeral
         run: |
-          git config user.name 'bitvavo-live-bot'
-          git config user.email 'actions@users.noreply.github.com'
-          git add v5_report.json v5_report.md pipeline_health.json evaluation.json history/
-          if git diff --cached --quiet; then
-            exit 0
-          fi
-          git commit -m 'Record public live validation and immutable observation journal'
-          for attempt in 1 2 3 4; do
-            git fetch origin "${{ github.ref_name }}"
-            if ! git rebase "origin/${{ github.ref_name }}"; then
-              git rebase --abort || true
-              echo 'Concurrent review-branch conflict while publishing validation.' >&2
-              exit 1
-            fi
-            if git push origin "HEAD:${{ github.ref_name }}"; then
-              exit 0
-            fi
-            if [ "${attempt}" -lt 4 ]; then
-              sleep $((attempt * 2))
-            fi
-          done
-          echo 'Validation publication retries exhausted.' >&2
-          exit 1
+          echo "Review-branch live validation is preserved only as an artifact."
+          echo "CI must not mutate or rebase the branch it is validating."
       - uses: actions/upload-artifact@v4
         if: always()
         with:
