@@ -6,7 +6,7 @@ from research.production_acceleration import acceleration_signal
 from research.production_alerts import mark_sent, mark_suppressed, select_events
 from research.production_gate import ACCELERATION_ACTION, build_alert_payload
 from scripts.production_scan import observation as scan_observation
-from scripts.send_production_buy_alert import prior_buy_thesis_active
+from scripts.send_production_buy_alert import closed_5m_lows, prior_buy_thesis_active
 
 
 def confirmed(score=7.1, evidence=4):
@@ -281,6 +281,17 @@ class ProductionPriorThesisTests(unittest.TestCase):
         )
         self.assertFalse(active)
         self.assertEqual(reason, "PRIOR_BUY_THESIS_EXPIRED")
+
+
+    def test_full_24h_5m_history_is_not_truncated_to_100_bars(self):
+        raw = []
+        start = int((self.NOW - 150 * 300) * 1000)
+        for i in range(150):
+            t = start + i * 300_000
+            raw.append([t, "1.0", "1.1", "0.9", "1.0", "10"])
+        lows = closed_5m_lows(raw, self.NOW)
+        self.assertEqual(len(lows), 150)
+        self.assertEqual(lows[0]["t"], start)
 
 
     def test_building_to_confirmed_preserves_episode_start(self):
