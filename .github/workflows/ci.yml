@@ -4,7 +4,7 @@ on:
   pull_request:
   push:
     branches: [main, 'codex/**']
-    paths: ['**.py', 'tests/**', '.github/workflows/**', 'baseline/**', 'requirements-monitoring.txt']
+    paths: ['**.py', 'tests/**', '.github/workflows/**', 'baseline/**', 'oracle/**', 'requirements-monitoring.txt']
   workflow_dispatch:
 
 permissions:
