@@ -4,7 +4,7 @@ on:
   pull_request:
   push:
     branches: [main, 'codex/**']
-    paths: ['**.py', 'tests/**', '.github/workflows/**', 'baseline/**', 'oracle/**', 'render.yaml', 'requirements-monitoring.txt']
+    paths: ['**.py', 'tests/**', '.github/workflows/**', 'baseline/**', 'oracle/**', 'railway.toml', 'requirements-monitoring.txt']
   workflow_dispatch:
 
 permissions:
@@ -29,9 +29,9 @@ jobs:
         run: |
           python -m py_compile oracle/bitvavo_public_probe.py scripts/oracle_probe_snapshot.py scripts/oracle_probe_request.py
           bash -n oracle/install_bitvavo_public_probe.sh oracle/bootstrap_oracle_deploy.sh
-          grep -q 'healthCheckPath: /health' render.yaml
-          grep -q 'autoDeployTrigger: checksPass' render.yaml
-          grep -q 'startCommand: python oracle/bitvavo_public_probe.py' render.yaml
+          grep -q 'healthcheckPath = "/health"' railway.toml
+          grep -q 'restartPolicyType = "ALWAYS"' railway.toml
+          grep -q 'startCommand = "python oracle/bitvavo_public_probe.py"' railway.toml
   public-live-smoke:
     if: github.event_name == 'push' && startsWith(github.ref, 'refs/heads/codex/')
     needs: tests
