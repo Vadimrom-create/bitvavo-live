@@ -20,7 +20,7 @@ concurrency:
 jobs:
   probe:
     runs-on: ubuntu-latest
-    timeout-minutes: 3
+    timeout-minutes: 2
     steps:
       - uses: actions/checkout@v4
         with:
@@ -31,6 +31,7 @@ jobs:
       - name: Fetch enriched Oracle public probes
         run: python scripts/oracle_probe_snapshot.py
       - name: Publish sanitized shadow snapshot
+        continue-on-error: true
         run: |
           git config user.name 'bitvavo-live-bot'
           git config user.email 'actions@users.noreply.github.com'
@@ -43,8 +44,8 @@ jobs:
             git fetch origin main
             if ! git rebase origin/main; then
               git rebase --abort || true
-              echo 'Rebase conflict while publishing oracle_live_probe.json' >&2
-              exit 1
+              echo 'Rebase conflict while publishing oracle_live_probe.json; snapshot remains local to this run.' >&2
+              exit 0
             fi
             if git push origin HEAD:main; then
               exit 0
@@ -53,5 +54,5 @@ jobs:
               sleep $((attempt * 2))
             fi
           done
-          echo 'Failed to publish Oracle shadow after 6 attempts.' >&2
-          exit 1
+          echo 'Failed to publish Oracle shadow after 6 attempts; do not fail monitoring workflow.' >&2
+          exit 0
