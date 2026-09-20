@@ -116,6 +116,7 @@ def select_events(payload: dict[str, Any], state: dict[str, Any], now: float, li
                 tracked_row.get("signal_state")
                 or (tracked_row.get("acceleration") or {}).get("state")
             )
+            previous["max_signal_score"] = _n(tracked_row.get("signal_score"))
             previous.pop("first_confirmed_ts", None)
             previous.pop("first_confirmed_price", None)
 
@@ -126,10 +127,11 @@ def select_events(payload: dict[str, Any], state: dict[str, Any], now: float, li
         )
         previous["current_price"] = tracked_row.get("last")
         previous["current_score"] = tracked_row.get("signal_score")
-        previous["max_signal_score"] = max(
-            _n(previous.get("max_signal_score")),
-            _n(tracked_row.get("signal_score")),
-        )
+        if was_active:
+            previous["max_signal_score"] = max(
+                _n(previous.get("max_signal_score")),
+                _n(tracked_row.get("signal_score")),
+            )
 
         row = eligible.get(market)
         if row is None:
