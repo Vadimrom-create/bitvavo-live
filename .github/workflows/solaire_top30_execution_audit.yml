@@ -1,0 +1,185 @@
+name: Solaire top30 execution-path audit
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/solaire_top30_execution_audit.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Simulate top30 execution path
+        run: |
+          python - <<'PY'
+          import bisect,gzip,json,re,time
+          from datetime import datetime,timezone
+          from pathlib import Path
+          from research.common import finite,INTERVAL_MS
+          from research.features import describe
+          from research.http import PublicClient
+          from research.production_acceleration import acceleration_signal
+          from research.risk import structural_plan
+
+          PANEL=["SAGA-EUR","PTB-EUR","FTT-EUR","NIL-EUR","KMNO-EUR","EPIC-EUR","LUNA2-EUR","S-EUR","CFG-EUR","NEAR-EUR","VVV-EUR","AVAX-EUR","PEAQ-EUR","U-EUR","RENDER-EUR","ALLO-EUR","STRK-EUR","C-EUR","GRT-EUR","MANTA-EUR","CAKE-EUR","SEI-EUR","ENA-EUR","ONG-EUR","OSMO-EUR","HBAR-EUR","ENSO-EUR","METIS-EUR","ARB-EUR","CETUS-EUR"]
+          client=PublicClient(timeout=15,retries=3,requests_per_second=10)
+          client.get("/time",cache=False)
+          now=time.time(); start=now-24*3600
+          meta={m["market"]:m for m in client.get("/markets") if m.get("market") in PANEL}
+
+          def canonical(rows,interval):
+              dur=INTERVAL_MS[interval]; obs={}
+              for r in rows:
+                  if not isinstance(r,list) or len(r)<6: continue
+                  vals=[finite(v) for v in r[:6]]
+                  if any(v is None for v in vals): continue
+                  t,o,h,l,c,v=vals; t=int(t)
+                  if t+dur>now*1000 or t%dur or min(o,h,l,c)<=0 or v<0: continue
+                  obs[t]={"t":t,"o":o,"h":h,"l":l,"c":c,"v":v}
+              if not obs:return []
+              ts=sorted(obs); out=[]; prev=None; t=ts[0]; end=ts[-1]
+              while t<=end:
+                  row=obs.get(t)
+                  if row is not None: prev=row["c"]; out.append(row)
+                  elif prev is not None: out.append({"t":t,"o":prev,"h":prev,"l":prev,"c":prev,"v":0.0})
+                  t+=dur
+              return out
+
+          def feat_at(cs,interval,ts):
+              dur=INTERVAL_MS[interval]; starts=[x["t"] for x in cs]
+              idx=bisect.bisect_right(starts,int(ts*1000)-dur)
+              if idx<=0:return {"valid":False,"reasons":["NO_HISTORY"]},None,idx
+              sub=cs[max(0,idx-100):idx]
+              return describe(sub,interval),sub[-1]["c"],idx
+
+          series={}
+          for m in PANEL:
+              r5=client.get("/"+m+"/candles",{"interval":"5m","limit":650},cache=False)
+              r15=client.get("/"+m+"/candles",{"interval":"15m","limit":240},cache=False)
+              series[m]=(canonical(r5,"5m"),canonical(r15,"15m"))
+
+          spread_index={m:[] for m in PANEL}
+          rx=re.compile(r"(\d{8}T\d{6}Z)")
+          def walk(obj,fts):
+              if isinstance(obj,dict):
+                  mk=obj.get("market")
+                  if mk in spread_index:
+                      bid=finite(obj.get("bid")); ask=finite(obj.get("ask")); sp=finite(obj.get("spread_pct"))
+                      if sp is None and bid and ask and bid>0 and ask>=bid: sp=(ask/bid-1)*100
+                      if sp is not None:
+                          spread_index[mk].append({"ts":fts,"spread_pct":sp,"bid":bid,"ask":ask})
+                  for v in obj.values(): walk(v,fts)
+              elif isinstance(obj,list):
+                  for v in obj: walk(v,fts)
+
+          for folder in ["history/2026-09-19","history/2026-09-20","history/2026-09-21"]:
+              p=Path(folder)
+              if not p.exists(): continue
+              for path in p.glob("*.json.gz"):
+                  mm=rx.search(path.name)
+                  if not mm: continue
+                  fts=datetime.strptime(mm.group(1),"%Y%m%dT%H%M%SZ").replace(tzinfo=timezone.utc).timestamp()
+                  if fts<start-900 or fts>now+900: continue
+                  try:
+                      with gzip.open(path,"rt",encoding="utf-8") as fh: walk(json.load(fh),fts)
+                  except Exception: pass
+
+          def nearest_spread(m,ts):
+              xs=[x for x in spread_index.get(m,[]) if abs(x["ts"]-ts)<=12*60]
+              return min(xs,key=lambda x:abs(x["ts"]-ts)) if xs else None
+
+          def rollq(c5,idx):
+              return sum(x["v"]*x["c"] for x in c5[max(0,idx-288):idx])
+
+          def outcome(c5,ts,plan):
+              future=[x for x in c5 if x["t"]>=int(ts*1000)]
+              entry=plan["entry_eur"]; stop=plan["stop_eur"]; tp1=plan["tp1_eur"]; tp2=plan["tp2_eur"]
+              maxh=entry; minl=entry
+              for x in future:
+                  maxh=max(maxh,x["h"]); minl=min(minl,x["l"])
+                  sh=x["l"]<=stop; t1=x["h"]>=tp1; t2=x["h"]>=tp2
+                  if sh and t1:
+                      return {"result":"STOP_SAME_BAR_CONSERVATIVE","ts":x["t"]/1000,"mfe_pct":(maxh/entry-1)*100,"mae_pct":(minl/entry-1)*100}
+                  if sh:
+                      return {"result":"STOP_BEFORE_TP1","ts":x["t"]/1000,"mfe_pct":(maxh/entry-1)*100,"mae_pct":(minl/entry-1)*100}
+                  if t1:
+                      return {"result":"TP1_BEFORE_STOP","ts":x["t"]/1000,"tp2_same_or_later":bool(t2),"mfe_pct":(maxh/entry-1)*100,"mae_pct":(minl/entry-1)*100}
+              return {"result":"OPEN_NO_TP1_OR_STOP","ts":None,"mfe_pct":(maxh/entry-1)*100,"mae_pct":(minl/entry-1)*100}
+
+          output={}
+          for m in PANEL:
+              c5,c15=series[m]
+              attempts=[]; first_confirm=None
+              for row in c5:
+                  ts=row["t"]/1000+301
+                  if ts<start or ts>now: continue
+                  f5,price,idx5=feat_at(c5,"5m",ts)
+                  f15,_,_=feat_at(c15,"15m",ts)
+                  sig=acceleration_signal({"features":{"5m":f5,"15m":f15}})
+                  if sig.get("state")!="CONFIRMED_ACCELERATION": continue
+                  if first_confirm is None:
+                      first_confirm={"ts":ts,"price":price,"score":sig["score"]}
+                  qv=rollq(c5,idx5)
+                  rec={"ts":ts,"price":price,"score":sig["score"],"qv":qv}
+                  if qv<75000:
+                      rec["gate"]="LIQUIDITY"; attempts.append(rec); continue
+                  sp=nearest_spread(m,ts)
+                  ask=sp.get("ask") if sp and sp.get("ask") else price
+                  plan=structural_plan({"market":m,"ask":ask},f15,meta[m])
+                  if not plan.get("valid"):
+                      rec["gate"]=plan.get("reason"); rec["spread"]=sp; attempts.append(rec); continue
+                  rec["plan"]=plan; rec["spread"]=sp
+                  if sp is None: rec["gate"]="SPREAD_UNKNOWN"
+                  elif sp["spread_pct"]>0.5: rec["gate"]="SPREAD_TOO_WIDE"
+                  else: rec["gate"]="MAIL"
+                  attempts.append(rec)
+
+              email=next((a for a in attempts if a["gate"]=="MAIL"),None)
+              unknown=any(a["gate"]=="SPREAD_UNKNOWN" for a in attempts if email is None or a["ts"]<email["ts"])
+              if email:
+                  status="SIMULATED_BUY_MAIL"; path=outcome(c5,email["ts"],email["plan"])
+                  delay=(email["ts"]-first_confirm["ts"])/60 if first_confirm else None
+                  drift=(email["price"]/first_confirm["price"]-1)*100 if first_confirm else None
+              else:
+                  path=None; delay=None; drift=None
+                  status="UNKNOWN_SPREAD" if unknown else ("NO_BUY_MAIL" if first_confirm else "NO_SIGNAL")
+              output[m]={"first_confirm":first_confirm,"status":status,"email":email,"delay_min":delay,
+                         "price_drift_from_first_confirm_pct":drift,"path":path,
+                         "gate_counts":{g:sum(a["gate"]==g for a in attempts) for g in sorted(set(a["gate"] for a in attempts))}}
+
+          summary={"n":len(PANEL),
+                   "simulated_mails":sum(v["status"]=="SIMULATED_BUY_MAIL" for v in output.values()),
+                   "unknown_spread":sum(v["status"]=="UNKNOWN_SPREAD" for v in output.values()),
+                   "no_mail":sum(v["status"]=="NO_BUY_MAIL" for v in output.values()),
+                   "tp1_before_stop":sum((v.get("path") or {}).get("result")=="TP1_BEFORE_STOP" for v in output.values()),
+                   "stop_before_tp1":sum((v.get("path") or {}).get("result") in ("STOP_BEFORE_TP1","STOP_SAME_BAR_CONSERVATIVE") for v in output.values()),
+                   "open_no_event":sum((v.get("path") or {}).get("result")=="OPEN_NO_TP1_OR_STOP" for v in output.values())}
+          print("EXEC_SUMMARY="+json.dumps(summary,separators=(",",":")))
+          for i,m in enumerate(PANEL,1):
+              v=output[m]; e=v.get("email")
+              row={"rank":i,"market":m,"status":v["status"],
+                   "fc_ts":(v.get("first_confirm") or {}).get("ts"),"fc_price":(v.get("first_confirm") or {}).get("price"),
+                   "fc_score":(v.get("first_confirm") or {}).get("score"),"email_ts":e.get("ts") if e else None,
+                   "email_price":e.get("price") if e else None,"email_score":e.get("score") if e else None,
+                   "spread":(e.get("spread") or {}).get("spread_pct") if e else None,
+                   "delay_min":v.get("delay_min"),"drift_pct":v.get("price_drift_from_first_confirm_pct"),
+                   "stop":(e.get("plan") or {}).get("stop_eur") if e else None,"tp1":(e.get("plan") or {}).get("tp1_eur") if e else None,
+                   "stop_dist_pct":(e.get("plan") or {}).get("stop_distance_pct") if e else None,
+                   "path":v.get("path"),"gate_counts":v.get("gate_counts")}
+              print("EXECROW="+json.dumps(row,separators=(",",":")))
+          Path("/tmp/solaire_top30_execution.json").write_text(json.dumps({"summary":summary,"results":output},indent=2),encoding="utf-8")
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: solaire-top30-execution-audit
+          path: /tmp/solaire_top30_execution.json
+          retention-days: 7
