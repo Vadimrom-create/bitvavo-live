@@ -110,7 +110,7 @@ def send_with_status(status, credentials, subject, body):
 
 
 def public_buy_event(row, buy_state, client, metadata, now):
-    """Revalidate a published V4 buy with fresh public execution data.
+    """Revalidate a production candidate with fresh public execution data.
 
     This deliberately makes no claim about holdings or live cash. Those checks
     remain exclusive to the read-only private-account path below.
@@ -145,7 +145,7 @@ def public_buy_event(row, buy_state, client, metadata, now):
         'stop_eur': trade['stop_eur'],
         'target_eur': trade['tp1_eur'],
         'trade_plan': trade,
-        'reason': ('Signal V4 validé ; carnet, prix et structure de marché encore compatibles '
+        'reason': ('Signal de production validé ; carnet, prix et structure de marché encore compatibles '
                    'avec une entrée. Solde et positions Bitvavo non vérifiés.'),
         'observed_at_utc': quote['retrieved_at_utc'],
         'baseline_row': row,
@@ -222,6 +222,7 @@ def run_public_buy_fallback(status):
     previous = buy_state['markets'][market]
     previous.update(last_sent_ts=sent_at, sent_episode=previous.get('episode', 0),
                     opportunity=row.get('opportunity_score'), entry=row.get('entry_score'),
+                    signal_score=row.get('signal_score'), signal_source=row.get('signal_source'),
                     price=row.get('last'), status=row.get('action_status'))
     buy_state['last_global_sent_ts'] = sent_at
     buy_state['updated_at_utc'] = utc(sent_at)
@@ -359,7 +360,7 @@ def run(status):
             events.append({'action': BUY, 'market': market, 'position_id': 'buy:' + market,
                            'trigger_key': str(episode), 'price_eur': p['entry_eur'], 'amount': float(p['amount']),
                            'stop_eur': p['stop_eur'], 'target_eur': p['tp1_eur'], 'trade_plan': p,
-                           'reason': 'Signal V4 valide, données fraîches et limites du portefeuille réel respectées.',
+                           'reason': 'Signal de production validé, données fraîches et limites du portefeuille réel respectées.',
                            'observed_at_utc': quote['retrieved_at_utc'], 'baseline_row': row})
             # Keep the existing one-proposed-buy limit, but apply it after all
             # final eligibility checks so a rejected top row cannot mask the
@@ -404,7 +405,8 @@ def run(status):
             previous = state['buy_state']['markets'][e['market']]
             row = e['baseline_row']
             previous.update(last_sent_ts=sent_at, sent_episode=previous['episode'],
-                            opportunity=row['opportunity_score'], entry=row['entry_score'])
+                            opportunity=row.get('opportunity_score'), entry=row.get('entry_score'),
+                            signal_score=row.get('signal_score'), signal_source=row.get('signal_source'))
             state['buy_state']['last_global_sent_ts'] = sent_at
     if 'buy_state' in state:
         state['buy_state']['updated_at_utc'] = utc(sent_at)
