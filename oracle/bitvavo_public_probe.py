@@ -17,8 +17,10 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 BASE = "https://api.bitvavo.com/v2"
 PORT = int(os.environ.get("PORT", "8787"))
 MARKET_RE = re.compile(r"^[A-Z0-9]{2,20}-EUR$")
-MAX_CONCURRENT_QUOTES = 8
-UPSTREAM_TIMEOUT_SECONDS = 4
+MAX_CONCURRENT_QUOTES = max(1, min(8, int(os.environ.get("MAX_CONCURRENT_QUOTES", "4"))))
+UPSTREAM_TIMEOUT_SECONDS = max(1, min(10, int(os.environ.get("UPSTREAM_TIMEOUT_SECONDS", "4"))))
+WATCHDOG_INTERVAL_SECONDS = max(5, int(os.environ.get("WATCHDOG_INTERVAL_SECONDS", "10")))
+WATCHDOG_FAILURES_BEFORE_EXIT = max(2, int(os.environ.get("WATCHDOG_FAILURES_BEFORE_EXIT", "3")))
 QUOTE_SLOTS = threading.BoundedSemaphore(MAX_CONCURRENT_QUOTES)
 COUNTER_LOCK = threading.Lock()
 ACTIVE_QUOTES = 0
@@ -242,5 +244,34 @@ class ProbeServer(ThreadingHTTPServer):
     request_queue_size = 64
 
 
+def self_watchdog(port: int) -> None:
+    """Exit non-zero if the local HTTP server repeatedly stops answering.
+
+    A managed host can then restart the process automatically. This catches
+    the failure mode where the process still exists but its HTTP service is wedged.
+    """
+    failures = 0
+    url = f"http://127.0.0.1:{port}/health"
+    while True:
+        time.sleep(WATCHDOG_INTERVAL_SECONDS)
+        try:
+            with urllib.request.urlopen(url, timeout=2) as response:
+                payload = json.loads(response.read().decode())
+            if response.status != 200 or payload.get("ok") is not True:
+                raise RuntimeError("local healthcheck unhealthy")
+            failures = 0
+        except Exception:
+            failures += 1
+            if failures >= WATCHDOG_FAILURES_BEFORE_EXIT:
+                os._exit(70)
+
+
 if __name__ == "__main__":
-    ProbeServer(("0.0.0.0", PORT), Handler).serve_forever()
+    server = ProbeServer(("0.0.0.0", PORT), Handler)
+    threading.Thread(
+        target=self_watchdog,
+        args=(server.server_address[1],),
+        name="live-probe-watchdog",
+        daemon=True,
+    ).start()
+    server.serve_forever()
