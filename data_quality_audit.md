@@ -1,22 +1,22 @@
 # Audit qualité des données Bitvavo
 
-Scan : 2026-09-20T04:53:46.480704+00:00 (20260920T045210Z-fc293e69)
-Univers : 427 | strategy-grade : 26 | rejetés : 401
-5m valides : 29 | 15m valides : 59 | deux intervalles valides : 26
+Scan : 2026-09-20T05:10:29.937311+00:00 (20260920T050859Z-c1d7c32c)
+Univers : 427 | strategy-grade : 24 | rejetés : 403
+5m valides : 25 | 15m valides : 59 | deux intervalles valides : 24
 
 ## Causes de rejet globales
 
 | Cause | Marchés |
 |---|---:|
-| INVALID_5M | 398 |
+| INVALID_5M | 402 |
 | INVALID_15M | 368 |
-| MISSING_LATEST_CLOSED_CANDLE | 294 |
+| MISSING_LATEST_CLOSED_CANDLE | 278 |
 
 ## Causes intrinsèques 5m
 
 | Cause | Marchés |
 |---|---:|
-| CANDLE_GAPS | 398 |
+| CANDLE_GAPS | 402 |
 
 ## Causes intrinsèques 15m
 
@@ -28,26 +28,26 @@ Univers : 427 | strategy-grade : 26 | rejetés : 401
 
 | Marché | Vol. 24h € | 24h | Causes | 5m bars/gaps manquants | 15m bars/gaps manquants |
 |---|---:|---:|---|---:|---:|
-| ONDO-EUR | 6104981 | +1.21% | INVALID_5M, MISSING_LATEST_CLOSED_CANDLE | 99/1 | 99/0 |
-| INJ-EUR | 3144394 | +9.86% | INVALID_5M | 99/1 | 99/0 |
-| XLM-EUR | 2794888 | -1.67% | INVALID_5M | 99/1 | 99/0 |
-| ZAMA-EUR | 2301630 | +33.43% | INVALID_5M | 99/1 | 99/0 |
-| SYN-EUR | 2296685 | +12.27% | INVALID_5M | 99/2 | 99/0 |
-| HBAR-EUR | 2067488 | +2.02% | INVALID_5M | 99/6 | 99/0 |
-| CAP-EUR | 1996713 | -16.28% | INVALID_5M | 99/14 | 99/0 |
-| DOGE-EUR | 1651999 | -2.37% | INVALID_5M | 99/3 | 99/0 |
-| LSK-EUR | 1529020 | -10.00% | INVALID_5M | 99/2 | 99/0 |
-| CNPY-EUR | 1479840 | -28.00% | INVALID_5M | 99/1 | 99/0 |
-| LTC-EUR | 1397111 | -2.08% | INVALID_5M | 99/6 | 99/0 |
-| WLD-EUR | 1373643 | +1.73% | INVALID_5M | 99/1 | 99/0 |
-| VET-EUR | 1241104 | +1.59% | INVALID_5M | 99/2 | 99/0 |
-| EPIC-EUR | 1212315 | +19.33% | INVALID_15M, INVALID_5M | 99/2 | 99/3 |
-| APT-EUR | 1195413 | -5.39% | INVALID_15M, INVALID_5M, MISSING_LATEST_CLOSED_CANDLE | 100/10 | 100/2 |
-| STRK-EUR | 1082378 | +9.97% | INVALID_5M | 99/1 | 99/0 |
-| USELESS-EUR | 1028636 | -10.64% | INVALID_5M | 99/1 | 99/0 |
-| STX-EUR | 940540 | +13.75% | INVALID_5M | 99/2 | 99/0 |
-| FIL-EUR | 907149 | -3.06% | INVALID_15M, INVALID_5M, MISSING_LATEST_CLOSED_CANDLE | 100/24 | 100/2 |
-| HEI-EUR | 904743 | +15.26% | INVALID_15M, INVALID_5M | 99/18 | 99/3 |
+| ONDO-EUR | 6093545 | +0.59% | INVALID_5M | 100/2 | 99/0 |
+| INJ-EUR | 3150790 | +9.54% | INVALID_5M | 99/1 | 99/0 |
+| XLM-EUR | 2778560 | -1.78% | INVALID_5M | 99/1 | 99/0 |
+| SYN-EUR | 2313229 | +5.46% | INVALID_5M | 99/2 | 99/0 |
+| ZAMA-EUR | 2309633 | +31.60% | INVALID_5M | 99/1 | 99/0 |
+| HBAR-EUR | 2088204 | +1.86% | INVALID_5M | 99/6 | 99/0 |
+| FET-EUR | 2066045 | -5.10% | INVALID_5M | 100/1 | 99/0 |
+| CAP-EUR | 1997450 | -16.46% | INVALID_5M | 99/13 | 99/0 |
+| PUMP-EUR | 1968927 | -3.78% | INVALID_5M | 99/1 | 99/0 |
+| DOGE-EUR | 1647785 | -2.54% | INVALID_5M | 99/3 | 99/0 |
+| LSK-EUR | 1520543 | -8.53% | INVALID_5M | 100/2 | 99/0 |
+| CNPY-EUR | 1483689 | -29.40% | INVALID_5M | 100/1 | 99/0 |
+| LTC-EUR | 1416216 | -2.43% | INVALID_5M | 99/3 | 99/0 |
+| WLD-EUR | 1343646 | +1.26% | INVALID_5M | 100/1 | 99/0 |
+| EPIC-EUR | 1211015 | +12.05% | INVALID_15M, INVALID_5M | 99/2 | 99/3 |
+| VET-EUR | 1198041 | +0.11% | INVALID_5M | 100/2 | 99/0 |
+| APT-EUR | 1169852 | -6.84% | INVALID_15M, INVALID_5M, MISSING_LATEST_CLOSED_CANDLE | 100/12 | 100/2 |
+| USELESS-EUR | 1012657 | -9.23% | INVALID_5M | 99/1 | 99/0 |
+| STX-EUR | 944121 | +13.91% | INVALID_5M | 99/2 | 99/0 |
+| HEI-EUR | 903653 | +15.30% | INVALID_15M, INVALID_5M, MISSING_LATEST_CLOSED_CANDLE | 100/15 | 100/3 |
 
 Lecture : bars/gaps manquants = nombre de bougies closes reçues / nombre d’intervalles sans bougie à l’intérieur des 25 dernières bougies observées.
 Ce fichier est purement diagnostique : aucune règle de trading n’est modifiée.
