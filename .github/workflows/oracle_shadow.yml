@@ -1,4 +1,5 @@
 name: Oracle enriched public probe shadow
+# Post-reboot checks may be triggered by a harmless workflow touch.
 
 on:
   workflow_dispatch:
