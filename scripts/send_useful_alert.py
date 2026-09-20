@@ -5,6 +5,7 @@ Only the encrypted ledger and aggregate availability status may be published.
 """
 from __future__ import annotations
 
+import hashlib
 import json
 import os
 import smtplib
@@ -30,6 +31,8 @@ BUY_INPUT = 'alert_candidates.json'
 BUY_STATE = 'alert_state_v4.json'
 MAX_BUY_PRICE_DRIFT = .005
 MAX_BUY_SPREAD = .005
+SMTP_AUTH_BACKOFF_SEC = 6 * 3600
+SMTP_TRANSIENT_BACKOFF_SEC = 10 * 60
 
 
 def market_inputs(client, market, now):
@@ -54,6 +57,34 @@ def smtp_credentials():
     if recipient.lower() != 'bellonirom@gmail.com' or not user or not password:
         return None
     return user, password, recipient
+
+
+def credential_fingerprint(credentials):
+    return hashlib.sha256("\0".join(credentials).encode()).hexdigest()[:16]
+
+
+def transport_backoff(state, credentials, now):
+    fingerprint = credential_fingerprint(credentials)
+    if state.get('smtp_backoff_fingerprint') != fingerprint:
+        state.pop('smtp_backoff_until_ts', None)
+        state.pop('smtp_backoff_reason', None)
+        state['smtp_backoff_fingerprint'] = fingerprint
+        return None
+    until = finite(state.get('smtp_backoff_until_ts'))
+    return until if until is not None and until > now else None
+
+
+def set_transport_backoff(state, credentials, reason, now):
+    delay = SMTP_AUTH_BACKOFF_SEC if reason == 'SMTPAuthenticationError' else SMTP_TRANSIENT_BACKOFF_SEC
+    state['smtp_backoff_fingerprint'] = credential_fingerprint(credentials)
+    state['smtp_backoff_reason'] = reason
+    state['smtp_backoff_until_ts'] = now + delay
+
+
+def clear_transport_backoff(state, credentials):
+    state['smtp_backoff_fingerprint'] = credential_fingerprint(credentials)
+    state.pop('smtp_backoff_reason', None)
+    state.pop('smtp_backoff_until_ts', None)
 
 
 def send_with_status(status, credentials, subject, body):
@@ -167,11 +198,24 @@ def run_public_buy_fallback(status):
     if credentials is None:
         status.update(buy_alerts='BLOCKED_SMTP_CONFIG', email='CONFIG_MISSING_OR_RECIPIENT_MISMATCH')
         return 2
+    backoff_until = transport_backoff(buy_state, credentials, time.time())
+    if backoff_until:
+        status.update(alert_transport='DEGRADED',
+                      alert_transport_reason=buy_state.get('smtp_backoff_reason'),
+                      email='DELIVERY_BACKOFF',
+                      next_email_retry_at_utc=utc(backoff_until),
+                      buy_alerts='PUBLIC_MARKET_VALIDATED_DELIVERY_PENDING')
+        atomic_json(BUY_STATE, buy_state)
+        return 0
     _, body = message([selected])
     subject = f"ACHÈTE — {selected['market']} — Bitvavo"
     if not send_with_status(status, credentials, subject, body):
+        set_transport_backoff(buy_state, credentials, status.get('alert_transport_reason'), time.time())
+        atomic_json(BUY_STATE, buy_state)
+        status['next_email_retry_at_utc'] = utc(buy_state['smtp_backoff_until_ts'])
         status['buy_alerts'] = 'PUBLIC_MARKET_VALIDATED_DELIVERY_PENDING'
         return 0
+    clear_transport_backoff(buy_state, credentials)
     sent_at = time.time()
     market = selected['market']
     row = selected['baseline_row']
@@ -338,9 +382,21 @@ def run(status):
     if credentials is None:
         status.update(email='CONFIG_MISSING_OR_RECIPIENT_MISMATCH')
         return 0
+    backoff_until = transport_backoff(state, credentials, time.time())
+    if backoff_until:
+        status.update(alert_transport='DEGRADED',
+                      alert_transport_reason=state.get('smtp_backoff_reason'),
+                      email='DELIVERY_BACKOFF',
+                      next_email_retry_at_utc=utc(backoff_until))
+        save_state(STATE, state_key, state)
+        return 0
     subject, body = message(selected)
     if not send_with_status(status, credentials, subject, body):
+        set_transport_backoff(state, credentials, status.get('alert_transport_reason'), time.time())
+        status['next_email_retry_at_utc'] = utc(state['smtp_backoff_until_ts'])
+        save_state(STATE, state_key, state)
         return 0
+    clear_transport_backoff(state, credentials)
     sent_at = time.time()
     mark_delivered(state, selected, sent_at)
     for e in selected:
