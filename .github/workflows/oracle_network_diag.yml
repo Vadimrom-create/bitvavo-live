@@ -40,10 +40,10 @@ jobs:
       - name: ICMP and path hints
         run: |
           set +e
-          ping -c 3 -W 2 144.24.206.128 || true
+          timeout 10 ping -c 3 -W 2 144.24.206.128 || true
           if command -v tracepath >/dev/null 2>&1; then
-            tracepath -n 144.24.206.128 || true
+            timeout 15 tracepath -n 144.24.206.128 || true
           elif command -v traceroute >/dev/null 2>&1; then
-            traceroute -n -w 2 -q 1 144.24.206.128 || true
+            timeout 15 traceroute -n -w 2 -q 1 144.24.206.128 || true
           fi
           exit 0
