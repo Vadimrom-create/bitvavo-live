@@ -84,6 +84,7 @@ def select_events(payload: dict[str, Any], state: dict[str, Any], now: float, li
         and (
             row.get("signal_state") in TRACKED_STATES
             or (row.get("acceleration") or {}).get("state") in TRACKED_STATES
+            or row.get("action_status") in ACTIONABLE_STATUSES
         )
         and (row.get("data_quality") or {}).get("ok", False)
     }
