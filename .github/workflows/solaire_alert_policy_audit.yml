@@ -1,0 +1,147 @@
+name: Solaire alert-policy audit
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/solaire_alert_policy_audit.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Compare Solaire alert policies
+        run: |
+          python - <<'PY'
+          import bisect,gzip,json,re,time
+          from datetime import datetime,timezone
+          from pathlib import Path
+          from research.common import finite,INTERVAL_MS
+          from research.features import describe
+          from research.http import PublicClient
+          from research.production_acceleration import acceleration_signal
+          from research.risk import structural_plan
+
+          PANEL=["SAGA-EUR","PTB-EUR","FTT-EUR","NIL-EUR","KMNO-EUR","EPIC-EUR","LUNA2-EUR","S-EUR","CFG-EUR","NEAR-EUR","VVV-EUR","AVAX-EUR","PEAQ-EUR","U-EUR","RENDER-EUR","ALLO-EUR","STRK-EUR","C-EUR","GRT-EUR","MANTA-EUR","CAKE-EUR","SEI-EUR","ENA-EUR","ONG-EUR","OSMO-EUR","HBAR-EUR","ENSO-EUR","METIS-EUR","ARB-EUR","CETUS-EUR"]
+          client=PublicClient(timeout=15,retries=3,requests_per_second=10);client.get("/time",cache=False)
+          now=time.time();start=now-24*3600
+          meta={m["market"]:m for m in client.get("/markets") if m.get("market") in PANEL}
+          def canon(rows,interval):
+              dur=INTERVAL_MS[interval];o={}
+              for r in rows:
+                  if not isinstance(r,list) or len(r)<6:continue
+                  vals=[finite(v) for v in r[:6]]
+                  if any(v is None for v in vals):continue
+                  t,a,h,l,c,v=vals;t=int(t)
+                  if t+dur>now*1000 or t%dur or min(a,h,l,c)<=0 or v<0:continue
+                  o[t]={"t":t,"o":a,"h":h,"l":l,"c":c,"v":v}
+              if not o:return []
+              ks=sorted(o);out=[];prev=None;t=ks[0]
+              while t<=ks[-1]:
+                  x=o.get(t)
+                  if x is not None:prev=x["c"];out.append(x)
+                  elif prev is not None:out.append({"t":t,"o":prev,"h":prev,"l":prev,"c":prev,"v":0.0})
+                  t+=dur
+              return out
+          def feat(cs,interval,ts):
+              dur=INTERVAL_MS[interval];starts=[x["t"] for x in cs]
+              i=bisect.bisect_right(starts,int(ts*1000)-dur)
+              if i<=0:return {"valid":False},None,i
+              s=cs[max(0,i-100):i];return describe(s,interval),s[-1]["c"],i
+          series={}
+          for m in PANEL:
+              series[m]=(canon(client.get("/"+m+"/candles",{"interval":"5m","limit":650},cache=False),"5m"),
+                         canon(client.get("/"+m+"/candles",{"interval":"15m","limit":240},cache=False),"15m"))
+          idx={m:[] for m in PANEL};rx=re.compile(r"(\d{8}T\d{6}Z)")
+          def walk(o,ts):
+              if isinstance(o,dict):
+                  mk=o.get("market")
+                  if mk in idx:
+                      b=finite(o.get("bid"));a=finite(o.get("ask"));sp=finite(o.get("spread_pct"))
+                      if sp is None and b and a and b>0 and a>=b:sp=(a/b-1)*100
+                      if sp is not None:idx[mk].append({"ts":ts,"spread":sp,"ask":a})
+                  for v in o.values():walk(v,ts)
+              elif isinstance(o,list):
+                  for v in o:walk(v,ts)
+          for folder in ["history/2026-09-19","history/2026-09-20","history/2026-09-21"]:
+              p=Path(folder)
+              if not p.exists():continue
+              for f in p.glob("*.json.gz"):
+                  mm=rx.search(f.name)
+                  if not mm:continue
+                  ts=datetime.strptime(mm.group(1),"%Y%m%dT%H%M%SZ").replace(tzinfo=timezone.utc).timestamp()
+                  if ts<start-900 or ts>now+900:continue
+                  try:
+                      with gzip.open(f,"rt",encoding="utf-8") as h:walk(json.load(h),ts)
+                  except Exception:pass
+          def spread(m,ts):
+              xs=[x for x in idx[m] if abs(x["ts"]-ts)<=720]
+              return min(xs,key=lambda x:abs(x["ts"]-ts)) if xs else None
+          def qv(c5,i):return sum(x["v"]*x["c"] for x in c5[max(0,i-288):i])
+          candidates={m:[] for m in PANEL}
+          for m in PANEL:
+              c5,c15=series[m];ep=False;mailed=False
+              for row in c5:
+                  ts=row["t"]/1000+301
+                  if ts<start or ts>now:continue
+                  f5,p,i=feat(c5,"5m",ts);f15,_,_=feat(c15,"15m",ts)
+                  s=acceleration_signal({"features":{"5m":f5,"15m":f15}})
+                  tracked=s.get("state") in ("BUILDING_ACCELERATION","CONFIRMED_ACCELERATION")
+                  if not tracked:ep=False;mailed=False;continue
+                  if not ep:ep=True;mailed=False
+                  if s.get("state")!="CONFIRMED_ACCELERATION" or mailed:continue
+                  if qv(c5,i)<75000:continue
+                  sp=spread(m,ts)
+                  if sp is None or sp["spread"]>0.5:continue
+                  ask=sp["ask"] if sp.get("ask") else p
+                  plan=structural_plan({"market":m,"ask":ask},f15,meta[m])
+                  if not plan.get("valid"):continue
+                  candidates[m].append({"ts":ts,"price":p,"score":s["score"],"stop":plan["stop_eur"],
+                                        "tp1":plan["tp1_eur"],"entry":plan["entry_eur"],
+                                        "stop_distance_pct":plan["stop_distance_pct"]})
+                  mailed=True
+          def trade_outcome(m,c):
+              c5=series[m][0];hi=c["entry"];lo=c["entry"]
+              for x in c5:
+                  if x["t"]<int(c["ts"]*1000):continue
+                  hi=max(hi,x["h"]);lo=min(lo,x["l"])
+                  sh=x["l"]<=c["stop"];th=x["h"]>=c["tp1"]
+                  if sh and th:return "STOP"
+                  if sh:return "STOP"
+                  if th:return "TP1"
+              return "OPEN"
+          def thesis_breached(m,prev,newts):
+              lows=[x["l"] for x in series[m][0] if int(prev["ts"]*1000)<=x["t"]<int(newts*1000)]
+              return bool(lows) and min(lows)<=prev["stop"]
+          def policy(kind):
+              accepted=[]
+              for m in PANEL:
+                  prev=None
+                  for c in candidates[m]:
+                      if kind in ("thesis_stop10","first_stop10") and c["stop_distance_pct"]>10:continue
+                      if kind.startswith("first"):
+                          if prev is None:accepted.append((m,c));prev=c
+                          continue
+                      if kind.startswith("thesis"):
+                          if prev is None or thesis_breached(m,prev,c["ts"]):
+                              accepted.append((m,c));prev=c
+                      else:
+                          accepted.append((m,c))
+              outs=[trade_outcome(m,c) for m,c in accepted]
+              return {"mails":len(accepted),"markets":len(set(m for m,_ in accepted)),
+                      "TP1":outs.count("TP1"),"STOP":outs.count("STOP"),"OPEN":outs.count("OPEN"),
+                      "stop_gt10":sum(c["stop_distance_pct"]>10 for _,c in accepted)}
+          summaries={k:policy(k) for k in ["current","first","first_stop10","thesis","thesis_stop10"]}
+          print("POLICY_SUMMARY="+json.dumps(summaries,separators=(",",":")))
+          for m in PANEL:
+              print("POLICYROW="+json.dumps({"market":m,"candidate_mails":len(candidates[m]),
+                    "stop_gt10":sum(c["stop_distance_pct"]>10 for c in candidates[m])},separators=(",",":")))
+          PY
