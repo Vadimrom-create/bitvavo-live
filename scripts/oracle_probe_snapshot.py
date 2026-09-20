@@ -10,6 +10,7 @@ import json
 import re
 import urllib.parse
 import urllib.request
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -70,7 +71,7 @@ def relevant_markets() -> list[str]:
     return markets[:MAX_MARKETS]
 
 
-def get_json(path: str, params: dict[str, object] | None = None, timeout: float = 7.0):
+def get_json(path: str, params: dict[str, object] | None = None, timeout: float = 4.0):
     url = BASE + path
     if params:
         url += "?" + urllib.parse.urlencode(params)
@@ -86,16 +87,30 @@ def main() -> None:
     errors: dict[str, str] = {}
 
     try:
-        health = get_json("/health")
+        health = get_json("/health", timeout=3.0)
     except Exception as exc:
         health = {"ok": False, "error": f"{type(exc).__name__}:{exc}"}
 
-    for market in markets:
-        try:
-            payload = get_json("/quote", {"market": market, "stake_eur": STAKE_EUR})
-            probes[market] = payload
-        except Exception as exc:
-            errors[market] = f"{type(exc).__name__}:{exc}"
+    # A dead Oracle endpoint must not trigger 24 sequential timeouts. One failed
+    # healthcheck is sufficient evidence that the transport is unavailable for
+    # this shadow cycle; publish that state immediately and let the next cycle retry.
+    if health.get("ok") is True:
+        def fetch_one(market: str):
+            try:
+                return market, get_json("/quote", {"market": market, "stake_eur": STAKE_EUR}, timeout=4.0), None
+            except Exception as exc:
+                return market, None, f"{type(exc).__name__}:{exc}"
+
+        with ThreadPoolExecutor(max_workers=6) as pool:
+            futures = [pool.submit(fetch_one, market) for market in markets]
+            for future in as_completed(futures):
+                market, payload, error = future.result()
+                if payload is not None:
+                    probes[market] = payload
+                else:
+                    errors[market] = error
+    else:
+        errors["_transport"] = health.get("error", "ORACLE_HEALTH_UNAVAILABLE")
 
     valid_count = sum(1 for p in probes.values() if isinstance(p, dict) and p.get("ok") is True)
     output = {
