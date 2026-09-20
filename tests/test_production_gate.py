@@ -219,6 +219,22 @@ class ProductionAlertPolicyTests(unittest.TestCase):
 class ProductionPriorThesisTests(unittest.TestCase):
     NOW = 1_788_883_200.0
 
+    def payload(self, markets=("A-EUR",)):
+        return {
+            "generated_at_utc": utc(self.NOW),
+            "watch": [
+                {
+                    "market": market,
+                    "action_status": "ACCELERATION_READY",
+                    "signal_score": 7.0,
+                    "quote_volume_24h_eur": 200000,
+                    "data_quality": {"ok": True},
+                    "last": 1.0,
+                }
+                for market in markets
+            ],
+        }
+
     def selected(self, low=0.97, ask=1.02):
         start = int((self.NOW - 300) * 1000)
         return {
