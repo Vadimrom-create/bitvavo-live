@@ -458,10 +458,9 @@ def run():
     Path('data_quality_audit.md').write_text(data_quality_audit_text(data_quality_audit), encoding='utf-8')
     atomic_json('evaluation.json', evaluation)
     atomic_json('proposed_orders.json', {'dry_run': True, 'orders': report['orders']})
-    # Production alerts no longer depend on V4 preselection. Frozen V4 remains
-    # an auditable source, while confirmed full-universe acceleration may also
-    # enter the same final fresh execution gate.
-    alert_payload = build_alert_payload(observations, buys, utc(baseline_ts))
+    # Research pipeline exports the same pure Solaire acceleration candidates.
+    # V4/research output cannot add, remove or veto production candidates.
+    alert_payload = build_alert_payload(observations, utc(baseline_ts))
     atomic_json('alert_candidates.json', alert_payload)
     replay_input.update({'requests': client.records,
                          'expected_raw_baseline': frozen_raw_baseline,

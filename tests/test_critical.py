@@ -14,7 +14,7 @@ from research.common import freshness, timestamp, utc, atomic_json, read_json
 from research.features import closed_candles, describe, chase_risk, wick_setup, category
 from research.history import connect, ingest, recurrent, save_scan
 from research.evaluation import outcome, evaluate, simulate_trade, before_move
-from research.risk import plan, proposed_order, execute, correlation
+from research.risk import plan, structural_plan, proposed_order, execute, correlation
 from research.http import ReplayClient, PublicClient
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -152,6 +152,12 @@ class RiskTests(unittest.TestCase):
         self.assertFalse(p['valid'])
         p = plan(self.row, self.features, self.meta, reserved={'exposure': 0, 'risk': 0, 'positions': 3})
         self.assertFalse(p['valid'])
+
+    def test_solaire_structural_plan_has_no_portfolio_state_veto(self):
+        p = structural_plan(self.row, self.features, self.meta)
+        self.assertTrue(p['valid'])
+        self.assertEqual(p['portfolio_state'], 'NOT_USED_AS_SIGNAL_VETO')
+        self.assertGreater(p['stake_eur'], 0)
 
     def test_very_wide_stop_reduces_size(self):
         a = plan(self.row, self.features, self.meta)
