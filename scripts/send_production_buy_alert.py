@@ -36,6 +36,23 @@ MAX_STOP_DISTANCE_PCT = 10.0
 THESIS_MAX_AGE_SECONDS = 24 * 60 * 60
 
 
+def closed_5m_lows(raw: list, now: float) -> list[dict]:
+    """Keep the full raw closed 5m history needed to audit a 24h thesis."""
+    result = []
+    for row in raw:
+        if not isinstance(row, list) or len(row) < 4:
+            continue
+        timestamp = finite(row[0])
+        low = finite(row[3])
+        if timestamp is None or low is None or low <= 0:
+            continue
+        if timestamp != int(timestamp) or int(timestamp) % 300_000:
+            continue
+        if timestamp + 300_000 <= now * 1000:
+            result.append({"t": int(timestamp), "l": low})
+    return sorted(result, key=lambda candle: candle["t"])
+
+
 def credentials():
     user = os.getenv("ALERT_GMAIL_USER", "").strip()
     recipient = os.getenv("ALERT_EMAIL_TO", "").strip()
@@ -64,7 +81,7 @@ def market_inputs(client: PublicClient, market: str, now: float):
         {"interval": "5m", "limit": 300},
         cache=False,
     )
-    candles_5m = closed_candles(raw_5m, "5m", now)
+    candles_5m = closed_5m_lows(raw_5m, now)
     return (
         {"bid": bid, "ask": ask, "retrieved_at_utc": retrieved},
         features,
