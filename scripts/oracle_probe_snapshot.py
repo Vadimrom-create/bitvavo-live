@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Shadow fetch of enriched public execution probes from Oracle.
+"""Shadow fetch of enriched public execution probes from the configured live-probe host.
 
 This does not alter V3/V4 scoring and does not use private Bitvavo credentials.
 It collects enriched microstructure only for currently relevant EUR markets.
@@ -16,7 +16,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 OUTPUT = ROOT / "oracle_live_probe.json"
-BASE = "http://144.24.206.128:8787"
+BASE = os.environ.get("LIVE_PROBE_BASE_URL", "").rstrip("/")
 MARKET_RE = re.compile(r"^[A-Z0-9]{2,20}-EUR$")
 SOURCE_FILES = [
     "decision_layer.json",
@@ -117,7 +117,7 @@ def main() -> None:
         "schema": "oracle_live_probe_shadow_v1",
         "shadow_only": True,
         "does_not_change_v4_scoring": True,
-        "source": BASE,
+        "source": BASE or None,
         "requested_at_utc": started,
         "completed_at_utc": now_iso(),
         "stake_eur": STAKE_EUR,
