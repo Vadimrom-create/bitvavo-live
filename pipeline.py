@@ -92,6 +92,8 @@ def _interval_quality_snapshot(tf, interval):
         'feature_valid': bool(features.get('valid')),
         'feature_reasons': list(features.get('reasons') or []),
         'bars_reported': features.get('bars'),
+        'trade_bars_last25': features.get('trade_bars_last25'),
+        'no_trade_bars_last25': features.get('no_trade_bars_last25'),
         'gap_count_last_25_observed': len(gaps),
         'missing_intervals_last_25_observed': sum(g['missing_intervals'] or 0 for g in gaps),
         'largest_missing_run_last_25_observed': max([g['missing_intervals'] or 0 for g in gaps], default=0),
@@ -191,7 +193,7 @@ def report_text(report):
     if not buys:
         lines.append('AUCUN ACHAT VALIDÉ — cette absence ne valide pas les marchés aux données insuffisantes.' if h['status'] == 'OK' else 'SCAN INCOMPLET — aucune recommandation d’achat publiée')
     lines += [f"Bougies utilisables : 5 min {h.get('valid_5m', 0)}/{h['universe']} ; 15 min {h.get('valid_15m', 0)}/{h['universe']}.",
-              'Les trous de cotation restent visibles ; aucune bougie sans transaction n’est inventée.']
+              'Les intervalles sans transaction sont représentés explicitement à volume 0 ; aucune transaction n’est inventée.']
     if report.get('blocked_baseline_buys'):
         lines += ['', 'Achats bruts V4 bloqués avant alerte :']
         for row in report['blocked_baseline_buys']:
