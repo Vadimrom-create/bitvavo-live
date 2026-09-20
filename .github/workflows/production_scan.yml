@@ -2,6 +2,16 @@ name: Production direct Bitvavo scan
 
 on:
   workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'scripts/production_scan.py'
+      - 'scripts/send_production_buy_alert.py'
+      - 'research/production_gate.py'
+      - 'research/feedback_loop.py'
+      - 'research/features.py'
+      - 'email_alert_v4.py'
+      - '.github/workflows/production_scan.yml'
   schedule:
     - cron: '1-59/5 * * * *'
 
