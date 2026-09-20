@@ -25,9 +25,10 @@ jobs:
       - run: python -m pip install -r requirements-monitoring.txt
       - run: python -m unittest discover -s tests -v
         name: Critical tests
-      - name: Validate live probe deployment sources
+      - name: Validate live probe and production sources
         run: |
           python -m py_compile oracle/bitvavo_public_probe.py scripts/oracle_probe_snapshot.py scripts/oracle_probe_request.py
+          python -m py_compile research/production_gate.py scripts/production_scan.py scripts/send_production_buy_alert.py
           bash -n oracle/install_bitvavo_public_probe.sh oracle/bootstrap_oracle_deploy.sh
           grep -q 'healthcheckPath = "/health"' railway.toml
           grep -q 'restartPolicyType = "ALWAYS"' railway.toml
