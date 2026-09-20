@@ -24,7 +24,18 @@ if [[ ! "${PUBKEY}" =~ ^ssh-ed25519[[:space:]]+[A-Za-z0-9+/=]+([[:space:]].*)?$ 
   exit 2
 fi
 
-command -v git >/dev/null || { echo "git is required" >&2; exit 3; }
+if ! command -v git >/dev/null 2>&1; then
+  echo "git missing; installing it automatically..."
+  if command -v dnf >/dev/null 2>&1; then
+    dnf install -y git-core >/dev/null 2>&1 || dnf install -y git >/dev/null
+  elif command -v yum >/dev/null 2>&1; then
+    yum install -y git >/dev/null
+  else
+    echo "git is missing and no supported package manager (dnf/yum) is available" >&2
+    exit 3
+  fi
+fi
+command -v git >/dev/null || { echo "git installation failed" >&2; exit 3; }
 command -v curl >/dev/null || { echo "curl is required" >&2; exit 3; }
 command -v python3 >/dev/null || { echo "python3 is required" >&2; exit 3; }
 command -v systemctl >/dev/null || { echo "systemd is required" >&2; exit 3; }
