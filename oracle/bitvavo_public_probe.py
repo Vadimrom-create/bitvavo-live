@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Bounded, read-only Bitvavo public probe for the Oracle VPS."""
+"""Bounded, read-only Bitvavo public probe for a generic hosted service."""
 from __future__ import annotations
 
 import json
@@ -15,7 +15,7 @@ from decimal import Decimal
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
 BASE = "https://api.bitvavo.com/v2"
-PORT = 8787
+PORT = int(os.environ.get("PORT", "8787"))
 MARKET_RE = re.compile(r"^[A-Z0-9]{2,20}-EUR$")
 MAX_CONCURRENT_QUOTES = 8
 UPSTREAM_TIMEOUT_SECONDS = 4
