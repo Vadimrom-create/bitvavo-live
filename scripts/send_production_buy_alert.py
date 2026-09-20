@@ -24,7 +24,7 @@ import email_alert
 from research.common import atomic_json, finite, freshness, read_json, utc
 from research.features import closed_candles, describe
 from research.http import PublicClient
-from research.production_alerts import mark_sent, select_events
+from research.production_alerts import mark_sent, mark_suppressed, select_events
 from research.risk import structural_plan
 
 INPUT = "production_alert_candidates.json"
@@ -32,6 +32,8 @@ STATE = "production_alert_state.json"
 STATUS = "production_alert_status.json"
 MIN_QUOTE_VOLUME_EUR = 75_000.0
 MAX_SPREAD = 0.005
+MAX_STOP_DISTANCE_PCT = 10.0
+THESIS_MAX_AGE_SECONDS = 24 * 60 * 60
 
 
 def credentials():
@@ -57,7 +59,17 @@ def market_inputs(client: PublicClient, market: str, now: float):
     )
     candles = closed_candles(raw, "15m", now)
     features = describe(candles, "15m")
-    return {"bid": bid, "ask": ask, "retrieved_at_utc": retrieved}, features
+    raw_5m = client.get(
+        "/" + market + "/candles",
+        {"interval": "5m", "limit": 300},
+        cache=False,
+    )
+    candles_5m = closed_candles(raw_5m, "5m", now)
+    return (
+        {"bid": bid, "ask": ask, "retrieved_at_utc": retrieved},
+        features,
+        candles_5m,
+    )
 
 
 def validate(row: dict, client: PublicClient, metadata: dict[str, dict], now: float):
@@ -69,7 +81,7 @@ def validate(row: dict, client: PublicClient, metadata: dict[str, dict], now: fl
     if volume < MIN_QUOTE_VOLUME_EUR:
         return None, "INSUFFICIENT_EXECUTION_LIQUIDITY"
 
-    quote, features = market_inputs(client, market, now)
+    quote, features, candles_5m = market_inputs(client, market, now)
     bid = finite(quote.get("bid"))
     ask = finite(quote.get("ask"))
     signal_price = finite(row.get("last"))
@@ -93,6 +105,8 @@ def validate(row: dict, client: PublicClient, metadata: dict[str, dict], now: fl
     trade = structural_plan({**row, "ask": ask}, features, metadata[market])
     if not trade.get("valid"):
         return None, trade.get("reason", "INVALID_PLAN")
+    if finite(trade.get("stop_distance_pct"), 999.0) > MAX_STOP_DISTANCE_PCT:
+        return None, "STRUCTURAL_STOP_TOO_WIDE"
 
     drift_pct = (ask / signal_price - 1) * 100
     return {
@@ -101,7 +115,43 @@ def validate(row: dict, client: PublicClient, metadata: dict[str, dict], now: fl
         "trade": trade,
         "spread_pct": spread * 100,
         "price_drift_pct": drift_pct,
+        "candles_5m": candles_5m,
     }, None
+
+
+def prior_buy_thesis_active(
+    state: dict,
+    validated: dict,
+    now: float,
+) -> tuple[bool, str]:
+    """Suppress repeat BUYs while the previous alerted trade thesis still holds."""
+    market = validated["row"]["market"]
+    previous = (state.get("markets") or {}).get(market) or {}
+    sent_at = finite(previous.get("last_sent_ts"))
+    stop = finite(previous.get("last_sent_stop_eur"))
+    if sent_at is None or stop is None or stop <= 0:
+        return False, "NO_TRACKED_PRIOR_BUY_THESIS"
+    age = now - sent_at
+    if age < -30:
+        return True, "PRIOR_BUY_THESIS_TIMESTAMP_INVALID"
+    if age > THESIS_MAX_AGE_SECONDS:
+        return False, "PRIOR_BUY_THESIS_EXPIRED"
+
+    ask = finite((validated.get("quote") or {}).get("ask"))
+    if ask is not None and ask <= stop:
+        return False, "PRIOR_BUY_THESIS_INVALIDATED"
+
+    # Only use bars that started after the bar containing the original alert.
+    # This avoids falsely attributing a pre-alert wick to the post-alert thesis.
+    first_full_bar_ms = ((int(sent_at * 1000) // 300_000) + 1) * 300_000
+    lows = [
+        finite(candle.get("l"))
+        for candle in validated.get("candles_5m") or []
+        if candle.get("t", 0) >= first_full_bar_ms
+    ]
+    if any(low is not None and low <= stop for low in lows):
+        return False, "PRIOR_BUY_THESIS_INVALIDATED"
+    return True, "PRIOR_BUY_THESIS_STILL_ACTIVE"
 
 
 def body(validated: dict) -> str:
@@ -124,6 +174,7 @@ def body(validated: dict) -> str:
             f"Dérive depuis signal : {validated['price_drift_pct']:+.2f} %",
             f"Spread actuel : {validated['spread_pct']:.3f} %",
             f"Stop structurel : {trade['stop_eur']:.8g} €",
+            f"Distance stop : {trade['stop_distance_pct']:.2f} %",
             f"TP1 théorique : {trade['tp1_eur']:.8g} €",
             f"Montant guide : {trade['stake_eur']:.2f} €",
             f"Risque théorique : {trade['theoretical_loss_eur']:.2f} €",
@@ -141,7 +192,7 @@ def main() -> int:
         "checked_at_utc": utc(now),
         "status": "STARTING",
         "email": "NONE",
-        "policy": "SOLAIRE_EXECUTION_GATE_V2",
+        "policy": "SOLAIRE_EXECUTION_GATE_V3_THESIS_AWARE",
     }
     payload = read_json(INPUT, {})
     state = read_json(STATE, {"markets": {}})
@@ -168,12 +219,32 @@ def main() -> int:
         selected = None
         rejections = []
         for row in events:
-            validated, reason = validate(row, client, metadata, time.time())
+            checked_at = time.time()
+            validated, reason = validate(row, client, metadata, checked_at)
             if validated:
+                thesis_active, thesis_status = prior_buy_thesis_active(
+                    state, validated, checked_at
+                )
+                if thesis_active:
+                    rejections.append(
+                        {
+                            "market": row.get("market"),
+                            "reason": thesis_status,
+                        }
+                    )
+                    state = mark_suppressed(
+                        state,
+                        row,
+                        checked_at,
+                        thesis_status,
+                    )
+                    continue
+                validated["prior_thesis_status"] = thesis_status
                 selected = validated
                 break
             rejections.append({"market": row.get("market"), "reason": reason})
         status["rejections"] = rejections
+        atomic_json(STATE, state)
 
         if not selected:
             status.update(
@@ -223,7 +294,7 @@ def main() -> int:
         return 0
 
     sent_at = time.time()
-    state = mark_sent(state, row, sent_at)
+    state = mark_sent(state, row, sent_at, selected["trade"])
     atomic_json(STATE, state)
     status.update(
         status="OK",
@@ -235,6 +306,8 @@ def main() -> int:
         signal_phase=row.get("signal_phase"),
         episode_extension_pct=row.get("episode_extension_pct"),
         episode_age_seconds=row.get("episode_age_seconds"),
+        stop_distance_pct=selected["trade"].get("stop_distance_pct"),
+        prior_thesis_status=selected.get("prior_thesis_status"),
     )
     atomic_json(STATUS, status)
     print("SOLAIRE_ALERT " + json.dumps(status))

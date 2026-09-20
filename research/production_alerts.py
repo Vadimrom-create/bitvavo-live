@@ -143,8 +143,10 @@ def select_events(payload: dict[str, Any], state: dict[str, Any], now: float, li
             previous["first_confirmed_price"] = row.get("last")
 
         episode = int(previous.get("episode", 0))
-        sent_episode = int(previous.get("sent_episode", 0))
-        if episode != sent_episode:
+        handled_episode = int(
+            previous.get("handled_episode", previous.get("sent_episode", 0))
+        )
+        if episode != handled_episode:
             events.append(_event_row(row, previous, generated))
 
     # Earlier entry opportunity outranks a spectacular but already extended move.
@@ -160,12 +162,39 @@ def select_events(payload: dict[str, Any], state: dict[str, Any], now: float, li
     return (events if limit is None else events[:limit]), state
 
 
-def mark_sent(state: dict[str, Any], row: dict[str, Any], sent_at: float) -> dict[str, Any]:
+def mark_suppressed(
+    state: dict[str, Any],
+    row: dict[str, Any],
+    handled_at: float,
+    reason: str,
+) -> dict[str, Any]:
+    """Mark one episode handled without claiming an email was sent."""
     state = copy.deepcopy(state)
     market = row["market"]
     previous = state.setdefault("markets", {}).setdefault(market, {})
     previous.update(
-        sent_episode=int(previous.get("episode", 0)),
+        handled_episode=int(previous.get("episode", 0)),
+        last_suppressed_ts=handled_at,
+        last_suppressed_reason=reason,
+        last_suppressed_price=row.get("last"),
+    )
+    state["updated_at_ts"] = handled_at
+    return state
+
+
+def mark_sent(
+    state: dict[str, Any],
+    row: dict[str, Any],
+    sent_at: float,
+    trade: dict[str, Any] | None = None,
+) -> dict[str, Any]:
+    state = copy.deepcopy(state)
+    market = row["market"]
+    previous = state.setdefault("markets", {}).setdefault(market, {})
+    episode = int(previous.get("episode", 0))
+    previous.update(
+        handled_episode=episode,
+        sent_episode=episode,
         last_sent_ts=sent_at,
         signal_score=row.get("signal_score"),
         price=row.get("last"),
@@ -174,5 +203,12 @@ def mark_sent(state: dict[str, Any], row: dict[str, Any], sent_at: float) -> dic
         last_sent_episode_extension_pct=row.get("episode_extension_pct"),
         last_sent_episode_age_seconds=row.get("episode_age_seconds"),
     )
+    if trade:
+        previous.update(
+            last_sent_entry_eur=trade.get("entry_eur"),
+            last_sent_stop_eur=trade.get("stop_eur"),
+            last_sent_tp1_eur=trade.get("tp1_eur"),
+            last_sent_stop_distance_pct=trade.get("stop_distance_pct"),
+        )
     state["updated_at_ts"] = sent_at
     return state
