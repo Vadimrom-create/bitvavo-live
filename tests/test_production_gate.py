@@ -71,6 +71,18 @@ class ProductionGateTests(unittest.TestCase):
         self.assertEqual(len(payload["watch"]), 1)
 
 
+    def test_building_acceleration_is_tracked_but_not_actionable(self):
+        building = confirmed(score=5.2, evidence=3)
+        building["state"] = "BUILDING_ACCELERATION"
+        payload = build_alert_payload(
+            [observation(acceleration=building)],
+            "2026-09-20T20:00:00+00:00",
+        )
+        self.assertEqual(len(payload["tracking"]), 1)
+        self.assertEqual(payload["tracking"][0]["signal_state"], "BUILDING_ACCELERATION")
+        self.assertFalse(payload["watch"])
+
+
 class PureAccelerationTests(unittest.TestCase):
     def test_detector_has_no_chase_or_24h_veto(self):
         obs = {
@@ -169,6 +181,114 @@ class ProductionAlertPolicyTests(unittest.TestCase):
         events, state = select_events(self.payload(), {}, self.NOW)
         self.assertTrue(events)
         self.assertTrue(select_events(self.payload(), state, self.NOW + 60)[0])
+
+
+    def test_building_to_confirmed_preserves_episode_start(self):
+        building_payload = {
+            "generated_at_utc": utc(self.NOW),
+            "tracking": [{
+                "market": "A-EUR",
+                "signal_state": "BUILDING_ACCELERATION",
+                "signal_score": 5.0,
+                "quote_volume_24h_eur": 200000,
+                "data_quality": {"ok": True},
+                "last": 1.0,
+                "acceleration": {"state": "BUILDING_ACCELERATION"},
+            }],
+            "watch": [],
+        }
+        events, state = select_events(building_payload, {}, self.NOW)
+        self.assertFalse(events)
+        self.assertEqual(state["markets"]["A-EUR"]["episode"], 1)
+
+        confirmed_payload = {
+            "generated_at_utc": utc(self.NOW + 300),
+            "tracking": [{
+                "market": "A-EUR",
+                "signal_state": "CONFIRMED_ACCELERATION",
+                "signal_score": 7.0,
+                "quote_volume_24h_eur": 200000,
+                "data_quality": {"ok": True},
+                "last": 1.02,
+                "acceleration": {"state": "CONFIRMED_ACCELERATION"},
+            }],
+            "watch": [{
+                "market": "A-EUR",
+                "signal_state": "CONFIRMED_ACCELERATION",
+                "action_status": "ACCELERATION_READY",
+                "signal_score": 7.0,
+                "quote_volume_24h_eur": 200000,
+                "data_quality": {"ok": True},
+                "last": 1.02,
+                "acceleration": {"state": "CONFIRMED_ACCELERATION"},
+            }],
+        }
+        events, state = select_events(confirmed_payload, state, self.NOW + 300)
+        self.assertEqual(len(events), 1)
+        self.assertEqual(events[0]["signal_phase"], "FIRST_CONFIRMATION")
+        self.assertAlmostEqual(events[0]["episode_start_price"], 1.0)
+        self.assertAlmostEqual(events[0]["episode_extension_pct"], 2.0, places=3)
+        self.assertEqual(events[0]["episode_age_seconds"], 300)
+
+    def test_confirmed_building_confirmed_stays_same_episode(self):
+        events, state = select_events(self.payload(), {}, self.NOW)
+        state = mark_sent(state, events[0], self.NOW)
+
+        building_payload = {
+            "generated_at_utc": utc(self.NOW + 300),
+            "tracking": [{
+                "market": "A-EUR",
+                "signal_state": "BUILDING_ACCELERATION",
+                "signal_score": 5.3,
+                "quote_volume_24h_eur": 200000,
+                "data_quality": {"ok": True},
+                "last": 1.01,
+                "acceleration": {"state": "BUILDING_ACCELERATION"},
+            }],
+            "watch": [],
+        }
+        self.assertFalse(select_events(building_payload, state, self.NOW + 300)[0])
+        _, state = select_events(building_payload, state, self.NOW + 300)
+        events, state = select_events(self.payload(), state, self.NOW + 600)
+        self.assertFalse(events)
+        self.assertEqual(state["markets"]["A-EUR"]["episode"], 1)
+
+    def test_less_extended_confirmation_is_prioritized_over_higher_score(self):
+        state = {
+            "markets": {
+                "A-EUR": {
+                    "active": True, "episode": 1, "episode_started_ts": self.NOW - 300,
+                    "episode_start_price": 1.0, "episode_start_score": 5.0,
+                },
+                "B-EUR": {
+                    "active": True, "episode": 1, "episode_started_ts": self.NOW - 300,
+                    "episode_start_price": 1.0, "episode_start_score": 5.0,
+                },
+            }
+        }
+        payload = {
+            "generated_at_utc": utc(self.NOW),
+            "tracking": [
+                {"market": "A-EUR", "signal_state": "CONFIRMED_ACCELERATION", "signal_score": 6.7,
+                 "quote_volume_24h_eur": 200000, "data_quality": {"ok": True}, "last": 1.01,
+                 "acceleration": {"state": "CONFIRMED_ACCELERATION"}},
+                {"market": "B-EUR", "signal_state": "CONFIRMED_ACCELERATION", "signal_score": 9.5,
+                 "quote_volume_24h_eur": 200000, "data_quality": {"ok": True}, "last": 1.08,
+                 "acceleration": {"state": "CONFIRMED_ACCELERATION"}},
+            ],
+            "watch": [
+                {"market": "A-EUR", "signal_state": "CONFIRMED_ACCELERATION",
+                 "action_status": "ACCELERATION_READY", "signal_score": 6.7,
+                 "quote_volume_24h_eur": 200000, "data_quality": {"ok": True}, "last": 1.01,
+                 "acceleration": {"state": "CONFIRMED_ACCELERATION"}},
+                {"market": "B-EUR", "signal_state": "CONFIRMED_ACCELERATION",
+                 "action_status": "ACCELERATION_READY", "signal_score": 9.5,
+                 "quote_volume_24h_eur": 200000, "data_quality": {"ok": True}, "last": 1.08,
+                 "acceleration": {"state": "CONFIRMED_ACCELERATION"}},
+            ],
+        }
+        events, _ = select_events(payload, state, self.NOW)
+        self.assertEqual([e["market"] for e in events], ["A-EUR", "B-EUR"])
 
 
 if __name__ == "__main__":
