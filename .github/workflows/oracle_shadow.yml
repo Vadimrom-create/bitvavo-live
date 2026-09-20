@@ -3,8 +3,6 @@ name: Oracle enriched public probe shadow
 
 on:
   workflow_dispatch:
-  schedule:
-    - cron: '*/15 * * * *'
   push:
     branches: [main]
     paths:
