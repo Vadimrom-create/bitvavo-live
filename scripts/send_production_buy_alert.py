@@ -116,6 +116,10 @@ def body(validated: dict) -> str:
             f"Score signal : {finite(row.get('signal_score'), 0):.2f}/10",
             f"Accélération : {accel.get('state', 'n/a')} — preuves {accel.get('evidence_count', 'n/a')}",
             f"Prix signal : {finite(row.get('last'), 0):.8g} €",
+            f"Début épisode : {finite(row.get('episode_start_price'), finite(row.get('last'), 0)):.8g} €",
+            f"Extension depuis début épisode : {finite(row.get('episode_extension_pct'), 0):+.2f} %",
+            f"Âge de l'épisode : {finite(row.get('episode_age_seconds'), 0) / 60:.1f} min",
+            f"Phase : {row.get('signal_phase', 'n/a')}",
             f"Entrée revalidée : {trade['entry_eur']:.8g} €",
             f"Dérive depuis signal : {validated['price_drift_pct']:+.2f} %",
             f"Spread actuel : {validated['spread_pct']:.3f} %",
@@ -193,7 +197,8 @@ def main() -> int:
         return 0
 
     row = selected["row"]
-    subject = f"ACHÈTE — {row['market']} — Solaire"
+    phase = row.get("signal_phase", "CONFIRMED")
+    subject = f"ACHÈTE — {row['market']} — Solaire {phase}"
     try:
         email_alert.send_email(creds[0], creds[1], creds[2], subject, body(selected))
     except smtplib.SMTPAuthenticationError:
@@ -227,6 +232,9 @@ def main() -> int:
         market=row["market"],
         price_drift_pct=selected["price_drift_pct"],
         spread_pct=selected["spread_pct"],
+        signal_phase=row.get("signal_phase"),
+        episode_extension_pct=row.get("episode_extension_pct"),
+        episode_age_seconds=row.get("episode_age_seconds"),
     )
     atomic_json(STATUS, status)
     print("SOLAIRE_ALERT " + json.dumps(status))
