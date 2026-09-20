@@ -1,0 +1,152 @@
+name: Solaire top30 episode audit
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/solaire_top30_episode_audit.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Replay episode-aware Solaire alerts
+        run: |
+          python - <<'PY'
+          import bisect,gzip,json,re,time
+          from datetime import datetime,timezone
+          from pathlib import Path
+          from research.common import finite,INTERVAL_MS
+          from research.features import describe
+          from research.http import PublicClient
+          from research.production_acceleration import acceleration_signal
+          from research.risk import structural_plan
+
+          PANEL=["SAGA-EUR","PTB-EUR","FTT-EUR","NIL-EUR","KMNO-EUR","EPIC-EUR","LUNA2-EUR","S-EUR","CFG-EUR","NEAR-EUR","VVV-EUR","AVAX-EUR","PEAQ-EUR","U-EUR","RENDER-EUR","ALLO-EUR","STRK-EUR","C-EUR","GRT-EUR","MANTA-EUR","CAKE-EUR","SEI-EUR","ENA-EUR","ONG-EUR","OSMO-EUR","HBAR-EUR","ENSO-EUR","METIS-EUR","ARB-EUR","CETUS-EUR"]
+          client=PublicClient(timeout=15,retries=3,requests_per_second=10)
+          client.get("/time",cache=False); now=time.time(); start=now-24*3600
+          meta={m["market"]:m for m in client.get("/markets") if m.get("market") in PANEL}
+
+          def canonical(rows,interval):
+              dur=INTERVAL_MS[interval]; obs={}
+              for r in rows:
+                  if not isinstance(r,list) or len(r)<6: continue
+                  vals=[finite(v) for v in r[:6]]
+                  if any(v is None for v in vals): continue
+                  t,o,h,l,c,v=vals; t=int(t)
+                  if t+dur>now*1000 or t%dur or min(o,h,l,c)<=0 or v<0: continue
+                  obs[t]={"t":t,"o":o,"h":h,"l":l,"c":c,"v":v}
+              if not obs:return []
+              ts=sorted(obs);out=[];prev=None;t=ts[0];end=ts[-1]
+              while t<=end:
+                  row=obs.get(t)
+                  if row is not None: prev=row["c"];out.append(row)
+                  elif prev is not None: out.append({"t":t,"o":prev,"h":prev,"l":prev,"c":prev,"v":0.0})
+                  t+=dur
+              return out
+
+          def feat_at(cs,interval,ts):
+              dur=INTERVAL_MS[interval]; starts=[x["t"] for x in cs]
+              idx=bisect.bisect_right(starts,int(ts*1000)-dur)
+              if idx<=0:return {"valid":False},None,idx
+              sub=cs[max(0,idx-100):idx]
+              return describe(sub,interval),sub[-1]["c"],idx
+
+          series={}
+          for m in PANEL:
+              series[m]=(canonical(client.get("/"+m+"/candles",{"interval":"5m","limit":650},cache=False),"5m"),
+                         canonical(client.get("/"+m+"/candles",{"interval":"15m","limit":240},cache=False),"15m"))
+
+          spread_index={m:[] for m in PANEL}; rx=re.compile(r"(\d{8}T\d{6}Z)")
+          def walk(obj,fts):
+              if isinstance(obj,dict):
+                  mk=obj.get("market")
+                  if mk in spread_index:
+                      bid=finite(obj.get("bid"));ask=finite(obj.get("ask"));sp=finite(obj.get("spread_pct"))
+                      if sp is None and bid and ask and bid>0 and ask>=bid: sp=(ask/bid-1)*100
+                      if sp is not None: spread_index[mk].append({"ts":fts,"spread_pct":sp,"bid":bid,"ask":ask})
+                  for v in obj.values():walk(v,fts)
+              elif isinstance(obj,list):
+                  for v in obj:walk(v,fts)
+          for folder in ["history/2026-09-19","history/2026-09-20","history/2026-09-21"]:
+              p=Path(folder)
+              if not p.exists():continue
+              for path in p.glob("*.json.gz"):
+                  mm=rx.search(path.name)
+                  if not mm:continue
+                  fts=datetime.strptime(mm.group(1),"%Y%m%dT%H%M%SZ").replace(tzinfo=timezone.utc).timestamp()
+                  if fts<start-900 or fts>now+900:continue
+                  try:
+                      with gzip.open(path,"rt",encoding="utf-8") as fh:walk(json.load(fh),fts)
+                  except Exception:pass
+          def spnear(m,ts):
+              xs=[x for x in spread_index[m] if abs(x["ts"]-ts)<=720]
+              return min(xs,key=lambda x:abs(x["ts"]-ts)) if xs else None
+          def rollq(c5,idx):return sum(x["v"]*x["c"] for x in c5[max(0,idx-288):idx])
+
+          out={}
+          for m in PANEL:
+              c5,c15=series[m]; ep=None; episodes=[]; first_global=None
+              for row in c5:
+                  ts=row["t"]/1000+301
+                  if ts<start or ts>now:continue
+                  f5,price,idx5=feat_at(c5,"5m",ts);f15,_,_=feat_at(c15,"15m",ts)
+                  sig=acceleration_signal({"features":{"5m":f5,"15m":f15}})
+                  state=sig.get("state"); tracked=state in ("BUILDING_ACCELERATION","CONFIRMED_ACCELERATION")
+                  if tracked and ep is None:
+                      ep={"start_ts":ts,"start_price":price,"start_state":state,"first_confirm_ts":None,
+                          "first_confirm_price":None,"mail":None,"gate_counts":{},"max_score":sig.get("score")}
+                  if not tracked and ep is not None:
+                      episodes.append(ep);ep=None
+                  if not tracked or ep is None:continue
+                  ep["max_score"]=max(ep["max_score"] or 0,sig.get("score") or 0)
+                  if state!="CONFIRMED_ACCELERATION":continue
+                  if ep["first_confirm_ts"] is None:
+                      ep["first_confirm_ts"]=ts;ep["first_confirm_price"]=price
+                      if first_global is None:first_global={"ts":ts,"price":price}
+                  if ep["mail"] is not None:continue
+                  qv=rollq(c5,idx5);gate=None;plan=None;sp=None
+                  if qv<75000:gate="LIQUIDITY"
+                  else:
+                      sp=spnear(m,ts);ask=sp.get("ask") if sp and sp.get("ask") else price
+                      plan=structural_plan({"market":m,"ask":ask},f15,meta[m])
+                      if not plan.get("valid"):gate=plan.get("reason")
+                      elif sp is None:gate="SPREAD_UNKNOWN"
+                      elif sp["spread_pct"]>0.5:gate="SPREAD_TOO_WIDE"
+                      else:gate="MAIL"
+                  ep["gate_counts"][gate]=ep["gate_counts"].get(gate,0)+1
+                  if gate=="MAIL":
+                      ep["mail"]={"ts":ts,"price":price,"score":sig["score"],"spread_pct":sp["spread_pct"],
+                                  "episode_age_min":(ts-ep["start_ts"])/60,
+                                  "episode_extension_pct":(price/ep["start_price"]-1)*100,
+                                  "confirm_age_min":(ts-ep["first_confirm_ts"])/60,
+                                  "global_extension_pct":(price/first_global["price"]-1)*100 if first_global else 0,
+                                  "stop_distance_pct":plan["stop_distance_pct"],"entry":plan["entry_eur"],
+                                  "stop":plan["stop_eur"],"tp1":plan["tp1_eur"]}
+              if ep is not None:episodes.append(ep)
+              mails=[e["mail"] for e in episodes if e.get("mail")]
+              out[m]={"episodes":len(episodes),"confirmed_episodes":sum(e.get("first_confirm_ts") is not None for e in episodes),
+                      "mail_count":len(mails),"mails":mails,
+                      "blocked_episodes":sum(e.get("first_confirm_ts") is not None and not e.get("mail") for e in episodes)}
+          allm=[mail for v in out.values() for mail in v["mails"]]
+          summary={"markets":30,"total_episodes":sum(v["episodes"] for v in out.values()),
+                   "confirmed_episodes":sum(v["confirmed_episodes"] for v in out.values()),
+                   "simulated_mails":len(allm),
+                   "markets_with_mail":sum(v["mail_count"]>0 for v in out.values()),
+                   "mails_episode_age_gt15":sum(x["episode_age_min"]>15 for x in allm),
+                   "mails_episode_ext_gt5":sum(x["episode_extension_pct"]>5 for x in allm),
+                   "mails_global_ext_gt8":sum(x["global_extension_pct"]>8 for x in allm),
+                   "mails_stop_gt10":sum(x["stop_distance_pct"]>10 for x in allm)}
+          print("EP_SUMMARY="+json.dumps(summary,separators=(",",":")))
+          for i,m in enumerate(PANEL,1):
+              v=out[m]
+              print("EPROW="+json.dumps({"rank":i,"market":m,**v},separators=(",",":")))
+          PY
