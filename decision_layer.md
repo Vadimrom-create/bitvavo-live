@@ -1,6 +1,6 @@
 # Decision Layer V1 + boucle de contrôle — shadow
 
-Scan : 2026-09-20T05:10:29.937311+00:00
+Scan : 2026-09-20T05:27:44.479186+00:00
 Policy : DECISION_LAYER_V1_SHADOW au-dessus de V4_FROZEN_20260908
 
 Cette couche ne modifie aucun score V4 et ne peut envoyer aucun ordre.
@@ -11,43 +11,45 @@ Entry est un indicateur de timing, pas un veto structurel.
 - **MEILLEUR_ACHAT_IMMEDIAT** : aucun candidat matériel
 - **MEILLEURE_LIMITE_PASSIVE** : aucun candidat matériel
 - **MEILLEUR_LATENT_ACCELERATOR** : aucun candidat matériel
-- **MEILLEUR_PULLBACK_REENTRY** : HYPE-EUR | action ATTENDS_REPRISE_OU_REENTREE | opportunité 7.591 | entrée 6.450 | trend 7.950 | rang 7.368
+- **MEILLEUR_PULLBACK_REENTRY** : HYPE-EUR | action ATTENDS_REPRISE_OU_REENTREE | opportunité 7.635 | entrée 6.700 | trend 7.950 | rang 7.374
   - Strong trend/opportunity retained through pullback; timing does not erase setup.
 
 ## Top cross-sectionnel
 
-1. HYPE-EUR — MEILLEUR_PULLBACK_REENTRY — ATTENDS_REPRISE_OU_REENTREE — rank 7.368
-2. UNI-EUR — MEILLEUR_PULLBACK_REENTRY — ATTENDS_REPRISE_OU_REENTREE — rank 6.730
+1. HYPE-EUR — MEILLEUR_PULLBACK_REENTRY — ATTENDS_REPRISE_OU_REENTREE — rank 7.374
+2. NEAR-EUR — MEILLEUR_PULLBACK_REENTRY — ATTENDS_REPRISE_OU_REENTREE — rank 7.112
+3. SOL-EUR — MEILLEUR_PULLBACK_REENTRY — ATTENDS_REPRISE_OU_REENTREE — rank 6.525
 
 ## Accélération indépendante
 
-- C-EUR — CONFIRMED_ACCELERATION — score 8.647/10 — DETECTED_BUT_TOO_LATE
+- G-EUR — CONFIRMED_ACCELERATION — score 6.843/10 — DETECTED_BUT_TOO_LATE
+- STRK-EUR — BUILDING_ACCELERATION — score 5.276/10 — DETECTED_BUT_TOO_LATE
 
 ## Watchlist persistante 24–72 h
 
-- C-EUR — ACTIVE_NOW — score mémoire 8.647/10 — sources ACCELERATION, V4 — DETECTED_BUT_TOO_LATE
-- WAL-EUR — ACTIVE_NOW — score mémoire 8.303/10 — sources V4 — WATCH_ONLY
-- G-EUR — MEMORY_24H — score mémoire 8.197/10 — sources ACCELERATION, DECISION_LAYER, V4 — MEMORY_ONLY
+- C-EUR — MEMORY_24H — score mémoire 8.647/10 — sources ACCELERATION, V4 — MEMORY_ONLY
+- S-EUR — ACTIVE_NOW — score mémoire 8.250/10 — sources DECISION_LAYER, V4 — WATCH_ONLY
 - ZAMA-EUR — MEMORY_24H — score mémoire 7.949/10 — sources ACCELERATION, V4 — MEMORY_ONLY
 - NPC-EUR — MEMORY_24H — score mémoire 7.903/10 — sources ACCELERATION, DECISION_LAYER, V4 — MEMORY_ONLY
 - DOT-EUR — MEMORY_24H — score mémoire 7.831/10 — sources DECISION_LAYER, V4 — MEMORY_ONLY
-- PROVE-EUR — ACTIVE_NOW — score mémoire 7.796/10 — sources V4 — WATCH_ONLY
+- VVV-EUR — ACTIVE_NOW — score mémoire 7.828/10 — sources DECISION_LAYER, V4 — WATCH_ONLY
+- WAL-EUR — ACTIVE_NOW — score mémoire 7.811/10 — sources V4 — WATCH_ONLY
+- COW-EUR — ACTIVE_NOW — score mémoire 7.799/10 — sources V4 — WATCH_ONLY
 - ETC-EUR — MEMORY_24H — score mémoire 7.770/10 — sources V4 — MEMORY_ONLY
-- PENDLE-EUR — ACTIVE_NOW — score mémoire 7.741/10 — sources ACCELERATION, DECISION_LAYER, V4 — WATCH_ONLY
-- AAVE-EUR — MEMORY_24H — score mémoire 7.654/10 — sources ACCELERATION, DECISION_LAYER, V4 — MEMORY_ONLY
+- KAS-EUR — ACTIVE_NOW — score mémoire 7.722/10 — sources DECISION_LAYER, V4 — WATCH_ONLY
 
 ## Audit des plus fortes hausses
 
-- CELR-EUR +114.24% — NOT_DETECTED — couche DATA — action NOT_APPLICABLE
-- G-EUR +64.66% — DETECTED_EARLY — couche NONE — action INTERPRETATION
-- ZAMA-EUR +31.60% — DETECTED_EARLY — couche NONE — action INTERPRETATION
-- CTSI-EUR +29.96% — NOT_DETECTED — couche DATA — action NOT_APPLICABLE
-- ZIL-EUR +25.31% — DETECTED_EARLY — couche NONE — action INTERPRETATION
-- C-EUR +22.92% — DETECTED_EARLY — couche NONE — action INTERPRETATION
-- SKL-EUR +19.36% — DETECTED_EARLY — couche NONE — action INTERPRETATION
-- HEI-EUR +15.30% — DETECTED_EARLY — couche NONE — action INTERPRETATION
-- SOLV-EUR +13.93% — DETECTED_EARLY — couche NONE — action INTERPRETATION
-- STX-EUR +13.91% — DETECTED_EARLY — couche NONE — action INTERPRETATION
+- CELR-EUR +105.60% — NOT_DETECTED — couche DATA — action NOT_APPLICABLE
+- G-EUR +64.51% — DETECTED_EARLY — couche NONE — action INTERPRETATION
+- ZAMA-EUR +35.60% — DETECTED_EARLY — couche NONE — action INTERPRETATION
+- CTSI-EUR +33.96% — NOT_DETECTED — couche DATA — action NOT_APPLICABLE
+- ZIL-EUR +28.04% — DETECTED_EARLY — couche NONE — action INTERPRETATION
+- C-EUR +23.80% — DETECTED_EARLY — couche NONE — action INTERPRETATION
+- SKL-EUR +19.14% — DETECTED_EARLY — couche NONE — action INTERPRETATION
+- HEI-EUR +14.45% — DETECTED_EARLY — couche NONE — action INTERPRETATION
+- STX-EUR +13.40% — DETECTED_EARLY — couche NONE — action INTERPRETATION
+- STRK-EUR +13.34% — DETECTED_EARLY — couche NONE — action ENTRY_TIMING_OR_EXECUTION
 
 ## Garde-fous
 
