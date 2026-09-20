@@ -266,6 +266,15 @@ class Positions(unittest.TestCase):
             self.assertEqual({c.args[1] for c in markets.call_args_list}, {'ABC-EUR', 'XYZ-EUR'})
             self.assertEqual(load_state(runner.STATE, key)['deliveries'], {})
             send.side_effect = None
+            send.reset_mock()
+            backoff = {}
+            self.assertEqual(runner.run(backoff), 0)
+            self.assertEqual(backoff['email'], 'DELIVERY_BACKOFF')
+            send.assert_not_called()
+            # Changing the rejected credential fingerprint cancels the backoff
+            # immediately, so a corrected GitHub secret is tested next cycle.
+            import os
+            os.environ['GMAIL_APP_PASSWORD'] = 'corrected'
             status = {}
             self.assertEqual(runner.run(status), 0)
             self.assertEqual(status['email'], 'DELIVERY_COMPLETED')
