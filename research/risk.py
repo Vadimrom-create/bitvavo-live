@@ -15,6 +15,75 @@ DEFAULTS = {'cash_eur': 1200, 'reserve_eur': 500, 'existing_exposure_eur': 0,
             'min_net_rr': 1.5, 'portfolio_state': 'THEORETICAL_NOT_ACCOUNT_BALANCE'}
 
 
+def structural_plan(row, features, meta, *, max_position_eur=250.0, max_trade_risk_eur=12.0,
+                    fee_rate=.0025, slippage_rate=.001, min_net_rr=1.5):
+    """Execution-quality plan independent from portfolio cash/exposure state.
+
+    This is the Solaire final gate. It validates current market structure,
+    exchange minimums and risk/reward, and computes a capped sizing guide.
+    It never rejects a market because of stale cash, reserve or position-count
+    assumptions from the research stack.
+    """
+    price = finite(row.get('ask'))
+    if price is None or price <= 0 or not features.get('valid'):
+        return {'valid': False, 'reason': 'MISSING_FRESH_PRICE_OR_STRUCTURE'}
+    atr = finite(features.get('atr14_eur'))
+    support = finite(features.get('support_eur'))
+    tick = finite(meta.get('tickSize'))
+    if atr is None or support is None or atr <= 0:
+        return {'valid': False, 'reason': 'NO_STRUCTURAL_INVALIDATION'}
+    if tick is None or tick <= 0:
+        return {'valid': False, 'reason': 'MISSING_MARKET_TICK_SIZE'}
+
+    down = lambda x: float(
+        (Decimal(str(x)) / Decimal(str(tick))).to_integral_value(rounding=ROUND_DOWN)
+        * Decimal(str(tick))
+    )
+    stop_raw = min(support - .5 * atr, price - 1.5 * atr)
+    entry, stop = down(price), down(stop_raw)
+    if not 0 < stop < entry:
+        return {'valid': False, 'reason': 'NO_STRUCTURAL_INVALIDATION'}
+
+    unit_risk = entry - stop
+    tp1, tp2 = down(entry + 2 * unit_risk), down(entry + 3 * unit_risk)
+    cost = fee_rate + slippage_rate
+    risk_per_unit = entry * (1 + cost) - stop * (1 - cost)
+    reward = tp1 * (1 - cost) - entry * (1 + cost)
+    if risk_per_unit <= 0:
+        return {'valid': False, 'reason': 'INVALID_RISK_GEOMETRY'}
+    rr = reward / risk_per_unit
+    if rr < min_net_rr:
+        return {'valid': False, 'reason': 'INSUFFICIENT_NET_RISK_REWARD', 'net_rr': rr}
+
+    notional = min(max_position_eur, max_trade_risk_eur / risk_per_unit * entry)
+    decimals = int(meta.get('quantityDecimals', 8))
+    amount = (Decimal(str(notional)) / Decimal(str(entry))).quantize(
+        Decimal(1).scaleb(-decimals), rounding=ROUND_DOWN
+    )
+    stake = float(amount) * entry
+    minimum = finite(meta.get('minOrderInQuoteAsset'))
+    min_base = finite(meta.get('minOrderInBaseAsset'), 0)
+    if minimum is None or stake < minimum or float(amount) < min_base or amount <= 0:
+        return {'valid': False, 'reason': 'BELOW_EXCHANGE_MINIMUM'}
+
+    return {
+        'valid': True, 'market': row['market'], 'side': 'buy', 'order_type': 'limit',
+        'amount': format(amount, 'f'), 'entry_eur': entry, 'stop_eur': stop,
+        'tp1_eur': tp1, 'tp2_eur': tp2, 'stake_eur': stake,
+        'theoretical_loss_eur': float(amount) * risk_per_unit,
+        'net_rr_tp1': rr, 'stop_distance_pct': unit_risk / entry * 100,
+        'scenario': 'Solaire structural execution validation',
+        'target_note': '2R/3R scenarios, not forecasts',
+        'main_risk': 'Failed breakout, spread widening or gap through stop',
+        'cost_assumptions': {
+            'fee_rate_each_side': fee_rate,
+            'slippage_rate_each_side': slippage_rate,
+        },
+        'portfolio_state': 'NOT_USED_AS_SIGNAL_VETO',
+        'dry_run': True, 'requires_human_approval': True,
+    }
+
+
 def plan(row, features, meta, config=None, reserved=None):
     cfg = {**DEFAULTS, **(config or {})}
     used = reserved or {'exposure': 0, 'risk': 0, 'positions': 0}
