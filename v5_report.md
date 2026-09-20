@@ -1,45 +1,44 @@
 # Bitvavo — V4 mesurée / infrastructure V5
 
-Scan UTC : 2026-09-20T15:16:38.504237+00:00
-État : OK | marchés EUR : 426 | V4 : 387 | données valides : 34
-Récupération : 2026-09-20T15:16:09.769403+00:00 | âge ticker : 153.2 s | durée : 155.0 s
+Scan UTC : 2026-09-20T15:32:49.758089+00:00
+État : OK | marchés EUR : 426 | V4 : 387 | données valides : 33
+Récupération : 2026-09-20T15:32:19.332560+00:00 | âge ticker : 150.4 s | durée : 151.3 s
 
 ## ACHÈTE — signal V4 et plan théorique
 
 AUCUN ACHAT VALIDÉ — cette absence ne valide pas les marchés aux données insuffisantes.
-Bougies utilisables : 5 min 36/426 ; 15 min 72/426.
+Bougies utilisables : 5 min 35/426 ; 15 min 72/426.
 Les trous de cotation restent visibles ; aucune bougie sans transaction n’est inventée.
 
 Achats bruts V4 bloqués avant alerte :
-- BTC-EUR : WICK_SETUP, INSUFFICIENT_NET_RISK_REWARD
-- DOGE-EUR : WICK_SETUP, INSUFFICIENT_NET_RISK_REWARD
-- HYPE-EUR : INSUFFICIENT_NET_RISK_REWARD
-- KAS-EUR : INVALID_5M
-- TAO-EUR : INSUFFICIENT_NET_RISK_REWARD
+- CAKE-EUR : WICK_SETUP, INVALID_5M, MISSING_LATEST_CLOSED_CANDLE
+- HYPE-EUR : WICK_SETUP, STABILITY_HOLD, INSUFFICIENT_NET_RISK_REWARD
+- KAS-EUR : WICK_SETUP, STABILITY_HOLD, INVALID_5M
+- LTC-EUR : INVALID_5M
 
 ## SURVEILLE
 
-- PEPE-EUR : 3.4176e-06 € ; score 89.60/100 ; SURVEILLE ; WICK_SETUP
-- HYPE-EUR : 79.46 € ; score 88.95/100 ; SURVEILLE ; INSUFFICIENT_NET_RISK_REWARD
-- BTC-EUR : 70277 € ; score 85.56/100 ; SURVEILLE ; WICK_SETUP, INSUFFICIENT_NET_RISK_REWARD
-- LINK-EUR : 10.6496 € ; score 85.23/100 ; SURVEILLE ; WICK_SETUP
-- TAO-EUR : 220.09 € ; score 82.39/100 ; SURVEILLE ; INSUFFICIENT_NET_RISK_REWARD
+- HYPE-EUR : 79.543 € ; score 78.42/100 ; SURVEILLE ; WICK_SETUP, STABILITY_HOLD, INSUFFICIENT_NET_RISK_REWARD
+- LINK-EUR : 10.6682 € ; score 74.88/100 ; SURVEILLE ; WICK_SETUP, STABILITY_HOLD
+- SUI-EUR : 0.72235 € ; score 73.81/100 ; SURVEILLE ; STABILITY_HOLD
+- PEPE-EUR : 3.4336e-06 € ; score 72.30/100 ; SURVEILLE ; NOT_ENTRY_ENRICHED
+- TAO-EUR : 220.35 € ; score 72.23/100 ; SURVEILLE ; STABILITY_HOLD
 
 ## Contrôle des hausses
 
 | Marché | Prix € | 24 h | Détection | Couche d’échec | Actionnabilité |
 |---|---:|---:|---|---|---|
-| CELR-EUR | 0.0034596 | +62.89 % | NOT_DETECTED | DATA | NOT_APPLICABLE |
-| C-EUR | 0.072228 | +21.49 % | NOT_DETECTED | DATA | NOT_APPLICABLE |
-| SAGA-EUR | 0.026863 | +18.66 % | DETECTED_EARLY | NONE | INTERPRETATION |
-| AVAX-EUR | 9.6904 | +17.84 % | DETECTED_EARLY | NONE | ENTRY_TIMING_OR_EXECUTION |
-| PTB-EUR | 0.0007072 | +17.42 % | NOT_DETECTED | DATA | NOT_APPLICABLE |
-| ALGO-EUR | 0.098093 | +12.18 % | DETECTED_EARLY | NONE | INTERPRETATION |
-| EPIC-EUR | 0.45927 | +12.17 % | NOT_DETECTED | DATA | NOT_APPLICABLE |
-| GNO-EUR | 115 | +11.77 % | NO_CONFIRMED_SHORT_TERM_EVENT | NOT_APPLICABLE | NOT_APPLICABLE |
-| HBAR-EUR | 0.07808 | +11.34 % | DETECTED_EARLY | NONE | INTERPRETATION |
-| CTSI-EUR | 0.025323 | +10.08 % | NOT_DETECTED | DATA | NOT_APPLICABLE |
+| CELR-EUR | 0.0034534 | +63.13 % | NOT_DETECTED | DATA | NOT_APPLICABLE |
+| SAGA-EUR | 0.028018 | +26.58 % | DETECTED_EARLY | NONE | INTERPRETATION |
+| C-EUR | 0.072302 | +23.90 % | NOT_DETECTED | DATA | NOT_APPLICABLE |
+| AVAX-EUR | 9.6711 | +18.29 % | DETECTED_EARLY | NONE | ENTRY_TIMING_OR_EXECUTION |
+| PTB-EUR | 0.0007067 | +17.33 % | NOT_DETECTED | DATA | NOT_APPLICABLE |
+| EPIC-EUR | 0.47348 | +16.48 % | NOT_DETECTED | DATA | NOT_APPLICABLE |
+| REQ-EUR | 0.053215 | +13.66 % | NOT_DETECTED | DATA | NOT_APPLICABLE |
+| ALGO-EUR | 0.097613 | +11.53 % | DETECTED_EARLY | NONE | INTERPRETATION |
+| CTSI-EUR | 0.025336 | +10.13 % | NOT_DETECTED | DATA | NOT_APPLICABLE |
+| S-EUR | 0.030503 | +9.37 % | DETECTED_EARLY | NONE | INTERPRETATION |
 
-Historique : 990 scans ; 424477 observations ; 230 épisodes d’achat évaluables.
+Historique : 991 scans ; 424903 observations ; 230 épisodes d’achat évaluables.
 V5 optimisée : aucune. Supériorité sur V4 : non démontrée. Probabilités : non calibrées.
 Le cash et le portefeuille du plan sont hypothétiques. Aucun ordre réel n’est envoyé.
