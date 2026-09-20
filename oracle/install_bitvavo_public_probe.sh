@@ -23,6 +23,12 @@ Group=bitvavoprobe
 ExecStart=/usr/bin/python3 /opt/bitvavo-public-probe/server.py
 Restart=always
 RestartSec=3
+TimeoutStopSec=10
+MemoryHigh=192M
+MemoryMax=256M
+TasksMax=64
+LimitNOFILE=1024
+OOMScoreAdjust=500
 NoNewPrivileges=true
 PrivateTmp=true
 ProtectHome=true
@@ -39,8 +45,17 @@ EOF
 
 systemctl daemon-reload
 systemctl enable --now bitvavo-public-probe.service
-firewall-cmd --permanent --add-port=8787/tcp >/dev/null
-firewall-cmd --reload >/dev/null
+if systemctl is-active --quiet firewalld; then
+  ZONE="$(firewall-cmd --get-active-zones | awk 'NR==1{print $1}')"
+  ZONE="${ZONE:-$(firewall-cmd --get-default-zone)}"
+  # Preserve remote administration before any reload. The previous installer
+  # only persisted 8787, which was not defensive enough.
+  firewall-cmd --zone="$ZONE" --permanent --add-service=ssh >/dev/null
+  firewall-cmd --zone="$ZONE" --permanent --add-port=8787/tcp >/dev/null
+  firewall-cmd --zone="$ZONE" --add-service=ssh >/dev/null || true
+  firewall-cmd --zone="$ZONE" --add-port=8787/tcp >/dev/null || true
+  firewall-cmd --reload >/dev/null
+fi
 
 echo '=== SERVICE ==='
 systemctl is-active bitvavo-public-probe.service
