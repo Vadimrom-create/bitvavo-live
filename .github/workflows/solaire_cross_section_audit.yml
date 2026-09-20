@@ -1,0 +1,338 @@
+name: Solaire 24h cross-sectional audit
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/solaire_cross_section_audit.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Replay Solaire across Bitvavo EUR universe
+        run: |
+          python - <<'PY'
+          import bisect, gzip, json, math, os, re, time
+          from concurrent.futures import ThreadPoolExecutor, as_completed
+          from datetime import datetime, timezone
+          from pathlib import Path
+
+          from research.common import finite, INTERVAL_MS
+          from research.features import describe
+          from research.http import PublicClient
+          from research.production_acceleration import acceleration_signal
+          from research.risk import structural_plan
+
+          STARTED=time.time()
+          client=PublicClient(timeout=15,retries=3,requests_per_second=12)
+          client.get("/time",cache=False)
+          now=time.time()
+          markets=[m for m in client.get("/markets") if m.get("quote")=="EUR" and m.get("status")=="trading"]
+          meta={m["market"]:m for m in markets}
+          tickers={r["market"]:r for r in client.get("/ticker/24h") if r.get("market") in meta}
+
+          def chg(t):
+              a=finite(t.get("open")); b=finite(t.get("last"))
+              return ((b/a)-1)*100 if a and b else -999.0
+
+          ranking=sorted(
+              [{"market":m,"change24":chg(t),"last":finite(t.get("last")),
+                "quote_volume24":finite(t.get("volumeQuote"),0.0)}
+               for m,t in tickers.items()],
+              key=lambda x:x["change24"], reverse=True
+          )
+          rank={r["market"]:i+1 for i,r in enumerate(ranking)}
+
+          def fetch_one(m):
+              try:
+                  r5=client.get("/"+m+"/candles",{"interval":"5m","limit":650},cache=False)
+                  r15=client.get("/"+m+"/candles",{"interval":"15m","limit":240},cache=False)
+                  return m,r5,r15,None
+              except Exception as e:
+                  return m,[],[],type(e).__name__+":"+str(e)
+
+          raw={}
+          with ThreadPoolExecutor(max_workers=12) as ex:
+              fs=[ex.submit(fetch_one,m["market"]) for m in markets]
+              for f in as_completed(fs):
+                  m,r5,r15,err=f.result()
+                  raw[m]=(r5,r15,err)
+
+          def canonical(rows, interval):
+              dur=INTERVAL_MS[interval]
+              obs={}
+              for r in rows:
+                  if not isinstance(r,list) or len(r)<6: continue
+                  vals=[finite(v) for v in r[:6]]
+                  if any(v is None for v in vals): continue
+                  t,o,h,l,c,v=vals
+                  t=int(t)
+                  if t+dur>now*1000: continue
+                  if t%dur or min(o,h,l,c)<=0 or v<0: continue
+                  obs[t]={"t":t,"o":o,"h":h,"l":l,"c":c,"v":v,"bar_status":"CLOSED_TRADE"}
+              if not obs: return []
+              times=sorted(obs)
+              out=[]
+              prev=None
+              t=times[0]
+              end=times[-1]
+              while t<=end:
+                  row=obs.get(t)
+                  if row is not None:
+                      prev=row["c"]; out.append(row)
+                  elif prev is not None:
+                      out.append({"t":t,"o":prev,"h":prev,"l":prev,"c":prev,"v":0.0,"bar_status":"NO_TRADE"})
+                  t+=dur
+              return out
+
+          def feat_at(cs, interval, ts):
+              dur=INTERVAL_MS[interval]
+              starts=[x["t"] for x in cs]
+              idx=bisect.bisect_right(starts,int(ts*1000)-dur)
+              if idx<=0: return {"valid":False,"reasons":["NO_HISTORY"]},None,idx
+              sub=cs[max(0,idx-100):idx]
+              return describe(sub,interval),sub[-1]["c"],idx
+
+          def forward_stats(c5, ts, hours):
+              start=int(ts*1000)
+              end=start+hours*3600*1000
+              rows=[x for x in c5 if x["t"]>=start and x["t"]<end]
+              if not rows: return {"mfe":None,"mae":None,"high":None,"low":None}
+              entry=None
+              f,entry,_=feat_at(c5,"5m",ts)
+              if not entry: return {"mfe":None,"mae":None,"high":None,"low":None}
+              hi=max(x["h"] for x in rows); lo=min(x["l"] for x in rows)
+              return {"mfe":(hi/entry-1)*100,"mae":(lo/entry-1)*100,"high":hi,"low":lo}
+
+          def roll_quote(c5, idx):
+              rows=c5[max(0,idx-288):idx]
+              return sum(x["v"]*x["c"] for x in rows)
+
+          # Nominal production cadence: one decision point after each 5m close.
+          window_start=now-24*3600
+          results={}
+          threshold_variants=[("cur",6.50,3),("s60e3",6.0,3),("s575e3",5.75,3),("s65e2",6.5,2)]
+          alt_first={name:{} for name,_,_ in threshold_variants}
+
+          for mi,m in enumerate(sorted(meta)):
+              r5,r15,err=raw[m]
+              c5=canonical(r5,"5m"); c15=canonical(r15,"15m")
+              if not c5 or not c15:
+                  results[m]={"error":err or "NO_CANDLES","episodes":[]}; continue
+
+              points=[]
+              episodes=[]
+              active=None
+              first_build=None
+              first_conf=None
+              best=None
+              # Replay from 24h ago, plus one second after each 5m close.
+              for row in c5:
+                  ts=row["t"]/1000+300+1
+                  if ts<window_start or ts>now: continue
+                  f5,p,idx5=feat_at(c5,"5m",ts)
+                  f15,_,idx15=feat_at(c15,"15m",ts)
+                  sig=acceleration_signal({"features":{"5m":f5,"15m":f15}})
+                  score=sig.get("score")
+                  ev=int(sig.get("evidence_count") or 0)
+                  state=sig.get("state")
+                  if score is not None and (best is None or score>best["score"]):
+                      best={"ts":ts,"price":p,"score":score,"evidence":ev,"components":sig.get("components",{})}
+
+                  for name,thr,emin in threshold_variants:
+                      if m not in alt_first[name] and score is not None and score>=thr and ev>=emin:
+                          alt_first[name][m]={"ts":ts,"price":p,"score":score,"evidence":ev}
+
+                  tracked=state in ("BUILDING_ACCELERATION","CONFIRMED_ACCELERATION")
+                  if tracked and active is None:
+                      active={"start_ts":ts,"start_price":p,"start_score":score,"confirmed_points":[]}
+                      if first_build is None:
+                          first_build={"ts":ts,"price":p,"score":score,"state":state}
+                  if not tracked and active is not None:
+                      episodes.append(active); active=None
+                  if tracked and active is not None and state=="CONFIRMED_ACCELERATION":
+                      cp={"ts":ts,"price":p,"score":score,"evidence":ev,"f15":f15,"idx5":idx5}
+                      active["confirmed_points"].append(cp)
+                      if first_conf is None:
+                          first_conf=cp.copy()
+                          first_conf["episode_start_ts"]=active["start_ts"]
+                          first_conf["episode_start_price"]=active["start_price"]
+              if active is not None: episodes.append(active)
+
+              # Simulate reconstructible execution gates at every retry point until one could send.
+              mail={"status":"NO_SIGNAL","attempts":0,"pass_points":[],"fail_reasons":{}}
+              for ep in episodes:
+                  for cp in ep["confirmed_points"]:
+                      mail["attempts"]+=1
+                      qv=roll_quote(c5,cp["idx5"])
+                      reason=None
+                      plan=None
+                      if qv<75000:
+                          reason="INSUFFICIENT_EXECUTION_LIQUIDITY"
+                      else:
+                          plan=structural_plan({"market":m,"ask":cp["price"]},cp["f15"],meta[m])
+                          if not plan.get("valid"):
+                              reason=plan.get("reason","INVALID_PLAN")
+                      if reason:
+                          mail["fail_reasons"][reason]=mail["fail_reasons"].get(reason,0)+1
+                      else:
+                          mail["pass_points"].append({"ts":cp["ts"],"price":cp["price"],"score":cp["score"],
+                                                     "rolling_quote_volume_est":qv,
+                                                     "net_rr":plan.get("net_rr_tp1") if plan else None,
+                                                     "spread_gate":"HISTORICAL_BOOK_NOT_YET_VERIFIED"})
+              if mail["pass_points"]:
+                  mail["status"]="WOULD_REACH_SPREAD_GATE"
+              elif first_conf:
+                  mail["status"]="NO_RECONSTRUCTIBLE_GATE_PASS"
+
+              if first_conf:
+                  fs1=forward_stats(c5,first_conf["ts"],1)
+                  fs4=forward_stats(c5,first_conf["ts"],4)
+                  later=[x for x in c5 if x["t"]>=int(first_conf["ts"]*1000)]
+                  high_after=max((x["h"] for x in later),default=first_conf["price"])
+                  low_prior_rows=[x for x in c5 if int(first_conf["ts"]*1000)-4*3600*1000<=x["t"]<int(first_conf["ts"]*1000)]
+                  low_prior=min((x["l"] for x in low_prior_rows),default=first_conf["price"])
+                  first_conf["episode_extension_pct"]=(first_conf["price"]/first_conf["episode_start_price"]-1)*100 if first_conf["episode_start_price"] else None
+                  first_conf["pre4h_run_pct"]=(first_conf["price"]/low_prior-1)*100 if low_prior else None
+                  first_conf["mfe1h"]=fs1["mfe"]; first_conf["mae1h"]=fs1["mae"]
+                  first_conf["mfe4h"]=fs4["mfe"]; first_conf["mae4h"]=fs4["mae"]
+                  first_conf["remaining_to_later_high_pct"]=(high_after/first_conf["price"]-1)*100
+
+              results[m]={
+                  "rank":rank.get(m),"change24":next((x["change24"] for x in ranking if x["market"]==m),None),
+                  "last":finite(tickers[m].get("last")) if m in tickers else None,
+                  "quote_volume24":finite(tickers[m].get("volumeQuote"),0.0) if m in tickers else None,
+                  "first_build":first_build,"first_confirm":first_conf,"best":best,
+                  "episodes":len(episodes),"mail":mail,
+              }
+
+          # Search archived snapshots near first confirmation for historical spread evidence.
+          targets={m:r["first_confirm"]["ts"] for m,r in results.items() if r.get("rank",999)<=50 and r.get("first_confirm")}
+          spread_hits={m:[] for m in targets}
+
+          def extract_rows(obj, wanted, acc):
+              if isinstance(obj,dict):
+                  mk=obj.get("market")
+                  if mk in wanted:
+                      sp=finite(obj.get("spread_pct"))
+                      bid=finite(obj.get("bid")); ask=finite(obj.get("ask"))
+                      if sp is None and bid and ask and bid>0 and ask>=bid:
+                          sp=(ask/bid-1)*100
+                      if sp is not None:
+                          acc.append((mk,sp))
+                  for v in obj.values(): extract_rows(v,wanted,acc)
+              elif isinstance(obj,list):
+                  for v in obj: extract_rows(v,wanted,acc)
+
+          hist_files=[]
+          for d in ["history/2026-09-19","history/2026-09-20","history/2026-09-21"]:
+              p=Path(d)
+              if p.exists(): hist_files += list(p.glob("*.json.gz"))
+          rx=re.compile(r"(\d{8}T\d{6}Z)")
+          for path in hist_files:
+              mm=rx.search(path.name)
+              if not mm: continue
+              fts=datetime.strptime(mm.group(1),"%Y%m%dT%H%M%SZ").replace(tzinfo=timezone.utc).timestamp()
+              wanted={m for m,ts in targets.items() if abs(fts-ts)<=12*60}
+              if not wanted: continue
+              try:
+                  with gzip.open(path,"rt",encoding="utf-8") as fh: obj=json.load(fh)
+                  hits=[]; extract_rows(obj,wanted,hits)
+                  for m,sp in hits:
+                      spread_hits[m].append({"ts":fts,"spread_pct":sp,"distance_sec":abs(fts-targets[m]),"file":path.name})
+              except Exception:
+                  pass
+
+          for m,hits in spread_hits.items():
+              if hits:
+                  hit=min(hits,key=lambda x:x["distance_sec"])
+                  results[m]["historical_spread"]=hit
+                  # Upgrade/downgrade mail simulation if a reconstructible pass exists.
+                  if results[m]["mail"]["status"]=="WOULD_REACH_SPREAD_GATE":
+                      results[m]["mail"]["status"]="SIMULATED_BUY_MAIL" if hit["spread_pct"]<=0.5 else "NO_SPREAD"
+              elif results[m]["mail"]["status"]=="WOULD_REACH_SPREAD_GATE":
+                  results[m]["mail"]["status"]="UNKNOWN_HISTORICAL_SPREAD"
+
+          def panel_metrics(n):
+              rows=[results[x["market"]] for x in ranking[:n] if x["market"] in results]
+              detected=[r for r in rows if r.get("first_confirm")]
+              build=[r for r in rows if r.get("first_build")]
+              useful5=[r for r in detected if finite(r["first_confirm"].get("mfe4h"),-999)>=5]
+              useful10=[r for r in detected if finite(r["first_confirm"].get("mfe4h"),-999)>=10]
+              mails=[r for r in rows if r.get("mail",{}).get("status")=="SIMULATED_BUY_MAIL"]
+              mail_unknown=[r for r in rows if r.get("mail",{}).get("status")=="UNKNOWN_HISTORICAL_SPREAD"]
+              return {"n":n,"building":len(build),"confirmed":len(detected),
+                      "confirmed_recall_pct":round(len(detected)/n*100,1),
+                      "mfe4h_ge5":len(useful5),"mfe4h_ge10":len(useful10),
+                      "simulated_buy_mail":len(mails),"mail_unknown_spread":len(mail_unknown)}
+
+          all_detected=[r for r in results.values() if r.get("first_confirm")]
+          precision_like={
+              "detected_markets":len(all_detected),
+              "mfe1h_ge3_pct":round(100*sum(finite(r["first_confirm"].get("mfe1h"),-999)>=3 for r in all_detected)/len(all_detected),1) if all_detected else None,
+              "mfe4h_ge5_pct":round(100*sum(finite(r["first_confirm"].get("mfe4h"),-999)>=5 for r in all_detected)/len(all_detected),1) if all_detected else None,
+              "mfe4h_ge10_pct":round(100*sum(finite(r["first_confirm"].get("mfe4h"),-999)>=10 for r in all_detected)/len(all_detected),1) if all_detected else None,
+          }
+
+          # Threshold sensitivity: recall on top30/top50 + forward 4h >=5 among all markets triggered.
+          sensitivity={}
+          for name,thr,emin in threshold_variants:
+              trig=alt_first[name]
+              all_good=0
+              for m,p in trig.items():
+                  c5=canonical(raw[m][0],"5m")
+                  if forward_stats(c5,p["ts"],4)["mfe"] is not None and forward_stats(c5,p["ts"],4)["mfe"]>=5:
+                      all_good+=1
+              sensitivity[name]={
+                  "threshold":thr,"evidence_min":emin,"all_triggered":len(trig),
+                  "all_mfe4h_ge5_pct":round(100*all_good/len(trig),1) if trig else None,
+                  "top30_recall_pct":round(100*sum(x["market"] in trig for x in ranking[:30])/30,1),
+                  "top50_recall_pct":round(100*sum(x["market"] in trig for x in ranking[:50])/50,1),
+              }
+
+          summary={
+              "generated_at_utc":datetime.fromtimestamp(now,timezone.utc).isoformat(),
+              "active_eur_markets":len(markets),
+              "api_errors":len(client.errors),
+              "duration_sec":round(time.time()-STARTED,1),
+              "top30":panel_metrics(30),"top50":panel_metrics(50),
+              "all_universe":precision_like,"threshold_sensitivity":sensitivity,
+          }
+          Path("/tmp/solaire_cross_section_audit.json").write_text(json.dumps({"summary":summary,"ranking":ranking[:60],"results":results},indent=2),encoding="utf-8")
+          print("AUDIT_SUMMARY="+json.dumps(summary,separators=(",",":")))
+          for x in ranking[:50]:
+              r=results.get(x["market"],{})
+              fc=r.get("first_confirm")
+              out={
+                  "rank":r.get("rank"),"market":x["market"],"change24":round(x["change24"],3),
+                  "qv24":round(x["quote_volume24"],2),"confirmed":bool(fc),
+                  "confirm_ts":fc.get("ts") if fc else None,
+                  "confirm_price":fc.get("price") if fc else None,
+                  "score":fc.get("score") if fc else None,
+                  "episode_ext":round(fc.get("episode_extension_pct"),3) if fc and fc.get("episode_extension_pct") is not None else None,
+                  "pre4h_run":round(fc.get("pre4h_run_pct"),3) if fc and fc.get("pre4h_run_pct") is not None else None,
+                  "mfe1h":round(fc.get("mfe1h"),3) if fc and fc.get("mfe1h") is not None else None,
+                  "mfe4h":round(fc.get("mfe4h"),3) if fc and fc.get("mfe4h") is not None else None,
+                  "mae4h":round(fc.get("mae4h"),3) if fc and fc.get("mae4h") is not None else None,
+                  "remaining_high":round(fc.get("remaining_to_later_high_pct"),3) if fc and fc.get("remaining_to_later_high_pct") is not None else None,
+                  "mail":r.get("mail",{}).get("status"),
+                  "spread":(r.get("historical_spread") or {}).get("spread_pct"),
+                  "best_score":(r.get("best") or {}).get("score"),
+                  "best_evidence":(r.get("best") or {}).get("evidence"),
+              }
+              print("TOPROW="+json.dumps(out,separators=(",",":")))
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: solaire-cross-section-audit
+          path: /tmp/solaire_cross_section_audit.json
+          retention-days: 7
