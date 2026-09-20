@@ -3,9 +3,10 @@ from unittest.mock import patch
 
 from research.common import utc
 from research.production_acceleration import acceleration_signal
-from research.production_alerts import mark_sent, select_events
+from research.production_alerts import mark_sent, mark_suppressed, select_events
 from research.production_gate import ACCELERATION_ACTION, build_alert_payload
 from scripts.production_scan import observation as scan_observation
+from scripts.send_production_buy_alert import prior_buy_thesis_active
 
 
 def confirmed(score=7.1, evidence=4):
@@ -181,6 +182,89 @@ class ProductionAlertPolicyTests(unittest.TestCase):
         events, state = select_events(self.payload(), {}, self.NOW)
         self.assertTrue(events)
         self.assertTrue(select_events(self.payload(), state, self.NOW + 60)[0])
+
+
+    def test_suppressed_episode_is_handled_without_claiming_delivery(self):
+        events, state = select_events(self.payload(), {}, self.NOW)
+        state = mark_suppressed(
+            state,
+            events[0],
+            self.NOW,
+            "PRIOR_BUY_THESIS_STILL_ACTIVE",
+        )
+        self.assertFalse(select_events(self.payload(), state, self.NOW + 60)[0])
+        market = state["markets"]["A-EUR"]
+        self.assertEqual(market["handled_episode"], 1)
+        self.assertNotIn("sent_episode", market)
+        self.assertEqual(
+            market["last_suppressed_reason"],
+            "PRIOR_BUY_THESIS_STILL_ACTIVE",
+        )
+
+    def test_mark_sent_persists_structural_thesis(self):
+        events, state = select_events(self.payload(), {}, self.NOW)
+        trade = {
+            "entry_eur": 1.01,
+            "stop_eur": 0.95,
+            "tp1_eur": 1.13,
+            "stop_distance_pct": 5.94,
+        }
+        state = mark_sent(state, events[0], self.NOW, trade)
+        market = state["markets"]["A-EUR"]
+        self.assertEqual(market["handled_episode"], 1)
+        self.assertEqual(market["sent_episode"], 1)
+        self.assertEqual(market["last_sent_stop_eur"], 0.95)
+
+
+class ProductionPriorThesisTests(unittest.TestCase):
+    NOW = 1_788_883_200.0
+
+    def selected(self, low=0.97, ask=1.02):
+        start = int((self.NOW - 300) * 1000)
+        return {
+            "row": {"market": "A-EUR"},
+            "quote": {"ask": ask},
+            "candles_5m": [
+                {"t": start, "l": low},
+            ],
+        }
+
+    def state(self, sent_offset=600, stop=0.95):
+        return {
+            "markets": {
+                "A-EUR": {
+                    "last_sent_ts": self.NOW - sent_offset,
+                    "last_sent_stop_eur": stop,
+                }
+            }
+        }
+
+    def test_prior_thesis_stays_active_above_stop(self):
+        active, reason = prior_buy_thesis_active(
+            self.state(),
+            self.selected(low=0.97),
+            self.NOW,
+        )
+        self.assertTrue(active)
+        self.assertEqual(reason, "PRIOR_BUY_THESIS_STILL_ACTIVE")
+
+    def test_stop_breach_reopens_market_for_new_buy_thesis(self):
+        active, reason = prior_buy_thesis_active(
+            self.state(),
+            self.selected(low=0.90),
+            self.NOW,
+        )
+        self.assertFalse(active)
+        self.assertEqual(reason, "PRIOR_BUY_THESIS_INVALIDATED")
+
+    def test_old_thesis_expires_after_24h(self):
+        active, reason = prior_buy_thesis_active(
+            self.state(sent_offset=25 * 60 * 60),
+            self.selected(),
+            self.NOW,
+        )
+        self.assertFalse(active)
+        self.assertEqual(reason, "PRIOR_BUY_THESIS_EXPIRED")
 
 
     def test_building_to_confirmed_preserves_episode_start(self):
