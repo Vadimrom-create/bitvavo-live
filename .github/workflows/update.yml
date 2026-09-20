@@ -78,7 +78,7 @@ jobs:
       - name: Verify exact V4 replay against frozen source
         id: replay
         run: python -m research.replay runtime/replay-*.json.gz
-      - name: Run shadow Decision Layer V1
+      - name: Run Decision Layer measurement
         id: decision_layer
         run: python scripts/run_decision_layer.py
       - name: Preserve raw replay inputs and failure diagnostics
@@ -112,7 +112,7 @@ jobs:
         if: always() && steps.tests.outcome == 'success'
         working-directory: /tmp/bitvavo-monitor
         env:
-          ALLOW_BUY_ALERTS: ${{ steps.publication.outcome == 'success' && steps.replay.outcome == 'success' }}
+          ALLOW_BUY_ALERTS: 'false'
           BITVAVO_READ_API_KEY: ${{ secrets.BITVAVO_READ_API_KEY }}
           BITVAVO_READ_API_SECRET: ${{ secrets.BITVAVO_READ_API_SECRET }}
           POSITION_STATE_KEY: ${{ secrets.POSITION_STATE_KEY }}
