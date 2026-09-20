@@ -55,6 +55,7 @@ jobs:
           assert status['status'] == 'OK', status
           assert status['active_eur_markets'] >= 300, status
           assert status['markets_collected'] == status['active_eur_markets'], status
+          assert status['quality_ok'] >= int(status['active_eur_markets'] * 0.95), status
           payload = json.load(open('production_alert_candidates.json'))
           assert payload['oracle_required'] is False
           assert payload['hosted_probe_required'] is False
