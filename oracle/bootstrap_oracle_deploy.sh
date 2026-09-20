@@ -11,7 +11,6 @@ APP_DIR="/opt/bitvavo-public-probe"
 CONTROL="/usr/local/sbin/bitvavo-oracle-control"
 GATEWAY="/usr/local/sbin/bitvavo-deploy-gateway"
 SUDOERS="/etc/sudoers.d/bitvavo-oracle-deploy"
-REPO="https://github.com/Vadimrom-create/bitvavo-live.git"
 
 if [[ "${EUID}" -ne 0 ]]; then
   echo "Run as root (sudo)." >&2
@@ -24,18 +23,6 @@ if [[ ! "${PUBKEY}" =~ ^ssh-ed25519[[:space:]]+[A-Za-z0-9+/=]+([[:space:]].*)?$ 
   exit 2
 fi
 
-if ! command -v git >/dev/null 2>&1; then
-  echo "git missing; installing it automatically..."
-  if command -v dnf >/dev/null 2>&1; then
-    dnf install -y git-core >/dev/null 2>&1 || dnf install -y git >/dev/null
-  elif command -v yum >/dev/null 2>&1; then
-    yum install -y git >/dev/null
-  else
-    echo "git is missing and no supported package manager (dnf/yum) is available" >&2
-    exit 3
-  fi
-fi
-command -v git >/dev/null || { echo "git installation failed" >&2; exit 3; }
 command -v curl >/dev/null || { echo "curl is required" >&2; exit 3; }
 command -v python3 >/dev/null || { echo "python3 is required" >&2; exit 3; }
 command -v systemctl >/dev/null || { echo "systemd is required" >&2; exit 3; }
@@ -120,19 +107,22 @@ case "${1:-}" in
     backup="${APP_DIR}/server.py.previous"
     trap 'rm -rf "${tmp}"' EXIT
 
-    git -C "${tmp}" init -q
-    git -C "${tmp}" remote add origin "${REPO}"
-    git -C "${tmp}" fetch -q --depth=150 origin main
-    if ! git -C "${tmp}" cat-file -e "${sha}^{commit}" 2>/dev/null; then
-      echo "requested sha is not present in fetched main history" >&2
-      exit 65
-    fi
-    if ! git -C "${tmp}" merge-base --is-ancestor "${sha}" FETCH_HEAD; then
-      echo "requested sha is not an ancestor of origin/main" >&2
-      exit 65
-    fi
+    # No git client is required on the VPS. Verify that the requested commit is
+    # on main through GitHub's public compare API, then fetch the exact raw file.
+    compare_url="https://api.github.com/repos/Vadimrom-create/bitvavo-live/compare/${sha}...main"
+    compare_json="$(curl --fail --silent --show-error --max-time 15 \
+      -H 'Accept: application/vnd.github+json' "${compare_url}")"
+    compare_status="$(printf '%s' "${compare_json}" | python3 -c 'import json,sys; print(json.load(sys.stdin).get("status",""))')"
+    case "${compare_status}" in
+      ahead|identical) ;;
+      *)
+        echo "requested sha is not an ancestor of main (status=${compare_status})" >&2
+        exit 65
+        ;;
+    esac
 
-    git -C "${tmp}" show "${sha}:oracle/bitvavo_public_probe.py" > "${tmp}/server.py"
+    raw_url="https://raw.githubusercontent.com/Vadimrom-create/bitvavo-live/${sha}/oracle/bitvavo_public_probe.py"
+    curl --fail --silent --show-error --max-time 20 "${raw_url}" -o "${tmp}/server.py"
     python3 -m py_compile "${tmp}/server.py"
 
     install -d -o root -g root -m 0755 "${APP_DIR}"
