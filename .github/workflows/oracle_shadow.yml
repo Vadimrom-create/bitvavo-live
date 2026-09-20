@@ -1,4 +1,4 @@
-name: Oracle enriched public probe shadow
+name: Hosted live probe shadow
 # Post-reboot checks may be triggered by a harmless workflow touch.
 
 on:
@@ -13,7 +13,7 @@ permissions:
   contents: write
 
 concurrency:
-  group: oracle-public-probe-shadow
+  group: hosted-live-probe-shadow
   cancel-in-progress: true
 
 jobs:
@@ -38,7 +38,7 @@ jobs:
           if git diff --cached --quiet; then
             exit 0
           fi
-          git commit -m 'Record Oracle enriched public probe shadow'
+          git commit -m 'Record hosted enriched public probe shadow'
           for attempt in 1 2 3 4 5 6; do
             git fetch origin main
             if ! git rebase origin/main; then
@@ -53,5 +53,5 @@ jobs:
               sleep $((attempt * 2))
             fi
           done
-          echo 'Failed to publish Oracle shadow after 6 attempts; do not fail monitoring workflow.' >&2
+          echo 'Failed to publish hosted probe shadow after 6 attempts; do not fail monitoring workflow.' >&2
           exit 0
