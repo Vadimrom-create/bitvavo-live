@@ -1,0 +1,49 @@
+name: Oracle network diagnostic
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/oracle_network_diag.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  diagnose:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - name: DNS and route context
+        run: |
+          date -u
+          ip route || true
+          getent hosts api.bitvavo.com || true
+
+      - name: Probe Oracle TCP ports
+        run: |
+          set +e
+          echo '=== TCP 22 ==='
+          timeout 8 bash -c '</dev/tcp/144.24.206.128/22' && echo '22 OPEN' || echo '22 UNREACHABLE'
+          echo '=== TCP 8787 ==='
+          timeout 8 bash -c '</dev/tcp/144.24.206.128/8787' && echo '8787 OPEN' || echo '8787 UNREACHABLE'
+          exit 0
+
+      - name: HTTP health probe
+        run: |
+          set +e
+          curl -v --connect-timeout 8 --max-time 12 http://144.24.206.128:8787/health
+          echo "curl_exit=$?"
+          exit 0
+
+      - name: ICMP and path hints
+        run: |
+          set +e
+          ping -c 3 -W 2 144.24.206.128 || true
+          if command -v tracepath >/dev/null 2>&1; then
+            tracepath -n 144.24.206.128 || true
+          elif command -v traceroute >/dev/null 2>&1; then
+            traceroute -n -w 2 -q 1 144.24.206.128 || true
+          fi
+          exit 0
