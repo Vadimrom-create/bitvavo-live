@@ -170,6 +170,18 @@ EOF
 chmod 0440 "${SUDOERS}"
 visudo -cf "${SUDOERS}" >/dev/null
 
+# Make remote recovery persistent in the active firewalld zone. Do this only
+# after both rules are present, so a reload cannot silently remove SSH access.
+if systemctl is-active --quiet firewalld; then
+  ZONE="$(firewall-cmd --get-active-zones | awk 'NR==1{print $1}')"
+  ZONE="${ZONE:-$(firewall-cmd --get-default-zone)}"
+  firewall-cmd --zone="$ZONE" --permanent --add-service=ssh >/dev/null
+  firewall-cmd --zone="$ZONE" --permanent --add-port=8787/tcp >/dev/null
+  firewall-cmd --zone="$ZONE" --add-service=ssh >/dev/null || true
+  firewall-cmd --zone="$ZONE" --add-port=8787/tcp >/dev/null || true
+  firewall-cmd --reload >/dev/null
+fi
+
 echo "Restricted Oracle deployment channel installed."
 echo "Service: ${SERVICE}"
 echo "User: ${DEPLOY_USER}"
