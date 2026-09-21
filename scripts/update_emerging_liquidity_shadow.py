@@ -36,6 +36,8 @@ HORIZONS=(1,4)
 MAX_EVENTS=3000
 HQ_MIN_SCORE=6.0
 HQ_MIN_EVIDENCE=4
+BOOK_STAKES_EUR=(100.0,250.0)
+BOOK_IMPACT_REFERENCE_PCT=0.25
 PROFILES={
     "conservative":{"turnover_1h_eur":20_000.0,"depth_1pct_each_side_eur":10_000.0},
     "exploratory":{"turnover_1h_eur":10_000.0,"depth_1pct_each_side_eur":5_000.0},
@@ -58,6 +60,30 @@ def _depth(book,bid,ask,pct=.01):
     bid_eur=sum(finite(p,0)*finite(q,0) for p,q,*_ in (book.get("bids") or []) if finite(p) is not None and finite(p)>=bid_floor)
     ask_eur=sum(finite(p,0)*finite(q,0) for p,q,*_ in (book.get("asks") or []) if finite(p) is not None and finite(p)<=ask_ceiling)
     return bid_eur,ask_eur
+
+def _buy_impact(book,stake_eur):
+    asks=[]
+    for row in book.get("asks") or []:
+        if not isinstance(row,(list,tuple)) or len(row)<2: continue
+        p=finite(row[0]); q=finite(row[1])
+        if p is None or q is None or p<=0 or q<=0: continue
+        asks.append((p,q))
+    asks.sort()
+    if not asks:
+        return {"fillable":False,"impact_pct":None,"avg_price_eur":None,"best_ask_eur":None}
+    best=asks[0][0]; remaining=float(stake_eur); spent=0.0; amount=0.0
+    for p,q in asks:
+        level_quote=p*q
+        take=min(remaining,level_quote)
+        if take>0:
+            spent+=take; amount+=take/p; remaining-=take
+        if remaining<=1e-9: break
+    if remaining>0.01 or amount<=0:
+        return {"fillable":False,"impact_pct":None,"avg_price_eur":None,"best_ask_eur":best,
+                "unfilled_eur":round(max(remaining,0.0),4)}
+    avg=spent/amount
+    return {"fillable":True,"impact_pct":round((avg/best-1)*100,4),
+            "avg_price_eur":avg,"best_ask_eur":best,"unfilled_eur":0.0}
 
 def _bars(raw,now):
     out=[]
@@ -118,6 +144,11 @@ def _snapshot(row,client,meta,now):
     r5=client.get("/"+market+"/candles",{"interval":"5m","limit":100},cache=False)
     turnover=_quote_turnover_1h(r5,now)
     bd,ad=_depth(book,bid,ask,.01)
+    book_impact={str(int(stake)):_buy_impact(book,stake) for stake in BOOK_STAKES_EUR}
+    book_capacity_pass={
+        key:bool(v.get("fillable") and finite(v.get("impact_pct"),999)<=BOOK_IMPACT_REFERENCE_PCT)
+        for key,v in book_impact.items()
+    }
     profile_pass={}
     for name,p in PROFILES.items():
         profile_pass[name]=bool(
@@ -130,6 +161,7 @@ def _snapshot(row,client,meta,now):
         "spread_pct":spread*100,"range_15m_pct":rng,
         "quote_volume_24h_eur":volume,"quote_turnover_1h_eur":turnover,
         "bid_depth_1pct_eur":bd,"ask_depth_1pct_eur":ad,
+        "book_impact":book_impact,"book_capacity_pass":book_capacity_pass,
         "profile_pass":profile_pass,"plan":plan,
     }
 
@@ -143,9 +175,13 @@ def main():
 
     status={
         "schema":"solaire_emerging_liquidity_shadow_v1","checked_at_utc":utc(now),"status":"OK",
-        "tracked_signals":len(rows),"liquidity_only_blockers":0,
-        "profile_pass_counts":{k:0 for k in PROFILES},"new_events":0,"evaluated_horizons":0,
-        "profiles":PROFILES,"errors":[],
+        "tracked_signals":len(rows),"low_volume_signals":0,"liquidity_only_blockers":0,
+        "profile_pass_counts":{k:0 for k in PROFILES},
+        "book_capacity_pass_counts":{str(int(stake)):0 for stake in BOOK_STAKES_EUR},
+        "reason_counts":{},"inspections":[],
+        "new_events":0,"evaluated_horizons":0,
+        "profiles":PROFILES,"book_stakes_eur":list(BOOK_STAKES_EUR),
+        "book_impact_reference_pct":BOOK_IMPACT_REFERENCE_PCT,"errors":[],
         "affects_detection":False,"affects_buy_gate":False,"affects_email":False,
     }
     client=PublicClient(timeout=10,retries=2,requests_per_second=8)
@@ -160,10 +196,32 @@ def main():
                     snap=_snapshot(row,client,meta,time.time()); active=bool(snap.get("liquidity_only_blocker"))
                 except Exception as exc:
                     status["errors"].append({"market":market,"reason":type(exc).__name__+":"+str(exc)})
+            if row and finite(row.get("quote_volume_24h_eur"),0)<MIN_QUOTE_VOLUME_EUR:
+                status["low_volume_signals"]+=1
+                reason=(snap or {}).get("reason","NO_SNAPSHOT")
+                status["reason_counts"][reason]=status["reason_counts"].get(reason,0)+1
+                inspection={
+                    "market":market,"signal_state":row.get("signal_state"),
+                    "signal_score":finite(row.get("signal_score")),
+                    "quote_volume_24h_eur":finite(row.get("quote_volume_24h_eur")),
+                    "reason":reason,
+                    "spread_pct":(snap or {}).get("spread_pct"),
+                    "range_15m_pct":(snap or {}).get("range_15m_pct"),
+                    "stop_distance_pct":(snap or {}).get("stop_distance_pct"),
+                    "quote_turnover_1h_eur":round((snap or {}).get("quote_turnover_1h_eur",0),2) if (snap or {}).get("quote_turnover_1h_eur") is not None else None,
+                    "bid_depth_1pct_eur":round((snap or {}).get("bid_depth_1pct_eur",0),2) if (snap or {}).get("bid_depth_1pct_eur") is not None else None,
+                    "ask_depth_1pct_eur":round((snap or {}).get("ask_depth_1pct_eur",0),2) if (snap or {}).get("ask_depth_1pct_eur") is not None else None,
+                    "book_impact":(snap or {}).get("book_impact"),
+                    "book_capacity_pass":(snap or {}).get("book_capacity_pass"),
+                    "profile_pass":(snap or {}).get("profile_pass"),
+                }
+                status["inspections"].append(inspection)
             if active:
                 status["liquidity_only_blockers"]+=1
                 for k,v in (snap.get("profile_pass") or {}).items():
                     if v:status["profile_pass_counts"][k]+=1
+                for k,v in (snap.get("book_capacity_pass") or {}).items():
+                    if v:status["book_capacity_pass_counts"][k]+=1
             if active and not st.get("active"):
                 plan=snap.get("plan") or {}
                 e={
@@ -178,6 +236,8 @@ def main():
                     "bid_depth_1pct_eur":round(snap.get("bid_depth_1pct_eur",0),2),
                     "ask_depth_1pct_eur":round(snap.get("ask_depth_1pct_eur",0),2),
                     "profile_pass":snap.get("profile_pass") or {},
+                    "book_impact":snap.get("book_impact") or {},
+                    "book_capacity_pass":snap.get("book_capacity_pass") or {},
                     "entry_eur":plan.get("entry_eur"),"stop_eur":plan.get("stop_eur"),
                     "tp1_eur":plan.get("tp1_eur"),"stop_distance_pct":plan.get("stop_distance_pct"),
                     "evaluations":{},"affects_detection":False,"affects_buy_gate":False,"affects_email":False,
