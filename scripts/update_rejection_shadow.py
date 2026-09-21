@@ -1,8 +1,10 @@
 #!/usr/bin/env python3
 """Prospective shadow for Solaire V2 final-gate rejections.
 
-Tracks each rejected CONFIRMED episode through later production scans until the
-same market becomes execution-valid or 24h elapse. Measurement only.
+Tracks each rejected CONFIRMED episode through later production scans, records
+whether the original execution-gate condition resolves, captures the first later
+execution-valid entry, and measures forward 1h/4h/12h/24h MFE/MAE/close.
+Measurement only: never affects detection, BUY gating, email, or execution.
 """
 from __future__ import annotations
 import json, sys, time
@@ -20,6 +22,7 @@ STATE="production_rejection_shadow_state.json"
 JOURNAL="production_rejection_shadow_journal.json"
 STATUS="production_rejection_shadow_status.json"
 TRACKED={"STRUCTURAL_RANGE_TOO_NARROW","SPREAD_TOO_WIDE","INSUFFICIENT_EXECUTION_LIQUIDITY","STRUCTURAL_STOP_TOO_WIDE"}
+HORIZONS=(1,4,12,24)
 MAX_AGE=24*3600
 MAX_EVENTS=3000
 
@@ -28,12 +31,44 @@ def _event(journal,key):
         if e.get("event_id")==key: return e
     return None
 
+def _closed_5m(raw,now):
+    out=[]
+    for x in raw:
+        if not isinstance(x,list) or len(x)<6: continue
+        t,h,l,c=finite(x[0]),finite(x[2]),finite(x[3]),finite(x[4])
+        if None in (t,h,l,c): continue
+        if t+300_000 <= now*1000: out.append((int(t),h,l,c))
+    return sorted(out)
+
+def _evaluate(event,bars,hours):
+    rejected=finite(event.get("rejected_ts"))
+    baseline=finite(event.get("rejection_price_eur"))
+    if rejected is None or baseline is None or baseline<=0: return None
+    first=((int(rejected*1000)//300_000)+1)*300_000
+    end=int((rejected+hours*3600)*1000)
+    xs=[x for x in bars if first<=x[0]<end]
+    if not xs: return None
+    high=max(x[1] for x in xs); low=min(x[2] for x in xs); close=xs[-1][3]
+    return {
+        "horizon_hours":hours,
+        "mfe_pct":round((high/baseline-1)*100,4),
+        "mae_pct":round((low/baseline-1)*100,4),
+        "close_return_pct":round((close/baseline-1)*100,4),
+        "bars_used":len(xs),
+        "method":"closed_5m_bars_after_rejection",
+    }
+
 def main():
     now=time.time()
     payload=read_json(CANDIDATES,{})
     alert=read_json(ALERT_STATUS,{})
-    state=read_json(STATE,{"schema":"solaire_rejection_shadow_state_v2","markets":{}})
-    journal=read_json(JOURNAL,{"schema":"solaire_rejection_shadow_journal_v2","events":[]})
+    state=read_json(STATE,{"schema":"solaire_rejection_shadow_state_v3","markets":{}})
+    journal=read_json(JOURNAL,{"schema":"solaire_rejection_shadow_journal_v3","events":[]})
+    state["schema"]="solaire_rejection_shadow_state_v3"; state.setdefault("markets",{})
+    journal["schema"]="solaire_rejection_shadow_journal_v3"; journal.setdefault("events",[])
+    for e in journal["events"]:
+        e.setdefault("evaluations",{})
+
     rows={r.get("market"):r for r in payload.get("watch",[]) if isinstance(r,dict) and r.get("market")}
     current_rej={r.get("market"):r.get("reason") for r in (alert.get("rejections") or [])
                  if r.get("market") and r.get("reason") in TRACKED}
@@ -61,6 +96,7 @@ def main():
             "reason_history":[{"at_utc":alert.get("checked_at_utc") or utc(now),"reason":reason}],
             "original_condition_resolved":False,
             "first_later_qualifying_entry":None,
+            "evaluations":{},
             "closed":False,
             "affects_detection":False,"affects_buy_gate":False,"affects_email":False,
         }
@@ -68,67 +104,94 @@ def main():
         st["active_event_id"]=event_id
         new_events+=1
 
-    client=PublicClient(timeout=10,retries=2)
-    errors=[]; revalidations=0; newly_qualified=0
+    client=PublicClient(timeout=10,retries=2,requests_per_second=8)
+    errors=[]; revalidations=0; newly_qualified=0; evaluated_horizons=0
     try:
         client.get("/time",cache=False)
         metadata={m["market"]:m for m in client.get("/markets")
                   if m.get("quote")=="EUR" and m.get("status")=="trading"}
+
+        # Prospective revalidation is independent from forward-price evaluation.
         for market,st in state["markets"].items():
             key=st.get("active_event_id")
             event=_event(journal,key) if key else None
             if not event or event.get("closed"): continue
             age=now-finite(event.get("rejected_ts"),now)
-            if age>MAX_AGE:
+
+            row=rows.get(market)
+            if row:
+                try:
+                    validated,reason=validate(row,client,metadata,time.time())
+                    revalidations+=1
+                    event["last_revalidation"]={"checked_at_utc":utc(),"passed":bool(validated),"reason":reason}
+                    prior=(event.get("reason_history") or [])[-1].get("reason") if event.get("reason_history") else None
+                    if validated:
+                        entry=finite((validated.get("trade") or {}).get("entry_eur"))
+                        base=finite(event.get("rejection_price_eur"))
+                        event["original_condition_resolved"]=True
+                        event["first_later_qualifying_entry"]={
+                            "at_utc":utc(),"entry_eur":entry,
+                            "return_from_rejection_pct":round((entry/base-1)*100,4) if entry and base else None,
+                            "spread_pct":validated.get("spread_pct"),
+                            "structural_range_15m_pct":validated.get("structural_range_15m_pct"),
+                            "stop_distance_pct":(validated.get("trade") or {}).get("stop_distance_pct"),
+                        }
+                        event["closed"]=True
+                        event["close_reason"]="LATER_QUALIFYING_ENTRY"
+                        event["closed_at_utc"]=utc()
+                        newly_qualified+=1
+                    else:
+                        if reason != event.get("first_rejection_reason"):
+                            event["original_condition_resolved"]=True
+                        if reason != prior:
+                            event.setdefault("reason_history",[]).append({"at_utc":utc(),"reason":reason})
+                except (RuntimeError,ValueError,KeyError) as exc:
+                    errors.append({"market":market,"reason":type(exc).__name__+":"+str(exc)})
+
+            # Expire the revalidation watch after 24h, but keep the event in the
+            # journal so outcome horizons can still be completed.
+            if age>MAX_AGE and not event.get("closed"):
                 event["closed"]=True
                 event["close_reason"]="EXPIRED_24H_WITHOUT_LATER_QUALIFYING_ENTRY"
                 event["closed_at_utc"]=utc(now)
-                continue
 
-            row=rows.get(market)
-            if not row:
-                event["last_seen_candidate_at_utc"]=event.get("last_seen_candidate_at_utc")
-                continue
+        # Evaluate every due horizon, including events already closed because a
+        # later qualifying entry appeared.
+        due={}
+        for idx,event in enumerate(journal["events"]):
+            rejected=finite(event.get("rejected_ts"))
+            if rejected is None: continue
+            for h in HORIZONS:
+                if now>=rejected+h*3600 and str(h) not in event.setdefault("evaluations",{}):
+                    due.setdefault(event.get("market"),[]).append((idx,h))
+
+        for market,items in due.items():
             try:
-                validated,reason=validate(row,client,metadata,time.time())
-                revalidations+=1
-                event["last_revalidation"]={"checked_at_utc":utc(),"passed":bool(validated),"reason":reason}
-                prior=(event.get("reason_history") or [])[-1].get("reason") if event.get("reason_history") else None
-                if validated:
-                    entry=finite((validated.get("trade") or {}).get("entry_eur"))
-                    base=finite(event.get("rejection_price_eur"))
-                    event["original_condition_resolved"]=True
-                    event["first_later_qualifying_entry"]={
-                        "at_utc":utc(),"entry_eur":entry,
-                        "return_from_rejection_pct":round((entry/base-1)*100,4) if entry and base else None,
-                        "spread_pct":validated.get("spread_pct"),
-                        "structural_range_15m_pct":validated.get("structural_range_15m_pct"),
-                        "stop_distance_pct":(validated.get("trade") or {}).get("stop_distance_pct"),
-                    }
-                    event["closed"]=True
-                    event["close_reason"]="LATER_QUALIFYING_ENTRY"
-                    event["closed_at_utc"]=utc()
-                    newly_qualified+=1
-                else:
-                    if reason != event.get("first_rejection_reason"):
-                        event["original_condition_resolved"]=True
-                    if reason != prior:
-                        event.setdefault("reason_history",[]).append({"at_utc":utc(),"reason":reason})
+                raw=client.get("/"+market+"/candles",{"interval":"5m","limit":400},cache=False)
+                bars=_closed_5m(raw,now)
+                for idx,h in items:
+                    result=_evaluate(journal["events"][idx],bars,h)
+                    if result is not None:
+                        journal["events"][idx]["evaluations"][str(h)]=result
+                        evaluated_horizons+=1
             except (RuntimeError,ValueError,KeyError) as exc:
                 errors.append({"market":market,"reason":type(exc).__name__+":"+str(exc)})
     except (RuntimeError,ValueError,KeyError) as exc:
         errors.append({"reason":type(exc).__name__+":"+str(exc)})
 
     journal["events"]=journal["events"][-MAX_EVENTS:]
-    state["updated_at_utc"]=utc()
-    journal["updated_at_utc"]=utc()
+    state["updated_at_utc"]=utc(); journal["updated_at_utc"]=utc()
     status={
-        "schema":"solaire_rejection_shadow_v2","checked_at_utc":utc(),
+        "schema":"solaire_rejection_shadow_v3","checked_at_utc":utc(),
         "status":"OK" if not errors else "DEGRADED_NONBLOCKING",
         "new_events":new_events,"revalidations":revalidations,
-        "newly_qualified":newly_qualified,
+        "newly_qualified":newly_qualified,"evaluated_horizons":evaluated_horizons,
         "active_events":sum(not e.get("closed") for e in journal["events"]),
         "events_with_original_condition_resolved":sum(bool(e.get("original_condition_resolved")) for e in journal["events"]),
+        "events_with_1h":sum("1" in (e.get("evaluations") or {}) for e in journal["events"]),
+        "events_with_4h":sum("4" in (e.get("evaluations") or {}) for e in journal["events"]),
+        "events_with_12h":sum("12" in (e.get("evaluations") or {}) for e in journal["events"]),
+        "events_with_24h":sum("24" in (e.get("evaluations") or {}) for e in journal["events"]),
         "errors":errors,
         "affects_detection":False,"affects_buy_gate":False,"affects_email":False,
     }
