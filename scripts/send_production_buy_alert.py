@@ -37,6 +37,11 @@ MIN_15M_CONSOLIDATION_RANGE_PCT = 6.0
 THESIS_MAX_AGE_SECONDS = 24 * 60 * 60
 
 
+def structural_range_ready(features: dict) -> bool:
+    value = finite(features.get("consolidation_range_pct"))
+    return value is not None and value >= MIN_15M_CONSOLIDATION_RANGE_PCT
+
+
 def closed_5m_lows(raw: list, now: float) -> list[dict]:
     """Keep the full raw closed 5m history needed to audit a 24h thesis."""
     result = []
@@ -121,10 +126,7 @@ def validate(row: dict, client: PublicClient, metadata: dict[str, dict], now: fl
         return None, "STALE_OR_INVALID_STRUCTURE"
 
     structural_range_pct = finite(features.get("consolidation_range_pct"))
-    if (
-        structural_range_pct is None
-        or structural_range_pct < MIN_15M_CONSOLIDATION_RANGE_PCT
-    ):
+    if not structural_range_ready(features):
         return None, "STRUCTURAL_RANGE_TOO_NARROW"
 
     trade = structural_plan({**row, "ask": ask}, features, metadata[market])
