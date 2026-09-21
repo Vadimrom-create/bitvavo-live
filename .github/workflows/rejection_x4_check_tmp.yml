@@ -1,0 +1,39 @@
+name: rejection x4 check tmp
+on:
+  push:
+    branches: [main]
+    paths: ['.github/workflows/rejection_x4_check_tmp.yml']
+permissions:
+  contents: read
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: {python-version: '3.12'}
+      - run: |
+          python - <<'PY'
+          import json,time
+          from research.http import PublicClient
+          from research.features import describe
+          from research.risk import structural_plan
+          from research.common import finite
+          c=PublicClient(timeout=12,retries=2,requests_per_second=6); c.get('/time',cache=False)
+          base={'FLOCK-EUR':0.062025,'XVG-EUR':0.0026847,'ICX-EUR':0.008557,'SAGA-EUR':0.033396}
+          since=1789978811000
+          markets={m['market']:m for m in c.get('/markets')}
+          ticks={x['market']:x for x in c.get('/ticker/24h')}
+          out={}
+          for m,b in base.items():
+            book=c.get('/'+m+'/book',{'depth':20},cache=False)
+            cs=c.get('/'+m+'/candles',{'interval':'5m','limit':100},cache=False)
+            pts=[]
+            for r in cs:
+              if isinstance(r,list) and len(r)>=6 and float(r[0])>=since:
+                pts.append(r)
+            hi=max([float(r[2]) for r in pts],default=None); lo=min([float(r[3]) for r in pts],default=None)
+            bid=float(book['bids'][0][0]); ask=float(book['asks'][0][0]); last=float(ticks[m]['last'])
+            out[m]={'last':last,'ret_pct':(last/b-1)*100,'high':hi,'mfe_pct':(hi/b-1)*100 if hi else None,'low':lo,'mae_pct':(lo/b-1)*100 if lo else None,'bid':bid,'ask':ask,'spread_pct':(ask/bid-1)*100,'quote_vol24':float(ticks[m]['volumeQuote'])}
+          print('X4='+json.dumps(out,separators=(',',':')))
+          PY
