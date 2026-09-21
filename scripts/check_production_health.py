@@ -18,7 +18,17 @@ SCAN = "production_scan_status.json"
 ALERT = "production_alert_status.json"
 EVALUATION = "production_evaluation_status.json"
 PERSISTENT_BUILDING = "production_persistent_building_status.json"
+EARLY_BUILDING = "production_early_building_shadow_status.json"
+V21_RANGE5 = "production_v21_range5_shadow_status.json"
+REJECTION_SHADOW = "production_rejection_shadow_status.json"
 HEALTH = "production_health.json"
+
+
+def _shadow_warning(name: str, status: dict, env_name: str, warnings: list[str]) -> str:
+    outcome = os.getenv(env_name, "success").lower()
+    if outcome != "success" or status.get("status") not in (None, "OK"):
+        warnings.append(name + "_DEGRADED_NONBLOCKING")
+    return outcome
 
 
 def main() -> int:
@@ -26,6 +36,9 @@ def main() -> int:
     alert = read_json(ALERT, {})
     evaluation = read_json(EVALUATION, {})
     persistent_building = read_json(PERSISTENT_BUILDING, {})
+    early_building = read_json(EARLY_BUILDING, {})
+    v21_range5 = read_json(V21_RANGE5, {})
+    rejection_shadow = read_json(REJECTION_SHADOW, {})
 
     critical = []
     warnings = []
@@ -50,9 +63,22 @@ def main() -> int:
     if evaluation.get("status") not in (None, "OK"):
         warnings.append("EVALUATION_DEGRADED_NONBLOCKING")
 
-    shadow_outcome = os.getenv("PERSISTENT_BUILDING_OUTCOME", "success").lower()
-    if shadow_outcome != "success" or persistent_building.get("status") not in (None, "OK"):
-        warnings.append("PERSISTENT_BUILDING_SHADOW_DEGRADED_NONBLOCKING")
+    persistent_outcome = _shadow_warning(
+        "PERSISTENT_BUILDING_SHADOW", persistent_building,
+        "PERSISTENT_BUILDING_OUTCOME", warnings,
+    )
+    early_outcome = _shadow_warning(
+        "EARLY_BUILDING_SHADOW", early_building,
+        "EARLY_BUILDING_OUTCOME", warnings,
+    )
+    v21_outcome = _shadow_warning(
+        "V21_RANGE5_SHADOW", v21_range5,
+        "V21_RANGE5_OUTCOME", warnings,
+    )
+    rejection_outcome = _shadow_warning(
+        "REJECTION_SHADOW", rejection_shadow,
+        "REJECTION_SHADOW_OUTCOME", warnings,
+    )
 
     publish_outcome = os.getenv("SCAN_PUBLISH_OUTCOME", "success").lower()
     if publish_outcome != "success":
@@ -61,7 +87,7 @@ def main() -> int:
     overall = "DEGRADED" if critical else ("OK_WITH_WARNINGS" if warnings else "OK")
     report = {
         "checked_at_utc": utc(time.time()),
-        "schema": "solaire_production_health_v1",
+        "schema": "solaire_production_health_v2",
         "overall_status": overall,
         "critical_failures": critical,
         "warnings": warnings,
@@ -71,6 +97,9 @@ def main() -> int:
             "alert": alert.get("status"),
             "evaluation": evaluation.get("status") or "NOT_REPORTED",
             "persistent_building_shadow": persistent_building.get("status") or "NOT_REPORTED",
+            "early_building_shadow": early_building.get("status") or "NOT_REPORTED",
+            "v21_range5_shadow": v21_range5.get("status") or "NOT_REPORTED",
+            "rejection_shadow": rejection_shadow.get("status") or "NOT_REPORTED",
         },
         "coverage": {
             "active_eur_markets": active,
@@ -84,9 +113,11 @@ def main() -> int:
             "decision_layer_required": False,
             "context_external_dependency": False,
             "evaluation_blocks_alerts": False,
-            "persistent_building_blocks_anything": False,
-            "persistent_building_external_dependency": False,
-            "persistent_building_step_outcome": shadow_outcome,
+            "all_shadows_block_anything": False,
+            "persistent_building_step_outcome": persistent_outcome,
+            "early_building_step_outcome": early_outcome,
+            "v21_range5_step_outcome": v21_outcome,
+            "rejection_shadow_step_outcome": rejection_outcome,
             "scan_state_publish_outcome": publish_outcome,
         },
     }

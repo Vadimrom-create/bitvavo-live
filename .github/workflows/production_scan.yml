@@ -110,6 +110,9 @@ jobs:
         env:
           SCAN_PUBLISH_OUTCOME: ${{ steps.publish_scan.outcome }}
           PERSISTENT_BUILDING_OUTCOME: ${{ steps.persistent_building.outcome }}
+          EARLY_BUILDING_OUTCOME: ${{ steps.early_building_shadow.outcome }}
+          V21_RANGE5_OUTCOME: ${{ steps.v21_range5_shadow.outcome }}
+          REJECTION_SHADOW_OUTCOME: ${{ steps.rejection_shadow.outcome }}
         run: python scripts/check_production_health.py
 
       - name: Persist Solaire runtime state
