@@ -150,6 +150,7 @@ def main():
              "thresholds":{k:{"score_min":v[0],"evidence_min":v[1]} for k,v in THRESHOLDS.items()},
              "universe_count":len(markets),"errors":errors,
              "comparisons_4h":comparisons,
+             "markets":markets,
              "top_session_winners":winners,
              "focus_markets":focus}
     atomic_json(OUT,payload)
