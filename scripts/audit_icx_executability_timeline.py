@@ -171,6 +171,7 @@ def main():
         q=nearest(quote_snaps,t0,MAX_QUOTE_DELTA_SEC)
         v=nearest(volume_snaps,t0,600)
         f15=describe(closed_candles(raw15,"15m",t0),"15m")
+        f5=describe(closed_candles(raw5,"5m",t0),"5m")
         rng=finite(f15.get("consolidation_range_pct"))
         volume=finite(row.get("quote_volume_24h_eur"),finite((v or {}).get("quote_volume_24h_eur"),0.0))
         spread=finite(q.get("spread_pct")) if q and q.get("valid") else None
@@ -188,6 +189,12 @@ def main():
         quote_plan=None
         if q and f15.get("valid") and finite(q.get("ask")) and q["ask"]>0:
             quote_plan=plan_view(structural_plan({**row,"market":MARKET,"ask":q["ask"]},f15,meta))
+
+        micro5_plan=None
+        if f5.get("valid") and px and px>0:
+            micro5_plan=plan_view(structural_plan({**row,"market":MARKET,"ask":px},f5,meta))
+        micro5_stop=finite((micro5_plan or {}).get("stop_distance_pct"))
+        micro5_plan_pass=bool((micro5_plan or {}).get("valid") and micro5_stop is not None and micro5_stop<=MAX_STOP)
 
         execution_clean=bool(liquidity_pass and spread_pass and range_pass and plan_pass)
         state=row.get("signal_state")
@@ -215,6 +222,11 @@ def main():
             "structural_plan_signal_price":signal_plan,
             "structural_plan_near_quote":quote_plan,
             "plan_and_stop_pass":plan_pass,
+            "micro5_range_pct":finite(f5.get("consolidation_range_pct")),
+            "micro5_atr14_pct":finite(f5.get("atr14_pct")),
+            "micro5_return_1h_pct":finite(f5.get("return_12bar_pct")),
+            "micro5_structural_plan_signal_price":micro5_plan,
+            "micro5_plan_and_stop_pass":micro5_plan_pass,
             "execution_clean_proxy":execution_clean,
             "fully_actionable_proxy":bool(state=="CONFIRMED_ACCELERATION" and execution_clean),
             "execution_clean_but_not_confirmed":bool(state!="CONFIRMED_ACCELERATION" and execution_clean),
@@ -251,6 +263,7 @@ def main():
         "key_detector_transitions":keys,
         "timeline":timeline,
         "limitations":[
+            "5m structural plan is an audit counterfactual only; production uses the 15m structural plan",
             "validated book spread is paired only when live_quotes is within 180 seconds of the detector snapshot",
             "structural plan pass/fail uses the detector signal price to avoid look-ahead from a later quote",
             "15m structural features rebuilt with current feature code from historical Bitvavo candles",
