@@ -21,6 +21,7 @@ PERSISTENT_BUILDING = "production_persistent_building_status.json"
 EARLY_BUILDING = "production_early_building_shadow_status.json"
 V21_RANGE5 = "production_v21_range5_shadow_status.json"
 REJECTION_SHADOW = "production_rejection_shadow_status.json"
+ALL_ACTIONABLE = "production_all_actionable_shadow_status.json"
 HEALTH = "production_health.json"
 
 
@@ -39,6 +40,7 @@ def main() -> int:
     early_building = read_json(EARLY_BUILDING, {})
     v21_range5 = read_json(V21_RANGE5, {})
     rejection_shadow = read_json(REJECTION_SHADOW, {})
+    all_actionable = read_json(ALL_ACTIONABLE, {})
 
     critical = []
     warnings = []
@@ -79,6 +81,10 @@ def main() -> int:
         "REJECTION_SHADOW", rejection_shadow,
         "REJECTION_SHADOW_OUTCOME", warnings,
     )
+    all_actionable_outcome = _shadow_warning(
+        "ALL_ACTIONABLE_SHADOW", all_actionable,
+        "ALL_ACTIONABLE_OUTCOME", warnings,
+    )
 
     publish_outcome = os.getenv("SCAN_PUBLISH_OUTCOME", "success").lower()
     if publish_outcome != "success":
@@ -100,6 +106,7 @@ def main() -> int:
             "early_building_shadow": early_building.get("status") or "NOT_REPORTED",
             "v21_range5_shadow": v21_range5.get("status") or "NOT_REPORTED",
             "rejection_shadow": rejection_shadow.get("status") or "NOT_REPORTED",
+            "all_actionable_shadow": all_actionable.get("status") or "NOT_REPORTED",
         },
         "coverage": {
             "active_eur_markets": active,
@@ -118,6 +125,7 @@ def main() -> int:
             "early_building_step_outcome": early_outcome,
             "v21_range5_step_outcome": v21_outcome,
             "rejection_shadow_step_outcome": rejection_outcome,
+            "all_actionable_step_outcome": all_actionable_outcome,
             "scan_state_publish_outcome": publish_outcome,
         },
     }
