@@ -36,15 +36,15 @@ jobs:
           NOW=time.time(); START=NOW-96*3600
           MIN_QV=75000.0; THESIS_TTL=24*3600
           VARIANTS={
-            "baseline":{"min_stop":0.0,"max_stop":10.0,"max_spread":.5,"min_score":6.5},
-            "minstop4":{"min_stop":4.0,"max_stop":10.0,"max_spread":.5,"min_score":6.5},
-            "minstop5":{"min_stop":5.0,"max_stop":10.0,"max_spread":.5,"min_score":6.5},
-            "minstop6":{"min_stop":6.0,"max_stop":10.0,"max_spread":.5,"min_score":6.5},
-            "minstop7":{"min_stop":7.0,"max_stop":10.0,"max_spread":.5,"min_score":6.5},
-            "spread40":{"min_stop":0.0,"max_stop":10.0,"max_spread":.4,"min_score":6.5},
-            "minstop6_spread40":{"min_stop":6.0,"max_stop":10.0,"max_spread":.4,"min_score":6.5},
-            "score7":{"min_stop":0.0,"max_stop":10.0,"max_spread":.5,"min_score":7.0},
-            "score75":{"min_stop":0.0,"max_stop":10.0,"max_spread":.5,"min_score":7.5}
+            "baseline":{"min_stop":0.0,"max_stop":10.0,"max_spread":.5,"min_score":6.5,"min_consolidation15":0.0},
+            "con15_45":{"min_stop":0.0,"max_stop":10.0,"max_spread":.5,"min_score":6.5,"min_consolidation15":4.5},
+            "con15_50":{"min_stop":0.0,"max_stop":10.0,"max_spread":.5,"min_score":6.5,"min_consolidation15":5.0},
+            "con15_55":{"min_stop":0.0,"max_stop":10.0,"max_spread":.5,"min_score":6.5,"min_consolidation15":5.5},
+            "con15_60":{"min_stop":0.0,"max_stop":10.0,"max_spread":.5,"min_score":6.5,"min_consolidation15":6.0},
+            "con15_65":{"min_stop":0.0,"max_stop":10.0,"max_spread":.5,"min_score":6.5,"min_consolidation15":6.5},
+            "minstop6":{"min_stop":6.0,"max_stop":10.0,"max_spread":.5,"min_score":6.5,"min_consolidation15":0.0},
+            "con15_55_minstop6":{"min_stop":6.0,"max_stop":10.0,"max_spread":.5,"min_score":6.5,"min_consolidation15":5.5},
+            "con15_55_score7":{"min_stop":0.0,"max_stop":10.0,"max_spread":.5,"min_score":7.0,"min_consolidation15":5.5}
           }
 
           client=PublicClient(timeout=18,retries=3,requests_per_second=12)
@@ -191,8 +191,9 @@ jobs:
                       plan=structural_plan({"market":m,"ask":ask},row["f15"],meta[m])
                       if not plan.get("valid"):continue
                       sd=finite(plan.get("stop_distance_pct"),999)
-                      # Unlike prior replay, stop-width rejection remains retryable within episode.
+                      # Execution/structure rejections remain retryable within the episode.
                       if sd>cfg["max_stop"] or sd<cfg["min_stop"]:continue
+                      if finite(row["f15"].get("consolidation_range_pct"),0)<cfg["min_consolidation15"]:continue
                       mail={"market":m,"ts":ts,"score":row["score"],"episode_ext":row["episode_ext"],
                             "episode_age_min":row["episode_age"]/60,"spread":ss["spread"],"qv":qq,
                             "stop_distance_pct":sd,"entry":plan["entry_eur"],"stop":plan["stop_eur"],"tp1":plan["tp1_eur"]}
