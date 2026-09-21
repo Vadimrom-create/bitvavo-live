@@ -33,6 +33,7 @@ STATUS = "production_alert_status.json"
 MIN_QUOTE_VOLUME_EUR = 75_000.0
 MAX_SPREAD = 0.005
 MAX_STOP_DISTANCE_PCT = 10.0
+MIN_15M_CONSOLIDATION_RANGE_PCT = 6.0
 THESIS_MAX_AGE_SECONDS = 24 * 60 * 60
 
 
@@ -119,6 +120,13 @@ def validate(row: dict, client: PublicClient, metadata: dict[str, dict], now: fl
     if not features.get("valid") or not fresh["ok"]:
         return None, "STALE_OR_INVALID_STRUCTURE"
 
+    structural_range_pct = finite(features.get("consolidation_range_pct"))
+    if (
+        structural_range_pct is None
+        or structural_range_pct < MIN_15M_CONSOLIDATION_RANGE_PCT
+    ):
+        return None, "STRUCTURAL_RANGE_TOO_NARROW"
+
     trade = structural_plan({**row, "ask": ask}, features, metadata[market])
     if not trade.get("valid"):
         return None, trade.get("reason", "INVALID_PLAN")
@@ -132,6 +140,7 @@ def validate(row: dict, client: PublicClient, metadata: dict[str, dict], now: fl
         "trade": trade,
         "spread_pct": spread * 100,
         "price_drift_pct": drift_pct,
+        "structural_range_15m_pct": structural_range_pct,
         "candles_5m": candles_5m,
     }, None
 
@@ -190,6 +199,7 @@ def body(validated: dict) -> str:
             f"Entrée revalidée : {trade['entry_eur']:.8g} €",
             f"Dérive depuis signal : {validated['price_drift_pct']:+.2f} %",
             f"Spread actuel : {validated['spread_pct']:.3f} %",
+            f"Amplitude structurelle 15 min (2 h) : {validated['structural_range_15m_pct']:.2f} %",
             f"Stop structurel : {trade['stop_eur']:.8g} €",
             f"Distance stop : {trade['stop_distance_pct']:.2f} %",
             f"TP1 théorique : {trade['tp1_eur']:.8g} €",
@@ -320,6 +330,7 @@ def main() -> int:
         market=row["market"],
         price_drift_pct=selected["price_drift_pct"],
         spread_pct=selected["spread_pct"],
+        structural_range_15m_pct=selected.get("structural_range_15m_pct"),
         signal_phase=row.get("signal_phase"),
         episode_extension_pct=row.get("episode_extension_pct"),
         episode_age_seconds=row.get("episode_age_seconds"),
