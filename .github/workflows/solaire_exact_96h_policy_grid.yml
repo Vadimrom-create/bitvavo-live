@@ -44,7 +44,9 @@ jobs:
             "con15_65":{"min_stop":0.0,"max_stop":10.0,"max_spread":.5,"min_score":6.5,"min_consolidation15":6.5},
             "minstop6":{"min_stop":6.0,"max_stop":10.0,"max_spread":.5,"min_score":6.5,"min_consolidation15":0.0},
             "con15_55_minstop6":{"min_stop":6.0,"max_stop":10.0,"max_spread":.5,"min_score":6.5,"min_consolidation15":5.5},
-            "con15_55_score7":{"min_stop":0.0,"max_stop":10.0,"max_spread":.5,"min_score":7.0,"min_consolidation15":5.5}
+            "con15_55_score7":{"min_stop":0.0,"max_stop":10.0,"max_spread":.5,"min_score":7.0,"min_consolidation15":5.5},
+            "structure_or_stop6":{"min_stop":0.0,"max_stop":10.0,"max_spread":.5,"min_score":6.5,"min_consolidation15":0.0,"structure_or_stop6":true},
+            "structure_or_stop6_score7":{"min_stop":0.0,"max_stop":10.0,"max_spread":.5,"min_score":7.0,"min_consolidation15":0.0,"structure_or_stop6":true}
           }
 
           client=PublicClient(timeout=18,retries=3,requests_per_second=12)
@@ -193,7 +195,11 @@ jobs:
                       sd=finite(plan.get("stop_distance_pct"),999)
                       # Execution/structure rejections remain retryable within the episode.
                       if sd>cfg["max_stop"] or sd<cfg["min_stop"]:continue
-                      if finite(row["f15"].get("consolidation_range_pct"),0)<cfg["min_consolidation15"]:continue
+                      con15=finite(row["f15"].get("consolidation_range_pct"),0)
+                      if cfg.get("structure_or_stop6"):
+                          if con15<5.5 and sd<6.0:continue
+                      elif con15<cfg["min_consolidation15"]:
+                          continue
                       mail={"market":m,"ts":ts,"score":row["score"],"episode_ext":row["episode_ext"],
                             "episode_age_min":row["episode_age"]/60,"spread":ss["spread"],"qv":qq,
                             "stop_distance_pct":sd,"entry":plan["entry_eur"],"stop":plan["stop_eur"],"tp1":plan["tp1_eur"]}
