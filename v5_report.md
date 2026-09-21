@@ -1,38 +1,43 @@
 # Bitvavo — V4 mesurée / infrastructure V5
 
-Scan UTC : 2026-09-21T02:49:48.101486+00:00
-État : OK | marchés EUR : 426 | V4 : 377 | données valides : 426
-Récupération : 2026-09-21T02:49:12.602122+00:00 | âge ticker : 155.5 s | durée : 156.7 s
+Scan UTC : 2026-09-21T03:02:16.574217+00:00
+État : OK | marchés EUR : 426 | V4 : 375 | données valides : 426
+Récupération : 2026-09-21T03:01:42.005025+00:00 | âge ticker : 155.5 s | durée : 156.4 s
 
 ## ACHÈTE — signal V4 et plan théorique
 
-AUCUN ACHAT VALIDÉ — cette absence ne valide pas les marchés aux données insuffisantes.
 Bougies utilisables : 5 min 426/426 ; 15 min 426/426.
 Les intervalles sans transaction sont représentés explicitement à volume 0 ; aucune transaction n’est inventée.
 
+Achats bruts V4 bloqués avant alerte :
+- TAO-EUR : INSUFFICIENT_NET_RISK_REWARD
+- FET-EUR : 0.15636 € | IGNITION | score 86.37/100 | entrée 7.25/10
+  Entrée 0.15676 € ; stop 0.14989 € ; TP1 0.1705 € ; TP2 0.17737 € ; montant 236.82 € ; risque théorique 12.00 € ; R/R net 1.59.
+  Chase risk : 2.639/10 (diagnostic non calibré). Probabilités +10/+20/+30/+40 % : indisponibles.
+
 ## SURVEILLE
 
-- MERL-EUR : 0.022755 € ; score 81.54/100 ; SURVEILLE ; seuil achat non atteint
-- ALGO-EUR : 0.094823 € ; score 81.50/100 ; SURVEILLE ; seuil achat non atteint
-- TAO-EUR : 232.4 € ; score 79.66/100 ; SURVEILLE ; WICK_SETUP
-- FET-EUR : 0.15583 € ; score 79.45/100 ; SURVEILLE ; WICK_SETUP
-- PROVE-EUR : 0.20376 € ; score 79.30/100 ; SURVEILLE ; SPREAD_RISK, WICK_SETUP
+- TAO-EUR : 233.88 € ; score 90.07/100 ; SURVEILLE ; INSUFFICIENT_NET_RISK_REWARD
+- SPK-EUR : 0.018151 € ; score 88.84/100 ; SURVEILLE ; SELLER_HEAVY_BOOK
+- XPL-EUR : 0.083708 € ; score 82.03/100 ; SURVEILLE ; seuil achat non atteint
+- ALGO-EUR : 0.095759 € ; score 81.61/100 ; SURVEILLE ; seuil achat non atteint
+- HUMA-EUR : 0.01978 € ; score 81.07/100 ; SURVEILLE ; WICK_SETUP
 
 ## Contrôle des hausses
 
 | Marché | Prix € | 24 h | Détection | Couche d’échec | Actionnabilité |
 |---|---:|---:|---|---|---|
-| PTB-EUR | 0.0010998 | +79.15 % | NOT_DETECTED | DATA | NOT_APPLICABLE |
-| SAGA-EUR | 0.030772 | +35.68 % | DETECTED_EARLY | NONE | INTERPRETATION |
-| FTT-EUR | 0.24474 | +34.70 % | NOT_DETECTED | DATA | NOT_APPLICABLE |
-| VVV-EUR | 28.5937 | +26.10 % | DETECTED_EARLY | NONE | ENTRY_TIMING_OR_EXECUTION |
-| EPIC-EUR | 0.49989 | +24.36 % | DETECTED_EARLY | NONE | ENTRY_TIMING_OR_EXECUTION |
-| NIL-EUR | 0.053981 | +22.78 % | DETECTED_EARLY | NONE | INTERPRETATION |
-| KMNO-EUR | 0.029702 | +20.19 % | DETECTED_EARLY | NONE | INTERPRETATION |
-| NEAR-EUR | 3.6484 | +19.36 % | DETECTED_EARLY | NONE | ENTRY_TIMING_OR_EXECUTION |
-| TREAD-EUR | 0.46764 | +18.69 % | NOT_DETECTED | DATA | NOT_APPLICABLE |
-| S-EUR | 0.033226 | +18.30 % | DETECTED_EARLY | NONE | INTERPRETATION |
+| PTB-EUR | 0.0011033 | +80.07 % | NOT_DETECTED | DATA | NOT_APPLICABLE |
+| FTT-EUR | 0.261 | +43.65 % | NOT_DETECTED | DATA | NOT_APPLICABLE |
+| SAGA-EUR | 0.031021 | +38.22 % | DETECTED_EARLY | NONE | INTERPRETATION |
+| NIL-EUR | 0.055005 | +26.64 % | DETECTED_EARLY | NONE | INTERPRETATION |
+| VVV-EUR | 28.6621 | +25.97 % | DETECTED_EARLY | NONE | ENTRY_TIMING_OR_EXECUTION |
+| KMNO-EUR | 0.030251 | +24.60 % | DETECTED_EARLY | NONE | INTERPRETATION |
+| EPIC-EUR | 0.49428 | +22.09 % | DETECTED_EARLY | NONE | ENTRY_TIMING_OR_EXECUTION |
+| NEAR-EUR | 3.714 | +21.94 % | DETECTED_EARLY | NONE | ENTRY_TIMING_OR_EXECUTION |
+| S-EUR | 0.033371 | +19.40 % | DETECTED_EARLY | NONE | INTERPRETATION |
+| TREAD-EUR | 0.4691 | +18.88 % | NOT_DETECTED | DATA | NOT_APPLICABLE |
 
-Historique : 1041 scans ; 446203 observations ; 294 épisodes d’achat évaluables.
+Historique : 1042 scans ; 446629 observations ; 296 épisodes d’achat évaluables.
 V5 optimisée : aucune. Supériorité sur V4 : non démontrée. Probabilités : non calibrées.
 Le cash et le portefeuille du plan sont hypothétiques. Aucun ordre réel n’est envoyé.
