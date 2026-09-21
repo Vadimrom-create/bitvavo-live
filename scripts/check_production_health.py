@@ -23,6 +23,7 @@ V21_RANGE5 = "production_v21_range5_shadow_status.json"
 REJECTION_SHADOW = "production_rejection_shadow_status.json"
 ALL_ACTIONABLE = "production_all_actionable_shadow_status.json"
 BREAKOUT_RISK = "production_breakout_risk_shadow_status.json"
+EMERGING_LIQUIDITY = "production_emerging_liquidity_shadow_status.json"
 HEALTH = "production_health.json"
 
 
@@ -43,6 +44,7 @@ def main() -> int:
     rejection_shadow = read_json(REJECTION_SHADOW, {})
     all_actionable = read_json(ALL_ACTIONABLE, {})
     breakout_risk = read_json(BREAKOUT_RISK, {})
+    emerging_liquidity = read_json(EMERGING_LIQUIDITY, {})
 
     critical = []
     warnings = []
@@ -91,6 +93,10 @@ def main() -> int:
         "BREAKOUT_RISK_SHADOW", breakout_risk,
         "BREAKOUT_RISK_OUTCOME", warnings,
     )
+    emerging_liquidity_outcome = _shadow_warning(
+        "EMERGING_LIQUIDITY_SHADOW", emerging_liquidity,
+        "EMERGING_LIQUIDITY_OUTCOME", warnings,
+    )
 
     publish_outcome = os.getenv("SCAN_PUBLISH_OUTCOME", "success").lower()
     if publish_outcome != "success":
@@ -114,6 +120,7 @@ def main() -> int:
             "rejection_shadow": rejection_shadow.get("status") or "NOT_REPORTED",
             "all_actionable_shadow": all_actionable.get("status") or "NOT_REPORTED",
             "breakout_risk_shadow": breakout_risk.get("status") or "NOT_REPORTED",
+            "emerging_liquidity_shadow": emerging_liquidity.get("status") or "NOT_REPORTED",
         },
         "coverage": {
             "active_eur_markets": active,
@@ -134,6 +141,7 @@ def main() -> int:
             "rejection_shadow_step_outcome": rejection_outcome,
             "all_actionable_step_outcome": all_actionable_outcome,
             "breakout_risk_step_outcome": breakout_risk_outcome,
+            "emerging_liquidity_step_outcome": emerging_liquidity_outcome,
             "scan_state_publish_outcome": publish_outcome,
         },
     }
