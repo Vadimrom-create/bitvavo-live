@@ -1,6 +1,9 @@
 name: Solaire V2 adversarial replay
 on:
   workflow_dispatch:
+  push:
+    paths:
+      - 'research/solaire_v2_adversarial_trigger.txt'
 permissions:
   contents: write
   actions: read
