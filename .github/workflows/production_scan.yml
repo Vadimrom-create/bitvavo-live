@@ -135,6 +135,7 @@ jobs:
           REJECTION_SHADOW_OUTCOME: ${{ steps.rejection_shadow.outcome }}
           ALL_ACTIONABLE_OUTCOME: ${{ steps.all_actionable_shadow.outcome }}
           BREAKOUT_RISK_OUTCOME: ${{ steps.breakout_risk_shadow.outcome }}
+          EMERGING_LIQUIDITY_OUTCOME: ${{ steps.emerging_liquidity_shadow.outcome }}
         run: python scripts/check_production_health.py
 
       - name: Persist Solaire runtime state
