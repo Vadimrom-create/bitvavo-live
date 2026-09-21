@@ -1,9 +1,12 @@
 #!/usr/bin/env python3
 """Prospective shadow for Solaire V2 final-gate rejections.
 
-Tracks each rejected CONFIRMED episode through later production scans, records
-whether the original execution-gate condition resolves, captures the first later
-execution-valid entry, and measures forward 1h/4h/12h/24h MFE/MAE/close.
+Tracks rejected CONFIRMED episodes through later scans, including periods where
+the detector downgrades to BUILDING. Separates:
+- execution-valid snapshots while any Solaire acceleration is still detected;
+- fully actionable snapshots where the signal is CONFIRMED and execution-valid.
+Also measures forward 1h/4h/12h/24h MFE/MAE/close.
+
 Measurement only: never affects detection, BUY gating, email, or execution.
 """
 from __future__ import annotations
@@ -58,31 +61,52 @@ def _evaluate(event,bars,hours):
         "method":"closed_5m_bars_after_rejection",
     }
 
+def _validated_snapshot(event,row,validated,now):
+    trade=validated.get("trade") or {}
+    entry=finite(trade.get("entry_eur"))
+    base=finite(event.get("rejection_price_eur"))
+    return {
+        "at_utc":utc(now),
+        "signal_state":row.get("signal_state"),
+        "signal_score":finite(row.get("signal_score")),
+        "evidence_count":int((row.get("acceleration") or {}).get("evidence_count") or 0),
+        "signal_price_eur":finite(row.get("last")),
+        "entry_eur":entry,
+        "return_from_rejection_pct":round((entry/base-1)*100,4) if entry and base else None,
+        "spread_pct":validated.get("spread_pct"),
+        "structural_range_15m_pct":validated.get("structural_range_15m_pct"),
+        "stop_distance_pct":trade.get("stop_distance_pct"),
+        "stop_eur":trade.get("stop_eur"),
+        "tp1_eur":trade.get("tp1_eur"),
+    }
+
 def main():
     now=time.time()
     payload=read_json(CANDIDATES,{})
     alert=read_json(ALERT_STATUS,{})
-    state=read_json(STATE,{"schema":"solaire_rejection_shadow_state_v3","markets":{}})
-    journal=read_json(JOURNAL,{"schema":"solaire_rejection_shadow_journal_v3","events":[]})
-    state["schema"]="solaire_rejection_shadow_state_v3"; state.setdefault("markets",{})
-    journal["schema"]="solaire_rejection_shadow_journal_v3"; journal.setdefault("events",[])
+    state=read_json(STATE,{"schema":"solaire_rejection_shadow_state_v4","markets":{}})
+    journal=read_json(JOURNAL,{"schema":"solaire_rejection_shadow_journal_v4","events":[]})
+    state["schema"]="solaire_rejection_shadow_state_v4"; state.setdefault("markets",{})
+    journal["schema"]="solaire_rejection_shadow_journal_v4"; journal.setdefault("events",[])
     for e in journal["events"]:
         e.setdefault("evaluations",{})
+        e.setdefault("first_later_execution_valid_snapshot",None)
+        e.setdefault("first_later_fully_actionable_entry",e.get("first_later_qualifying_entry"))
 
-    rows={r.get("market"):r for r in payload.get("watch",[]) if isinstance(r,dict) and r.get("market")}
+    confirmed_rows={r.get("market"):r for r in payload.get("watch",[]) if isinstance(r,dict) and r.get("market")}
+    tracking_rows={r.get("market"):r for r in payload.get("tracking",[]) if isinstance(r,dict) and r.get("market")}
     current_rej={r.get("market"):r.get("reason") for r in (alert.get("rejections") or [])
                  if r.get("market") and r.get("reason") in TRACKED}
     new_events=0
 
-    # Start one shadow episode per market when a tracked final-gate rejection appears
-    # and no still-open episode already exists.
+    # A rejection event can only start from a production-confirmed candidate.
     for market,reason in current_rej.items():
         st=state["markets"].setdefault(market,{})
         active_key=st.get("active_event_id")
         active=_event(journal,active_key) if active_key else None
         if active and not active.get("closed"):
             continue
-        row=rows.get(market)
+        row=confirmed_rows.get(market) or tracking_rows.get(market)
         if not row: continue
         event_id=f"{market}|{int(now)}"
         event={
@@ -93,8 +117,11 @@ def main():
             "rejection_price_eur":finite(row.get("last")),
             "signal_score":finite(row.get("signal_score")),
             "signal_state":row.get("signal_state"),
-            "reason_history":[{"at_utc":alert.get("checked_at_utc") or utc(now),"reason":reason}],
+            "reason_history":[{"at_utc":alert.get("checked_at_utc") or utc(now),"reason":reason,
+                               "signal_state":row.get("signal_state")}],
             "original_condition_resolved":False,
+            "first_later_execution_valid_snapshot":None,
+            "first_later_fully_actionable_entry":None,
             "first_later_qualifying_entry":None,
             "evaluations":{},
             "closed":False,
@@ -105,58 +132,64 @@ def main():
         new_events+=1
 
     client=PublicClient(timeout=10,retries=2,requests_per_second=8)
-    errors=[]; revalidations=0; newly_qualified=0; evaluated_horizons=0
+    errors=[]; revalidations=0; fully_actionable=0; execution_valid_while_building=0; evaluated_horizons=0
     try:
         client.get("/time",cache=False)
         metadata={m["market"]:m for m in client.get("/markets")
                   if m.get("quote")=="EUR" and m.get("status")=="trading"}
 
-        # Prospective revalidation is independent from forward-price evaluation.
+        # Revalidate against *tracking* rows, not only CONFIRMED watch rows.
+        # This exposes windows where execution becomes clean while the detector
+        # has downgraded to BUILDING, which the old shadow could not see.
         for market,st in state["markets"].items():
             key=st.get("active_event_id")
             event=_event(journal,key) if key else None
             if not event or event.get("closed"): continue
             age=now-finite(event.get("rejected_ts"),now)
 
-            row=rows.get(market)
+            row=tracking_rows.get(market) or confirmed_rows.get(market)
             if row:
                 try:
-                    validated,reason=validate(row,client,metadata,time.time())
+                    checked=time.time()
+                    validated,reason=validate(row,client,metadata,checked)
                     revalidations+=1
-                    event["last_revalidation"]={"checked_at_utc":utc(),"passed":bool(validated),"reason":reason}
+                    event["last_revalidation"]={
+                        "checked_at_utc":utc(checked),"passed_execution_gate":bool(validated),
+                        "reason":reason,"signal_state":row.get("signal_state"),
+                        "signal_score":finite(row.get("signal_score")),
+                    }
                     prior=(event.get("reason_history") or [])[-1].get("reason") if event.get("reason_history") else None
                     if validated:
-                        entry=finite((validated.get("trade") or {}).get("entry_eur"))
-                        base=finite(event.get("rejection_price_eur"))
+                        snap=_validated_snapshot(event,row,validated,checked)
                         event["original_condition_resolved"]=True
-                        event["first_later_qualifying_entry"]={
-                            "at_utc":utc(),"entry_eur":entry,
-                            "return_from_rejection_pct":round((entry/base-1)*100,4) if entry and base else None,
-                            "spread_pct":validated.get("spread_pct"),
-                            "structural_range_15m_pct":validated.get("structural_range_15m_pct"),
-                            "stop_distance_pct":(validated.get("trade") or {}).get("stop_distance_pct"),
-                        }
-                        event["closed"]=True
-                        event["close_reason"]="LATER_QUALIFYING_ENTRY"
-                        event["closed_at_utc"]=utc()
-                        newly_qualified+=1
+                        if event.get("first_later_execution_valid_snapshot") is None:
+                            event["first_later_execution_valid_snapshot"]=snap
+                            if row.get("signal_state")=="BUILDING_ACCELERATION":
+                                execution_valid_while_building+=1
+                        if row.get("signal_state")=="CONFIRMED_ACCELERATION":
+                            if event.get("first_later_fully_actionable_entry") is None:
+                                event["first_later_fully_actionable_entry"]=snap
+                                event["first_later_qualifying_entry"]=snap  # legacy alias
+                                fully_actionable+=1
+                            event["closed"]=True
+                            event["close_reason"]="LATER_FULLY_ACTIONABLE_ENTRY"
+                            event["closed_at_utc"]=utc(checked)
                     else:
                         if reason != event.get("first_rejection_reason"):
                             event["original_condition_resolved"]=True
                         if reason != prior:
-                            event.setdefault("reason_history",[]).append({"at_utc":utc(),"reason":reason})
+                            event.setdefault("reason_history",[]).append({
+                                "at_utc":utc(checked),"reason":reason,
+                                "signal_state":row.get("signal_state"),
+                            })
                 except (RuntimeError,ValueError,KeyError) as exc:
                     errors.append({"market":market,"reason":type(exc).__name__+":"+str(exc)})
 
-            # Expire the revalidation watch after 24h, but keep the event in the
-            # journal so outcome horizons can still be completed.
             if age>MAX_AGE and not event.get("closed"):
                 event["closed"]=True
-                event["close_reason"]="EXPIRED_24H_WITHOUT_LATER_QUALIFYING_ENTRY"
+                event["close_reason"]="EXPIRED_24H_WITHOUT_FULLY_ACTIONABLE_ENTRY"
                 event["closed_at_utc"]=utc(now)
 
-        # Evaluate every due horizon, including events already closed because a
-        # later qualifying entry appeared.
         due={}
         for idx,event in enumerate(journal["events"]):
             rejected=finite(event.get("rejected_ts"))
@@ -182,12 +215,16 @@ def main():
     journal["events"]=journal["events"][-MAX_EVENTS:]
     state["updated_at_utc"]=utc(); journal["updated_at_utc"]=utc()
     status={
-        "schema":"solaire_rejection_shadow_v3","checked_at_utc":utc(),
+        "schema":"solaire_rejection_shadow_v4","checked_at_utc":utc(),
         "status":"OK" if not errors else "DEGRADED_NONBLOCKING",
         "new_events":new_events,"revalidations":revalidations,
-        "newly_qualified":newly_qualified,"evaluated_horizons":evaluated_horizons,
+        "new_fully_actionable":fully_actionable,
+        "new_execution_valid_while_building":execution_valid_while_building,
+        "evaluated_horizons":evaluated_horizons,
         "active_events":sum(not e.get("closed") for e in journal["events"]),
         "events_with_original_condition_resolved":sum(bool(e.get("original_condition_resolved")) for e in journal["events"]),
+        "events_with_execution_valid_snapshot":sum(bool(e.get("first_later_execution_valid_snapshot")) for e in journal["events"]),
+        "events_with_fully_actionable_entry":sum(bool(e.get("first_later_fully_actionable_entry")) for e in journal["events"]),
         "events_with_1h":sum("1" in (e.get("evaluations") or {}) for e in journal["events"]),
         "events_with_4h":sum("4" in (e.get("evaluations") or {}) for e in journal["events"]),
         "events_with_12h":sum("12" in (e.get("evaluations") or {}) for e in journal["events"]),
