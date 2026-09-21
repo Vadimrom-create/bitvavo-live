@@ -18,6 +18,7 @@ on:
       - 'scripts/update_early_building_shadow.py'
       - 'scripts/update_v21_range5_shadow.py'
       - 'scripts/update_rejection_shadow.py'
+      - 'scripts/update_all_actionable_shadow.py'
       - 'scripts/check_production_health.py'
       - 'research/features.py'
       - 'research/risk.py'
@@ -70,6 +71,11 @@ jobs:
           done
           exit 1
 
+      - name: Measure all simultaneously actionable candidates
+        id: all_actionable_shadow
+        continue-on-error: true
+        run: python scripts/update_all_actionable_shadow.py
+
       - name: Revalidate and send only actionable BUY
         env:
           ALERT_GMAIL_USER: ${{ vars.ALERT_GMAIL_USER }}
@@ -120,7 +126,7 @@ jobs:
         run: |
           git config user.name 'bitvavo-live-bot'
           git config user.email 'actions@users.noreply.github.com'
-          for file in             production_alert_state.json             production_alert_status.json             production_decision_journal.json             production_evaluation_status.json             production_persistent_building_state.json             production_persistent_building_journal.json             production_persistent_building_status.json             production_early_building_shadow_state.json             production_early_building_shadow_journal.json             production_early_building_shadow_status.json             production_v21_range5_shadow_state.json             production_v21_range5_shadow_journal.json             production_v21_range5_shadow_status.json             production_rejection_shadow_state.json             production_rejection_shadow_journal.json             production_rejection_shadow_status.json             production_health.json; do
+          for file in             production_alert_state.json             production_alert_status.json             production_decision_journal.json             production_evaluation_status.json             production_persistent_building_state.json             production_persistent_building_journal.json             production_persistent_building_status.json             production_early_building_shadow_state.json             production_early_building_shadow_journal.json             production_early_building_shadow_status.json             production_v21_range5_shadow_state.json             production_v21_range5_shadow_journal.json             production_v21_range5_shadow_status.json             production_rejection_shadow_state.json             production_rejection_shadow_journal.json             production_rejection_shadow_status.json             production_all_actionable_shadow_journal.json             production_all_actionable_shadow_status.json             production_health.json; do
             if [ -e "$file" ]; then git add "$file"; fi
           done
           if git diff --cached --quiet; then exit 0; fi
