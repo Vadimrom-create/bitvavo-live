@@ -208,6 +208,13 @@ def body(validated: dict) -> str:
             f"Montant guide : {trade['stake_eur']:.2f} €",
             f"Risque théorique : {trade['theoretical_loss_eur']:.2f} €",
             "",
+            f"Contexte marché (shadow) : {(row.get('context') or {}).get('regime', 'n/a')}",
+            f"Breadth + 1 h : {finite((row.get('context') or {}).get('breadth_positive_1h_pct'), 0):.1f} %",
+            f"Breadth + 4 h : {finite((row.get('context') or {}).get('breadth_positive_4h_pct'), 0):.1f} %",
+            f"Force relative 1 h : {finite((row.get('context') or {}).get('relative_strength_1h_pp'), 0):+.2f} pp",
+            f"Force relative 4 h : {finite((row.get('context') or {}).get('relative_strength_4h_pp'), 0):+.2f} pp",
+            "Le contexte est observé et journalisé mais ne peut pas bloquer un BUY.",
+            "",
             "Le signal n'a pas été filtré par V4, Decision Layer, chase risk ou un cooldown global.",
             "Le carnet, le spread, la structure 15 min et le ratio risque/rendement viennent d'être revalidés.",
             "Aucun ordre n'a été envoyé automatiquement.",
@@ -221,7 +228,7 @@ def main() -> int:
         "checked_at_utc": utc(now),
         "status": "STARTING",
         "email": "NONE",
-        "policy": "SOLAIRE_EXECUTION_GATE_V3_THESIS_AWARE",
+        "policy": "SOLAIRE_V2_EXECUTION_GATE",
     }
     payload = read_json(INPUT, {})
     state = read_json(STATE, {"markets": {}})
@@ -338,6 +345,12 @@ def main() -> int:
         episode_age_seconds=row.get("episode_age_seconds"),
         stop_distance_pct=selected["trade"].get("stop_distance_pct"),
         prior_thesis_status=selected.get("prior_thesis_status"),
+        entry_eur=selected["trade"].get("entry_eur"),
+        stop_eur=selected["trade"].get("stop_eur"),
+        tp1_eur=selected["trade"].get("tp1_eur"),
+        tp2_eur=selected["trade"].get("tp2_eur"),
+        stake_eur=selected["trade"].get("stake_eur"),
+        market_context=(row.get("context") or {}),
     )
     atomic_json(STATUS, status)
     print("SOLAIRE_ALERT " + json.dumps(status))
