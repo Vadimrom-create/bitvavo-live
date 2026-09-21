@@ -24,6 +24,7 @@ from research.common import atomic_json, finite, freshness, utc
 from research.features import closed_candles, describe
 from research.http import PublicClient
 from research.production_acceleration import acceleration_signal
+from research.production_context import build_market_context
 from research.production_gate import build_alert_payload
 
 CANDIDATES = "production_alert_candidates.json"
@@ -157,7 +158,8 @@ def run() -> dict:
         )
         for m in markets
     ]
-    payload = build_alert_payload(observations, utc(signal_ts))
+    market_context = build_market_context(observations)
+    payload = build_alert_payload(observations, utc(signal_ts), market_context)
     atomic_json(CANDIDATES, payload)
 
     confirmed = [
@@ -197,6 +199,10 @@ def run() -> dict:
         "confirmed_accelerations": len(confirmed),
         "alert_candidates": len(payload["watch"]),
         "candidate_markets": [r["market"] for r in payload["watch"][:20]],
+        "market_context_status": market_context.get("status"),
+        "market_regime": market_context.get("regime"),
+        "market_breadth_1h_pct": market_context.get("breadth_positive_1h_pct"),
+        "market_breadth_4h_pct": market_context.get("breadth_positive_4h_pct"),
         "duration_seconds": round(time.time() - started, 3),
         "api_error_count": len(client.errors),
         "api_errors": client.errors[-20:],
@@ -232,6 +238,12 @@ def main() -> int:
                 "hosted_probe_required": False,
                 "v4_required": False,
                 "decision_layer_required": False,
+                "market_context": {
+                    "schema": "solaire_market_context_v1",
+                    "status": "UNAVAILABLE",
+                    "affects_detection": False,
+                    "affects_buy_gate": False,
+                },
                 "tracking": [],
                 "watch": [],
             },

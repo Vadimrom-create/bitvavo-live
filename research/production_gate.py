@@ -9,6 +9,7 @@ import copy
 from typing import Any
 
 from research.common import finite
+from research.production_context import candidate_context
 
 ACCELERATION_ACTION = "ACCELERATION_READY"
 ACTIONABLE_STATUSES = {ACCELERATION_ACTION}
@@ -22,7 +23,10 @@ def _n(value: Any, default: float = 0.0) -> float:
     return default if result is None else result
 
 
-def _tracking_row(obs: dict[str, Any]) -> dict[str, Any] | None:
+def _tracking_row(
+    obs: dict[str, Any],
+    market_context: dict[str, Any] | None = None,
+) -> dict[str, Any] | None:
     quality = obs.get("data_quality") or {}
     acceleration = obs.get("acceleration") or {}
     state = acceleration.get("state")
@@ -34,7 +38,7 @@ def _tracking_row(obs: dict[str, Any]) -> dict[str, Any] | None:
     if not market or price <= 0:
         return None
 
-    return {
+    result = {
         "market": market,
         "last": price,
         "change_24h_pct": obs.get("change_24h_pct"),
@@ -45,10 +49,16 @@ def _tracking_row(obs: dict[str, Any]) -> dict[str, Any] | None:
         "acceleration": copy.deepcopy(acceleration),
         "signal_source": "DIRECT_ACCELERATION",
     }
+    if market_context:
+        result["context"] = candidate_context(obs, market_context)
+    return result
 
 
-def _candidate(obs: dict[str, Any]) -> dict[str, Any] | None:
-    row = _tracking_row(obs)
+def _candidate(
+    obs: dict[str, Any],
+    market_context: dict[str, Any] | None = None,
+) -> dict[str, Any] | None:
+    row = _tracking_row(obs, market_context)
     if row is None:
         return None
     acceleration = row["acceleration"]
@@ -63,8 +73,16 @@ def _candidate(obs: dict[str, Any]) -> dict[str, Any] | None:
     return row
 
 
-def build_alert_payload(observations: list[dict[str, Any]], generated_at_utc: str) -> dict[str, Any]:
-    tracking = [row for obs in observations if (row := _tracking_row(obs)) is not None]
+def build_alert_payload(
+    observations: list[dict[str, Any]],
+    generated_at_utc: str,
+    market_context: dict[str, Any] | None = None,
+) -> dict[str, Any]:
+    tracking = [
+        row
+        for obs in observations
+        if (row := _tracking_row(obs, market_context)) is not None
+    ]
     tracking.sort(
         key=lambda row: (
             _n(row.get("signal_score")),
@@ -73,7 +91,11 @@ def build_alert_payload(observations: list[dict[str, Any]], generated_at_utc: st
         reverse=True,
     )
 
-    watch = [row for obs in observations if (row := _candidate(obs)) is not None]
+    watch = [
+        row
+        for obs in observations
+        if (row := _candidate(obs, market_context)) is not None
+    ]
     watch.sort(
         key=lambda row: (
             _n(row.get("signal_score")),
@@ -90,6 +112,7 @@ def build_alert_payload(observations: list[dict[str, Any]], generated_at_utc: st
         "v4_required": False,
         "decision_layer_required": False,
         "actionable_statuses": sorted(ACTIONABLE_STATUSES),
+        "market_context": copy.deepcopy(market_context or {}),
         "tracking": tracking,
         "watch": watch,
     }
