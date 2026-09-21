@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import os
 import sys
 import time
 from pathlib import Path
@@ -47,6 +48,10 @@ def main() -> int:
     if evaluation.get("status") not in (None, "OK"):
         warnings.append("EVALUATION_DEGRADED_NONBLOCKING")
 
+    publish_outcome = os.getenv("SCAN_PUBLISH_OUTCOME", "success").lower()
+    if publish_outcome != "success":
+        warnings.append("SCAN_STATE_PUBLISH_FAILED_NONBLOCKING")
+
     overall = "DEGRADED" if critical else ("OK_WITH_WARNINGS" if warnings else "OK")
     report = {
         "checked_at_utc": utc(time.time()),
@@ -72,6 +77,7 @@ def main() -> int:
             "decision_layer_required": False,
             "context_external_dependency": False,
             "evaluation_blocks_alerts": False,
+            "scan_state_publish_outcome": publish_outcome,
         },
     }
     atomic_json(HEALTH, report)
