@@ -1,0 +1,26 @@
+name: Solaire V2 adversarial replay
+on:
+  workflow_dispatch:
+permissions:
+  contents: write
+  actions: read
+jobs:
+  replay:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Replay September 21 production rejections
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GITHUB_TOKEN: ${{ github.token }}
+        run: python scripts/audit_solaire_v2_20260921.py
+      - name: Persist audit result
+        run: |
+          git config user.name github-actions
+          git config user.email github-actions@github.com
+          git add research/solaire_v2_adversarial_20260921.json
+          git diff --cached --quiet || git commit -m "Record Solaire V2 adversarial replay"
+          git push
