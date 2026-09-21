@@ -24,6 +24,7 @@ THRESHOLDS={
     "early_4_25_e2": (4.25,2),
     "early_5_00_e2": (5.00,2),
     "current_building": (4.75,2),
+    "high_quality_building": (6.00,4),
     "current_confirmed": (6.50,3),
 }
 
