@@ -68,8 +68,10 @@ jobs:
         run: |
           echo "Review-branch live validation is preserved only as an artifact."
           echo "CI must not mutate or rebase the branch it is validating."
-      - uses: actions/upload-artifact@v4
+      - name: Upload review validation artifact
+        uses: actions/upload-artifact@v4
         if: always()
+        continue-on-error: true
         with:
           name: public-live-validation
           retention-days: 30
