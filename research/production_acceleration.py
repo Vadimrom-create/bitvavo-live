@@ -33,7 +33,10 @@ def acceleration_signal(obs: dict[str, Any]) -> dict[str, Any]:
             "score": None,
             "detected": False,
             "components": {},
+            "evidence_flags": {},
             "evidence_count": 0,
+            "timeframe_confirmation_15m": False,
+            "confirmation_scope": "NOT_AVAILABLE",
             "reasons": sorted(set(reasons)) or ["INVALID_ACCELERATION_INPUT"],
             "buyability": "NOT_ASSESSED",
             "alert_eligible": False,
@@ -61,14 +64,19 @@ def acceleration_signal(obs: dict[str, Any]) -> dict[str, Any]:
         + 0.10 * components["confirmation_15m"],
         3,
     )
-    evidence_count = sum(
-        (
-            components["momentum_5m"] >= 4.0,
-            components["momentum_acceleration_5m"] >= 4.0,
-            components["volume_expansion"] >= 4.0,
-            components["breakout_pressure"] >= 4.0,
-            components["confirmation_15m"] >= 3.0,
-        )
+    evidence_flags = {
+        "momentum_5m": components["momentum_5m"] >= 4.0,
+        "momentum_acceleration_5m": components["momentum_acceleration_5m"] >= 4.0,
+        "volume_expansion": components["volume_expansion"] >= 4.0,
+        "breakout_pressure": components["breakout_pressure"] >= 4.0,
+        "confirmation_15m": components["confirmation_15m"] >= 3.0,
+    }
+    evidence_count = sum(evidence_flags.values())
+    timeframe_confirmation_15m = evidence_flags["confirmation_15m"]
+    confirmation_scope = (
+        "MULTI_TIMEFRAME"
+        if timeframe_confirmation_15m
+        else "FAST_COMPOSITE_ONLY"
     )
     if score >= ACCELERATION_CONFIRMED_MIN and evidence_count >= 3:
         state = "CONFIRMED_ACCELERATION"
@@ -82,7 +90,10 @@ def acceleration_signal(obs: dict[str, Any]) -> dict[str, Any]:
         "score": score,
         "detected": state in ACCELERATION_STATES,
         "components": components,
+        "evidence_flags": evidence_flags,
         "evidence_count": evidence_count,
+        "timeframe_confirmation_15m": timeframe_confirmation_15m,
+        "confirmation_scope": confirmation_scope,
         "buyability": (
             "REQUIRES_FINAL_EXECUTION_VALIDATION"
             if state in ACCELERATION_STATES
