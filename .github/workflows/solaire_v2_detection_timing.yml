@@ -23,4 +23,14 @@ jobs:
           git config user.email github-actions@github.com
           git add research/solaire_v2_detection_timing_20260921.json
           git diff --cached --quiet || git commit -m "Record Solaire V2 detection timing audit"
-          git push
+          if git diff HEAD^ --quiet; then exit 0; fi
+          for attempt in 1 2 3 4 5 6; do
+            git fetch origin main
+            if ! git rebase origin/main; then
+              git rebase --abort || true
+              exit 1
+            fi
+            if git push origin HEAD:main; then exit 0; fi
+            sleep $((attempt * 2))
+          done
+          exit 1
