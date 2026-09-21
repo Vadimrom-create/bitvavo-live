@@ -1,0 +1,288 @@
+name: Solaire 96h feature audit
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/solaire_96h_feature_audit.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Build enriched 96h BUY dataset
+        run: |
+          python - <<'PY'
+          import bisect, gzip, json, math, re, statistics, time
+          from collections import defaultdict
+          from concurrent.futures import ThreadPoolExecutor, as_completed
+          from datetime import datetime, timezone
+          from pathlib import Path
+
+          from research.common import finite, INTERVAL_MS
+          from research.features import describe
+          from research.http import PublicClient
+          from research.production_acceleration import acceleration_signal
+          from research.risk import structural_plan
+
+          H96=96*3600
+          WARMUP=9*3600
+          MIN_QV=75000.0
+          MAX_SPREAD_PCT=.5
+          MAX_STOP=10.0
+          THESIS_TTL=24*3600
+
+          client=PublicClient(timeout=18,retries=3,requests_per_second=12)
+          client.get("/time",cache=False)
+          now=time.time(); audit_start=now-H96
+
+          markets=[m for m in client.get("/markets") if m.get("quote")=="EUR" and m.get("status")=="trading"]
+          meta={m["market"]:m for m in markets}
+
+          def fetch_one(m):
+              try:
+                  r5=client.get("/"+m+"/candles",{"interval":"5m","limit":1440},cache=False)
+                  r15=client.get("/"+m+"/candles",{"interval":"15m","limit":500},cache=False)
+                  return m,r5,r15,None
+              except Exception as e:
+                  return m,[],[],type(e).__name__+":"+str(e)
+
+          raw={}
+          with ThreadPoolExecutor(max_workers=12) as ex:
+              fut=[ex.submit(fetch_one,m["market"]) for m in markets]
+              for f in as_completed(fut):
+                  m,r5,r15,err=f.result(); raw[m]=(r5,r15,err)
+
+          def canon(rows,interval):
+              dur=INTERVAL_MS[interval]; obs={}
+              for r in rows:
+                  if not isinstance(r,list) or len(r)<6: continue
+                  vals=[finite(v) for v in r[:6]]
+                  if any(v is None for v in vals): continue
+                  t,o,h,l,c,v=vals; t=int(t)
+                  if t+dur>now*1000 or t%dur or min(o,h,l,c)<=0 or v<0: continue
+                  obs[t]={"t":t,"o":o,"h":h,"l":l,"c":c,"v":v,"bar_status":"CLOSED_TRADE"}
+              if not obs:return []
+              ks=sorted(obs); out=[]; prev=None; t=ks[0]
+              while t<=ks[-1]:
+                  x=obs.get(t)
+                  if x is not None:
+                      prev=x["c"]; out.append(x)
+                  elif prev is not None:
+                      out.append({"t":t,"o":prev,"h":prev,"l":prev,"c":prev,"v":0.0,"bar_status":"NO_TRADE"})
+                  t+=dur
+              return out
+
+          series={m:(canon(r5,"5m"),canon(r15,"15m"),err) for m,(r5,r15,err) in raw.items()}
+          starts5={m:[x["t"] for x in v[0]] for m,v in series.items()}
+          starts15={m:[x["t"] for x in v[1]] for m,v in series.items()}
+
+          def feat_at(m,interval,ts):
+              cs=series[m][0 if interval=="5m" else 1]
+              starts=starts5[m] if interval=="5m" else starts15[m]
+              dur=INTERVAL_MS[interval]
+              i=bisect.bisect_right(starts,int(ts*1000)-dur)
+              if i<=0:return {"valid":False},None,i
+              sub=cs[max(0,i-100):i]
+              return describe(sub,interval),sub[-1]["c"],i
+
+          def price_ago(m,ts,seconds):
+              cs=series[m][0]; starts=starts5[m]
+              target=int((ts-seconds)*1000)
+              i=bisect.bisect_right(starts,target)-1
+              return cs[i]["c"] if i>=0 else None
+
+          def market_return(m,ts,seconds,current=None):
+              if current is None:
+                  _,current,_=feat_at(m,"5m",ts)
+              old=price_ago(m,ts,seconds)
+              return (current/old-1)*100 if current and old else None
+
+          def rolling_qv(m,idx):
+              cs=series[m][0]
+              return sum(x["v"]*x["c"] for x in cs[max(0,idx-288):idx])
+
+          spread_index=defaultdict(list)
+          rx=re.compile(r"(\d{8}T\d{6}Z)")
+          def walk(obj,fts):
+              if isinstance(obj,dict):
+                  mk=obj.get("market")
+                  if mk in meta:
+                      sp=finite(obj.get("spread_pct")); bid=finite(obj.get("bid")); ask=finite(obj.get("ask"))
+                      if sp is None and bid and ask and bid>0 and ask>=bid:
+                          sp=(ask/bid-1)*100
+                      if sp is not None:
+                          spread_index[mk].append((fts,sp,ask))
+                  for v in obj.values(): walk(v,fts)
+              elif isinstance(obj,list):
+                  for v in obj: walk(v,fts)
+          for folder in ["history/2026-09-16","history/2026-09-17","history/2026-09-18","history/2026-09-19","history/2026-09-20","history/2026-09-21"]:
+              p=Path(folder)
+              if not p.exists():continue
+              for path in p.glob("*.json.gz"):
+                  mm=rx.search(path.name)
+                  if not mm:continue
+                  fts=datetime.strptime(mm.group(1),"%Y%m%dT%H%M%SZ").replace(tzinfo=timezone.utc).timestamp()
+                  if fts<audit_start-1800 or fts>now+60:continue
+                  try:
+                      with gzip.open(path,"rt",encoding="utf-8") as fh: walk(json.load(fh),fts)
+                  except Exception:pass
+          spread_times={m:[x[0] for x in xs] for m,xs in spread_index.items()}
+          for m in spread_index: spread_index[m].sort()
+          spread_times={m:[x[0] for x in xs] for m,xs in spread_index.items()}
+
+          def prior_spread(m,ts,max_age=1200):
+              xs=spread_index.get(m,[]); times=spread_times.get(m,[])
+              if not xs:return None
+              i=bisect.bisect_right(times,ts)-1
+              if i<0:return None
+              fts,sp,ask=xs[i]
+              if ts-fts>max_age:return None
+              return {"ts":fts,"age":ts-fts,"spread":sp,"ask":ask}
+
+          def outcome(m,ts,plan,hours=12):
+              cs=series[m][0]; end=ts+hours*3600
+              entry=plan["entry_eur"]; stop=plan["stop_eur"]; tp1=plan["tp1_eur"]
+              hi=entry;lo=entry
+              for x in cs:
+                  xt=x["t"]/1000
+                  if xt<ts or xt>end:continue
+                  hi=max(hi,x["h"]);lo=min(lo,x["l"])
+                  sh=x["l"]<=stop; th=x["h"]>=tp1
+                  if sh and th:return {"result":"STOP","mfe":(hi/entry-1)*100,"mae":(lo/entry-1)*100}
+                  if sh:return {"result":"STOP","mfe":(hi/entry-1)*100,"mae":(lo/entry-1)*100}
+                  if th:return {"result":"TP1","mfe":(hi/entry-1)*100,"mae":(lo/entry-1)*100}
+              return {"result":"OPEN","mfe":(hi/entry-1)*100,"mae":(lo/entry-1)*100}
+
+          regime_cache={}
+          def regime(ts):
+              bucket=int(ts//300)*300
+              if bucket in regime_cache:return regime_cache[bucket]
+              r1=[];r4=[]
+              for m in meta:
+                  _,p,_=feat_at(m,"5m",ts)
+                  if p is None:continue
+                  a=market_return(m,ts,3600,p); b=market_return(m,ts,4*3600,p)
+                  if a is not None:r1.append(a)
+                  if b is not None:r4.append(b)
+              def pack(xs):
+                  if not xs:return {"breadth_pos":None,"median":None,"mean":None,"dispersion":None}
+                  return {"breadth_pos":100*sum(x>0 for x in xs)/len(xs),
+                          "median":statistics.median(xs),"mean":statistics.mean(xs),
+                          "dispersion":statistics.pstdev(xs)}
+              out={"r1h":pack(r1),"r4h":pack(r4)}
+              for benchmark in ["BTC-EUR","ETH-EUR","SOL-EUR"]:
+                  if benchmark in meta:
+                      _,p,_=feat_at(benchmark,"5m",ts)
+                      out[benchmark]={"r1h":market_return(benchmark,ts,3600,p) if p else None,
+                                      "r4h":market_return(benchmark,ts,4*3600,p) if p else None}
+              regime_cache[bucket]=out
+              return out
+
+          rows=[]
+          for m in meta:
+              c5,c15,err=series[m]
+              if not c5 or not c15:continue
+              episode=0; active=False; handled=0; thesis=None
+              episode_start_ts=None; episode_start_price=None; first_confirm_ts=None
+              for bar in c5:
+                  ts=bar["t"]/1000+301
+                  if ts<audit_start or ts>now:continue
+                  f5,p,idx5=feat_at(m,"5m",ts); f15,_,_=feat_at(m,"15m",ts)
+                  sig=acceleration_signal({"features":{"5m":f5,"15m":f15}})
+                  state=sig.get("state"); tracked=state in ("BUILDING_ACCELERATION","CONFIRMED_ACCELERATION")
+                  if not tracked:
+                      active=False; episode_start_ts=None; episode_start_price=None; first_confirm_ts=None
+                      continue
+                  if not active:
+                      episode+=1; active=True; episode_start_ts=ts; episode_start_price=p; first_confirm_ts=None
+                  if state!="CONFIRMED_ACCELERATION":continue
+                  if first_confirm_ts is None:first_confirm_ts=ts
+                  if episode==handled:continue
+
+                  if thesis is not None:
+                      expired=ts-thesis["sent_ts"]>THESIS_TTL
+                      lows=[x["l"] for x in c5 if thesis["sent_ts"]*1000<=x["t"]<ts*1000] if not expired else []
+                      breached=bool(lows) and min(lows)<=thesis["stop"]
+                      if not expired and not breached:
+                          handled=episode;continue
+                      thesis=None
+
+                  qv=rolling_qv(m,idx5)
+                  if qv<MIN_QV:continue
+                  sp=prior_spread(m,ts)
+                  if sp is None or sp["spread"]>MAX_SPREAD_PCT:continue
+                  ask=sp["ask"] if sp.get("ask") else p
+                  plan=structural_plan({"market":m,"ask":ask},f15,meta[m])
+                  if not plan.get("valid"):continue
+                  if finite(plan.get("stop_distance_pct"),999)>MAX_STOP:
+                      handled=episode;continue
+
+                  reg=regime(ts)
+                  comp=sig.get("components") or {}
+                  row={
+                    "market":m,"ts":ts,"score":sig.get("score"),"evidence":sig.get("evidence_count"),
+                    "momentum5_component":comp.get("momentum_5m"),
+                    "acceleration5_component":comp.get("momentum_acceleration_5m"),
+                    "volume_component":comp.get("volume_expansion"),
+                    "breakout_component":comp.get("breakout_pressure"),
+                    "confirmation15_component":comp.get("confirmation_15m"),
+                    "episode":episode,
+                    "episode_age_min":(ts-episode_start_ts)/60 if episode_start_ts else None,
+                    "confirmation_age_min":(ts-first_confirm_ts)/60 if first_confirm_ts else None,
+                    "episode_extension_pct":(p/episode_start_price-1)*100 if episode_start_price else None,
+                    "run_1h_pct":market_return(m,ts,3600,p),
+                    "run_4h_pct":market_return(m,ts,4*3600,p),
+                    "run_12h_pct":market_return(m,ts,12*3600,p),
+                    "run_24h_pct":market_return(m,ts,24*3600,p),
+                    "f5_return1":f5.get("return_1bar_pct"),"f5_return4":f5.get("return_4bar_pct"),
+                    "f5_return16":f5.get("return_16bar_pct"),"f5_accel":f5.get("momentum_acceleration_pp"),
+                    "f5_relvol":f5.get("relative_volume"),"f5_vol4":f5.get("volume_4_vs_prev4"),
+                    "f5_dist_breakout":f5.get("distance_to_breakout_pct"),
+                    "f5_extension_ma20":f5.get("extension_ma20_pct"),
+                    "f5_atr_pct":f5.get("atr14_pct"),"f5_consolidation":f5.get("consolidation_range_pct"),
+                    "f15_return1":f15.get("return_1bar_pct"),"f15_return4":f15.get("return_4bar_pct"),
+                    "f15_return16":f15.get("return_16bar_pct"),"f15_accel":f15.get("momentum_acceleration_pp"),
+                    "f15_relvol":f15.get("relative_volume"),"f15_vol4":f15.get("volume_4_vs_prev4"),
+                    "f15_dist_breakout":f15.get("distance_to_breakout_pct"),
+                    "f15_extension_ma20":f15.get("extension_ma20_pct"),
+                    "f15_atr_pct":f15.get("atr14_pct"),"f15_consolidation":f15.get("consolidation_range_pct"),
+                    "qv":qv,"spread_pct":sp["spread"],"spread_age_sec":sp["age"],
+                    "stop_distance_pct":plan.get("stop_distance_pct"),
+                    "tp1_distance_pct":(plan["tp1_eur"]/plan["entry_eur"]-1)*100,
+                    "breadth_1h_pos":reg["r1h"]["breadth_pos"],"median_1h":reg["r1h"]["median"],
+                    "mean_1h":reg["r1h"]["mean"],"dispersion_1h":reg["r1h"]["dispersion"],
+                    "breadth_4h_pos":reg["r4h"]["breadth_pos"],"median_4h":reg["r4h"]["median"],
+                    "mean_4h":reg["r4h"]["mean"],"dispersion_4h":reg["r4h"]["dispersion"],
+                    "btc_1h":(reg.get("BTC-EUR") or {}).get("r1h"),"btc_4h":(reg.get("BTC-EUR") or {}).get("r4h"),
+                    "eth_1h":(reg.get("ETH-EUR") or {}).get("r1h"),"eth_4h":(reg.get("ETH-EUR") or {}).get("r4h"),
+                    "sol_1h":(reg.get("SOL-EUR") or {}).get("r1h"),"sol_4h":(reg.get("SOL-EUR") or {}).get("r4h"),
+                  }
+                  o4=outcome(m,ts,plan,4); o12=outcome(m,ts,plan,12)
+                  row.update({"result4h":o4["result"],"mfe4h":o4["mfe"],"mae4h":o4["mae"],
+                              "result12h":o12["result"],"mfe12h":o12["mfe"],"mae12h":o12["mae"]})
+                  rows.append(row)
+                  handled=episode; thesis={"sent_ts":ts,"stop":plan["stop_eur"]}
+
+          payload={"generated_at_utc":datetime.fromtimestamp(now,timezone.utc).isoformat(),
+                   "audit_start_utc":datetime.fromtimestamp(audit_start,timezone.utc).isoformat(),
+                   "active_markets":len(markets),"api_errors":client.errors,"rows":rows}
+          Path("/tmp/solaire_96h_features.json").write_text(json.dumps(payload,indent=2),encoding="utf-8")
+          print("FEATURE_SUMMARY="+json.dumps({"rows":len(rows),"markets":len(set(r["market"] for r in rows)),
+                "tp1_12h":sum(r["result12h"]=="TP1" for r in rows),
+                "stop_12h":sum(r["result12h"]=="STOP" for r in rows),
+                "open_12h":sum(r["result12h"]=="OPEN" for r in rows)},separators=(",",":")))
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: solaire-96h-feature-audit
+          path: /tmp/solaire_96h_features.json
+          retention-days: 14
