@@ -17,6 +17,7 @@ from research.common import atomic_json, read_json, utc
 SCAN = "production_scan_status.json"
 ALERT = "production_alert_status.json"
 EVALUATION = "production_evaluation_status.json"
+PERSISTENT_BUILDING = "production_persistent_building_status.json"
 HEALTH = "production_health.json"
 
 
@@ -24,6 +25,7 @@ def main() -> int:
     scan = read_json(SCAN, {})
     alert = read_json(ALERT, {})
     evaluation = read_json(EVALUATION, {})
+    persistent_building = read_json(PERSISTENT_BUILDING, {})
 
     critical = []
     warnings = []
@@ -48,6 +50,10 @@ def main() -> int:
     if evaluation.get("status") not in (None, "OK"):
         warnings.append("EVALUATION_DEGRADED_NONBLOCKING")
 
+    shadow_outcome = os.getenv("PERSISTENT_BUILDING_OUTCOME", "success").lower()
+    if shadow_outcome != "success" or persistent_building.get("status") not in (None, "OK"):
+        warnings.append("PERSISTENT_BUILDING_SHADOW_DEGRADED_NONBLOCKING")
+
     publish_outcome = os.getenv("SCAN_PUBLISH_OUTCOME", "success").lower()
     if publish_outcome != "success":
         warnings.append("SCAN_STATE_PUBLISH_FAILED_NONBLOCKING")
@@ -64,6 +70,7 @@ def main() -> int:
             "market_context": context_status or "NOT_REPORTED",
             "alert": alert.get("status"),
             "evaluation": evaluation.get("status") or "NOT_REPORTED",
+            "persistent_building_shadow": persistent_building.get("status") or "NOT_REPORTED",
         },
         "coverage": {
             "active_eur_markets": active,
@@ -77,6 +84,9 @@ def main() -> int:
             "decision_layer_required": False,
             "context_external_dependency": False,
             "evaluation_blocks_alerts": False,
+            "persistent_building_blocks_anything": False,
+            "persistent_building_external_dependency": False,
+            "persistent_building_step_outcome": shadow_outcome,
             "scan_state_publish_outcome": publish_outcome,
         },
     }
