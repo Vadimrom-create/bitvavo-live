@@ -1,0 +1,26 @@
+name: Solaire V2 detection timing audit
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - 'research/solaire_v2_detection_timing_trigger.txt'
+permissions:
+  contents: write
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Replay detector timing over full EUR universe
+        run: python scripts/audit_solaire_v2_detection_timing.py
+      - name: Persist timing audit
+        run: |
+          git config user.name github-actions
+          git config user.email github-actions@github.com
+          git add research/solaire_v2_detection_timing_20260921.json
+          git diff --cached --quiet || git commit -m "Record Solaire V2 detection timing audit"
+          git push
