@@ -7,3 +7,7 @@ def test_early_building_shadow_is_non_actionable():
     assert "MIN_SCORE=6.0" in x
     assert "MIN_EVIDENCE=4" in x
     assert "validate(row,client,metadata" in x
+    assert "hq_active" in x
+    assert "evaluations" in x
+    assert "confirmation" in x
+    assert "stop_touched" in x and "tp1_touched" in x
