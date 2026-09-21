@@ -2,16 +2,20 @@
 """Reconstruct ICX-EUR executability through the 2026-09-21 move.
 
 Uses repository history for:
-- production_alert_candidates.json (actual Solaire detector snapshots)
-- bitvavo_live.json (historical Bitvavo bid/ask/spread + 24h volume snapshots)
+- production_alert_candidates.json: actual Solaire detector snapshots
+- live_quotes.json: validated Bitvavo last/bid/ask/spread snapshots
+- bitvavo_live.json: 24h-volume snapshots
 
-Rebuilds current 15m structural features from Bitvavo candle history at each
-detector snapshot and applies the current execution rules historically.
+Rebuilds current 15m structural features from historical Bitvavo candles.
+The structural plan is computed from the detector's own signal price to avoid
+look-ahead when a nearby quote snapshot is several minutes later. Historical
+spread is accepted only when a validated live_quotes snapshot is close enough.
+
 Research-only: no production decisions are changed.
 """
 from __future__ import annotations
 import json, subprocess, sys, time
-from datetime import datetime, timezone
+from datetime import datetime
 from pathlib import Path
 
 ROOT=Path(__file__).resolve().parents[1]
@@ -31,6 +35,7 @@ MIN_VOL=75_000.0
 MAX_SPREAD_PCT=0.5
 MIN_RANGE=6.0
 MAX_STOP=10.0
+MAX_QUOTE_DELTA_SEC=180
 OUT="research/icx_executability_timeline_20260921.json"
 
 def ts(s):
@@ -46,7 +51,8 @@ def git_versions(path):
             obj=json.loads(raw)
         except Exception:
             continue
-        marker=obj.get("generated_at_utc") or obj.get("checked_at_utc") or sha
+        marker=(obj.get("generated_at_utc") or obj.get("checked_at_utc") or
+                obj.get("requested_at_utc") or obj.get("received_at_utc") or sha)
         if marker in seen: continue
         seen.add(marker)
         out.append((sha,obj))
@@ -57,15 +63,19 @@ def market_from_live(obj):
         if r.get("market")==MARKET: return r
     return None
 
+def market_from_quotes(obj):
+    row=(obj.get("markets") or {}).get(MARKET)
+    return row if isinstance(row,dict) else None
+
 def market_from_candidates(obj):
     for key in ("tracking","watch"):
         for r in obj.get(key,[]) or []:
             if r.get("market")==MARKET: return r
     return None
 
-def nearest_live(live, t0, max_sec=600):
+def nearest(rows,t0,max_sec):
     best=None
-    for x in live:
+    for x in rows:
         d=abs(x["ts"]-t0)
         if best is None or d<best["delta_sec"]:
             best={**x,"delta_sec":d}
@@ -81,7 +91,7 @@ def raw_rows(raw):
         out.append((int(t),o,h,l,c,v))
     return sorted(out)
 
-def forward(rows, t0, base, hours):
+def forward(rows,t0,base,hours):
     if not base or base<=0: return None
     start=((int(t0*1000)//300_000)+1)*300_000
     end=int((t0+hours*3600)*1000)
@@ -97,23 +107,47 @@ def forward(rows, t0, base, hours):
 def first(rows,pred):
     return next((r for r in rows if pred(r)),None)
 
+def plan_view(p):
+    return {
+        "valid":bool(p.get("valid")),
+        "reason":None if p.get("valid") else p.get("reason"),
+        "stop_distance_pct":finite(p.get("stop_distance_pct")),
+        "net_rr_tp1":finite(p.get("net_rr_tp1")),
+        "entry_eur":finite(p.get("entry_eur")),
+        "stop_eur":finite(p.get("stop_eur")),
+        "tp1_eur":finite(p.get("tp1_eur")),
+    }
+
 def main():
-    live=[]
+    volume_snaps=[]
     for sha,obj in git_versions("bitvavo_live.json"):
         s=obj.get("generated_at_utc")
         if not s: continue
         row=market_from_live(obj)
         if not row: continue
-        live.append({
+        volume_snaps.append({
             "at_utc":s,"ts":ts(s),"sha":sha,
             "last":finite(row.get("last")),
-            "bid":finite(row.get("bid")),"ask":finite(row.get("ask")),
-            "spread_pct":finite(row.get("spread_pct")),
             "quote_volume_24h_eur":finite(row.get("quote_volume_24h_eur")),
             "change_24h_pct":finite(row.get("change_24h_pct")),
-            "m15":row.get("m15") or {},
         })
-    live.sort(key=lambda x:x["ts"])
+    volume_snaps.sort(key=lambda x:x["ts"])
+
+    quote_snaps=[]
+    for sha,obj in git_versions("live_quotes.json"):
+        s=obj.get("received_at_utc") or obj.get("requested_at_utc")
+        if not s: continue
+        row=market_from_quotes(obj)
+        if not row: continue
+        quote_snaps.append({
+            "at_utc":s,"ts":ts(s),"sha":sha,
+            "last":finite(row.get("last")),
+            "bid":finite(row.get("best_bid")),
+            "ask":finite(row.get("best_ask")),
+            "spread_pct":finite(row.get("spread_pct")),
+            "valid":bool(row.get("valid",obj.get("valid",False))),
+        })
+    quote_snaps.sort(key=lambda x:x["ts"])
 
     candidates=[]
     for sha,obj in git_versions("production_alert_candidates.json"):
@@ -133,32 +167,30 @@ def main():
 
     timeline=[]
     for c in candidates:
-        row=c["row"]; t0=c["ts"]; lp=nearest_live(live,t0)
+        row=c["row"]; t0=c["ts"]
+        q=nearest(quote_snaps,t0,MAX_QUOTE_DELTA_SEC)
+        v=nearest(volume_snaps,t0,600)
         f15=describe(closed_candles(raw15,"15m",t0),"15m")
         rng=finite(f15.get("consolidation_range_pct"))
-        volume=finite(row.get("quote_volume_24h_eur"),0.0)
-        spread=finite(lp.get("spread_pct")) if lp else None
-        ask=finite(lp.get("ask")) if lp else finite(row.get("last"))
+        volume=finite(row.get("quote_volume_24h_eur"),finite((v or {}).get("quote_volume_24h_eur"),0.0))
+        spread=finite(q.get("spread_pct")) if q and q.get("valid") else None
         liquidity_pass=volume>=MIN_VOL
         spread_pass=spread is not None and spread<=MAX_SPREAD_PCT
         range_pass=rng is not None and rng>=MIN_RANGE
-        plan=None
-        if f15.get("valid") and ask and ask>0:
-            p=structural_plan({**row,"market":MARKET,"ask":ask},f15,meta)
-            plan={
-                "valid":bool(p.get("valid")),
-                "reason":None if p.get("valid") else p.get("reason"),
-                "stop_distance_pct":finite(p.get("stop_distance_pct")),
-                "net_rr_tp1":finite(p.get("net_rr_tp1")),
-                "entry_eur":finite(p.get("entry_eur")),
-                "stop_eur":finite(p.get("stop_eur")),
-                "tp1_eur":finite(p.get("tp1_eur")),
-            }
-        stop=finite((plan or {}).get("stop_distance_pct"))
-        plan_pass=bool((plan or {}).get("valid") and stop is not None and stop<=MAX_STOP)
+
+        px=finite(row.get("last"))
+        signal_plan=None
+        if f15.get("valid") and px and px>0:
+            signal_plan=plan_view(structural_plan({**row,"market":MARKET,"ask":px},f15,meta))
+        stop=finite((signal_plan or {}).get("stop_distance_pct"))
+        plan_pass=bool((signal_plan or {}).get("valid") and stop is not None and stop<=MAX_STOP)
+
+        quote_plan=None
+        if q and f15.get("valid") and finite(q.get("ask")) and q["ask"]>0:
+            quote_plan=plan_view(structural_plan({**row,"market":MARKET,"ask":q["ask"]},f15,meta))
+
         execution_clean=bool(liquidity_pass and spread_pass and range_pass and plan_pass)
         state=row.get("signal_state")
-        px=finite(row.get("last"))
         timeline.append({
             "at_utc":c["at_utc"],
             "signal_state":state,
@@ -169,10 +201,10 @@ def main():
             "return_from_user_baseline_pct":round((px/USER_BASELINE_PRICE-1)*100,4) if px else None,
             "quote_volume_24h_eur":volume,
             "liquidity_pass":liquidity_pass,
-            "nearest_live_at_utc":lp.get("at_utc") if lp else None,
-            "live_delta_seconds":round(lp.get("delta_sec"),2) if lp else None,
-            "bid_eur":finite(lp.get("bid")) if lp else None,
-            "ask_eur":finite(lp.get("ask")) if lp else None,
+            "nearest_validated_quote_at_utc":q.get("at_utc") if q else None,
+            "quote_delta_seconds":round(q.get("delta_sec"),2) if q else None,
+            "bid_eur":finite(q.get("bid")) if q else None,
+            "ask_eur":finite(q.get("ask")) if q else None,
             "spread_pct":spread,
             "spread_pass":spread_pass,
             "range_15m_pct":rng,
@@ -180,7 +212,8 @@ def main():
             "atr14_15m_pct":finite(f15.get("atr14_pct")),
             "return_1h_15m_pct":finite(f15.get("return_4bar_pct")),
             "return_4h_15m_pct":finite(f15.get("return_16bar_pct")),
-            "structural_plan":plan,
+            "structural_plan_signal_price":signal_plan,
+            "structural_plan_near_quote":quote_plan,
             "plan_and_stop_pass":plan_pass,
             "execution_clean_proxy":execution_clean,
             "fully_actionable_proxy":bool(state=="CONFIRMED_ACCELERATION" and execution_clean),
@@ -190,9 +223,7 @@ def main():
         })
 
     baseline_ts=ts(USER_BASELINE_AT)
-    first_live_liq=first(live,lambda r:r["ts"]>=baseline_ts and finite(r.get("quote_volume_24h_eur"),0)>=MIN_VOL)
-    first_live_exec=first(live,lambda r:r["ts"]>=baseline_ts and finite(r.get("quote_volume_24h_eur"),0)>=MIN_VOL
-                    and finite(r.get("spread_pct"),999)<=MAX_SPREAD_PCT)
+    first_volume=first(volume_snaps,lambda r:r["ts"]>=baseline_ts and finite(r.get("quote_volume_24h_eur"),0)>=MIN_VOL)
     keys={
         "first_detected":first(timeline,lambda r:True),
         "first_liquidity_pass_while_detected":first(timeline,lambda r:r["liquidity_pass"]),
@@ -202,24 +233,26 @@ def main():
         "first_fully_actionable_proxy":first(timeline,lambda r:r["fully_actionable_proxy"]),
     }
 
-    # Compact the live transition records.
     def slim(x):
         if not x: return None
-        return {k:x.get(k) for k in ("at_utc","last","bid","ask","spread_pct","quote_volume_24h_eur","change_24h_pct")}
+        return {k:x.get(k) for k in ("at_utc","last","quote_volume_24h_eur","change_24h_pct")}
+
     out={
-        "schema":"icx_executability_timeline_v1","generated_at_utc":utc(),
+        "schema":"icx_executability_timeline_v2","generated_at_utc":utc(),
         "research_only":True,"affects_detection":False,"affects_buy_gate":False,"affects_email":False,
         "market":MARKET,
         "user_baseline":{"at_utc":USER_BASELINE_AT,"price_eur":USER_BASELINE_PRICE},
         "rules":{"min_quote_volume_24h_eur":MIN_VOL,"max_spread_pct":MAX_SPREAD_PCT,
-                 "min_range_15m_pct":MIN_RANGE,"max_stop_distance_pct":MAX_STOP},
-        "history_coverage":{"live_snapshots":len(live),"detector_snapshots":len(timeline)},
-        "first_live_volume_pass":slim(first_live_liq),
-        "first_live_volume_and_spread_pass":slim(first_live_exec),
+                 "min_range_15m_pct":MIN_RANGE,"max_stop_distance_pct":MAX_STOP,
+                 "max_validated_quote_delta_seconds":MAX_QUOTE_DELTA_SEC},
+        "history_coverage":{"volume_snapshots":len(volume_snaps),"validated_quote_snapshots":len(quote_snaps),
+                            "detector_snapshots":len(timeline)},
+        "first_historical_volume_pass":slim(first_volume),
         "key_detector_transitions":keys,
         "timeline":timeline,
         "limitations":[
-            "historical book snapshot paired to nearest bitvavo_live snapshot within 10 minutes",
+            "validated book spread is paired only when live_quotes is within 180 seconds of the detector snapshot",
+            "structural plan pass/fail uses the detector signal price to avoid look-ahead from a later quote",
             "15m structural features rebuilt with current feature code from historical Bitvavo candles",
             "freshness check omitted in historical replay",
         ],
@@ -227,8 +260,7 @@ def main():
     atomic_json(OUT,out)
     print("ICX_EXECUTABILITY_TIMELINE "+json.dumps({
         "coverage":out["history_coverage"],
-        "first_live_volume_pass":out["first_live_volume_pass"],
-        "first_live_volume_and_spread_pass":out["first_live_volume_and_spread_pass"],
+        "first_historical_volume_pass":out["first_historical_volume_pass"],
         "key_detector_transitions":keys,
     },ensure_ascii=False))
 
