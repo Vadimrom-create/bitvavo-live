@@ -1,8 +1,11 @@
 #!/usr/bin/env python3
-"""Prospective V2.1 candidate shadow: HQ BUILDING + 5% structural range.
+"""Prospective V2.1 candidate shadow: HQ BUILDING + CONFIRMED range rejects.
 
-This is measurement only. It compares the current 6% final structure gate with
-an otherwise-identical 5% range variant on the same live market snapshot.
+Measurement only. It compares the current 6% structural-range gate with an
+otherwise-identical 5% variant on the same live market snapshot for:
+1) high-quality BUILDING_ACCELERATION episodes; and
+2) CONFIRMED_ACCELERATION episodes rejected by production specifically for
+   STRUCTURAL_RANGE_TOO_NARROW.
 It never sends email, changes detection, or alters production BUY decisions.
 """
 from __future__ import annotations
@@ -22,6 +25,7 @@ from scripts.send_production_buy_alert import (
 )
 
 INPUT="production_alert_candidates.json"
+ALERT_STATUS="production_alert_status.json"
 STATE="production_v21_range5_shadow_state.json"
 JOURNAL="production_v21_range5_shadow_journal.json"
 STATUS="production_v21_range5_shadow_status.json"
@@ -95,37 +99,72 @@ def _gate_snapshot(row,client,metadata,now):
         "price_drift_pct":(ask/signal-1)*100,
     }
 
-    # Current 6% gate stops here if the range is too narrow.
-    if rng is None or rng<CURRENT_RANGE:
-        current={"passed":False,"reason":"STRUCTURAL_RANGE_TOO_NARROW"}
-    else:
-        p6=structural_plan({**row,"ask":ask},features,metadata[market])
-        if not p6.get("valid"):
-            current={"passed":False,"reason":p6.get("reason","INVALID_PLAN")}
-        elif finite(p6.get("stop_distance_pct"),999)>MAX_STOP_DISTANCE_PCT:
-            current={"passed":False,"reason":"STRUCTURAL_STOP_TOO_WIDE"}
-        else:
-            current={"passed":True,"reason":None,"trade":p6}
+    def gate(range_min):
+        if rng is None or rng<range_min:
+            return {"passed":False,"reason":"STRUCTURAL_RANGE_TOO_NARROW"}
+        plan=structural_plan({**row,"ask":ask},features,metadata[market])
+        if not plan.get("valid"):
+            return {"passed":False,"reason":plan.get("reason","INVALID_PLAN")}
+        if finite(plan.get("stop_distance_pct"),999)>MAX_STOP_DISTANCE_PCT:
+            return {"passed":False,"reason":"STRUCTURAL_STOP_TOO_WIDE"}
+        return {"passed":True,"reason":None,"trade":plan}
 
-    # Candidate 5% gate is otherwise identical.
-    if rng is None or rng<CANDIDATE_RANGE:
-        candidate={"passed":False,"reason":"STRUCTURAL_RANGE_TOO_NARROW"}
-    else:
-        p5=structural_plan({**row,"ask":ask},features,metadata[market])
-        if not p5.get("valid"):
-            candidate={"passed":False,"reason":p5.get("reason","INVALID_PLAN")}
-        elif finite(p5.get("stop_distance_pct"),999)>MAX_STOP_DISTANCE_PCT:
-            candidate={"passed":False,"reason":"STRUCTURAL_STOP_TOO_WIDE"}
-        else:
-            candidate={"passed":True,"reason":None,"trade":p5}
-    return {**common,"current6":current,"candidate5":candidate,"base_reason":None}
+    return {**common,"current6":gate(CURRENT_RANGE),"candidate5":gate(CANDIDATE_RANGE),"base_reason":None}
+
+def _append_event(*,row,source_type,payload,snap,journal,status,production_rejection_reason=None):
+    now=time.time()
+    market=row.get("market")
+    event={
+        "event_id":f"{market}|{source_type}|{int(now)}",
+        "market":market,
+        "source_type":source_type,
+        "production_rejection_reason":production_rejection_reason,
+        "detected_at_utc":payload.get("generated_at_utc"),
+        "detected_ts":now,
+        "signal_price_eur":finite(row.get("last")),
+        "signal_score":finite(row.get("signal_score")),
+        "signal_state":row.get("signal_state"),
+        "evidence_count":int((row.get("acceleration") or {}).get("evidence_count") or 0),
+        "context":copy.deepcopy(row.get("context") or {}),
+        "spread_pct":snap.get("spread_pct"),
+        "range_15m_pct":snap.get("range_15m_pct"),
+        "base_reason":snap.get("base_reason"),
+        "current6_passed":bool((snap.get("current6") or {}).get("passed")),
+        "current6_reason":(snap.get("current6") or {}).get("reason") or snap.get("base_reason"),
+        "candidate5_passed":bool((snap.get("candidate5") or {}).get("passed")),
+        "candidate5_reason":(snap.get("candidate5") or {}).get("reason") or snap.get("base_reason"),
+        "signal_evaluations":{},"candidate5_evaluations":{},
+        "affects_detection":False,"affects_buy_gate":False,"affects_email":False,
+    }
+    if event["current6_passed"]: status["current6_pass"]+=1
+    if event["candidate5_passed"]:
+        status["candidate5_pass"]+=1
+        tr=(snap.get("candidate5") or {}).get("trade") or {}
+        event.update(
+            candidate5_entry_eur=tr.get("entry_eur"),
+            candidate5_stop_eur=tr.get("stop_eur"),
+            candidate5_tp1_eur=tr.get("tp1_eur"),
+            candidate5_tp2_eur=tr.get("tp2_eur"),
+            candidate5_stop_distance_pct=tr.get("stop_distance_pct"),
+        )
+    if event["candidate5_passed"] and not event["current6_passed"]:
+        status["candidate5_only_pass"]+=1
+        if source_type=="CONFIRMED_RANGE_REJECT":
+            status["confirmed_range_candidate5_only_pass"]+=1
+    journal["events"].append(event)
+    status["new_events"]+=1
+    status["events"].append(event)
+    return event
 
 def main():
     now=time.time()
     payload=read_json(INPUT,{})
-    state=read_json(STATE,{"schema":"solaire_v21_range5_shadow_state_v1","markets":{}})
-    journal=read_json(JOURNAL,{"schema":"solaire_v21_range5_shadow_journal_v1","events":[]})
-    state.setdefault("markets",{}); journal.setdefault("events",[])
+    alert=read_json(ALERT_STATUS,{})
+    state=read_json(STATE,{"schema":"solaire_v21_range5_shadow_state_v2","markets":{}})
+    journal=read_json(JOURNAL,{"schema":"solaire_v21_range5_shadow_journal_v2","events":[]})
+    state["schema"]="solaire_v21_range5_shadow_state_v2"; state.setdefault("markets",{})
+    journal["schema"]="solaire_v21_range5_shadow_journal_v2"; journal.setdefault("events",[])
+
     tracking={r.get("market"):r for r in (payload.get("tracking") or [])
               if isinstance(r,dict) and r.get("market")}
 
@@ -136,10 +175,21 @@ def main():
         if row.get("signal_state")=="BUILDING_ACCELERATION" and score is not None and score>=MIN_SCORE and ev>=MIN_EVIDENCE:
             hq[market]=row
 
+    confirmed_range={}
+    for rejection in (alert.get("rejections") or []):
+        market=rejection.get("market")
+        if rejection.get("reason")!="STRUCTURAL_RANGE_TOO_NARROW": continue
+        row=tracking.get(market)
+        if row and row.get("signal_state")=="CONFIRMED_ACCELERATION":
+            confirmed_range[market]=row
+
     status={
-        "schema":"solaire_v21_range5_shadow_v1","checked_at_utc":utc(now),"status":"OK",
-        "hq_candidates":len(hq),"new_events":0,
+        "schema":"solaire_v21_range5_shadow_v2","checked_at_utc":utc(now),"status":"OK",
+        "hq_candidates":len(hq),
+        "confirmed_range_rejections":len(confirmed_range),
+        "new_events":0,
         "current6_pass":0,"candidate5_pass":0,"candidate5_only_pass":0,
+        "confirmed_range_candidate5_only_pass":0,
         "evaluated_signal_horizons":0,"evaluated_candidate_horizons":0,
         "criteria":{"hq_min_score":MIN_SCORE,"hq_min_evidence":MIN_EVIDENCE,
                     "current_range_pct":CURRENT_RANGE,"candidate_range_pct":CANDIDATE_RANGE},
@@ -153,43 +203,29 @@ def main():
         metadata={m["market"]:m for m in client.get("/markets")
                   if m.get("quote")=="EUR" and m.get("status")=="trading"}
 
-        for market in sorted(set(state["markets"])|set(tracking)):
-            st=state["markets"].setdefault(market,{"hq_active":False})
-            row=hq.get(market); is_hq=row is not None; was=bool(st.get("hq_active"))
-            if is_hq and not was:
+        all_markets=set(state["markets"])|set(tracking)|set(confirmed_range)
+        for market in sorted(all_markets):
+            st=state["markets"].setdefault(market,{"hq_active":False,"confirmed_range_active":False})
+
+            # High-quality BUILDING episode transition.
+            row=hq.get(market); is_hq=row is not None; was_hq=bool(st.get("hq_active"))
+            if is_hq and not was_hq:
                 snap=_gate_snapshot(row,client,metadata,time.time())
-                event={
-                    "event_id":f"{market}|{int(time.time())}","market":market,
-                    "detected_at_utc":payload.get("generated_at_utc"),"detected_ts":time.time(),
-                    "signal_price_eur":finite(row.get("last")),"signal_score":finite(row.get("signal_score")),
-                    "evidence_count":int((row.get("acceleration") or {}).get("evidence_count") or 0),
-                    "context":copy.deepcopy(row.get("context") or {}),
-                    "spread_pct":snap.get("spread_pct"),"range_15m_pct":snap.get("range_15m_pct"),
-                    "base_reason":snap.get("base_reason"),
-                    "current6_passed":bool((snap.get("current6") or {}).get("passed")),
-                    "current6_reason":(snap.get("current6") or {}).get("reason") or snap.get("base_reason"),
-                    "candidate5_passed":bool((snap.get("candidate5") or {}).get("passed")),
-                    "candidate5_reason":(snap.get("candidate5") or {}).get("reason") or snap.get("base_reason"),
-                    "signal_evaluations":{},"candidate5_evaluations":{},
-                    "affects_detection":False,"affects_buy_gate":False,"affects_email":False,
-                }
-                if event["current6_passed"]: status["current6_pass"]+=1
-                if event["candidate5_passed"]:
-                    status["candidate5_pass"]+=1
-                    tr=(snap.get("candidate5") or {}).get("trade") or {}
-                    event.update(
-                        candidate5_entry_eur=tr.get("entry_eur"),
-                        candidate5_stop_eur=tr.get("stop_eur"),
-                        candidate5_tp1_eur=tr.get("tp1_eur"),
-                        candidate5_tp2_eur=tr.get("tp2_eur"),
-                        candidate5_stop_distance_pct=tr.get("stop_distance_pct"),
-                    )
-                if event["candidate5_passed"] and not event["current6_passed"]:
-                    status["candidate5_only_pass"]+=1
-                journal["events"].append(event)
-                st["active_event_id"]=event["event_id"]
-                status["new_events"]+=1; status["events"].append(event)
+                event=_append_event(row=row,source_type="HQ_BUILDING",payload=payload,snap=snap,
+                                    journal=journal,status=status)
+                st["hq_active_event_id"]=event["event_id"]
             st["hq_active"]=is_hq
+
+            # Confirmed episode rejected solely by the production range gate.
+            crow=confirmed_range.get(market)
+            is_cr=crow is not None; was_cr=bool(st.get("confirmed_range_active"))
+            if is_cr and not was_cr:
+                snap=_gate_snapshot(crow,client,metadata,time.time())
+                event=_append_event(row=crow,source_type="CONFIRMED_RANGE_REJECT",payload=payload,snap=snap,
+                                    journal=journal,status=status,
+                                    production_rejection_reason="STRUCTURAL_RANGE_TOO_NARROW")
+                st["confirmed_range_event_id"]=event["event_id"]
+            st["confirmed_range_active"]=is_cr
             st["updated_at_utc"]=utc()
 
         due={}
