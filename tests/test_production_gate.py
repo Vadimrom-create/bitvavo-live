@@ -6,7 +6,7 @@ from research.production_acceleration import acceleration_signal
 from research.production_alerts import mark_sent, mark_suppressed, select_events
 from research.production_gate import ACCELERATION_ACTION, build_alert_payload
 from scripts.production_scan import observation as scan_observation
-from scripts.send_production_buy_alert import closed_5m_lows, prior_buy_thesis_active
+from scripts.send_production_buy_alert import closed_5m_lows, prior_buy_thesis_active, structural_range_ready
 
 
 def confirmed(score=7.1, evidence=4):
@@ -214,6 +214,18 @@ class ProductionAlertPolicyTests(unittest.TestCase):
         self.assertEqual(market["handled_episode"], 1)
         self.assertEqual(market["sent_episode"], 1)
         self.assertEqual(market["last_sent_stop_eur"], 0.95)
+
+
+class ProductionStructuralRangeTests(unittest.TestCase):
+    def test_structural_range_below_six_percent_waits(self):
+        self.assertFalse(structural_range_ready({"consolidation_range_pct": 5.99}))
+
+    def test_structural_range_at_or_above_six_percent_is_ready(self):
+        self.assertTrue(structural_range_ready({"consolidation_range_pct": 6.0}))
+        self.assertTrue(structural_range_ready({"consolidation_range_pct": 8.5}))
+
+    def test_missing_structural_range_fails_closed(self):
+        self.assertFalse(structural_range_ready({}))
 
 
 class ProductionPriorThesisTests(unittest.TestCase):
