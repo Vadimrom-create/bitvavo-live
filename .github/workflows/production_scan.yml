@@ -119,6 +119,7 @@ jobs:
           EARLY_BUILDING_OUTCOME: ${{ steps.early_building_shadow.outcome }}
           V21_RANGE5_OUTCOME: ${{ steps.v21_range5_shadow.outcome }}
           REJECTION_SHADOW_OUTCOME: ${{ steps.rejection_shadow.outcome }}
+          ALL_ACTIONABLE_OUTCOME: ${{ steps.all_actionable_shadow.outcome }}
         run: python scripts/check_production_health.py
 
       - name: Persist Solaire runtime state
