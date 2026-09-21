@@ -4,6 +4,7 @@
 Uses repository history for:
 - production_alert_candidates.json: actual Solaire detector snapshots
 - live_quotes.json: validated Bitvavo last/bid/ask/spread snapshots
+- market_control.json: full-universe Bitvavo bid/ask/spread snapshots
 - bitvavo_live.json: 24h-volume snapshots
 
 Rebuilds current 15m structural features from historical Bitvavo candles.
@@ -66,6 +67,11 @@ def market_from_live(obj):
 def market_from_quotes(obj):
     row=(obj.get("markets") or {}).get(MARKET)
     return row if isinstance(row,dict) else None
+
+def market_from_control(obj):
+    for r in obj.get("markets",[]) or []:
+        if r.get("market")==MARKET: return r
+    return None
 
 def market_from_candidates(obj):
     for key in ("tracking","watch"):
@@ -146,6 +152,21 @@ def main():
             "ask":finite(row.get("best_ask")),
             "spread_pct":finite(row.get("spread_pct")),
             "valid":bool(row.get("valid",obj.get("valid",False))),
+            "source":"live_quotes",
+        })
+    for sha,obj in git_versions("market_control.json"):
+        s=obj.get("generated_at_utc")
+        if not s: continue
+        row=market_from_control(obj)
+        if not row: continue
+        quote_snaps.append({
+            "at_utc":s,"ts":ts(s),"sha":sha,
+            "last":finite(row.get("last")),
+            "bid":finite(row.get("bid")),
+            "ask":finite(row.get("ask")),
+            "spread_pct":finite(row.get("spread_pct")),
+            "valid":finite(row.get("bid")) is not None and finite(row.get("ask")) is not None,
+            "source":"market_control",
         })
     quote_snaps.sort(key=lambda x:x["ts"])
 
@@ -209,6 +230,7 @@ def main():
             "quote_volume_24h_eur":volume,
             "liquidity_pass":liquidity_pass,
             "nearest_validated_quote_at_utc":q.get("at_utc") if q else None,
+            "nearest_quote_source":q.get("source") if q else None,
             "quote_delta_seconds":round(q.get("delta_sec"),2) if q else None,
             "bid_eur":finite(q.get("bid")) if q else None,
             "ask_eur":finite(q.get("ask")) if q else None,
@@ -257,14 +279,14 @@ def main():
         "rules":{"min_quote_volume_24h_eur":MIN_VOL,"max_spread_pct":MAX_SPREAD_PCT,
                  "min_range_15m_pct":MIN_RANGE,"max_stop_distance_pct":MAX_STOP,
                  "max_validated_quote_delta_seconds":MAX_QUOTE_DELTA_SEC},
-        "history_coverage":{"volume_snapshots":len(volume_snaps),"validated_quote_snapshots":len(quote_snaps),
+        "history_coverage":{"volume_snapshots":len(volume_snaps),"quote_snapshots":len(quote_snaps),
                             "detector_snapshots":len(timeline)},
         "first_historical_volume_pass":slim(first_volume),
         "key_detector_transitions":keys,
         "timeline":timeline,
         "limitations":[
             "5m structural plan is an audit counterfactual only; production uses the 15m structural plan",
-            "validated book spread is paired only when live_quotes is within 180 seconds of the detector snapshot",
+            "historical spread uses the nearest valid live_quotes or full-universe market_control snapshot within 180 seconds",
             "structural plan pass/fail uses the detector signal price to avoid look-ahead from a later quote",
             "15m structural features rebuilt with current feature code from historical Bitvavo candles",
             "freshness check omitted in historical replay",
