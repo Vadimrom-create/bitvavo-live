@@ -70,11 +70,18 @@ def build_market_context(observations: list[dict[str, Any]]) -> dict[str, Any]:
             "return_4h_pct": _round(_num(row.get("return_4h_pct"))),
         }
 
+    benchmark_1h = [
+        row["return_1h_pct"]
+        for row in benchmark.values()
+        if row.get("return_1h_pct") is not None
+    ]
     benchmark_4h = [
         row["return_4h_pct"]
         for row in benchmark.values()
         if row.get("return_4h_pct") is not None
     ]
+    positive_benchmarks_1h = sum(value > 0 for value in benchmark_1h)
+    negative_benchmarks_1h = sum(value < 0 for value in benchmark_1h)
     positive_benchmarks = sum(value > 0 for value in benchmark_4h)
     negative_benchmarks = sum(value < 0 for value in benchmark_4h)
 
@@ -97,6 +104,34 @@ def build_market_context(observations: list[dict[str, Any]]) -> dict[str, Any]:
     ):
         regime = "BROAD_RISK_OFF"
 
+    short_term_phase = "MIXED_1H"
+    if (
+        breadth_1h is not None
+        and median_1h is not None
+        and breadth_1h >= 60
+        and median_1h > 0
+        and positive_benchmarks_1h >= 2
+    ):
+        short_term_phase = "EXPANSION_1H"
+    elif (
+        breadth_1h is not None
+        and median_1h is not None
+        and breadth_1h <= 40
+        and median_1h < 0
+        and negative_benchmarks_1h >= 2
+    ):
+        short_term_phase = "PULLBACK_1H"
+
+    regime_phase = "MIXED_TRANSITION"
+    if regime == "BROAD_RISK_ON" and short_term_phase == "EXPANSION_1H":
+        regime_phase = "RISK_ON_CONTINUATION"
+    elif regime == "BROAD_RISK_ON" and short_term_phase == "PULLBACK_1H":
+        regime_phase = "RISK_ON_PULLBACK"
+    elif regime == "BROAD_RISK_OFF" and short_term_phase == "PULLBACK_1H":
+        regime_phase = "RISK_OFF_CONTINUATION"
+    elif regime == "BROAD_RISK_OFF" and short_term_phase == "EXPANSION_1H":
+        regime_phase = "RISK_OFF_REBOUND"
+
     completeness = 100.0 * len(usable) / len(observations) if observations else 0.0
     return {
         "schema": "solaire_market_context_v1",
@@ -108,6 +143,8 @@ def build_market_context(observations: list[dict[str, Any]]) -> dict[str, Any]:
         "markets_usable": len(usable),
         "completeness_pct": round(completeness, 2),
         "regime": regime,
+        "short_term_phase": short_term_phase,
+        "regime_phase": regime_phase,
         "breadth_positive_1h_pct": _round(breadth_1h, 2),
         "breadth_positive_4h_pct": _round(breadth_4h, 2),
         "median_return_1h_pct": _round(median_1h),
@@ -128,6 +165,8 @@ def candidate_context(obs: dict[str, Any], market_context: dict[str, Any]) -> di
     return {
         "mode": "SHADOW_NON_VETO",
         "regime": market_context.get("regime"),
+        "short_term_phase": market_context.get("short_term_phase"),
+        "regime_phase": market_context.get("regime_phase"),
         "market_return_1h_pct": _round(r1),
         "market_return_4h_pct": _round(r4),
         "relative_strength_1h_pp": _round(r1 - median_1h) if r1 is not None and median_1h is not None else None,

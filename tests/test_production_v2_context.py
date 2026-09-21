@@ -62,6 +62,18 @@ class ProductionContextTests(unittest.TestCase):
         payload = build_alert_payload(observations, "2026-09-21T10:00:00+00:00", context)
         self.assertEqual([row["market"] for row in payload["watch"]], ["A-EUR"])
 
+    def test_four_hour_risk_on_with_one_hour_pullback_is_labeled_explicitly(self):
+        observations = [
+            self.obs("BTC-EUR", -1.0, 2.0),
+            self.obs("ETH-EUR", -1.0, 2.0),
+            self.obs("SOL-EUR", -1.0, 2.0),
+        ]
+        observations.extend(self.obs(f"A{i}-EUR", -0.5, 1.0) for i in range(7))
+        context = build_market_context(observations)
+        self.assertEqual(context["regime"], "BROAD_RISK_ON")
+        self.assertEqual(context["short_term_phase"], "PULLBACK_1H")
+        self.assertEqual(context["regime_phase"], "RISK_ON_PULLBACK")
+
 
 class ProductionJournalTests(unittest.TestCase):
     def payload(self):

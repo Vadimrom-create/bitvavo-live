@@ -110,6 +110,33 @@ class PureAccelerationTests(unittest.TestCase):
         result = acceleration_signal(obs)
         self.assertEqual(result["state"], "CONFIRMED_ACCELERATION")
         self.assertEqual(result["buyability"], "REQUIRES_FINAL_EXECUTION_VALIDATION")
+        self.assertTrue(result["timeframe_confirmation_15m"])
+        self.assertEqual(result["confirmation_scope"], "MULTI_TIMEFRAME")
+
+    def test_confirmed_state_can_be_fast_composite_without_15m_evidence(self):
+        obs = {
+            "features": {
+                "5m": {
+                    "valid": True,
+                    "relative_volume": 4.0,
+                    "volume_4_vs_prev4": 4.0,
+                    "return_4bar_pct": 4.0,
+                    "momentum_acceleration_pp": 4.0,
+                    "distance_to_breakout_pct": 1.0,
+                },
+                "15m": {
+                    "valid": True,
+                    "relative_volume": 0.5,
+                    "return_1bar_pct": -1.0,
+                    "return_4bar_pct": 0.0,
+                },
+            },
+        }
+        result = acceleration_signal(obs)
+        self.assertEqual(result["state"], "CONFIRMED_ACCELERATION")
+        self.assertFalse(result["timeframe_confirmation_15m"])
+        self.assertEqual(result["confirmation_scope"], "FAST_COMPOSITE_ONLY")
+        self.assertFalse(result["evidence_flags"]["confirmation_15m"])
 
 
 class ProductionFreshnessTests(unittest.TestCase):
