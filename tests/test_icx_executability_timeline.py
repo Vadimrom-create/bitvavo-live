@@ -10,4 +10,5 @@ def test_icx_timeline_is_research_only():
     assert "fully_actionable_proxy" in x
     assert "micro5_structural_plan_signal_price" in x
     assert "micro5_plan_and_stop_pass" in x
+    assert "nearest_quote_source" in x
     assert "ICX-EUR" in x
