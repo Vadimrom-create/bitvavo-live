@@ -82,7 +82,35 @@ def main():
               "hq_only_mfe_ge_5pct":count(lambda r:r["hq_mfe_4h_pct"]>=5 and r["confirmed_mfe_4h_pct"]<5),
               "confirmed_only_mfe_ge_5pct":count(lambda r:r["confirmed_mfe_4h_pct"]>=5 and r["hq_mfe_4h_pct"]<5)}
     }
-    out={"schema":"solaire_v2_hq_building_vs_confirmed_v1","generated_at_utc":utc(),
+    def subset_stats(xs):
+        return {
+            "n": len(xs),
+            "median_delay_minutes": med([r["delay_minutes"] for r in xs]),
+            "median_price_change_hq_to_confirmed_pct": med([r["price_change_hq_to_confirmed_pct"] for r in xs]),
+            "hq_mfe_ge_5pct": sum(r["hq_mfe_4h_pct"] >= 5 for r in xs),
+            "confirmed_mfe_ge_5pct": sum(r["confirmed_mfe_4h_pct"] >= 5 for r in xs),
+            "hq_mae_le_minus5pct": sum(r["hq_mae_4h_pct"] <= -5 for r in xs),
+            "confirmed_mae_le_minus5pct": sum(r["confirmed_mae_4h_pct"] <= -5 for r in xs),
+            "hq_median_mfe_pct": med([r["hq_mfe_4h_pct"] for r in xs]),
+            "confirmed_median_mfe_pct": med([r["confirmed_mfe_4h_pct"] for r in xs]),
+            "hq_median_mae_pct": med([r["hq_mae_4h_pct"] for r in xs]),
+            "confirmed_median_mae_pct": med([r["confirmed_mae_4h_pct"] for r in xs]),
+            "hq_median_close_pct": med([r["hq_close_4h_pct"] for r in xs]),
+            "confirmed_median_close_pct": med([r["confirmed_close_4h_pct"] for r in xs]),
+            "median_mfe_advantage_pp": med([r["hq_mfe_4h_pct"]-r["confirmed_mfe_4h_pct"] for r in xs]),
+            "median_close_advantage_pp": med([r["hq_close_4h_pct"]-r["confirmed_close_4h_pct"] for r in xs]),
+        }
+
+    delayed=[r for r in rows if finite(r.get("delay_minutes"),0)>0]
+    delayed15=[r for r in rows if finite(r.get("delay_minutes"),0)>=15]
+    delayed30=[r for r in rows if finite(r.get("delay_minutes"),0)>=30]
+    summary["delayed_pairs"]={
+        "gt_0m": subset_stats(delayed),
+        "ge_15m": subset_stats(delayed15),
+        "ge_30m": subset_stats(delayed30),
+    }
+
+    out={"schema":"solaire_v2_hq_building_vs_confirmed_v2","generated_at_utc":utc(),
          "research_only":True,"affects_detection":False,"affects_buy_gate":False,"affects_email":False,
          "liquidity_floor_eur_24h":MIN_LIQ,
          "method":"same persisted market episode, both HQ BUILDING and CONFIRMED present, both 4h windows complete",
