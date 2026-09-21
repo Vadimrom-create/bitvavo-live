@@ -67,6 +67,10 @@ def main():
     payload=read_json(INPUT,{})
     state=read_json(STATE,{"schema":"solaire_early_building_shadow_state_v2","markets":{}})
     journal=read_json(JOURNAL,{"schema":"solaire_early_building_shadow_journal_v2","events":[]})
+    state["schema"]="solaire_early_building_shadow_state_v2"
+    state.setdefault("markets",{})
+    journal["schema"]="solaire_early_building_shadow_journal_v2"
+    journal.setdefault("events",[])
     tracking={r.get("market"):r for r in (payload.get("tracking") or [])
               if isinstance(r,dict) and r.get("market")}
     hq={}
