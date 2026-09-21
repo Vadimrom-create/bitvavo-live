@@ -1,8 +1,8 @@
 # Bitvavo — V4 mesurée / infrastructure V5
 
-Scan UTC : 2026-09-21T16:56:02.217649+00:00
+Scan UTC : 2026-09-21T17:12:58.382656+00:00
 État : OK | marchés EUR : 426 | V4 : 403 | données valides : 426
-Récupération : 2026-09-21T16:55:26.088714+00:00 | âge ticker : 156.7 s | durée : 157.4 s
+Récupération : 2026-09-21T17:12:17.517078+00:00 | âge ticker : 154.7 s | durée : 155.6 s
 
 ## ACHÈTE — signal V4 et plan théorique
 
@@ -12,27 +12,27 @@ Les intervalles sans transaction sont représentés explicitement à volume 0 ; 
 
 ## SURVEILLE
 
-- XAI-EUR : 0.006994 € ; score 86.19/100 ; SURVEILLE ; SELLER_HEAVY_BOOK
-- HOT-EUR : 0.00036902 € ; score 84.76/100 ; SURVEILLE ; SPREAD_RISK, SELLER_HEAVY_BOOK, WICK_SETUP
-- MERL-EUR : 0.024037 € ; score 83.81/100 ; SURVEILLE ; SELLER_HEAVY_BOOK
-- KAS-EUR : 0.037357 € ; score 81.93/100 ; SURVEILLE ; WICK_SETUP
-- IOST-EUR : 0.0007836 € ; score 81.31/100 ; SURVEILLE ; VERY_SELLER_HEAVY_BOOK, WICK_SETUP
+- TRB-EUR : 16.837 € ; score 87.80/100 ; SURVEILLE ; SELLER_HEAVY_BOOK, WICK_SETUP
+- ETC-EUR : 7.7556 € ; score 84.67/100 ; SURVEILLE ; WICK_SETUP
+- MERL-EUR : 0.024037 € ; score 83.46/100 ; SURVEILLE ; SELLER_HEAVY_BOOK
+- KAS-EUR : 0.037201 € ; score 83.27/100 ; SURVEILLE ; seuil achat non atteint
+- CSPR-EUR : 0.002425 € ; score 81.76/100 ; SURVEILLE ; WIDE_SPREAD_RISK
 
 ## Contrôle des hausses
 
 | Marché | Prix € | 24 h | Détection | Couche d’échec | Actionnabilité |
 |---|---:|---:|---|---|---|
-| ICX-EUR | 0.030822 | +265.67 % | NOT_DETECTED | SCANNER_SCORING | NOT_APPLICABLE |
-| ZRC-EUR | 0.0026584 | +242.18 % | DETECTED_EARLY | NONE | INTERPRETATION |
-| ZETA-EUR | 0.052507 | +55.58 % | NOT_DETECTED | SCANNER_COVERAGE | NOT_APPLICABLE |
-| FORM-EUR | 0.33434 | +49.29 % | DETECTED_EARLY | NONE | INTERPRETATION |
-| SWELL-EUR | 0.0009084 | +39.05 % | DETECTED_EARLY | NONE | INTERPRETATION |
-| PHA-EUR | 0.042704 | +35.97 % | DETECTED_EARLY | NONE | ENTRY_TIMING_OR_EXECUTION |
-| PTB-EUR | 0.0009642 | +26.92 % | NOT_DETECTED | DATA | NOT_APPLICABLE |
-| NIL-EUR | 0.056493 | +26.54 % | DETECTED_EARLY | NONE | INTERPRETATION |
-| NOS-EUR | 0.318 | +23.73 % | DETECTED_EARLY | NONE | INTERPRETATION |
-| PEPE-EUR | 4.3039e-06 | +22.91 % | DETECTED_EARLY | NONE | NONE |
+| ICX-EUR | 0.02924 | +246.86 % | NOT_DETECTED | SCANNER_SCORING | NOT_APPLICABLE |
+| ZRC-EUR | 0.0019432 | +150.12 % | DETECTED_EARLY | NONE | INTERPRETATION |
+| FORM-EUR | 0.33981 | +52.21 % | DETECTED_EARLY | NONE | INTERPRETATION |
+| ZETA-EUR | 0.050944 | +50.95 % | NOT_DETECTED | SCANNER_COVERAGE | NOT_APPLICABLE |
+| SWELL-EUR | 0.00098 | +50.01 % | DETECTED_EARLY | NONE | INTERPRETATION |
+| PHA-EUR | 0.042776 | +34.97 % | DETECTED_EARLY | NONE | ENTRY_TIMING_OR_EXECUTION |
+| PTB-EUR | 0.00099 | +30.06 % | NOT_DETECTED | DATA | NOT_APPLICABLE |
+| NIL-EUR | 0.056012 | +25.80 % | DETECTED_EARLY | NONE | INTERPRETATION |
+| PEPE-EUR | 4.3299e-06 | +24.42 % | DETECTED_EARLY | NONE | NONE |
+| NOS-EUR | 0.31759 | +22.83 % | DETECTED_EARLY | NONE | INTERPRETATION |
 
-Historique : 1091 scans ; 467503 observations ; 394 épisodes d’achat évaluables.
+Historique : 1092 scans ; 467929 observations ; 398 épisodes d’achat évaluables.
 V5 optimisée : aucune. Supériorité sur V4 : non démontrée. Probabilités : non calibrées.
 Le cash et le portefeuille du plan sont hypothétiques. Aucun ordre réel n’est envoyé.
