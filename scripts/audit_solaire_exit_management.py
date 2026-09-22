@@ -38,8 +38,20 @@ POLICIES={
     "full_1r":{
         "kind":"full_target","target_r":1.0,"target_pct":None,"time_stop_hours":None,
     },
+    "full_1_25r":{
+        "kind":"full_target","target_r":1.25,"target_pct":None,"time_stop_hours":None,
+    },
+    "full_1_4r":{
+        "kind":"full_target","target_r":1.4,"target_pct":None,"time_stop_hours":None,
+    },
     "full_1_5r":{
         "kind":"full_target","target_r":1.5,"target_pct":None,"time_stop_hours":None,
+    },
+    "full_1_6r":{
+        "kind":"full_target","target_r":1.6,"target_pct":None,"time_stop_hours":None,
+    },
+    "full_1_75r":{
+        "kind":"full_target","target_r":1.75,"target_pct":None,"time_stop_hours":None,
     },
     "be_after_1r":{
         "kind":"be_then_tp1","trigger_r":1.0,
@@ -296,7 +308,7 @@ def main():
             }
 
     out={
-        "schema":"solaire_exit_management_audit_v1",
+        "schema":"solaire_exit_management_audit_v2",
         "generated_at_utc":utc(),
         "research_only":True,
         "affects_detection":False,"affects_buy_gate":False,"affects_email":False,
