@@ -6,6 +6,7 @@ def test_health_reports_all_nonblocking_shadows():
         "EARLY_BUILDING_OUTCOME",
         "V21_RANGE5_OUTCOME",
         "REJECTION_SHADOW_OUTCOME",
+        "EXIT_POLICY_OUTCOME",
         "all_shadows_block_anything",
         "solaire_production_health_v2",
     ]:
