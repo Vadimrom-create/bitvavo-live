@@ -21,6 +21,7 @@ on:
       - 'scripts/update_all_actionable_shadow.py'
       - 'scripts/update_breakout_risk_shadow.py'
       - 'scripts/update_emerging_liquidity_shadow.py'
+      - 'scripts/update_exit_policy_shadow.py'
       - 'scripts/check_production_health.py'
       - 'research/features.py'
       - 'research/risk.py'
@@ -125,6 +126,12 @@ jobs:
         continue-on-error: true
         run: python scripts/update_rejection_shadow.py
 
+      - name: Update exit-policy shadow
+        id: exit_policy_shadow
+        if: always()
+        continue-on-error: true
+        run: python scripts/update_exit_policy_shadow.py
+
       - name: Check Solaire production health
         if: always()
         env:
@@ -136,6 +143,7 @@ jobs:
           ALL_ACTIONABLE_OUTCOME: ${{ steps.all_actionable_shadow.outcome }}
           BREAKOUT_RISK_OUTCOME: ${{ steps.breakout_risk_shadow.outcome }}
           EMERGING_LIQUIDITY_OUTCOME: ${{ steps.emerging_liquidity_shadow.outcome }}
+          EXIT_POLICY_OUTCOME: ${{ steps.exit_policy_shadow.outcome }}
         run: python scripts/check_production_health.py
 
       - name: Persist Solaire runtime state
@@ -143,7 +151,7 @@ jobs:
         run: |
           git config user.name 'bitvavo-live-bot'
           git config user.email 'actions@users.noreply.github.com'
-          for file in             production_alert_state.json             production_alert_status.json             production_decision_journal.json             production_evaluation_status.json             production_persistent_building_state.json             production_persistent_building_journal.json             production_persistent_building_status.json             production_early_building_shadow_state.json             production_early_building_shadow_journal.json             production_early_building_shadow_status.json             production_v21_range5_shadow_state.json             production_v21_range5_shadow_journal.json             production_v21_range5_shadow_status.json             production_rejection_shadow_state.json             production_rejection_shadow_journal.json             production_rejection_shadow_status.json             production_all_actionable_shadow_journal.json             production_all_actionable_shadow_status.json             production_breakout_risk_shadow_state.json             production_breakout_risk_shadow_journal.json             production_breakout_risk_shadow_status.json             production_emerging_liquidity_shadow_state.json             production_emerging_liquidity_shadow_journal.json             production_emerging_liquidity_shadow_status.json             production_health.json; do
+          for file in             production_alert_state.json             production_alert_status.json             production_decision_journal.json             production_evaluation_status.json             production_persistent_building_state.json             production_persistent_building_journal.json             production_persistent_building_status.json             production_early_building_shadow_state.json             production_early_building_shadow_journal.json             production_early_building_shadow_status.json             production_v21_range5_shadow_state.json             production_v21_range5_shadow_journal.json             production_v21_range5_shadow_status.json             production_rejection_shadow_state.json             production_rejection_shadow_journal.json             production_rejection_shadow_status.json             production_all_actionable_shadow_journal.json             production_all_actionable_shadow_status.json             production_breakout_risk_shadow_state.json             production_breakout_risk_shadow_journal.json             production_breakout_risk_shadow_status.json             production_emerging_liquidity_shadow_state.json             production_emerging_liquidity_shadow_journal.json             production_emerging_liquidity_shadow_status.json             production_exit_policy_shadow_journal.json             production_exit_policy_shadow_status.json             production_health.json; do
             if [ -e "$file" ]; then git add "$file"; fi
           done
           if git diff --cached --quiet; then exit 0; fi
