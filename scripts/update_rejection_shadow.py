@@ -85,15 +85,32 @@ def _evaluate_reentry(event,bars,hours):
         "closed_5m_bars_after_first_execution_valid_snapshot",
     )
 
+def _reentry_tier(row):
+    state=row.get("signal_state")
+    score=finite(row.get("signal_score"),0)
+    evidence=int((row.get("acceleration") or {}).get("evidence_count") or 0)
+    if state=="CONFIRMED_ACCELERATION":
+        return "CONFIRMED_REENTRY"
+    if state=="BUILDING_ACCELERATION" and score>=6.0 and evidence>=4:
+        return "BUILDING_HQ_4E"
+    if state=="BUILDING_ACCELERATION" and score>=6.0 and evidence>=3:
+        return "BUILDING_6_3"
+    if state=="BUILDING_ACCELERATION":
+        return "BUILDING_WEAK"
+    return "OTHER"
+
 def _validated_snapshot(event,row,validated,now):
     trade=validated.get("trade") or {}
     entry=finite(trade.get("entry_eur"))
     base=finite(event.get("rejection_price_eur"))
+    rejected_ts=finite(event.get("rejected_ts"))
     return {
         "at_utc":utc(now),
         "signal_state":row.get("signal_state"),
         "signal_score":finite(row.get("signal_score")),
         "evidence_count":int((row.get("acceleration") or {}).get("evidence_count") or 0),
+        "reentry_tier":_reentry_tier(row),
+        "reentry_delay_seconds":round(now-rejected_ts,1) if rejected_ts is not None else None,
         "signal_price_eur":finite(row.get("last")),
         "entry_eur":entry,
         "return_from_rejection_pct":round((entry/base-1)*100,4) if entry and base else None,
@@ -252,6 +269,60 @@ def main():
         errors.append({"reason":type(exc).__name__+":"+str(exc)})
 
     journal["events"]=journal["events"][-MAX_EVENTS:]
+
+    def cohort_stats(events,horizon):
+        xs=[]
+        for event in events:
+            snap=event.get("first_later_execution_valid_snapshot") or {}
+            ev=(event.get("execution_valid_evaluations") or {}).get(str(horizon))
+            if not snap or not ev:
+                continue
+            xs.append((snap,ev))
+        vals=lambda key:[finite(ev.get(key)) for _,ev in xs if finite(ev.get(key)) is not None]
+        def median(values):
+            values=sorted(values)
+            if not values:return None
+            n=len(values)
+            return round(values[n//2] if n%2 else (values[n//2-1]+values[n//2])/2,4)
+        return {
+            "n":len(xs),
+            "mfe_ge_5pct":sum(finite(ev.get("mfe_pct"),-999)>=5 for _,ev in xs),
+            "clean_mfe_ge5_mae_gt_minus5":sum(
+                finite(ev.get("mfe_pct"),-999)>=5 and finite(ev.get("mae_pct"),999)>-5 for _,ev in xs
+            ),
+            "mae_le_minus5pct":sum(finite(ev.get("mae_pct"),999)<=-5 for _,ev in xs),
+            "median_mfe_pct":median(vals("mfe_pct")),
+            "median_mae_pct":median(vals("mae_pct")),
+            "median_close_pct":median(vals("close_return_pct")),
+            "median_reentry_delay_minutes":median([
+                finite(snap.get("reentry_delay_seconds"))/60
+                for snap,_ in xs if finite(snap.get("reentry_delay_seconds")) is not None
+            ]),
+        }
+
+    tier_names=("CONFIRMED_REENTRY","BUILDING_HQ_4E","BUILDING_6_3","BUILDING_WEAK","OTHER")
+    reentry_cohorts={}
+    for tier in tier_names:
+        subset=[
+            e for e in journal["events"]
+            if (e.get("first_later_execution_valid_snapshot") or {}).get("reentry_tier")==tier
+        ]
+        reentry_cohorts[tier]={
+            "h1":cohort_stats(subset,1),
+            "h4":cohort_stats(subset,4),
+        }
+
+    reason_cohorts={}
+    for reason in sorted(TRACKED):
+        subset=[
+            e for e in journal["events"]
+            if e.get("first_rejection_reason")==reason and e.get("first_later_execution_valid_snapshot")
+        ]
+        reason_cohorts[reason]={
+            "h1":cohort_stats(subset,1),
+            "h4":cohort_stats(subset,4),
+        }
+
     state["updated_at_utc"]=utc(); journal["updated_at_utc"]=utc()
     status={
         "schema":"solaire_rejection_shadow_v4","checked_at_utc":utc(),
@@ -273,6 +344,8 @@ def main():
         "reentries_with_4h":sum("4" in (e.get("execution_valid_evaluations") or {}) for e in journal["events"]),
         "reentries_with_12h":sum("12" in (e.get("execution_valid_evaluations") or {}) for e in journal["events"]),
         "reentries_with_24h":sum("24" in (e.get("execution_valid_evaluations") or {}) for e in journal["events"]),
+        "reentry_tier_cohorts":reentry_cohorts,
+        "reentry_reason_cohorts":reason_cohorts,
         "errors":errors,
         "affects_detection":False,"affects_buy_gate":False,"affects_email":False,
     }
