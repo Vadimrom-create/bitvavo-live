@@ -7,6 +7,7 @@ audit. Measurement only: no email, position or production decision is changed.
 """
 from __future__ import annotations
 import json, math, statistics, sys, time
+from datetime import datetime
 from pathlib import Path
 
 ROOT=Path(__file__).resolve().parents[1]
@@ -22,6 +23,10 @@ STATUS="production_exit_policy_shadow_status.json"
 FEE_RATE=0.0015
 LOOKBACK=30*3600
 HORIZONS=(4,12,24)
+STUDY_ID="tp_r_grid_post_priority2_20260922"
+STUDY_START_UTC="2026-09-22T18:54:05+00:00"
+CHECKPOINT_COMPLETE_4H=30
+DECISION_COMPLETE_12H=50
 POLICIES={
     "current_tp1_stop":{"target_r":None},
     "full_1_4r":{"target_r":1.4},
@@ -86,18 +91,56 @@ def _summary(rows,policy,h):
         "stop_exits":sum(z["exit_reason"]=="STOP" for _,z in xs),
     }
 
+def _pairwise(rows,a,b,h):
+    pairs=[]
+    for r in rows:
+        za=(r.get("policies") or {}).get(a,{}).get(str(h))
+        zb=(r.get("policies") or {}).get(b,{}).get(str(h))
+        if not za or not zb or not za.get("complete_horizon") or not zb.get("complete_horizon"):
+            continue
+        da=finite(za.get("net_return_pct_est"))
+        db=finite(zb.get("net_return_pct_est"))
+        if da is None or db is None:
+            continue
+        stake=finite(r.get("stake_eur"),0)
+        pairs.append((da,db,stake))
+    deltas=[(a_ret-b_ret) for a_ret,b_ret,_ in pairs]
+    return {
+        "n":len(pairs),
+        "a_wins":sum(d>1e-9 for d in deltas),
+        "b_wins":sum(d<-1e-9 for d in deltas),
+        "ties":sum(abs(d)<=1e-9 for d in deltas),
+        "median_delta_net_return_pct_a_minus_b":med(deltas),
+        "sum_delta_net_pnl_eur_est_a_minus_b":round(
+            sum(stake*(a_ret-b_ret)/100 for a_ret,b_ret,stake in pairs),2
+        ),
+    }
+
+def _candidate_pairwise(rows):
+    names=("full_1_4r","full_1_5r","full_1_6r")
+    out={}
+    for h in HORIZONS:
+        out[str(h)]={}
+        for i,a in enumerate(names):
+            for b in names[i+1:]:
+                out[str(h)][a+"_vs_"+b]=_pairwise(rows,a,b,h)
+    return out
+
 def main():
     now=time.time()
     state=read_json(STATE,{})
-    if finite(state.get("started_ts")) is None:
+    study_start_ts=datetime.fromisoformat(STUDY_START_UTC).timestamp()
+    if state.get("study_id")!=STUDY_ID:
         state={
-            "schema":"solaire_exit_policy_shadow_state_v2",
-            "started_ts":now,
-            "started_at_utc":utc(now),
+            "schema":"solaire_exit_policy_shadow_state_v3",
+            "study_id":STUDY_ID,
+            "started_ts":study_start_ts,
+            "started_at_utc":STUDY_START_UTC,
+            "reset_reason":"POST_PRIORITY2_FREEZE",
         }
     else:
-        state["schema"]="solaire_exit_policy_shadow_state_v2"
-    prospective_start=finite(state.get("started_ts"),now)
+        state["schema"]="solaire_exit_policy_shadow_state_v3"
+    prospective_start=finite(state.get("started_ts"),study_start_ts)
 
     src=read_json(JOURNAL,{})
     buys=[e for e in src.get("entries",[]) or []
@@ -157,23 +200,41 @@ def main():
                 "delta_median_net_return_pct":None if a["median_net_return_pct"] is None or b["median_net_return_pct"] is None else round(b["median_net_return_pct"]-a["median_net_return_pct"],4),
             }
 
+    candidate_pairwise=_candidate_pairwise(rows)
+    prospective_candidate_pairwise=_candidate_pairwise(prospective_rows)
+    complete_4h=min(prospective_summary["4"][p]["n"] for p in POLICIES)
+    complete_12h=min(prospective_summary["12"][p]["n"] for p in POLICIES)
+    readiness={
+        "complete_4h":complete_4h,
+        "complete_12h":complete_12h,
+        "checkpoint_complete_4h_target":CHECKPOINT_COMPLETE_4H,
+        "decision_complete_12h_target":DECISION_COMPLETE_12H,
+        "checkpoint_ready":complete_4h>=CHECKPOINT_COMPLETE_4H,
+        "decision_ready":complete_12h>=DECISION_COMPLETE_12H,
+    }
+
     journal={
-        "schema":"solaire_exit_policy_shadow_journal_v2","updated_at_utc":utc(now),
+        "schema":"solaire_exit_policy_shadow_journal_v3","updated_at_utc":utc(now),
         "research_only":True,"affects_detection":False,"affects_buy_gate":False,"affects_email":False,
         "fee_assumption_per_side":FEE_RATE,"policies":POLICIES,
+        "study_id":state.get("study_id"),
         "prospective_started_at_utc":state.get("started_at_utc"),
         "trades":rows,
     }
     status={
-        "schema":"solaire_exit_policy_shadow_v2","checked_at_utc":utc(now),
+        "schema":"solaire_exit_policy_shadow_v3","checked_at_utc":utc(now),
         "status":"OK" if not errors else "DEGRADED_NONBLOCKING",
         "tracked_buys":len(rows),
+        "study_id":state.get("study_id"),
         "prospective_started_at_utc":state.get("started_at_utc"),
         "prospective_tracked_buys":len(prospective_rows),
         "summary":summary,
         "prospective_summary":prospective_summary,
         "comparisons_vs_current":comparisons,
         "prospective_comparisons_vs_current":prospective_comparisons,
+        "candidate_pairwise":candidate_pairwise,
+        "prospective_candidate_pairwise":prospective_candidate_pairwise,
+        "decision_readiness":readiness,
         "errors":errors,"affects_detection":False,"affects_buy_gate":False,"affects_email":False,
     }
     state["updated_at_utc"]=utc(now)
