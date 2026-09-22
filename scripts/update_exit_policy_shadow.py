@@ -16,6 +16,7 @@ from research.common import atomic_json, finite, read_json, utc
 from research.http import PublicClient
 
 JOURNAL="production_decision_journal.json"
+STATE="production_exit_policy_shadow_state.json"
 OUT_JOURNAL="production_exit_policy_shadow_journal.json"
 STATUS="production_exit_policy_shadow_status.json"
 FEE_RATE=0.0015
@@ -87,6 +88,17 @@ def _summary(rows,policy,h):
 
 def main():
     now=time.time()
+    state=read_json(STATE,{})
+    if finite(state.get("started_ts")) is None:
+        state={
+            "schema":"solaire_exit_policy_shadow_state_v2",
+            "started_ts":now,
+            "started_at_utc":utc(now),
+        }
+    else:
+        state["schema"]="solaire_exit_policy_shadow_state_v2"
+    prospective_start=finite(state.get("started_ts"),now)
+
     src=read_json(JOURNAL,{})
     buys=[e for e in src.get("entries",[]) or []
           if e.get("decision_type")=="BUY_SENT"
@@ -120,6 +132,9 @@ def main():
         errors.append({"reason":type(exc).__name__+":"+str(exc)})
 
     summary={str(h):{p:_summary(rows,p,h) for p in POLICIES} for h in HORIZONS}
+    prospective_rows=[r for r in rows if finite(r.get("decision_ts"),0)>=prospective_start]
+    prospective_summary={str(h):{p:_summary(prospective_rows,p,h) for p in POLICIES} for h in HORIZONS}
+
     comparisons={}
     for h in HORIZONS:
         k=str(h);comparisons[k]={}
@@ -131,18 +146,38 @@ def main():
                 "delta_median_net_return_pct":None if a["median_net_return_pct"] is None or b["median_net_return_pct"] is None else round(b["median_net_return_pct"]-a["median_net_return_pct"],4),
             }
 
+    prospective_comparisons={}
+    for h in HORIZONS:
+        k=str(h);prospective_comparisons[k]={}
+        for p in POLICIES:
+            if p=="current_tp1_stop":continue
+            a=prospective_summary[k]["current_tp1_stop"];b=prospective_summary[k][p]
+            prospective_comparisons[k][p]={
+                "delta_sum_net_pnl_eur_est":round(b["sum_net_pnl_eur_est"]-a["sum_net_pnl_eur_est"],2),
+                "delta_median_net_return_pct":None if a["median_net_return_pct"] is None or b["median_net_return_pct"] is None else round(b["median_net_return_pct"]-a["median_net_return_pct"],4),
+            }
+
     journal={
-        "schema":"solaire_exit_policy_shadow_journal_v1","updated_at_utc":utc(now),
+        "schema":"solaire_exit_policy_shadow_journal_v2","updated_at_utc":utc(now),
         "research_only":True,"affects_detection":False,"affects_buy_gate":False,"affects_email":False,
-        "fee_assumption_per_side":FEE_RATE,"policies":POLICIES,"trades":rows,
+        "fee_assumption_per_side":FEE_RATE,"policies":POLICIES,
+        "prospective_started_at_utc":state.get("started_at_utc"),
+        "trades":rows,
     }
     status={
-        "schema":"solaire_exit_policy_shadow_v1","checked_at_utc":utc(now),
+        "schema":"solaire_exit_policy_shadow_v2","checked_at_utc":utc(now),
         "status":"OK" if not errors else "DEGRADED_NONBLOCKING",
-        "tracked_buys":len(rows),"summary":summary,"comparisons_vs_current":comparisons,
+        "tracked_buys":len(rows),
+        "prospective_started_at_utc":state.get("started_at_utc"),
+        "prospective_tracked_buys":len(prospective_rows),
+        "summary":summary,
+        "prospective_summary":prospective_summary,
+        "comparisons_vs_current":comparisons,
+        "prospective_comparisons_vs_current":prospective_comparisons,
         "errors":errors,"affects_detection":False,"affects_buy_gate":False,"affects_email":False,
     }
-    atomic_json(OUT_JOURNAL,journal);atomic_json(STATUS,status)
+    state["updated_at_utc"]=utc(now)
+    atomic_json(STATE,state);atomic_json(OUT_JOURNAL,journal);atomic_json(STATUS,status)
     print("SOLAIRE_EXIT_POLICY_SHADOW "+json.dumps(status,ensure_ascii=False))
     return 0
 
