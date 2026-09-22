@@ -43,3 +43,24 @@ def test_rejection_shadow_tracks_rapid_reentry_buckets():
     assert "GT_5M_LE_30M" in x
     assert "GT_30M" in x
     assert "rapid_reentry_cohorts" in x
+
+
+def test_rejection_shadow_compares_priority2_reentry_policies():
+    x=Path("scripts/update_rejection_shadow.py").read_text()
+    assert "SCORE_GE6_E3" in x
+    assert "SCORE_GE6_E4" in x
+    assert "CONFIRMATION_15M_PRESENT" in x
+    assert "CONFIRMATION_15M_ABSENT" in x
+    assert "reentry_policy_cohorts" in x
+    assert "priority2_promotion_readiness" in x
+    assert '"target_reentries":20' in x
+
+
+def test_rejection_shadow_preserves_reentry_milestones():
+    x=Path("scripts/update_rejection_shadow.py").read_text()
+    assert "first_later_building_snapshot" in x
+    assert "first_later_confirmed_snapshot" in x
+    assert "first_later_execution_valid_snapshot" in x
+    assert "first_later_execution_valid_with_15m_confirmation" in x
+    assert "timeframe_confirmation_15m" in x
+    assert "confirmation_15m_component" in x
