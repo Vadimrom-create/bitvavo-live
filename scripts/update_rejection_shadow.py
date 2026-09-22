@@ -99,6 +99,19 @@ def _reentry_tier(row):
         return "BUILDING_WEAK"
     return "OTHER"
 
+def _signal_snapshot(row,now):
+    acc=row.get("acceleration") or {}
+    return {
+        "at_utc":utc(now),
+        "signal_state":row.get("signal_state"),
+        "signal_score":finite(row.get("signal_score")),
+        "evidence_count":int(acc.get("evidence_count") or 0),
+        "timeframe_confirmation_15m":bool(acc.get("timeframe_confirmation_15m")),
+        "confirmation_scope":acc.get("confirmation_scope"),
+        "confirmation_15m_component":finite((acc.get("components") or {}).get("confirmation_15m")),
+        "signal_price_eur":finite(row.get("last")),
+    }
+
 def _validated_snapshot(event,row,validated,now):
     trade=validated.get("trade") or {}
     entry=finite(trade.get("entry_eur"))
@@ -109,6 +122,9 @@ def _validated_snapshot(event,row,validated,now):
         "signal_state":row.get("signal_state"),
         "signal_score":finite(row.get("signal_score")),
         "evidence_count":int((row.get("acceleration") or {}).get("evidence_count") or 0),
+        "timeframe_confirmation_15m":bool((row.get("acceleration") or {}).get("timeframe_confirmation_15m")),
+        "confirmation_scope":(row.get("acceleration") or {}).get("confirmation_scope"),
+        "confirmation_15m_component":finite(((row.get("acceleration") or {}).get("components") or {}).get("confirmation_15m")),
         "reentry_tier":_reentry_tier(row),
         "reentry_delay_seconds":round(now-rejected_ts,1) if rejected_ts is not None else None,
         "signal_price_eur":finite(row.get("last")),
@@ -132,7 +148,10 @@ def main():
     for e in journal["events"]:
         e.setdefault("evaluations",{})
         e.setdefault("execution_valid_evaluations",{})
+        e.setdefault("first_later_building_snapshot",None)
+        e.setdefault("first_later_confirmed_snapshot",None)
         e.setdefault("first_later_execution_valid_snapshot",None)
+        e.setdefault("first_later_execution_valid_with_15m_confirmation",None)
         e.setdefault("first_later_fully_actionable_entry",e.get("first_later_qualifying_entry"))
         snap=e.get("first_later_execution_valid_snapshot") or {}
         if snap:
@@ -172,10 +191,16 @@ def main():
             "rejection_price_eur":finite(row.get("last")),
             "signal_score":finite(row.get("signal_score")),
             "signal_state":row.get("signal_state"),
+            "evidence_count":int((row.get("acceleration") or {}).get("evidence_count") or 0),
+            "timeframe_confirmation_15m":bool((row.get("acceleration") or {}).get("timeframe_confirmation_15m")),
+            "confirmation_scope":(row.get("acceleration") or {}).get("confirmation_scope"),
             "reason_history":[{"at_utc":alert.get("checked_at_utc") or utc(now),"reason":reason,
                                "signal_state":row.get("signal_state")}],
             "original_condition_resolved":False,
+            "first_later_building_snapshot":None,
+            "first_later_confirmed_snapshot":None,
             "first_later_execution_valid_snapshot":None,
+            "first_later_execution_valid_with_15m_confirmation":None,
             "first_later_fully_actionable_entry":None,
             "first_later_qualifying_entry":None,
             "evaluations":{},
@@ -208,6 +233,11 @@ def main():
             if row:
                 try:
                     checked=time.time()
+                    signal_snap=_signal_snapshot(row,checked)
+                    if row.get("signal_state")=="BUILDING_ACCELERATION" and event.get("first_later_building_snapshot") is None:
+                        event["first_later_building_snapshot"]=signal_snap
+                    if row.get("signal_state")=="CONFIRMED_ACCELERATION" and event.get("first_later_confirmed_snapshot") is None:
+                        event["first_later_confirmed_snapshot"]=signal_snap
                     validated,reason=validate(row,client,metadata,checked)
                     revalidations+=1
                     event["last_revalidation"]={
@@ -223,6 +253,8 @@ def main():
                             event["first_later_execution_valid_snapshot"]=snap
                             if row.get("signal_state")=="BUILDING_ACCELERATION":
                                 execution_valid_while_building+=1
+                        if snap.get("timeframe_confirmation_15m") and event.get("first_later_execution_valid_with_15m_confirmation") is None:
+                            event["first_later_execution_valid_with_15m_confirmation"]=snap
                         if row.get("signal_state")=="CONFIRMED_ACCELERATION":
                             if event.get("first_later_fully_actionable_entry") is None:
                                 event["first_later_fully_actionable_entry"]=snap
@@ -325,6 +357,24 @@ def main():
             "h4":cohort_stats(subset,4),
         }
 
+    policy_cohorts={}
+    policy_defs={
+        "SCORE_GE6_E3":lambda s: finite(s.get("signal_score"),-999)>=6 and int(s.get("evidence_count") or 0)>=3,
+        "SCORE_GE6_E4":lambda s: finite(s.get("signal_score"),-999)>=6 and int(s.get("evidence_count") or 0)>=4,
+        "CONFIRMATION_15M_PRESENT":lambda s: s.get("timeframe_confirmation_15m") is True,
+        "CONFIRMATION_15M_ABSENT":lambda s: s.get("timeframe_confirmation_15m") is False,
+    }
+    for name,pred in policy_defs.items():
+        subset=[
+            e for e in journal["events"]
+            if e.get("first_later_execution_valid_snapshot")
+            and pred(e.get("first_later_execution_valid_snapshot") or {})
+        ]
+        policy_cohorts[name]={
+            "h1":cohort_stats(subset,1),
+            "h4":cohort_stats(subset,4),
+        }
+
     reason_cohorts={}
     for reason in sorted(TRACKED):
         subset=[
@@ -369,9 +419,13 @@ def main():
                 "h4":cohort_stats(rs,4),
             }
 
+    comparable_reentries=[
+        e for e in journal["events"]
+        if "timeframe_confirmation_15m" in (e.get("first_later_execution_valid_snapshot") or {})
+    ]
     state["updated_at_utc"]=utc(); journal["updated_at_utc"]=utc()
     status={
-        "schema":"solaire_rejection_shadow_v6","checked_at_utc":utc(),
+        "schema":"solaire_rejection_shadow_v7","checked_at_utc":utc(),
         "status":"OK" if not errors else "DEGRADED_NONBLOCKING",
         "new_events":new_events,"revalidations":revalidations,
         "new_fully_actionable":fully_actionable,
@@ -380,7 +434,10 @@ def main():
         "evaluated_reentry_horizons":evaluated_reentry_horizons,
         "active_events":sum(not e.get("closed") for e in journal["events"]),
         "events_with_original_condition_resolved":sum(bool(e.get("original_condition_resolved")) for e in journal["events"]),
+        "events_with_building_milestone":sum(bool(e.get("first_later_building_snapshot")) for e in journal["events"]),
+        "events_with_confirmed_milestone":sum(bool(e.get("first_later_confirmed_snapshot")) for e in journal["events"]),
         "events_with_execution_valid_snapshot":sum(bool(e.get("first_later_execution_valid_snapshot")) for e in journal["events"]),
+        "events_with_execution_valid_15m_confirmation":sum(bool(e.get("first_later_execution_valid_with_15m_confirmation")) for e in journal["events"]),
         "events_with_fully_actionable_entry":sum(bool(e.get("first_later_fully_actionable_entry")) for e in journal["events"]),
         "events_with_1h":sum("1" in (e.get("evaluations") or {}) for e in journal["events"]),
         "events_with_4h":sum("4" in (e.get("evaluations") or {}) for e in journal["events"]),
@@ -391,8 +448,14 @@ def main():
         "reentries_with_12h":sum("12" in (e.get("execution_valid_evaluations") or {}) for e in journal["events"]),
         "reentries_with_24h":sum("24" in (e.get("execution_valid_evaluations") or {}) for e in journal["events"]),
         "reentry_tier_cohorts":reentry_cohorts,
+        "reentry_policy_cohorts":policy_cohorts,
         "reentry_reason_cohorts":reason_cohorts,
         "rapid_reentry_cohorts":rapid_reentry_cohorts,
+        "priority2_promotion_readiness":{
+            "prospective_comparable_reentries":len(comparable_reentries),
+            "target_reentries":20,
+            "ready":len(comparable_reentries)>=20,
+        },
         "errors":errors,
         "affects_detection":False,"affects_buy_gate":False,"affects_email":False,
     }
