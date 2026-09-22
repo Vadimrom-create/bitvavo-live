@@ -336,9 +336,42 @@ def main():
             "h4":cohort_stats(subset,4),
         }
 
+    def delay_bucket(event):
+        snap=event.get("first_later_execution_valid_snapshot") or {}
+        delay=finite(snap.get("reentry_delay_seconds"))
+        if delay is None:
+            return "UNKNOWN"
+        if delay<=60:
+            return "LE_60S"
+        if delay<=300:
+            return "GT_60S_LE_5M"
+        if delay<=1800:
+            return "GT_5M_LE_30M"
+        return "GT_30M"
+
+    delay_names=("LE_60S","GT_60S_LE_5M","GT_5M_LE_30M","GT_30M","UNKNOWN")
+    rapid_reentry_cohorts={}
+    for bucket in delay_names:
+        subset=[
+            e for e in journal["events"]
+            if e.get("first_later_execution_valid_snapshot")
+            and delay_bucket(e)==bucket
+        ]
+        rapid_reentry_cohorts[bucket]={
+            "h1":cohort_stats(subset,1),
+            "h4":cohort_stats(subset,4),
+            "by_reason":{},
+        }
+        for reason in sorted(TRACKED):
+            rs=[e for e in subset if e.get("first_rejection_reason")==reason]
+            rapid_reentry_cohorts[bucket]["by_reason"][reason]={
+                "h1":cohort_stats(rs,1),
+                "h4":cohort_stats(rs,4),
+            }
+
     state["updated_at_utc"]=utc(); journal["updated_at_utc"]=utc()
     status={
-        "schema":"solaire_rejection_shadow_v5","checked_at_utc":utc(),
+        "schema":"solaire_rejection_shadow_v6","checked_at_utc":utc(),
         "status":"OK" if not errors else "DEGRADED_NONBLOCKING",
         "new_events":new_events,"revalidations":revalidations,
         "new_fully_actionable":fully_actionable,
@@ -359,6 +392,7 @@ def main():
         "reentries_with_24h":sum("24" in (e.get("execution_valid_evaluations") or {}) for e in journal["events"]),
         "reentry_tier_cohorts":reentry_cohorts,
         "reentry_reason_cohorts":reason_cohorts,
+        "rapid_reentry_cohorts":rapid_reentry_cohorts,
         "errors":errors,
         "affects_detection":False,"affects_buy_gate":False,"affects_email":False,
     }

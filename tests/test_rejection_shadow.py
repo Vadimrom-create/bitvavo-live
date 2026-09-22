@@ -34,3 +34,12 @@ def test_rejection_shadow_backfills_existing_reentry_metadata():
     x=Path("scripts/update_rejection_shadow.py").read_text()
     assert 'if not snap.get("reentry_tier")' in x
     assert 'snap["reentry_delay_seconds"]' in x
+
+
+def test_rejection_shadow_tracks_rapid_reentry_buckets():
+    x=Path("scripts/update_rejection_shadow.py").read_text()
+    assert "LE_60S" in x
+    assert "GT_60S_LE_5M" in x
+    assert "GT_5M_LE_30M" in x
+    assert "GT_30M" in x
+    assert "rapid_reentry_cohorts" in x
