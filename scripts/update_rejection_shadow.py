@@ -134,19 +134,6 @@ def main():
         e.setdefault("execution_valid_evaluations",{})
         e.setdefault("first_later_execution_valid_snapshot",None)
         e.setdefault("first_later_fully_actionable_entry",e.get("first_later_qualifying_entry"))
-        snap=e.get("first_later_execution_valid_snapshot") or {}
-        if snap:
-            if not snap.get("reentry_tier"):
-                snap["reentry_tier"]=_reentry_tier({
-                    "signal_state":snap.get("signal_state"),
-                    "signal_score":snap.get("signal_score"),
-                    "acceleration":{"evidence_count":snap.get("evidence_count")},
-                })
-            if snap.get("reentry_delay_seconds") is None:
-                seen=_parse_ts(snap.get("at_utc"))
-                rejected=finite(e.get("rejected_ts"))
-                if seen is not None and rejected is not None:
-                    snap["reentry_delay_seconds"]=round(seen-rejected,1)
 
     confirmed_rows={r.get("market"):r for r in payload.get("watch",[]) if isinstance(r,dict) and r.get("market")}
     tracking_rows={r.get("market"):r for r in payload.get("tracking",[]) if isinstance(r,dict) and r.get("market")}
