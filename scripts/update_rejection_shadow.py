@@ -125,10 +125,10 @@ def main():
     now=time.time()
     payload=read_json(CANDIDATES,{})
     alert=read_json(ALERT_STATUS,{})
-    state=read_json(STATE,{"schema":"solaire_rejection_shadow_state_v4","markets":{}})
-    journal=read_json(JOURNAL,{"schema":"solaire_rejection_shadow_journal_v4","events":[]})
-    state["schema"]="solaire_rejection_shadow_state_v4"; state.setdefault("markets",{})
-    journal["schema"]="solaire_rejection_shadow_journal_v4"; journal.setdefault("events",[])
+    state=read_json(STATE,{"schema":"solaire_rejection_shadow_state_v5","markets":{}})
+    journal=read_json(JOURNAL,{"schema":"solaire_rejection_shadow_journal_v5","events":[]})
+    state["schema"]="solaire_rejection_shadow_state_v5"; state.setdefault("markets",{})
+    journal["schema"]="solaire_rejection_shadow_journal_v5"; journal.setdefault("events",[])
     for e in journal["events"]:
         e.setdefault("evaluations",{})
         e.setdefault("execution_valid_evaluations",{})
@@ -325,7 +325,7 @@ def main():
 
     state["updated_at_utc"]=utc(); journal["updated_at_utc"]=utc()
     status={
-        "schema":"solaire_rejection_shadow_v4","checked_at_utc":utc(),
+        "schema":"solaire_rejection_shadow_v5","checked_at_utc":utc(),
         "status":"OK" if not errors else "DEGRADED_NONBLOCKING",
         "new_events":new_events,"revalidations":revalidations,
         "new_fully_actionable":fully_actionable,
