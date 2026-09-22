@@ -28,3 +28,9 @@ def test_rejection_shadow_classifies_reentry_quality():
     assert "reentry_delay_seconds" in x
     assert "reentry_tier_cohorts" in x
     assert "clean_mfe_ge5_mae_gt_minus5" in x
+
+
+def test_rejection_shadow_backfills_existing_reentry_metadata():
+    x=Path("scripts/update_rejection_shadow.py").read_text()
+    assert 'if not snap.get("reentry_tier")' in x
+    assert 'snap["reentry_delay_seconds"]' in x
