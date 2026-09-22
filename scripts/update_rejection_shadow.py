@@ -11,6 +11,7 @@ Measurement only: never affects detection, BUY gating, email, or execution.
 """
 from __future__ import annotations
 import json, sys, time
+from datetime import datetime
 from pathlib import Path
 ROOT=Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path: sys.path.insert(0,str(ROOT))
@@ -43,12 +44,10 @@ def _closed_5m(raw,now):
         if t+300_000 <= now*1000: out.append((int(t),h,l,c))
     return sorted(out)
 
-def _evaluate(event,bars,hours):
-    rejected=finite(event.get("rejected_ts"))
-    baseline=finite(event.get("rejection_price_eur"))
-    if rejected is None or baseline is None or baseline<=0: return None
-    first=((int(rejected*1000)//300_000)+1)*300_000
-    end=int((rejected+hours*3600)*1000)
+def _evaluate_from(bars,start_ts,baseline,hours,method):
+    if start_ts is None or baseline is None or baseline<=0: return None
+    first=((int(start_ts*1000)//300_000)+1)*300_000
+    end=int((start_ts+hours*3600)*1000)
     xs=[x for x in bars if first<=x[0]<end]
     if not xs: return None
     high=max(x[1] for x in xs); low=min(x[2] for x in xs); close=xs[-1][3]
@@ -58,8 +57,33 @@ def _evaluate(event,bars,hours):
         "mae_pct":round((low/baseline-1)*100,4),
         "close_return_pct":round((close/baseline-1)*100,4),
         "bars_used":len(xs),
-        "method":"closed_5m_bars_after_rejection",
+        "method":method,
     }
+
+def _parse_ts(value):
+    try:
+        return datetime.fromisoformat(str(value).replace("Z","+00:00")).timestamp()
+    except Exception:
+        return None
+
+def _evaluate(event,bars,hours):
+    return _evaluate_from(
+        bars,
+        finite(event.get("rejected_ts")),
+        finite(event.get("rejection_price_eur")),
+        hours,
+        "closed_5m_bars_after_rejection",
+    )
+
+def _evaluate_reentry(event,bars,hours):
+    snap=event.get("first_later_execution_valid_snapshot") or {}
+    return _evaluate_from(
+        bars,
+        _parse_ts(snap.get("at_utc")),
+        finite(snap.get("entry_eur"),finite(snap.get("signal_price_eur"))),
+        hours,
+        "closed_5m_bars_after_first_execution_valid_snapshot",
+    )
 
 def _validated_snapshot(event,row,validated,now):
     trade=validated.get("trade") or {}
@@ -90,6 +114,7 @@ def main():
     journal["schema"]="solaire_rejection_shadow_journal_v4"; journal.setdefault("events",[])
     for e in journal["events"]:
         e.setdefault("evaluations",{})
+        e.setdefault("execution_valid_evaluations",{})
         e.setdefault("first_later_execution_valid_snapshot",None)
         e.setdefault("first_later_fully_actionable_entry",e.get("first_later_qualifying_entry"))
 
@@ -124,6 +149,7 @@ def main():
             "first_later_fully_actionable_entry":None,
             "first_later_qualifying_entry":None,
             "evaluations":{},
+            "execution_valid_evaluations":{},
             "closed":False,
             "affects_detection":False,"affects_buy_gate":False,"affects_email":False,
         }
@@ -132,7 +158,8 @@ def main():
         new_events+=1
 
     client=PublicClient(timeout=10,retries=2,requests_per_second=8)
-    errors=[]; revalidations=0; fully_actionable=0; execution_valid_while_building=0; evaluated_horizons=0
+    errors=[]; revalidations=0; fully_actionable=0; execution_valid_while_building=0
+    evaluated_horizons=0; evaluated_reentry_horizons=0
     try:
         client.get("/time",cache=False)
         metadata={m["market"]:m for m in client.get("/markets")
@@ -193,20 +220,32 @@ def main():
         due={}
         for idx,event in enumerate(journal["events"]):
             rejected=finite(event.get("rejected_ts"))
-            if rejected is None: continue
-            for h in HORIZONS:
-                if now>=rejected+h*3600 and str(h) not in event.setdefault("evaluations",{}):
-                    due.setdefault(event.get("market"),[]).append((idx,h))
+            if rejected is not None:
+                for h in HORIZONS:
+                    if now>=rejected+h*3600 and str(h) not in event.setdefault("evaluations",{}):
+                        due.setdefault(event.get("market"),[]).append(("rejection",idx,h))
+            snap=event.get("first_later_execution_valid_snapshot") or {}
+            reentry_ts=_parse_ts(snap.get("at_utc"))
+            if reentry_ts is not None:
+                for h in HORIZONS:
+                    if now>=reentry_ts+h*3600 and str(h) not in event.setdefault("execution_valid_evaluations",{}):
+                        due.setdefault(event.get("market"),[]).append(("reentry",idx,h))
 
         for market,items in due.items():
             try:
                 raw=client.get("/"+market+"/candles",{"interval":"5m","limit":400},cache=False)
                 bars=_closed_5m(raw,now)
-                for idx,h in items:
-                    result=_evaluate(journal["events"][idx],bars,h)
-                    if result is not None:
-                        journal["events"][idx]["evaluations"][str(h)]=result
+                for kind,idx,h in items:
+                    event=journal["events"][idx]
+                    result=_evaluate(event,bars,h) if kind=="rejection" else _evaluate_reentry(event,bars,h)
+                    if result is None:
+                        continue
+                    if kind=="rejection":
+                        event["evaluations"][str(h)]=result
                         evaluated_horizons+=1
+                    else:
+                        event["execution_valid_evaluations"][str(h)]=result
+                        evaluated_reentry_horizons+=1
             except (RuntimeError,ValueError,KeyError) as exc:
                 errors.append({"market":market,"reason":type(exc).__name__+":"+str(exc)})
     except (RuntimeError,ValueError,KeyError) as exc:
@@ -221,6 +260,7 @@ def main():
         "new_fully_actionable":fully_actionable,
         "new_execution_valid_while_building":execution_valid_while_building,
         "evaluated_horizons":evaluated_horizons,
+        "evaluated_reentry_horizons":evaluated_reentry_horizons,
         "active_events":sum(not e.get("closed") for e in journal["events"]),
         "events_with_original_condition_resolved":sum(bool(e.get("original_condition_resolved")) for e in journal["events"]),
         "events_with_execution_valid_snapshot":sum(bool(e.get("first_later_execution_valid_snapshot")) for e in journal["events"]),
@@ -229,6 +269,10 @@ def main():
         "events_with_4h":sum("4" in (e.get("evaluations") or {}) for e in journal["events"]),
         "events_with_12h":sum("12" in (e.get("evaluations") or {}) for e in journal["events"]),
         "events_with_24h":sum("24" in (e.get("evaluations") or {}) for e in journal["events"]),
+        "reentries_with_1h":sum("1" in (e.get("execution_valid_evaluations") or {}) for e in journal["events"]),
+        "reentries_with_4h":sum("4" in (e.get("execution_valid_evaluations") or {}) for e in journal["events"]),
+        "reentries_with_12h":sum("12" in (e.get("execution_valid_evaluations") or {}) for e in journal["events"]),
+        "reentries_with_24h":sum("24" in (e.get("execution_valid_evaluations") or {}) for e in journal["events"]),
         "errors":errors,
         "affects_detection":False,"affects_buy_gate":False,"affects_email":False,
     }
