@@ -85,23 +85,29 @@ def record_cycle(
             str(rejected.get("reason") or "UNKNOWN"),
         )
 
-    if alert_status.get("email") == "DELIVERY_COMPLETED" and alert_status.get("market"):
-        add(
-            alert_status["market"],
-            "BUY_SENT",
-            "DELIVERED",
-            {
-                "entry_eur": finite(alert_status.get("entry_eur")),
-                "stop_eur": finite(alert_status.get("stop_eur")),
-                "tp1_eur": finite(alert_status.get("tp1_eur")),
-                "tp2_eur": finite(alert_status.get("tp2_eur")),
-                "stake_eur": finite(alert_status.get("stake_eur")),
-                "structural_range_15m_pct": finite(
-                    alert_status.get("structural_range_15m_pct")
-                ),
-                "stop_distance_pct": finite(alert_status.get("stop_distance_pct")),
-            },
-        )
+    if alert_status.get("email") == "DELIVERY_COMPLETED":
+        deliveries = alert_status.get("deliveries")
+        if not isinstance(deliveries, list) or not deliveries:
+            deliveries = [alert_status] if alert_status.get("market") else []
+        for delivered in deliveries:
+            if not isinstance(delivered, dict) or not delivered.get("market"):
+                continue
+            add(
+                delivered["market"],
+                "BUY_SENT",
+                "DELIVERED",
+                {
+                    "entry_eur": finite(delivered.get("entry_eur")),
+                    "stop_eur": finite(delivered.get("stop_eur")),
+                    "tp1_eur": finite(delivered.get("tp1_eur")),
+                    "tp2_eur": finite(delivered.get("tp2_eur")),
+                    "stake_eur": finite(delivered.get("stake_eur")),
+                    "structural_range_15m_pct": finite(
+                        delivered.get("structural_range_15m_pct")
+                    ),
+                    "stop_distance_pct": finite(delivered.get("stop_distance_pct")),
+                },
+            )
 
     journal["entries"] = journal["entries"][-MAX_ENTRIES:]
     journal["updated_at_ts"] = alert_ts

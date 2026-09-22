@@ -224,6 +224,57 @@ def body(validated: dict) -> str:
     )
 
 
+def subject_for(selected: list[dict]) -> str:
+    if len(selected) == 1:
+        row = selected[0]["row"]
+        phase = row.get("signal_phase", "CONFIRMED")
+        return f"ACHÈTE — {row['market']} — Solaire {phase}"
+    markets = ", ".join(item["row"]["market"] for item in selected[:4])
+    suffix = "" if len(selected) <= 4 else f" +{len(selected)-4}"
+    return f"ACHÈTE — {len(selected)} candidats Solaire — {markets}{suffix}"
+
+
+def body_for(selected: list[dict]) -> str:
+    if len(selected) == 1:
+        return body(selected[0])
+    sections = [
+        f"ACHÈTE — {len(selected)} signaux Solaire validés dans le même scan",
+        "Tous les candidats ci-dessous ont passé le gate d'exécution et le contrôle de thèse antérieure.",
+        "Ils sont classés selon l'ordre Solaire; aucun ordre n'a été envoyé automatiquement.",
+    ]
+    for idx, validated in enumerate(selected, 1):
+        sections.extend([
+            "",
+            "=" * 48,
+            f"CANDIDAT {idx}/{len(selected)}",
+            "=" * 48,
+            body(validated),
+        ])
+    return "\n".join(sections)
+
+
+def delivery_record(validated: dict) -> dict:
+    row = validated["row"]
+    trade = validated["trade"]
+    return {
+        "market": row["market"],
+        "price_drift_pct": validated.get("price_drift_pct"),
+        "spread_pct": validated.get("spread_pct"),
+        "structural_range_15m_pct": validated.get("structural_range_15m_pct"),
+        "signal_phase": row.get("signal_phase"),
+        "episode_extension_pct": row.get("episode_extension_pct"),
+        "episode_age_seconds": row.get("episode_age_seconds"),
+        "stop_distance_pct": trade.get("stop_distance_pct"),
+        "prior_thesis_status": validated.get("prior_thesis_status"),
+        "entry_eur": trade.get("entry_eur"),
+        "stop_eur": trade.get("stop_eur"),
+        "tp1_eur": trade.get("tp1_eur"),
+        "tp2_eur": trade.get("tp2_eur"),
+        "stake_eur": trade.get("stake_eur"),
+        "market_context": row.get("context") or {},
+    }
+
+
 def main() -> int:
     now = time.time()
     status = {
@@ -254,7 +305,7 @@ def main() -> int:
             if m.get("quote") == "EUR" and m.get("status") == "trading"
         }
 
-        selected = None
+        selected = []
         rejections = []
         for row in events:
             checked_at = time.time()
@@ -278,8 +329,8 @@ def main() -> int:
                     )
                     continue
                 validated["prior_thesis_status"] = thesis_status
-                selected = validated
-                break
+                selected.append(validated)
+                continue
             rejections.append({"market": row.get("market"), "reason": reason})
         status["rejections"] = rejections
         atomic_json(STATE, state)
@@ -288,6 +339,7 @@ def main() -> int:
             status.update(
                 status="OK",
                 reason="NO_CANDIDATE_PASSED_FINAL_EXECUTION_GATE",
+                evaluated_event_count=len(events),
             )
             atomic_json(STATUS, status)
             print("SOLAIRE_ALERT " + json.dumps(status))
@@ -305,17 +357,22 @@ def main() -> int:
         print("SOLAIRE_ALERT " + json.dumps(status))
         return 0
 
-    row = selected["row"]
-    phase = row.get("signal_phase", "CONFIRMED")
-    subject = f"ACHÈTE — {row['market']} — Solaire {phase}"
+    primary = selected[0]
+    primary_row = primary["row"]
     try:
-        email_alert.send_email(creds[0], creds[1], creds[2], subject, body(selected))
+        email_alert.send_email(
+            creds[0], creds[1], creds[2],
+            subject_for(selected),
+            body_for(selected),
+        )
     except smtplib.SMTPAuthenticationError:
         status.update(
             status="DEGRADED",
             reason="SMTP_AUTHENTICATION_ERROR",
             email="DELIVERY_PENDING_RETRY",
-            market=row["market"],
+            market=primary_row["market"],
+            markets=[item["row"]["market"] for item in selected],
+            selected_count=len(selected),
         )
         atomic_json(STATUS, status)
         print("SOLAIRE_ALERT " + json.dumps(status))
@@ -325,34 +382,46 @@ def main() -> int:
             status="DEGRADED",
             reason=type(exc).__name__,
             email="DELIVERY_PENDING_RETRY",
-            market=row["market"],
+            market=primary_row["market"],
+            markets=[item["row"]["market"] for item in selected],
+            selected_count=len(selected),
         )
         atomic_json(STATUS, status)
         print("SOLAIRE_ALERT " + json.dumps(status))
         return 0
 
     sent_at = time.time()
-    state = mark_sent(state, row, sent_at, selected["trade"])
+    deliveries = []
+    for validated in selected:
+        row = validated["row"]
+        state = mark_sent(state, row, sent_at, validated["trade"])
+        deliveries.append(delivery_record(validated))
     atomic_json(STATE, state)
+
+    primary_delivery = deliveries[0]
     status.update(
         status="OK",
         reason="DELIVERED",
         email="DELIVERY_COMPLETED",
-        market=row["market"],
-        price_drift_pct=selected["price_drift_pct"],
-        spread_pct=selected["spread_pct"],
-        structural_range_15m_pct=selected.get("structural_range_15m_pct"),
-        signal_phase=row.get("signal_phase"),
-        episode_extension_pct=row.get("episode_extension_pct"),
-        episode_age_seconds=row.get("episode_age_seconds"),
-        stop_distance_pct=selected["trade"].get("stop_distance_pct"),
-        prior_thesis_status=selected.get("prior_thesis_status"),
-        entry_eur=selected["trade"].get("entry_eur"),
-        stop_eur=selected["trade"].get("stop_eur"),
-        tp1_eur=selected["trade"].get("tp1_eur"),
-        tp2_eur=selected["trade"].get("tp2_eur"),
-        stake_eur=selected["trade"].get("stake_eur"),
-        market_context=(row.get("context") or {}),
+        market=primary_delivery["market"],
+        markets=[item["market"] for item in deliveries],
+        selected_count=len(deliveries),
+        deliveries=deliveries,
+        evaluated_event_count=len(events),
+        price_drift_pct=primary_delivery["price_drift_pct"],
+        spread_pct=primary_delivery["spread_pct"],
+        structural_range_15m_pct=primary_delivery.get("structural_range_15m_pct"),
+        signal_phase=primary_delivery.get("signal_phase"),
+        episode_extension_pct=primary_delivery.get("episode_extension_pct"),
+        episode_age_seconds=primary_delivery.get("episode_age_seconds"),
+        stop_distance_pct=primary_delivery.get("stop_distance_pct"),
+        prior_thesis_status=primary_delivery.get("prior_thesis_status"),
+        entry_eur=primary_delivery.get("entry_eur"),
+        stop_eur=primary_delivery.get("stop_eur"),
+        tp1_eur=primary_delivery.get("tp1_eur"),
+        tp2_eur=primary_delivery.get("tp2_eur"),
+        stake_eur=primary_delivery.get("stake_eur"),
+        market_context=primary_delivery.get("market_context") or {},
     )
     atomic_json(STATUS, status)
     print("SOLAIRE_ALERT " + json.dumps(status))
