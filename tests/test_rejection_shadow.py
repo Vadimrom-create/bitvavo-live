@@ -18,3 +18,13 @@ def test_rejection_shadow_measures_reentry_from_execution_clean_snapshot():
     assert "_evaluate_reentry" in x
     assert "closed_5m_bars_after_first_execution_valid_snapshot" in x
     assert "evaluated_reentry_horizons" in x
+
+
+def test_rejection_shadow_classifies_reentry_quality():
+    x=Path("scripts/update_rejection_shadow.py").read_text()
+    assert "CONFIRMED_REENTRY" in x
+    assert "BUILDING_HQ_4E" in x
+    assert "BUILDING_6_3" in x
+    assert "reentry_delay_seconds" in x
+    assert "reentry_tier_cohorts" in x
+    assert "clean_mfe_ge5_mae_gt_minus5" in x
