@@ -9,3 +9,9 @@ def test_exit_management_audit_is_research_only():
     assert "current_with_4h_time_stop" in x
     assert "LOW_BEFORE_HIGH_CONSERVATIVE" in x
     assert "comparisons_vs_current" in x
+
+
+def test_exit_target_grid_includes_intermediate_r_levels():
+    x=Path("scripts/audit_solaire_exit_management.py").read_text()
+    for token in ["full_1_25r","full_1_4r","full_1_6r","full_1_75r"]:
+        assert token in x
