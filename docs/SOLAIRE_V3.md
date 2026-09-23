@@ -54,7 +54,8 @@ Estimated net close returns use a fixed 0.70% round-trip cost convention for com
 ## Outputs
 
 - `production_universe_snapshot.json`: neutral export from the exact same Bitvavo scan used by V2.
-- `solaire_v3_candidates.json`: current prioritized watch and execution diagnostics.
+- `solaire_v3_candidates.json`: current prioritized watch and execution diagnostics; its selection semantics remain unchanged for V3.1.
+- `solaire_v3_theses.json`: isolated persistent Opportunity/Entry research stream, including long-trend context and thesis-only re-entry execution checks.
 - `solaire_v3_state.json`: reversible short-episode state plus persistent opportunity-thesis state.
 - `solaire_v3_journal.json`: cumulative prospective V3 events.
 - `solaire_v2_frozen_benchmark_journal.json`: prospective V2 detection reference.
