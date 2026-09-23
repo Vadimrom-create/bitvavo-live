@@ -1284,6 +1284,32 @@ def main() -> int:
         "news_items_considered": len(news),
         "candidates": compact_candidates,
     }
+
+    thesis_doc = {
+        "schema": "solaire_v3_persistent_theses_v1",
+        "generated_at_utc": utc(now),
+        "research_only": True,
+        "affects_v2": False,
+        "affects_v3_candidate_selection": False,
+        "affects_v31": False,
+        "affects_email": False,
+        "orders_submitted": False,
+        "max_profile_markets": MAX_THESIS_PROFILE_MARKETS,
+        "observations": [
+            {
+                "market": obs.get("market"),
+                "price_eur": obs.get("price_eur"),
+                "opportunity_score": obs.get("opportunity_score"),
+                "horizon_class": obs.get("horizon_class"),
+                "fresh_opportunity_trigger": obs.get("fresh_opportunity_trigger"),
+                "long_trend": obs.get("long_trend"),
+                "persistent_thesis": obs.get("persistent_thesis"),
+                "thesis_reentry_hypothesis": obs.get("thesis_reentry_hypothesis"),
+                "execution": thesis_checks.get(obs.get("market")),
+            }
+            for obs in thesis_observations
+        ],
+    }
     status = {
         "schema": "solaire_v3_status_v1",
         "checked_at_utc": utc(now),
@@ -1299,16 +1325,13 @@ def main() -> int:
         "candidate_count": len(candidates),
         "context_watch_count": sum(bool(x.get("context_watch")) for x in candidates),
         "entry_hypothesis_count": sum(bool(x.get("entry_hypothesis")) for x in candidates),
-        "thesis_reentry_hypothesis_count": sum(bool(x.get("thesis_reentry_hypothesis")) for x in candidates),
+        "thesis_reentry_hypothesis_count": sum(bool(x.get("thesis_reentry_hypothesis")) for x in thesis_observations),
         "execution_checks": len(checks),
         "entry_ready_shadow_count": sum(
             bool(checks.get(x["market"], {}).get("ready"))
             for x in candidates if x.get("entry_hypothesis")
         ),
-        "thesis_reentry_execution_ready_count": sum(
-            bool(checks.get(x["market"], {}).get("ready"))
-            for x in candidates if x.get("thesis_reentry_hypothesis")
-        ),
+        "thesis_reentry_execution_ready_count": sum(bool(x.get("ready")) for x in thesis_checks.values()),
         "new_entry_events": len(new_entry_events),
         "new_thesis_entry_events": len(new_thesis_entry_events),
         "active_theses": sum(bool(x.get("active")) for x in (state.get("theses") or {}).values()),
@@ -1330,6 +1353,7 @@ def main() -> int:
     atomic_json(STATE, state)
     atomic_json(JOURNAL, journal)
     atomic_json(CANDIDATES, candidate_doc)
+    atomic_json(THESES, thesis_doc)
     atomic_json(ROTATION, rotation)
     atomic_json(V2_BENCHMARK, benchmark)
     atomic_json(STATUS, status)
