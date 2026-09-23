@@ -2,11 +2,13 @@
 """Solaire V3 prospective shadow.
 
 This process runs beside Solaire V2.  It never sends mail and never submits an
-order.  It tests four hypotheses prospectively:
+order.  It tests independent hypotheses prospectively:
 - context/news/narratives can focus attention before V2 confirmation,
 - opportunities may remain valuable beyond 24h,
 - capital should be compared with cash and alternative opportunities,
-- global venues may discover a move before Bitvavo.
+- global venues may discover a move before Bitvavo,
+- entry timing should be measured separately from detection,
+- an opportunity thesis can persist after short acceleration disappears.
 
 All external feeds are non-blocking.  Missing feeds remain missing evidence;
 they are never silently imputed.
@@ -42,6 +44,7 @@ from research.solaire_v3 import (
     REFERENCE_CAPITAL_EUR,
     REFERENCE_STAKE_EUR,
     TOKEN_ALIASES,
+    advance_persistent_thesis,
     base_symbol,
     build_narrative_rotations,
     classify_horizon,
@@ -64,6 +67,7 @@ MAX_CONTEXT_AGE = 36 * 3600
 WATCH_EXPIRY = 24 * 3600
 MAX_EXTERNAL_MARKETS = 16
 MAX_EXECUTION_MARKETS = 14
+MAX_THESIS_PROFILE_MARKETS = 20
 MIN_QUOTE_VOLUME_EUR = 75_000.0
 MAX_SPREAD_PCT = 0.50
 MAX_DEPTH_SLIPPAGE_PCT = 0.50
@@ -125,6 +129,71 @@ def _parse_ts(value: Any) -> float | None:
 def _median(xs: list[float]) -> float | None:
     vals = [x for x in xs if x is not None and math.isfinite(x)]
     return statistics.median(vals) if vals else None
+
+
+
+def _closed_return(candles: list[dict[str, Any]], bars: int) -> float | None:
+    if len(candles) <= bars:
+        return None
+    start = finite(candles[-bars - 1].get("c"))
+    end = finite(candles[-1].get("c"))
+    if start is None or end is None or start <= 0:
+        return None
+    return (end / start - 1.0) * 100.0
+
+
+def _trend_returns(client: PublicClient, market: str, now: float) -> dict[str, float | None]:
+    raw = client.get("/" + market + "/candles", {"interval": "4h", "limit": 50}, cache=False)
+    candles = closed_candles(raw, "4h", now)
+    return {
+        "return_24h_pct": _closed_return(candles, 6),
+        "return_72h_pct": _closed_return(candles, 18),
+        "return_7d_pct": _closed_return(candles, 42),
+    }
+
+
+def fetch_long_trend_profiles(
+    client: PublicClient,
+    markets: list[str],
+    now: float,
+) -> tuple[dict[str, dict[str, Any]], list[dict[str, str]]]:
+    """Medium/long-horizon trend evidence used only by the thesis lab."""
+    profiles: dict[str, dict[str, Any]] = {}
+    errors: list[dict[str, str]] = []
+    try:
+        btc = _trend_returns(client, "BTC-EUR", now)
+    except Exception as exc:
+        btc = {}
+        errors.append({"source": "long_trend", "market": "BTC-EUR", "reason": type(exc).__name__})
+
+    for market in markets[:MAX_THESIS_PROFILE_MARKETS]:
+        try:
+            own = _trend_returns(client, market, now)
+            rel72 = None
+            rel7d = None
+            if finite(own.get("return_72h_pct")) is not None and finite(btc.get("return_72h_pct")) is not None:
+                rel72 = finite(own.get("return_72h_pct")) - finite(btc.get("return_72h_pct"))
+            if finite(own.get("return_7d_pct")) is not None and finite(btc.get("return_7d_pct")) is not None:
+                rel7d = finite(own.get("return_7d_pct")) - finite(btc.get("return_7d_pct"))
+            flags = {
+                "positive_72h": finite(own.get("return_72h_pct"), -999.0) > 0,
+                "positive_7d": finite(own.get("return_7d_pct"), -999.0) > 0,
+                "relative_72h_vs_btc": rel72 is not None and rel72 > 0,
+                "relative_7d_vs_btc": rel7d is not None and rel7d > 0,
+            }
+            evidence_count = sum(flags.values())
+            profiles[market] = {
+                **own,
+                "relative_72h_vs_btc_pp": None if rel72 is None else round(rel72, 4),
+                "relative_7d_vs_btc_pp": None if rel7d is None else round(rel7d, 4),
+                "flags": flags,
+                "evidence_count": evidence_count,
+                "support": evidence_count >= 2,
+                "method": "closed_4h_candles_point_in_time",
+            }
+        except Exception as exc:
+            errors.append({"source": "long_trend", "market": market, "reason": type(exc).__name__})
+    return profiles, errors
 
 
 def _news_asset_symbols(text: str) -> list[str]:
