@@ -2,11 +2,13 @@
 """Solaire V3 prospective shadow.
 
 This process runs beside Solaire V2.  It never sends mail and never submits an
-order.  It tests four hypotheses prospectively:
+order.  It tests independent hypotheses prospectively:
 - context/news/narratives can focus attention before V2 confirmation,
 - opportunities may remain valuable beyond 24h,
 - capital should be compared with cash and alternative opportunities,
-- global venues may discover a move before Bitvavo.
+- global venues may discover a move before Bitvavo,
+- entry timing should be measured separately from detection,
+- an opportunity thesis can persist after short acceleration disappears.
 
 All external feeds are non-blocking.  Missing feeds remain missing evidence;
 they are never silently imputed.
@@ -42,6 +44,7 @@ from research.solaire_v3 import (
     REFERENCE_CAPITAL_EUR,
     REFERENCE_STAKE_EUR,
     TOKEN_ALIASES,
+    advance_persistent_thesis,
     base_symbol,
     build_narrative_rotations,
     classify_horizon,
@@ -57,6 +60,7 @@ STATE = "solaire_v3_state.json"
 JOURNAL = "solaire_v3_journal.json"
 STATUS = "solaire_v3_status.json"
 CANDIDATES = "solaire_v3_candidates.json"
+THESES = "solaire_v3_theses.json"
 ROTATION = "solaire_v3_rotation_state.json"
 V2_BENCHMARK = "solaire_v2_frozen_benchmark_journal.json"
 
@@ -64,6 +68,8 @@ MAX_CONTEXT_AGE = 36 * 3600
 WATCH_EXPIRY = 24 * 3600
 MAX_EXTERNAL_MARKETS = 16
 MAX_EXECUTION_MARKETS = 14
+MAX_THESIS_PROFILE_MARKETS = 20
+MAX_THESIS_EXECUTION_MARKETS = 8
 MIN_QUOTE_VOLUME_EUR = 75_000.0
 MAX_SPREAD_PCT = 0.50
 MAX_DEPTH_SLIPPAGE_PCT = 0.50
@@ -125,6 +131,71 @@ def _parse_ts(value: Any) -> float | None:
 def _median(xs: list[float]) -> float | None:
     vals = [x for x in xs if x is not None and math.isfinite(x)]
     return statistics.median(vals) if vals else None
+
+
+
+def _closed_return(candles: list[dict[str, Any]], bars: int) -> float | None:
+    if len(candles) <= bars:
+        return None
+    start = finite(candles[-bars - 1].get("c"))
+    end = finite(candles[-1].get("c"))
+    if start is None or end is None or start <= 0:
+        return None
+    return (end / start - 1.0) * 100.0
+
+
+def _trend_returns(client: PublicClient, market: str, now: float) -> dict[str, float | None]:
+    raw = client.get("/" + market + "/candles", {"interval": "4h", "limit": 50}, cache=False)
+    candles = closed_candles(raw, "4h", now)
+    return {
+        "return_24h_pct": _closed_return(candles, 6),
+        "return_72h_pct": _closed_return(candles, 18),
+        "return_7d_pct": _closed_return(candles, 42),
+    }
+
+
+def fetch_long_trend_profiles(
+    client: PublicClient,
+    markets: list[str],
+    now: float,
+) -> tuple[dict[str, dict[str, Any]], list[dict[str, str]]]:
+    """Medium/long-horizon trend evidence used only by the thesis lab."""
+    profiles: dict[str, dict[str, Any]] = {}
+    errors: list[dict[str, str]] = []
+    try:
+        btc = _trend_returns(client, "BTC-EUR", now)
+    except Exception as exc:
+        btc = {}
+        errors.append({"source": "long_trend", "market": "BTC-EUR", "reason": type(exc).__name__})
+
+    for market in markets[:MAX_THESIS_PROFILE_MARKETS]:
+        try:
+            own = _trend_returns(client, market, now)
+            rel72 = None
+            rel7d = None
+            if finite(own.get("return_72h_pct")) is not None and finite(btc.get("return_72h_pct")) is not None:
+                rel72 = finite(own.get("return_72h_pct")) - finite(btc.get("return_72h_pct"))
+            if finite(own.get("return_7d_pct")) is not None and finite(btc.get("return_7d_pct")) is not None:
+                rel7d = finite(own.get("return_7d_pct")) - finite(btc.get("return_7d_pct"))
+            flags = {
+                "positive_72h": finite(own.get("return_72h_pct"), -999.0) > 0,
+                "positive_7d": finite(own.get("return_7d_pct"), -999.0) > 0,
+                "relative_72h_vs_btc": rel72 is not None and rel72 > 0,
+                "relative_7d_vs_btc": rel7d is not None and rel7d > 0,
+            }
+            evidence_count = sum(flags.values())
+            profiles[market] = {
+                **own,
+                "relative_72h_vs_btc_pp": None if rel72 is None else round(rel72, 4),
+                "relative_7d_vs_btc_pp": None if rel7d is None else round(rel7d, 4),
+                "flags": flags,
+                "evidence_count": evidence_count,
+                "support": evidence_count >= 2,
+                "method": "closed_4h_candles_point_in_time",
+            }
+        except Exception as exc:
+            errors.append({"source": "long_trend", "market": market, "reason": type(exc).__name__})
+    return profiles, errors
 
 
 def _news_asset_symbols(text: str) -> list[str]:
@@ -411,10 +482,15 @@ def execution_check(
 
 
 def _event_key(event: dict[str, Any]) -> str:
+    event_type = str(event.get("event_type") or "")
+    if "THESIS" in event_type:
+        scope = "thesis:" + str(event.get("thesis_id") or "")
+    else:
+        scope = "episode:" + str(event.get("episode") or "")
     return "|".join([
         str(event.get("market") or ""),
-        str(event.get("episode") or ""),
-        str(event.get("event_type") or ""),
+        scope,
+        event_type,
     ])
 
 
@@ -594,6 +670,7 @@ def main() -> int:
     state.setdefault("started_at_utc", utc(now))
     state.setdefault("markets", {})
     state.setdefault("previous_derivatives", {})
+    state.setdefault("theses", {})
     journal.setdefault("schema", "solaire_v3_prospective_journal_v1")
     journal.setdefault("started_ts", state["started_ts"])
     journal.setdefault("started_at_utc", state["started_at_utc"])
@@ -701,21 +778,162 @@ def main() -> int:
         )
         independent_context = context_watch
         v2_confirmed = row.get("v2_state") == "CONFIRMED_ACCELERATION"
-        entry_hypothesis = (
+        fresh_opportunity_trigger = (
             bool((row.get("early_quant") or {}).get("ready")) and independent_context
         ) or v2_confirmed
+        entry_hypothesis = fresh_opportunity_trigger
         merged = {
             **row,
             "external": ext,
             "external_score": external_score,
             "opportunity_score": opp,
             "context_watch": context_watch,
+            "fresh_opportunity_trigger": fresh_opportunity_trigger,
             "entry_hypothesis": entry_hypothesis,
         }
         merged["horizon_class"] = classify_horizon(merged)
         candidates.append(merged)
 
     candidates.sort(key=lambda x: x["opportunity_score"], reverse=True)
+
+    # Sixth V3 research axis: persistent opportunity theses.  This runs on
+    # a separate observation set so the frozen V3 candidate stream consumed by
+    # V3.1 is not widened or re-ranked.
+    candidate_by_market = {x["market"]: x for x in candidates}
+    universe_by_market_thesis = {x.get("market"): x for x in rows if x.get("market")}
+    active_thesis_markets = {
+        market for market, thesis in (state.get("theses") or {}).items()
+        if thesis.get("active")
+    }
+    fresh_thesis_markets = {
+        x["market"] for x in candidates if x.get("fresh_opportunity_trigger")
+    }
+    thesis_markets = sorted(active_thesis_markets | fresh_thesis_markets)
+
+    thesis_observations: list[dict[str, Any]] = []
+    for market in thesis_markets:
+        current = candidate_by_market.get(market)
+        if current is not None:
+            obs = dict(current)
+        else:
+            raw = universe_by_market_thesis.get(market)
+            if not raw or not (raw.get("data_quality") or {}).get("ok", False):
+                continue
+            symbol = base_symbol(market)
+            early = early_quant_evidence(raw)
+            hits, news_score = news_for_symbol(symbol, news, now)
+            sector_names = narratives_for_market(market)
+            active_rotations = [
+                (name, rotations.get(name) or {})
+                for name in sector_names
+                if (rotations.get(name) or {}).get("active_watch")
+            ]
+            raw_rotation = max([finite(x[1].get("rotation_score_0_3"), 0) for x in active_rotations] or [0])
+            narrative_score = min(10.0, raw_rotation / 3.0 * 10.0)
+            v2row = v2_tracking.get(market) or {}
+            prior = (state.get("theses") or {}).get(market) or {}
+            obs = {
+                **raw,
+                "symbol": symbol,
+                "early_quant": early,
+                "news_items": hits,
+                "news_score": news_score,
+                "narratives": sector_names,
+                "active_narratives": [x[0] for x in active_rotations],
+                "narrative_score": round(narrative_score, 3),
+                "external": {"venues_available": 0, "external_score_0_10": 0.0, "reason": "THESIS_ONLY_NO_EXTRA_EXTERNAL_QUERY"},
+                "external_score": 0.0,
+                "opportunity_score": finite(prior.get("best_opportunity_score"), 0.0),
+                "context_watch": bool(news_score > 0 or active_rotations),
+                "fresh_opportunity_trigger": False,
+                "entry_hypothesis": False,
+                "v2_state": v2row.get("signal_state"),
+                "v2_score": finite(v2row.get("signal_score")),
+            }
+            obs["horizon_class"] = classify_horizon(obs)
+        thesis_observations.append(obs)
+
+    thesis_observations.sort(
+        key=lambda x: (
+            0 if x.get("fresh_opportunity_trigger") else 1,
+            -finite(x.get("opportunity_score"), 0),
+        )
+    )
+    long_trend_profiles: dict[str, dict[str, Any]] = {}
+    if thesis_observations:
+        try:
+            trend_client = PublicClient(timeout=8, retries=2, requests_per_second=8)
+            long_trend_profiles, trend_errors = fetch_long_trend_profiles(
+                trend_client,
+                [x["market"] for x in thesis_observations],
+                now,
+            )
+            source_errors.extend(trend_errors)
+        except Exception as exc:
+            source_errors.append({"source": "long_trend", "reason": type(exc).__name__})
+
+    for obs in thesis_observations:
+        market = obs["market"]
+        prior = (state.get("theses") or {}).get(market) or {}
+        long_trend = long_trend_profiles.get(market) or prior.get("last_long_trend") or {}
+        obs["long_trend"] = long_trend
+        prior_state = prior.get("state")
+        prior_active = bool(prior.get("active"))
+        thesis = advance_persistent_thesis(prior, obs, now)
+        if thesis:
+            state["theses"][market] = thesis
+        obs["persistent_thesis"] = thesis or {}
+        obs["thesis_reentry_hypothesis"] = bool(
+            thesis.get("active") and thesis.get("state") == "REENTRY_READY_THESIS"
+        )
+        if market in candidate_by_market:
+            candidate_by_market[market]["long_trend"] = long_trend
+            candidate_by_market[market]["persistent_thesis"] = thesis or {}
+
+        opened = bool(thesis.get("active")) and not prior_active
+        if opened:
+            _append_event(journal, {
+                "event_type": "OPPORTUNITY_THESIS_START",
+                "market": market,
+                "thesis_id": thesis.get("thesis_id"),
+                "decision_ts": now,
+                "decision_at_utc": utc(now),
+                "price_eur": finite(obs.get("price_eur")),
+                "opportunity_score": obs.get("opportunity_score"),
+                "horizon_class": obs.get("horizon_class"),
+                "long_trend": long_trend,
+                "early_quant": obs.get("early_quant"),
+                "context": {
+                    "news_score": obs.get("news_score"),
+                    "active_narratives": obs.get("active_narratives"),
+                    "narrative_score": obs.get("narrative_score"),
+                    "external": obs.get("external"),
+                },
+                "v2_state_at_event": obs.get("v2_state"),
+                "left_censored_at_v3_t0": initial_v3_cycle,
+                "evaluations": {},
+            })
+
+        if (
+            thesis.get("active")
+            and thesis.get("state") == "REENTRY_READY_THESIS"
+            and prior_state != "REENTRY_READY_THESIS"
+        ):
+            _append_event(journal, {
+                "event_type": "OPPORTUNITY_THESIS_REENTRY_READY",
+                "market": market,
+                "thesis_id": thesis.get("thesis_id"),
+                "decision_ts": now,
+                "decision_at_utc": utc(now),
+                "price_eur": finite(obs.get("price_eur")),
+                "opportunity_score": obs.get("opportunity_score"),
+                "horizon_class": obs.get("horizon_class"),
+                "long_trend": long_trend,
+                "thesis": thesis,
+                "v2_state_at_event": obs.get("v2_state"),
+                "left_censored_at_v3_t0": False,
+                "evaluations": {},
+            })
 
     # Derivatives are diagnostic only and sampled on the strongest candidates.
     for row in candidates[:8]:
@@ -730,7 +948,10 @@ def main() -> int:
     # opportunity score is not in the top-N.
     execution_rows = [x for x in candidates if x.get("entry_hypothesis")]
     execution_rows.sort(
-        key=lambda x: (0 if x.get("v2_state") == "CONFIRMED_ACCELERATION" else 1, -finite(x.get("opportunity_score"), 0))
+        key=lambda x: (
+            0 if x.get("v2_state") == "CONFIRMED_ACCELERATION" else 1,
+            -finite(x.get("opportunity_score"), 0),
+        )
     )
     execution_rows = execution_rows[:MAX_EXECUTION_MARKETS]
 
@@ -750,6 +971,57 @@ def main() -> int:
     if metadata:
         for row in execution_rows:
             checks[row["market"]] = execution_check(client, metadata, row, time.time())
+
+    # Thesis re-entry execution is deliberately separate from V3 execution
+    # checks so V3.1 continues to consume the unchanged V3 candidate stream.
+    thesis_execution_rows = [
+        x for x in thesis_observations if x.get("thesis_reentry_hypothesis")
+    ][:MAX_THESIS_EXECUTION_MARKETS]
+    thesis_checks: dict[str, dict[str, Any]] = {}
+    if metadata:
+        for obs in thesis_execution_rows:
+            thesis_checks[obs["market"]] = execution_check(client, metadata, obs, time.time())
+
+    new_thesis_entry_events = []
+    for obs in thesis_execution_rows:
+        market = obs["market"]
+        check = thesis_checks.get(market)
+        thesis = (state.get("theses") or {}).get(market) or {}
+        if check is None:
+            continue
+        thesis["last_execution_state"] = check.get("reason")
+        thesis["last_execution_checked_at_utc"] = utc(now)
+        thesis_id = thesis.get("thesis_id")
+        if (
+            check.get("ready")
+            and thesis_id is not None
+            and thesis.get("entry_recorded_thesis_id") != thesis_id
+        ):
+            plan = check.get("plan") or {}
+            event = {
+                "event_type": "ENTRY_THESIS_REENTRY_SHADOW",
+                "market": market,
+                "thesis_id": thesis_id,
+                "decision_ts": now,
+                "decision_at_utc": utc(now),
+                "price_eur": finite(obs.get("price_eur")),
+                "entry_eur": finite(plan.get("entry_eur")),
+                "stop_eur": finite(plan.get("stop_eur")),
+                "tp1_eur": finite(plan.get("tp1_eur")),
+                "stake_eur": REFERENCE_STAKE_EUR,
+                "opportunity_score": obs.get("opportunity_score"),
+                "horizon_class": obs.get("horizon_class"),
+                "entry_source": "V3_PERSISTENT_THESIS_REENTRY",
+                "execution": check,
+                "long_trend": obs.get("long_trend"),
+                "thesis": thesis,
+                "v2_state_at_event": obs.get("v2_state"),
+                "left_censored_at_v3_t0": False,
+                "evaluations": {},
+            }
+            if _append_event(journal, event):
+                thesis["entry_recorded_thesis_id"] = thesis_id
+                new_thesis_entry_events.append(event)
 
     current_markets = set()
     new_entry_events = []
@@ -1012,6 +1284,32 @@ def main() -> int:
         "news_items_considered": len(news),
         "candidates": compact_candidates,
     }
+
+    thesis_doc = {
+        "schema": "solaire_v3_persistent_theses_v1",
+        "generated_at_utc": utc(now),
+        "research_only": True,
+        "affects_v2": False,
+        "affects_v3_candidate_selection": False,
+        "affects_v31": False,
+        "affects_email": False,
+        "orders_submitted": False,
+        "max_profile_markets": MAX_THESIS_PROFILE_MARKETS,
+        "observations": [
+            {
+                "market": obs.get("market"),
+                "price_eur": obs.get("price_eur"),
+                "opportunity_score": obs.get("opportunity_score"),
+                "horizon_class": obs.get("horizon_class"),
+                "fresh_opportunity_trigger": obs.get("fresh_opportunity_trigger"),
+                "long_trend": obs.get("long_trend"),
+                "persistent_thesis": obs.get("persistent_thesis"),
+                "thesis_reentry_hypothesis": obs.get("thesis_reentry_hypothesis"),
+                "execution": thesis_checks.get(obs.get("market")),
+            }
+            for obs in thesis_observations
+        ],
+    }
     status = {
         "schema": "solaire_v3_status_v1",
         "checked_at_utc": utc(now),
@@ -1027,9 +1325,23 @@ def main() -> int:
         "candidate_count": len(candidates),
         "context_watch_count": sum(bool(x.get("context_watch")) for x in candidates),
         "entry_hypothesis_count": sum(bool(x.get("entry_hypothesis")) for x in candidates),
+        "thesis_reentry_hypothesis_count": sum(bool(x.get("thesis_reentry_hypothesis")) for x in thesis_observations),
         "execution_checks": len(checks),
-        "entry_ready_shadow_count": sum(bool(x.get("ready")) for x in checks.values()),
+        "entry_ready_shadow_count": sum(
+            bool(checks.get(x["market"], {}).get("ready"))
+            for x in candidates if x.get("entry_hypothesis")
+        ),
+        "thesis_reentry_execution_ready_count": sum(bool(x.get("ready")) for x in thesis_checks.values()),
         "new_entry_events": len(new_entry_events),
+        "new_thesis_entry_events": len(new_thesis_entry_events),
+        "active_theses": sum(bool(x.get("active")) for x in (state.get("theses") or {}).values()),
+        "thesis_reentry_ready_states": sum(
+            x.get("state") == "REENTRY_READY_THESIS"
+            for x in (state.get("theses") or {}).values()
+        ),
+        "thesis_start_events": sum(x.get("event_type") == "OPPORTUNITY_THESIS_START" for x in journal.get("events", [])),
+        "thesis_reentry_events": sum(x.get("event_type") == "OPPORTUNITY_THESIS_REENTRY_READY" for x in journal.get("events", [])),
+        "thesis_entry_events": sum(x.get("event_type") == "ENTRY_THESIS_REENTRY_SHADOW" for x in journal.get("events", [])),
         "timing_persist_30m_events": sum(x.get("event_type") == "ENTRY_TIMING_PERSIST_30M" for x in journal.get("events", [])),
         "timing_pullback_reclaim_events": sum(x.get("event_type") == "ENTRY_TIMING_PULLBACK_RECLAIM" for x in journal.get("events", [])),
         "rotation_positions": len(rotation.get("positions", [])),
@@ -1041,6 +1353,7 @@ def main() -> int:
     atomic_json(STATE, state)
     atomic_json(JOURNAL, journal)
     atomic_json(CANDIDATES, candidate_doc)
+    atomic_json(THESES, thesis_doc)
     atomic_json(ROTATION, rotation)
     atomic_json(V2_BENCHMARK, benchmark)
     atomic_json(STATUS, status)

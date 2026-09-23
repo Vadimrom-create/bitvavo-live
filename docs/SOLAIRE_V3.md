@@ -1,12 +1,12 @@
 # Solaire V3 — prospective laboratory
 
-Solaire V3 is a research shadow deployed beside the frozen Solaire V2 decision path. It does **not** replace V2 alerts, send its own BUY email, or submit orders. Its purpose is to test the four strategic hypotheses agreed on 2026-09-23 before the longer Astra challenger is fully deployed.
+Solaire V3 is a research shadow deployed beside the frozen Solaire V2 decision path. It does **not** replace V2 alerts, send its own BUY email, or submit orders. Its purpose is to test the original strategic hypotheses plus the entry-timing and persistent-thesis extensions before the longer Astra challenger is fully deployed.
 
 ## Frozen comparator
 
 The immutable V2 code reference is commit `34b042121bb8425b0e4b46e3d1a694d4b1f4ec75`. Runtime JSON files on `main` may continue to evolve; the comparison code reference does not.
 
-## Five axes
+## Six axes
 
 1. **Where to look — context and narratives.** Public crypto news, project mentions and sector rotation can create a priority watch before a full V2 quantitative confirmation. Context never creates a BUY by itself. The direction must still be confirmed by market data.
 
@@ -15,6 +15,10 @@ The immutable V2 code reference is commit `34b042121bb8425b0e4b46e3d1a694d4b1f4e
 3. **Where to place capital — opportunity cost.** A standardized shadow portfolio (EUR 2,400 reference capital, EUR 100 reference position, max three positions) records KEEP/OPEN/ROTATE/CLOSE logic. It is **not** the user's account balance and does not trade. Rotation requires a materially higher forward opportunity score, so churn is measurable.
 
 4. **Where/when price discovery starts — global market.** Prioritized candidates are checked on available public Binance, Bybit, OKX, Coinbase and Kraken spot markets. Bybit linear-perpetual open interest/funding is sampled diagnostically for the strongest candidates. Bitvavo remains the execution-quality reference.
+
+5. **When to enter — entry-timing laboratory.** The raw `ENTRY_READY_SHADOW` remains the neutral baseline. V3 also measures a 30-minute persistence path and a pullback/reclaim path. These variants never affect V2, emails, orders or the baseline capital-rotation shadow.
+
+6. **Opportunity is not entry — persistent thesis layer.** A fresh opportunity can open a thesis that survives disappearance of the short acceleration. The thesis tracks continuation, pullback, reclaim/re-entry, invalidation and expiry independently from the short episode. Up to twenty prioritized thesis markets also receive closed 4h-candle context over 24h, 72h and 7d, including relative performance versus BTC when available. A thesis re-entry is logged and evaluated separately; it does not alter the existing rotation portfolio.
 
 ## V3 entry path
 
@@ -50,8 +54,9 @@ Estimated net close returns use a fixed 0.70% round-trip cost convention for com
 ## Outputs
 
 - `production_universe_snapshot.json`: neutral export from the exact same Bitvavo scan used by V2.
-- `solaire_v3_candidates.json`: current prioritized watch and execution diagnostics.
-- `solaire_v3_state.json`: reversible watch/entry state.
+- `solaire_v3_candidates.json`: current prioritized watch and execution diagnostics; its selection semantics remain unchanged for V3.1.
+- `solaire_v3_theses.json`: isolated persistent Opportunity/Entry research stream, including long-trend context and thesis-only re-entry execution checks.
+- `solaire_v3_state.json`: reversible short-episode state plus persistent opportunity-thesis state.
 - `solaire_v3_journal.json`: cumulative prospective V3 events.
 - `solaire_v2_frozen_benchmark_journal.json`: prospective V2 detection reference.
 - `solaire_v3_rotation_state.json`: standardized paper capital-allocation shadow.
@@ -61,6 +66,6 @@ Estimated net close returns use a fixed 0.70% round-trip cost convention for com
 
 ## Deliberate limitations
 
-GitHub Actions remains a scheduled, non-continuous runtime. Astra measured a much slower effective cadence than the nominal five-minute cron. V3 therefore tests whether the four ideas add value **despite** that limitation; it does not claim to solve latency. Astra remains the independent continuous-architecture challenger.
+GitHub Actions remains a scheduled, non-continuous runtime. Astra measured a much slower effective cadence than the nominal five-minute cron. V3 therefore tests whether these research axes add value **despite** that limitation; it does not claim to solve latency. Astra remains the independent continuous-architecture challenger.
 
 External feeds are best-effort and non-blocking. A missing external venue/news source cannot become positive evidence. News is used as dated attention/context, not as inferred sentiment. No live order is submitted by V3.

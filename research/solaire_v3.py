@@ -1,11 +1,9 @@
 """Solaire V3 prospective-shadow helpers.
 
 V3 is deliberately separate from the frozen Solaire V2 decision path.
-It provides four research axes:
-1. context/narrative prioritisation,
-2. adaptive time horizons,
-3. capital-rotation opportunity cost,
-4. global price discovery.
+It provides independent research layers for context/narratives, adaptive time
+horizons, capital rotation, global price discovery, entry timing and persistent
+opportunity theses.
 
 Nothing in this module sends mail or submits orders.
 """
@@ -23,6 +21,11 @@ REFERENCE_CAPITAL_EUR = 2400.0
 MAX_SHADOW_POSITIONS = 3
 ROUND_TRIP_COST_PCT = 0.70
 HORIZONS_HOURS = (4, 24, 48, 72, 96, 168, 336, 720)
+
+THESIS_MAX_AGE_SECONDS = 7 * 24 * 3600
+THESIS_PULLBACK_MIN_PCT = -2.0
+THESIS_RECLAIM_MIN_PCT = 1.0
+THESIS_INVALIDATION_FROM_ANCHOR_PCT = -12.0
 
 NARRATIVES = {
     "AI_COMPUTE": {"AIOZ", "PHA", "AKT", "NOS", "FET", "TAO", "RENDER", "RNDR", "GRASS", "VVV"},
@@ -237,6 +240,123 @@ def classify_horizon(row: dict[str, Any]) -> str:
     if external >= 3.0 or quant >= 5.0:
         return "TACTICAL"
     return "WATCH"
+
+
+
+def advance_persistent_thesis(
+    prior: dict[str, Any] | None,
+    row: dict[str, Any],
+    now: float,
+) -> dict[str, Any]:
+    """Advance a research-only opportunity thesis independently of entry.
+
+    A thesis can survive the disappearance of the short acceleration that
+    created it.  The thresholds are deliberately simple hypotheses to measure
+    prospectively, not calibrated production rules.
+    """
+    thesis = dict(prior or {})
+    price = finite(row.get("price_eur"))
+    fresh = bool(row.get("fresh_opportunity_trigger"))
+    long_trend = row.get("long_trend") or {}
+    long_support = bool(long_trend.get("support"))
+    early = row.get("early_quant") or {}
+    short_support = (
+        fresh
+        or bool(row.get("context_watch"))
+        or _n(row.get("external_score")) >= 1.0
+        or int(early.get("evidence_count") or 0) >= 2
+    )
+    support = bool(short_support or long_support)
+
+    if not thesis.get("active"):
+        if not fresh or price is None or price <= 0:
+            return thesis
+        thesis_id = int(thesis.get("thesis_id") or 0) + 1
+        return {
+            "thesis_id": thesis_id,
+            "active": True,
+            "state": "ACTIVE_THESIS",
+            "opened_ts": now,
+            "opened_price_eur": price,
+            "last_seen_ts": now,
+            "last_price_eur": price,
+            "peak_eur": price,
+            "low_eur": price,
+            "pullback_seen": False,
+            "pullback_low_eur": None,
+            "start_opportunity_score": _n(row.get("opportunity_score")),
+            "best_opportunity_score": _n(row.get("opportunity_score")),
+            "start_horizon_class": row.get("horizon_class"),
+            "last_horizon_class": row.get("horizon_class"),
+            "last_long_trend": long_trend,
+            "last_support": support,
+            "fresh_trigger_count": 1,
+        }
+
+    if price is None or price <= 0:
+        thesis["last_seen_ts"] = now
+        thesis["last_support"] = support
+        if long_trend:
+            thesis["last_long_trend"] = long_trend
+        return thesis
+
+    anchor = finite(thesis.get("opened_price_eur"), price)
+    previous_peak = finite(thesis.get("peak_eur"), price)
+    previous_low = finite(thesis.get("low_eur"), price)
+    peak = max(previous_peak, price)
+    low = min(previous_low, price)
+    thesis["peak_eur"] = peak
+    thesis["low_eur"] = low
+    thesis["last_price_eur"] = price
+    thesis["last_seen_ts"] = now
+    thesis["last_support"] = support
+    thesis["last_horizon_class"] = row.get("horizon_class")
+    thesis["best_opportunity_score"] = max(
+        _n(thesis.get("best_opportunity_score")),
+        _n(row.get("opportunity_score")),
+    )
+    if long_trend:
+        thesis["last_long_trend"] = long_trend
+    if fresh:
+        thesis["fresh_trigger_count"] = int(thesis.get("fresh_trigger_count") or 0) + 1
+
+    anchor_return = (price / anchor - 1.0) * 100.0 if anchor else 0.0
+    drawdown_from_peak = (price / peak - 1.0) * 100.0 if peak else 0.0
+    thesis["return_from_open_pct"] = round(anchor_return, 4)
+    thesis["drawdown_from_peak_pct"] = round(drawdown_from_peak, 4)
+    thesis["age_hours"] = round(max(0.0, now - _n(thesis.get("opened_ts"), now)) / 3600.0, 3)
+
+    if drawdown_from_peak <= THESIS_PULLBACK_MIN_PCT:
+        thesis["pullback_seen"] = True
+        existing_pullback_low = finite(thesis.get("pullback_low_eur"), price)
+        thesis["pullback_low_eur"] = min(existing_pullback_low, price)
+
+    pullback_low = finite(thesis.get("pullback_low_eur"))
+    reclaim = None
+    if pullback_low is not None and pullback_low > 0:
+        reclaim = (price / pullback_low - 1.0) * 100.0
+        thesis["reclaim_from_pullback_low_pct"] = round(reclaim, 4)
+
+    age = max(0.0, now - _n(thesis.get("opened_ts"), now))
+    if anchor_return <= THESIS_INVALIDATION_FROM_ANCHOR_PCT:
+        thesis["active"] = False
+        thesis["state"] = "INVALIDATED_THESIS"
+        thesis["ended_ts"] = now
+        thesis["end_reason"] = "ANCHOR_DRAWDOWN"
+    elif age >= THESIS_MAX_AGE_SECONDS and not support:
+        thesis["active"] = False
+        thesis["state"] = "EXPIRED_THESIS"
+        thesis["ended_ts"] = now
+        thesis["end_reason"] = "MAX_AGE_WITHOUT_SUPPORT"
+    elif bool(thesis.get("pullback_seen")) and reclaim is not None and reclaim >= THESIS_RECLAIM_MIN_PCT and support:
+        thesis["state"] = "REENTRY_READY_THESIS"
+    elif bool(thesis.get("pullback_seen")):
+        thesis["state"] = "PULLBACK_THESIS"
+    elif anchor_return >= 2.0 and support:
+        thesis["state"] = "CONTINUATION_THESIS"
+    else:
+        thesis["state"] = "ACTIVE_THESIS"
+    return thesis
 
 
 def evaluate_candles_strict(

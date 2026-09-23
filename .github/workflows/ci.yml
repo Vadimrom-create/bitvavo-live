@@ -88,6 +88,14 @@ jobs:
           assert comp['frozen_v2_commit'] == '34b042121bb8425b0e4b46e3d1a694d4b1f4ec75', comp
           assert 'v3_timing_persist_30m' in comp['summary'], comp
           assert 'v3_timing_pullback_reclaim' in comp['summary'], comp
+          assert 'v3_thesis_start' in comp['summary'], comp
+          assert 'v3_thesis_reentry_ready' in comp['summary'], comp
+          assert 'v3_thesis_reentry_entry' in comp['summary'], comp
+          theses = json.load(open('solaire_v3_theses.json'))
+          assert theses['affects_v3_candidate_selection'] is False, theses
+          assert theses['affects_v31'] is False, theses
+          assert theses['affects_email'] is False, theses
+          assert theses['orders_submitted'] is False, theses
           assert v3['affects_email'] is False and v3['orders_submitted'] is False, v3
           PY
       - name: Run Solaire V3.1 economic challenger shadow
@@ -128,6 +136,7 @@ jobs:
             production_universe_snapshot.json
             solaire_v3_status.json
             solaire_v3_candidates.json
+            solaire_v3_theses.json
             solaire_v3_journal.json
             solaire_v3_rotation_state.json
             solaire_v3_evaluation_status.json
