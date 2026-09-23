@@ -53,3 +53,30 @@ NIL / APE / FORM are excluded from V3.1 prospective performance because they occ
 Reference capital remains EUR 2,400 for comparability with V3. Maximum open positions: 3. The shadow can rotate only when a new qualified candidate exceeds the weakest open position by at least 1.25 economic-score points.
 
 No real account state, email or order is affected.
+
+
+## Timing-factorial extension
+
+V3 later added an independent prospective timing laboratory at commit `0c05e0fbf55b0ff99dae3f10bcfc3411bbee0cc6`. V3.1 keeps its original RAW economic ranking/gate unchanged and now crosses it with the two V3-recorded timing paths:
+
+- `RAW`: original V3.1 behaviour, unchanged;
+- `PERSIST_30M`: V3 has already recorded that execution-ready persisted for at least 30 minutes inside its own drift constraints;
+- `PULLBACK_RECLAIM`: V3 has already recorded its pullback/reclaim timing condition.
+
+V3.1 does not copy or reimplement the timing thresholds. The upstream V3 timing event is authoritative. This avoids drift between two definitions of the same timing rule.
+
+The prospective comparison is therefore factorial:
+
+| Selection layer | RAW | PERSIST_30M | PULLBACK_RECLAIM |
+| --- | --- | --- | --- |
+| V3 | measured by V3 | measured by V3 | measured by V3 |
+| V3.1 economic gate | measured | measured | measured |
+
+The original V3.1 RAW journal and portfolio remain intact. Two new shadow portfolios are maintained separately:
+
+- `solaire_v31_portfolio_persist30.json`
+- `solaire_v31_portfolio_pullback_reclaim.json`
+
+The first timing-extension cycle is left-censored. A timing condition already active when the extension starts cannot be counted as a fresh prospective timing success or open a timing portfolio position.
+
+This extension still sends no email, submits no order, and cannot modify V2 or V3.
