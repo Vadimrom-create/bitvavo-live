@@ -929,6 +929,7 @@ def main() -> int:
 
     current_markets = set()
     new_entry_events = []
+    new_thesis_entry_events = []
     rotation_ready_events = []
     for row in candidates:
         market = row["market"]
@@ -1134,6 +1135,42 @@ def main() -> int:
                     ms["entry_recorded_episode"] = ms["episode"]
                     new_entry_events.append(event)
 
+        if row.get("thesis_reentry_hypothesis") and check is not None:
+            thesis = (state.get("theses") or {}).get(market) or {}
+            thesis["last_execution_state"] = check.get("reason")
+            thesis["last_execution_checked_at_utc"] = utc(now)
+            thesis_id = thesis.get("thesis_id")
+            if (
+                check.get("ready")
+                and thesis_id is not None
+                and thesis.get("entry_recorded_thesis_id") != thesis_id
+            ):
+                plan = check.get("plan") or {}
+                event = {
+                    "event_type": "ENTRY_THESIS_REENTRY_SHADOW",
+                    "market": market,
+                    "thesis_id": thesis_id,
+                    "decision_ts": now,
+                    "decision_at_utc": utc(now),
+                    "price_eur": finite(row.get("price_eur")),
+                    "entry_eur": finite(plan.get("entry_eur")),
+                    "stop_eur": finite(plan.get("stop_eur")),
+                    "tp1_eur": finite(plan.get("tp1_eur")),
+                    "stake_eur": REFERENCE_STAKE_EUR,
+                    "opportunity_score": row.get("opportunity_score"),
+                    "horizon_class": row.get("horizon_class"),
+                    "entry_source": "V3_PERSISTENT_THESIS_REENTRY",
+                    "execution": check,
+                    "long_trend": row.get("long_trend"),
+                    "thesis": thesis,
+                    "v2_state_at_event": row.get("v2_state"),
+                    "left_censored_at_v3_t0": False,
+                    "evaluations": {},
+                }
+                if _append_event(journal, event):
+                    thesis["entry_recorded_thesis_id"] = thesis_id
+                    new_thesis_entry_events.append(event)
+
     for market, ms in state["markets"].items():
         if market not in current_markets and ms.get("active") and now - finite(ms.get("last_seen_ts"), 0) > WATCH_EXPIRY:
             ms["active"] = False
@@ -1162,13 +1199,17 @@ def main() -> int:
             "opportunity_score": row.get("opportunity_score"),
             "horizon_class": row.get("horizon_class"),
             "context_watch": row.get("context_watch"),
+            "fresh_opportunity_trigger": row.get("fresh_opportunity_trigger"),
             "entry_hypothesis": row.get("entry_hypothesis"),
+            "thesis_reentry_hypothesis": row.get("thesis_reentry_hypothesis"),
             "early_quant": row.get("early_quant"),
             "news_score": row.get("news_score"),
             "news_items": row.get("news_items"),
             "active_narratives": row.get("active_narratives"),
             "narrative_score": row.get("narrative_score"),
             "external": row.get("external"),
+            "long_trend": row.get("long_trend"),
+            "persistent_thesis": row.get("persistent_thesis"),
             "derivatives": row.get("derivatives"),
             "v2_state": row.get("v2_state"),
             "v2_score": row.get("v2_score"),
@@ -1203,9 +1244,26 @@ def main() -> int:
         "candidate_count": len(candidates),
         "context_watch_count": sum(bool(x.get("context_watch")) for x in candidates),
         "entry_hypothesis_count": sum(bool(x.get("entry_hypothesis")) for x in candidates),
+        "thesis_reentry_hypothesis_count": sum(bool(x.get("thesis_reentry_hypothesis")) for x in candidates),
         "execution_checks": len(checks),
-        "entry_ready_shadow_count": sum(bool(x.get("ready")) for x in checks.values()),
+        "entry_ready_shadow_count": sum(
+            bool(checks.get(x["market"], {}).get("ready"))
+            for x in candidates if x.get("entry_hypothesis")
+        ),
+        "thesis_reentry_execution_ready_count": sum(
+            bool(checks.get(x["market"], {}).get("ready"))
+            for x in candidates if x.get("thesis_reentry_hypothesis")
+        ),
         "new_entry_events": len(new_entry_events),
+        "new_thesis_entry_events": len(new_thesis_entry_events),
+        "active_theses": sum(bool(x.get("active")) for x in (state.get("theses") or {}).values()),
+        "thesis_reentry_ready_states": sum(
+            x.get("state") == "REENTRY_READY_THESIS"
+            for x in (state.get("theses") or {}).values()
+        ),
+        "thesis_start_events": sum(x.get("event_type") == "OPPORTUNITY_THESIS_START" for x in journal.get("events", [])),
+        "thesis_reentry_events": sum(x.get("event_type") == "OPPORTUNITY_THESIS_REENTRY_READY" for x in journal.get("events", [])),
+        "thesis_entry_events": sum(x.get("event_type") == "ENTRY_THESIS_REENTRY_SHADOW" for x in journal.get("events", [])),
         "timing_persist_30m_events": sum(x.get("event_type") == "ENTRY_TIMING_PERSIST_30M" for x in journal.get("events", [])),
         "timing_pullback_reclaim_events": sum(x.get("event_type") == "ENTRY_TIMING_PULLBACK_RECLAIM" for x in journal.get("events", [])),
         "rotation_positions": len(rotation.get("positions", [])),
