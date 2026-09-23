@@ -1,0 +1,178 @@
+{
+  "source_audit_commit": "ff386ffe635602e60ab01161c0497584cdfdf62b",
+  "arithmetic_checks": [
+    {
+      "horizon": 4,
+      "target_r": 1.4,
+      "n": 35,
+      "mean_net_pct": 0.7809,
+      "status": "PASS"
+    },
+    {
+      "horizon": 4,
+      "target_r": 1.5,
+      "n": 35,
+      "mean_net_pct": 0.7153,
+      "status": "PASS"
+    },
+    {
+      "horizon": 4,
+      "target_r": 1.6,
+      "n": 35,
+      "mean_net_pct": 0.8737,
+      "status": "PASS"
+    },
+    {
+      "horizon": 4,
+      "target_r": 2,
+      "n": 35,
+      "mean_net_pct": -0.4995,
+      "status": "PASS"
+    },
+    {
+      "horizon": 12,
+      "target_r": 1.4,
+      "n": 24,
+      "mean_net_pct": 0.6088,
+      "status": "PASS"
+    },
+    {
+      "horizon": 12,
+      "target_r": 1.5,
+      "n": 24,
+      "mean_net_pct": 0.4556,
+      "status": "PASS"
+    },
+    {
+      "horizon": 12,
+      "target_r": 1.6,
+      "n": 24,
+      "mean_net_pct": 0.6035,
+      "status": "PASS"
+    },
+    {
+      "horizon": 12,
+      "target_r": 2,
+      "n": 24,
+      "mean_net_pct": -0.5754,
+      "status": "PASS"
+    },
+    {
+      "horizon": 24,
+      "target_r": 1.4,
+      "n": 14,
+      "mean_net_pct": 0.1145,
+      "status": "PASS"
+    },
+    {
+      "horizon": 24,
+      "target_r": 1.5,
+      "n": 14,
+      "mean_net_pct": 0.3389,
+      "status": "PASS"
+    },
+    {
+      "horizon": 24,
+      "target_r": 1.6,
+      "n": 14,
+      "mean_net_pct": 0.5633,
+      "status": "PASS"
+    },
+    {
+      "horizon": 24,
+      "target_r": 2,
+      "n": 14,
+      "mean_net_pct": -1.8393,
+      "status": "PASS"
+    }
+  ],
+  "journal_verified_horizons": 67,
+  "close_mismatches": 67,
+  "tp_stop_mismatches": [
+    {
+      "market": "ZETA-EUR",
+      "decision": "2026-09-22T00:27:00.794011+00:00",
+      "h": "12",
+      "coverage": "1.0",
+      "old_result": "STOP",
+      "chronological_result": "TP",
+      "old_close_pct": "0.0666",
+      "chronological_close_pct": "-7.3286",
+      "old_bars": "120",
+      "archive_bars": "143"
+    }
+  ],
+  "scheduled_runs_last24h": 83,
+  "median_scheduled_interval_minutes": 17.225,
+  "max_scheduled_interval_minutes": 27.35,
+  "premature_completeness_reproduction": {
+    "horizon_end_seconds": 14400,
+    "last_bar_close_seconds": 14100,
+    "premature_by_seconds": 300,
+    "complete_horizon_returned": true,
+    "synthetic_behavioral_test": true
+  },
+  "demonstrated_tp_examples": [
+    {
+      "market": "TREAD-EUR",
+      "decision_utc": "2026-09-21T10:04:59.447374+00:00",
+      "h": "4",
+      "target_r": "2",
+      "entry": "0.38501",
+      "stop": "0.36549",
+      "tp": "0.42405",
+      "stake": "208.61390310220003",
+      "score": "7.175",
+      "post_range_gate": "True",
+      "mature": "True",
+      "coverage": "1.0",
+      "bars": "47",
+      "expected_bars": "47",
+      "result": "TP",
+      "gross_pct": "10.14",
+      "net_pct": "9.3717",
+      "gross_r": "2.0",
+      "net_r": "1.6349",
+      "mfe_pct": "12.1789",
+      "mae_pct": "-0.0026",
+      "minutes_to_peak": "60.01",
+      "exit_utc": "2026-09-21T11:00:00+00:00",
+      "ambiguous_stop_tp": "False",
+      "gap_below_stop": "False",
+      "captured_positive_upside": "0.8326",
+      "net_pnl_guide_eur": "19.5507",
+      "fee_plus_slippage_each_side": "0.0035"
+    },
+    {
+      "market": "ZETA-EUR",
+      "decision_utc": "2026-09-22T00:27:00.794011+00:00",
+      "h": "4",
+      "target_r": "2",
+      "entry": "0.051019",
+      "stop": "0.046926",
+      "tp": "0.059205",
+      "stake": "138.0195119849",
+      "score": "7.5",
+      "post_range_gate": "True",
+      "mature": "True",
+      "coverage": "1.0",
+      "bars": "47",
+      "expected_bars": "47",
+      "result": "TP",
+      "gross_pct": "16.045",
+      "net_pct": "15.2355",
+      "gross_r": "2.0",
+      "net_r": "1.7585",
+      "mfe_pct": "16.6232",
+      "mae_pct": "-2.746",
+      "minutes_to_peak": "162.99",
+      "exit_utc": "2026-09-22T03:10:00+00:00",
+      "ambiguous_stop_tp": "False",
+      "gap_below_stop": "False",
+      "captured_positive_upside": "0.9652",
+      "net_pnl_guide_eur": "21.028",
+      "fee_plus_slippage_each_side": "0.0035"
+    }
+  ],
+  "note": "Checks arithmetic and behavioral defects; does not certify market fills or recompute unavailable raw responses."
+}

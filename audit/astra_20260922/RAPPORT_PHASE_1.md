@@ -2,7 +2,7 @@
 
 **Conclusion : Solaire couvre réellement le marché et détecte beaucoup de mouvements. En revanche, sa chaîne « détection → entrée → évaluation » comporte des défauts d’architecture qui empêchent aujourd’hui de certifier son avantage économique. La priorité est de fiabiliser la mesure et la chronologie, puis de tester les mécanismes d’entrée. Changer seulement quelques seuils ne suffit pas.**
 
-Version examinée : `9cc5a402aa7ac42da48a71dcde7096eedc25a768` du dépôt `Vadimrom-create/bitvavo-live`. Arrêt des observations : **22 septembre 2026, 21:45 UTC / 23:45 Paris**. Les données et le code de production n’ont pas été modifiés. Aucune phase 2 n’a été engagée.
+Version examinée : `9cc5a402aa7ac42da48a71dcde7096eedc25a768` du dépôt `Vadimrom-create/bitvavo-live`. Arrêt des observations : **22 septembre 2026, 21:45 UTC / 23:45 Paris**. Vérification finale du dossier effectuée le 23 septembre 2026, sans étendre la fenêtre historique. Les données et le code de production n’ont pas été modifiés. Aucune phase 2 n’a été engagée.
 
 ## Périmètre et méthode
 
@@ -105,7 +105,9 @@ Le shadow utilise seulement la proximité de la dernière bougie avec la fin de 
 
 Les appels demandent les 400 dernières bougies sans bornes explicites. Une réévaluation tardive peut donc perdre le début d’un trade actif tout en restant « complète ». Les intervalles sans trades sont légitimes ; un nombre de bougies faible ne suffit pas à prouver une perte de données. Il faut conserver la fenêtre source et contrôler sa couverture, pas imposer naïvement 48 transactions en 4 h.
 
-Le journal principal accepte aussi une bougie dont le début est avant la fin de l’horizon mais dont la clôture est après. Notre reproduction montre l’inclusion de données jusqu’à quatre minutes au-delà de l’horizon demandé.
+Le marqueur de complétude peut aussi devenir vrai **avant la maturité de l’horizon** : un test supplémentaire obtient « complet » à 3 h 55 pour un horizon de 4 h. Cette tolérance vient du seuil de fin moins 600 secondes, sans contrôle séparé de maturité dans `_sim`. Le nombre de cas historiques effectivement touchés n’est pas établi.
+
+Le journal principal et le simulateur de sortie acceptent aussi une bougie dont le début est avant la fin de l’horizon mais dont la clôture est après. Notre reproduction montre l’inclusion de données jusqu’à quatre minutes au-delà de l’horizon demandé.
 
 ### C4. La cadence effective est très inférieure à la cadence annoncée
 
@@ -139,6 +141,20 @@ Les deux CSV `winners_24h.csv` et `winners_72h.csv` donnent pour chaque top 30 :
 Dans le top 30 à 24 h : 15 marchés détectés/rejetés sans BUY dans la fenêtre, 10 avec BUY ultérieur, quatre détectés sans motif final suffisant pour expliquer toute la trajectoire, un sans trace. Certains avaient un BUY avant la fenêtre : ces catégories ne sont pas un décompte de « 20 opportunités ratées ».
 
 À 72 h, les cas ICX (+68,57 %) et ZRC (+50,65 %) ont des confirmations enregistrées puis des rejets de liquidité/spread. Les phases antérieures au lancement du scanner ne sont pas imputées à Solaire. Le dossier détaillé conserve cette censure plutôt que de fabriquer une détection hypothétique.
+
+### Présentation séparée des cinq catégories demandées
+
+Ces catégories peuvent décrire des épisodes différents d’un même actif. Un marché apparaissant dans le classement ne représente pas nécessairement un trade unique.
+
+| Catégorie | Cas documentés | Ce qui est démontré | Ce qui ne l’est pas |
+|---|---|---|---|
+| Gagnants correctement détectés puis recommandés | TREAD : BUY du 21/09 10:04 UTC ; ZETA : BUY du 22/09 00:27 UTC | Leur plan documenté atteint le TP avant le stop dans les bougies conservées après la décision, en moins de 4 h. Rendements nets simulés : respectivement +9,37 % et +15,24 %. | L’exécution réelle sur le compte, les premières minutes exclues et le meilleur prix d’entrée possible. |
+| Gagnants détectés mais rejetés | BCH, CHR, PENGU, ICX, ZRC | Présence d’un signal et motifs de refus enregistrés avant une partie de la hausse ultérieure. | Qu’accepter le candidat aurait amélioré l’espérance nette après profondeur, frais et pertes supplémentaires. |
+| Mouvements non détectés aux scans archivés | ZBT dans la fenêtre ~24 h | Aucun export BUILDING/CONFIRMED retrouvé dans les payloads de production de cette fenêtre, malgré +9,39 % entre bornes. | L’absence de signal entre deux scans ; le rôle exact d’une qualité de données invalide ; l’exécutabilité de la hausse. Aucune conclusion générale « Solaire ne voit jamais ZBT ». |
+| Faux positifs et rejets protecteurs | Faux positifs : COTI, LAPTOP du 22/09 11:20. Protection observée contre des trajectoires défavorables : BONK/BOME/AVA dans le test de range 5 %. | Stops après BUY dans les deux premiers cas ; les candidats supplémentaires des trois derniers présentent des issues défavorables à 4 h dans le shadow. | La rentabilité globale du filtre ; une clôture négative n’implique pas forcément un trade perdant avec une autre sortie. |
+| Problèmes de conservation des gains | PROVE, CELR, GRASS ; comparaison 2R contre les TP plus proches | Excursions favorables documentées puis restitution d’une partie ou de tout le gain sous le plan initial. | Une supériorité prospective stable de 1,4R, 1,5R ou 1,6R. |
+
+DRIFT est traité séparément : il avait déjà fait l’objet de recommandations avant la fenêtre de 24 h. Sans historique des ordres réellement exécutés, cet audit ne le classe pas en « sortie réelle trop précoce ».
 
 ### Test de la zone « trop calme, puis trop volatile »
 
@@ -220,6 +236,31 @@ Autres limites :
 - Les sommes de gains simulés aux montants guides ne représentent pas un portefeuille finançable : ni réservation du capital, ni risque corrélé global, ni ordres réellement exécutés ne sont reconstruits.
 - Un workflow vert n’est pas une preuve d’email envoyé : six statuts `SMTP_AUTHENTICATION_ERROR` figurent au début de la période. Aucun n’apparaît dans les derniers cycles examinés.
 
+### Statut exact des statistiques historiques
+
+| Statistique / source | Statut | Usage autorisé et travail restant |
+|---|---|---|
+| Horaires des commits, des runs, statuts de livraison, motifs de rejet | **Faits documentés** dans les sources figées | Comptages et cadence vérifiables. Un statut de livraison ne prouve ni réception dans Gmail ni achat effectif. |
+| Classements 24/72 h, prix des snapshots et premières traces de détection exportées | **Fiables comme descriptions de l’archive** | Conserver les bornes exactes et la censure avant le lancement. Ne pas transformer le top 30 en performance d’une stratégie sélectionnée à l’avance. |
+| Clôtures et ordre TP/stop du journal principal | **Contaminés par le défaut de tri** | Recalcul de toutes les clôtures et sorties de ce chemin, puis des agrégats qui en dépendent. Le contrôle de 67 observations prouve un défaut ; il ne certifie pas les autres lignes. |
+| MFE/MAE du même journal | **Invariants au tri seul, mais pas certifiés globalement** | Le tri seul ne change pas max/min. Recontrôler début/fin, bougies closes, couverture et prix de référence avant de conserver ces valeurs. |
+| Rendements et R des anciens audits de sortie / shadows | **Le tri y est correct ; couverture et maturité à revalider** | Ne pas les rejeter pour le mauvais motif. Recalculer les cohortes dont le début peut être tronqué ou la fin anticipée, et harmoniser frais/glissement. Le `r_multiple` existant est brut, pas un R net après coûts. |
+| Compteurs prospectifs 30/50 et comparaisons depuis T0 | **Ne représentent pas une accumulation cumulative valide** | Reconstruire les membres immuables depuis T0, conserver les résultats maturés, puis recalculer les comparaisons. Ne pas déduire une date d’atteinte par simple attente. |
+| « Condition initiale résolue », « pleinement actionnable » dans le shadow des rejets | **Sémantique insuffisante** | Revoir la condition elle-même et tous les gates, y compris la thèse antérieure. Les 58 conditions marquées résolues ne sont pas 58 preuves de disparition de la contrainte initiale. |
+| Résultats de `buy_outcomes.csv` de cet audit | **Recalculés, cohérents et descriptifs sous hypothèses explicites** | Le tableau principal utilise 35/24/14 observations avec grille archivistique complète après la première bougie pleine. Il reste un replay rétrospectif sans preuve de remplissage, sans les premières minutes, ni risque portefeuille. |
+| Statistiques des assouplissements range/BUILDING citées ici | **Exploratoires, extraites des shadows** | Pas toutes recalculées indépendamment depuis les réponses brutes exactes. Revalider couverture et déduplication avant promotion d’une variante. |
+| Avantage futur, portefeuille finançable, rendement réel du compte | **Non établis** | Aucun taux de réussite global, espérance future ou rendement de compte certifié ne doit être déduit de cet audit. |
+
+Les horodatages de décision utilisés par les journaux sont ceux du contrôle du statut (`checked_at_utc`), pas les horodatages d’exécution d’ordres. La validation et l’envoi peuvent se produire quelques secondes plus tard. Une frontière de bougie traversée pendant ce délai constitue une incertitude supplémentaire. Le CSV conserve les `actual_mark_sent_ts` retrouvés dans les anciens états, sans les substituer silencieusement aux conventions des autres lignes.
+
+Le montant total en euros dans les sorties brutes de l’audit n’est calculable que pour les montants guides retrouvés : **34/35 à 4 h, 23/24 à 12 h et 13/14 à 24 h** dans la cohorte principale. La moyenne en pourcentage utilise tous les plans ; les sommes en euros ne doivent pas être comparées comme si elles portaient sur un compte réel ou sur la totalité des mêmes membres.
+
+### Défauts certains, observations stratégiques et hypothèses
+
+- **Certains dans le code ou la mesure :** absence de tri du journal principal, contrôles de couverture/maturité insuffisants, éviction à 30 h de la cohorte, suppression d’un épisode empêchant une réévaluation ultérieure, absence de contrôle de profondeur pour le montant guide, champs de maturité non propagés au journal. La cadence ~17 min est un fait opérationnel mesuré, pas un bug algorithmique attribué sans preuve.
+- **Démontrés sur des cas, sans généralisation statistique :** enchaînement de rejets incompatibles range/stop sur BCH ; entrée tardive sur KERNEL ; gains favorables non conservés sur plusieurs BUY ; certains filtres écartent aussi des trajectoires défavorables.
+- **Hypothèses à tester :** rendement supplémentaire obtenu avec des scans réellement toutes les cinq minutes ; supériorité d’un seuil 5 % ; bénéfice d’une nouvelle mémoire de réentrée ; meilleur TP parmi 1,4/1,5/1,6R ; surperformance future de Solaire. Leur mécanisme est plausible, mais leur avantage économique n’est pas démontré.
+
 ## I. Les cinq problèmes à plus fort impact potentiel
 
 | Priorité | Problème | Effet | Travail à préparer avant toute promotion |
@@ -234,7 +275,9 @@ Les deux premières actions relèvent d’abord de la fiabilité de la mesure. L
 
 ## J. Conclusion et arrêt de phase
 
-**Les limites ne viennent pas seulement de quelques paramètres.** La couverture de marché et la séparation détection/exécution sont de bonnes bases. La faiblesse principale documentée est l’absence d’une chaîne entièrement cohérente entre observation suffisamment fréquente, entrée réellement exécutable, mémoire de réentrée et mesure fiable des résultats.
+**Le premier obstacle certain est la fiabilité de la mesure. Des limites plus profondes d’architecture existent aussi ; leur poids économique relatif n’est pas encore quantifié.** La couverture de marché et la séparation détection/exécution sont de bonnes bases. Mais la cadence effective, la mémoire de réentrée, la validation de profondeur et l’accumulation des résultats présentent des limites que quelques ajustements de seuils ne résolvent pas. Les cas BCH/KERNEL et les replays de sortie donnent des indices concrets de difficultés stratégiques, sans établir combien de rendement chaque mécanisme fait perdre.
+
+Il serait donc excessif d’affirmer « ce sont principalement les seuils », « tous les mauvais résultats viennent des bugs de mesure » ou « toute l’architecture est mauvaise ». **Diagnostic retenu : mesure défectueuse certaine ; limites opérationnelles et de conception documentées ; hiérarchie des causes de sous-performance encore non démontrée.**
 
 Je ne recommande ni de déclarer Solaire supérieur, ni de l’abandonner à partir de ces quelques journées. Je recommande de rendre les preuves fiables avant de décider quoi conserver ou remplacer. L’audit identifie des changements techniques préparables et des hypothèses stratégiques testables, sans choisir opportunément un seuil sur les derniers gagnants.
 
@@ -250,9 +293,10 @@ python audit/astra_20260922/acquire_early_plans.py
 python audit/astra_20260922/build_dataset.py
 python audit/astra_20260922/reproduce_defects.py
 python audit/astra_20260922/analyze.py
+python audit/astra_20260922/verify_final.py
 ```
 
-Les deux premières commandes téléchargent uniquement les versions GitHub dont les SHA sont figés dans le manifeste. Les trois suivantes sont hors ligne. Aucune commande ne doit lancer le workflow de production ni le script d’envoi de BUY.
+Les deux premières commandes téléchargent uniquement les versions GitHub dont les SHA sont figés dans le manifeste. Les quatre suivantes sont hors ligne. Aucune commande ne doit lancer le workflow de production ni le script d’envoi de BUY.
 
 - `results.json` : résultats agrégés et trajectoires des gagnants.
 - `winners_24h.csv`, `winners_72h.csv` : top 30 documentés séparément.
@@ -262,7 +306,9 @@ Les deux premières commandes téléchargent uniquement les versions GitHub dont
 - `reentries.csv` : événements et observations de réentrée.
 - `range_stop_transitions_research_proxy.csv` : test de géométrie historique, distinct des statuts de production.
 - `defect_reproductions.json` et `reproduce_defects.py` : six reproductions comportementales.
+- `verify_final.py` et `final_verification.json` : douze vérifications arithmétiques de cohortes, contrôle de 67 observations du journal, cadence recalculée et reproduction supplémentaire d’un horizon déclaré complet cinq minutes trop tôt.
 - `runtime_commits.json`, `archive_manifest.json`, `workflow_runs.json`, `*_code_commits.json` : provenance et changements de versions.
 - `relaxation_shadows.json` : extraction des variantes range/confirmation, avec leurs issues favorables et défavorables.
 
 Les volumineux fichiers dérivés et les caches de téléchargement sont reproductibles et exclus du commit ; les sources originales restent identifiées par le commit gelé et les manifestes.
+
