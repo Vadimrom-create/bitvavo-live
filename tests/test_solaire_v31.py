@@ -4,6 +4,7 @@ from research.solaire_v31 import (
     final_economic_score,
     preliminary_economic_score,
     shadow_sizing,
+    timing_variants,
 )
 
 
@@ -99,6 +100,33 @@ class SolaireV31Tests(unittest.TestCase):
         sized = shadow_sizing(9.0, execution(stop_distance=3.0), 100000)
         self.assertTrue(sized["valid"])
         self.assertLessEqual(sized["stake_eur"], 100.0)
+
+
+    def test_timing_variants_follow_v3_recorded_episode(self):
+        candidate_row = {
+            "timing_state": {
+                "episode": 3,
+                "persist30_recorded_episode": 3,
+                "reclaim_recorded_episode": 2,
+            }
+        }
+        paths = timing_variants(candidate_row)
+        self.assertTrue(paths["PERSIST_30M"])
+        self.assertFalse(paths["PULLBACK_RECLAIM"])
+
+    def test_timing_variants_do_not_reimplement_thresholds(self):
+        # Metrics alone are insufficient: V3 must have recorded the timing event.
+        candidate_row = {
+            "timing_state": {
+                "episode": 4,
+                "current_drift_pct": 0.5,
+                "max_pullback_pct": -3.0,
+                "reclaim_from_low_pct": 2.0,
+            }
+        }
+        paths = timing_variants(candidate_row)
+        self.assertFalse(paths["PERSIST_30M"])
+        self.assertFalse(paths["PULLBACK_RECLAIM"])
 
 
 if __name__ == "__main__":
