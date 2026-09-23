@@ -19,11 +19,13 @@ if str(ROOT) not in sys.path:
 from research.common import atomic_json, finite, read_json, utc
 from research.solaire_v31 import (
     FROZEN_V3_COMMIT,
+    V3_TIMING_LAB_COMMIT,
     MAX_SHADOW_POSITIONS,
     REFERENCE_CAPITAL_EUR,
     final_economic_score,
     preliminary_economic_score,
     shadow_sizing,
+    timing_variants,
 )
 
 V3_CANDIDATES = "solaire_v3_candidates.json"
@@ -32,6 +34,8 @@ STATE = "solaire_v31_state.json"
 JOURNAL = "solaire_v31_journal.json"
 CANDIDATES = "solaire_v31_candidates.json"
 PORTFOLIO = "solaire_v31_portfolio.json"
+PORTFOLIO_PERSIST = "solaire_v31_portfolio_persist30.json"
+PORTFOLIO_RECLAIM = "solaire_v31_portfolio_pullback_reclaim.json"
 STATUS = "solaire_v31_status.json"
 
 WATCH_EXPIRY = 24 * 3600
@@ -166,6 +170,43 @@ def update_portfolio(
     return portfolio
 
 
+
+def _timing_event(
+    row: dict[str, Any],
+    market_state: dict[str, Any],
+    plan: dict[str, Any],
+    now: float,
+    path: str,
+    initial_timing_cycle: bool,
+) -> dict[str, Any]:
+    qualified = bool(row.get("selectable"))
+    return {
+        "event_type": f"V31_{path}_" + ("QUALIFIED_ENTRY" if qualified else "REJECTED_READY"),
+        "market": row["market"],
+        "episode": market_state["episode"],
+        "decision_ts": now,
+        "decision_at_utc": utc(now),
+        "price_eur": row.get("price_eur"),
+        "entry_eur": finite(plan.get("entry_eur")),
+        "stop_eur": finite(plan.get("stop_eur")),
+        "tp1_eur": finite(plan.get("tp1_eur")),
+        "stake_eur": finite((row.get("sizing") or {}).get("stake_eur")),
+        "economic_score": row["economic_score"],
+        "selection_reason": row["selection_reason"],
+        "preliminary": row["preliminary"],
+        "execution_quality": row["execution_quality"],
+        "sizing": row.get("sizing"),
+        "timing_path": path,
+        "timing_state": row.get("timing_state"),
+        "upstream_v3_timing_lab_commit": V3_TIMING_LAB_COMMIT,
+        "legacy_v2_score_unused": row.get("v2_score"),
+        "legacy_v3_opportunity_score_unused": row.get("v3_opportunity_score"),
+        "left_censored_at_v31_timing_t0": initial_timing_cycle,
+        "evaluations": {},
+    }
+
+
+
 def main() -> int:
     now = time.time()
     v3_doc = read_json(V3_CANDIDATES, {}) or {}
@@ -173,15 +214,20 @@ def main() -> int:
     state = read_json(STATE, {}) or {}
     journal = read_json(JOURNAL, {}) or {}
     portfolio = read_json(PORTFOLIO, {}) or {}
+    portfolio_persist = read_json(PORTFOLIO_PERSIST, {}) or {}
+    portfolio_reclaim = read_json(PORTFOLIO_RECLAIM, {}) or {}
 
     v3_candidates = v3_doc.get("candidates") or []
     rows = universe.get("rows") or []
     universe_by_market = {x.get("market"): x for x in rows if x.get("market")}
 
     initial_cycle = not bool(state.get("initialized"))
+    initial_timing_cycle = not bool(state.get("timing_lab_initialized"))
     state.setdefault("schema", "solaire_v31_state_v1")
     state.setdefault("started_ts", now)
     state.setdefault("started_at_utc", utc(now))
+    state.setdefault("timing_lab_started_ts", now)
+    state.setdefault("timing_lab_started_at_utc", utc(now))
     state.setdefault("markets", {})
     journal.setdefault("schema", "solaire_v31_prospective_journal_v1")
     journal.setdefault("started_ts", state["started_ts"])
@@ -236,12 +282,16 @@ def main() -> int:
             "v2_state": candidate.get("v2_state"),
             "v2_score": candidate.get("v2_score"),
             "v3_opportunity_score": candidate.get("opportunity_score"),
+            "timing_state": candidate.get("timing_state"),
+            "timing_paths": timing_variants(candidate),
         })
 
     ranked.sort(key=lambda x: x["economic_score"], reverse=True)
     current_markets = set()
     qualified_for_portfolio = []
     ready_rejected = []
+    qualified_persist = []
+    qualified_reclaim = []
 
     for row in ranked:
         market = row["market"]
@@ -253,6 +303,7 @@ def main() -> int:
             ms["started_ts"] = now
             ms["started_at_utc"] = utc(now)
             ms.pop("decision_recorded_episode", None)
+            ms.pop("timing_decisions", None)
 
         ms["last_seen_ts"] = now
         ms["last_seen_at_utc"] = utc(now)
@@ -299,6 +350,28 @@ def main() -> int:
         else:
             ready_rejected.append(row)
 
+        # Factorial timing lab: RAW above remains untouched. These two paths
+        # reuse V3's already-recorded timing decisions and apply only the
+        # unchanged V3.1 economic score/gate at that exact observation cycle.
+        timing_decisions = ms.setdefault("timing_decisions", {})
+        for path, active in (row.get("timing_paths") or {}).items():
+            if not active or timing_decisions.get(path) == ms["episode"]:
+                continue
+            timing_event = _timing_event(row, ms, plan, now, path, initial_timing_cycle)
+            _append_event(journal, timing_event)
+            timing_decisions[path] = ms["episode"]
+            if initial_timing_cycle or not row.get("selectable"):
+                continue
+            timed_row = {
+                **row,
+                "entry_eur": finite(plan.get("entry_eur")),
+                "stop_eur": finite(plan.get("stop_eur")),
+            }
+            if path == "PERSIST_30M":
+                qualified_persist.append(timed_row)
+            elif path == "PULLBACK_RECLAIM":
+                qualified_reclaim.append(timed_row)
+
     for market, ms in state["markets"].items():
         if market not in current_markets and ms.get("active") and now - finite(ms.get("last_seen_ts"), 0) > WATCH_EXPIRY:
             ms["active"] = False
@@ -307,6 +380,8 @@ def main() -> int:
 
     current_scores = {x["market"]: x["economic_score"] for x in ranked}
     portfolio = update_portfolio(portfolio, qualified_for_portfolio, universe_by_market, current_scores, now)
+    portfolio_persist = update_portfolio(portfolio_persist, qualified_persist, universe_by_market, current_scores, now)
+    portfolio_reclaim = update_portfolio(portfolio_reclaim, qualified_reclaim, universe_by_market, current_scores, now)
 
     unchecked = [x for x in ranked if not (x.get("execution") or {}).get("ready") and (x.get("execution") is None)]
     candidate_doc = {
@@ -314,12 +389,13 @@ def main() -> int:
         "generated_at_utc": utc(now),
         "mode": "ECONOMIC_SELECTION_SHADOW",
         "frozen_v3_commit": FROZEN_V3_COMMIT,
+        "v3_timing_lab_commit": V3_TIMING_LAB_COMMIT,
         "research_only": True,
         "affects_v3": False,
         "affects_v2": False,
         "affects_email": False,
         "orders_submitted": False,
-        "method_note": "Ranks only the exact candidate output already produced by frozen V3; no extra discovery or network calls.",
+        "method_note": "RAW ranking is unchanged; timing variants consume only V3-recorded timing events. No extra discovery or network calls.",
         "candidates": ranked,
     }
     status = {
@@ -328,13 +404,20 @@ def main() -> int:
         "status": "OK",
         "mode": "ECONOMIC_SELECTION_SHADOW",
         "frozen_v3_commit": FROZEN_V3_COMMIT,
+        "v3_timing_lab_commit": V3_TIMING_LAB_COMMIT,
         "candidate_count": len(ranked),
         "execution_ready_count": sum(bool((x.get("execution") or {}).get("ready")) for x in ranked),
         "qualified_count": len(qualified_for_portfolio),
         "ready_rejected_count": len(ready_rejected),
+        "timing_persist_qualified_this_cycle": len(qualified_persist),
+        "timing_reclaim_qualified_this_cycle": len(qualified_reclaim),
         "unchecked_candidate_count": len(unchecked),
         "portfolio_positions": len(portfolio.get("positions", [])),
         "portfolio_marked_value_eur": portfolio.get("marked_value_eur"),
+        "persist30_portfolio_positions": len(portfolio_persist.get("positions", [])),
+        "persist30_portfolio_marked_value_eur": portfolio_persist.get("marked_value_eur"),
+        "pullback_reclaim_portfolio_positions": len(portfolio_reclaim.get("positions", [])),
+        "pullback_reclaim_portfolio_marked_value_eur": portfolio_reclaim.get("marked_value_eur"),
         "affects_v3": False,
         "affects_v2": False,
         "affects_email": False,
@@ -342,16 +425,20 @@ def main() -> int:
     }
 
     state["initialized"] = True
+    state["timing_lab_initialized"] = True
     state["updated_at_utc"] = utc(now)
     journal["updated_at_utc"] = utc(now)
     journal["research_only"] = True
     journal["frozen_v3_commit"] = FROZEN_V3_COMMIT
+    journal["v3_timing_lab_commit"] = V3_TIMING_LAB_COMMIT
     journal["events"] = journal["events"][-10000:]
 
     atomic_json(STATE, state)
     atomic_json(JOURNAL, journal)
     atomic_json(CANDIDATES, candidate_doc)
     atomic_json(PORTFOLIO, portfolio)
+    atomic_json(PORTFOLIO_PERSIST, portfolio_persist)
+    atomic_json(PORTFOLIO_RECLAIM, portfolio_reclaim)
     atomic_json(STATUS, status)
     print("SOLAIRE_V31 " + json.dumps(status, ensure_ascii=False))
     return 0
