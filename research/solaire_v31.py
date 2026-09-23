@@ -18,6 +18,7 @@ from typing import Any
 from research.common import finite
 
 FROZEN_V3_COMMIT = "2b0a5b25173e8ac5dd67625f80755f26acbedabf"
+V3_TIMING_LAB_COMMIT = "0c05e0fbf55b0ff99dae3f10bcfc3411bbee0cc6"
 REFERENCE_CAPITAL_EUR = 2400.0
 MAX_SHADOW_POSITIONS = 3
 MIN_SELECTED_SCORE = 6.0
@@ -238,6 +239,25 @@ def final_economic_score(preliminary: dict[str, Any], execution: dict[str, Any] 
         "reason": reason,
         "execution_quality": eq,
     }
+
+
+
+def timing_variants(candidate: dict[str, Any]) -> dict[str, bool]:
+    """Read V3's timing-lab decisions without reimplementing its thresholds.
+
+    V3 remains the authority for whether PERSIST_30M or PULLBACK_RECLAIM fired.
+    V3.1 only applies its unchanged economic score/gate to those same timed
+    opportunities. This preserves a clean factorial comparison.
+    """
+    timing = candidate.get("timing_state") or {}
+    episode = timing.get("episode")
+    if episode is None:
+        return {"PERSIST_30M": False, "PULLBACK_RECLAIM": False}
+    return {
+        "PERSIST_30M": timing.get("persist30_recorded_episode") == episode,
+        "PULLBACK_RECLAIM": timing.get("reclaim_recorded_episode") == episode,
+    }
+
 
 
 def shadow_sizing(score: float, execution: dict[str, Any], quote_volume_24h_eur: float | None) -> dict[str, Any]:
