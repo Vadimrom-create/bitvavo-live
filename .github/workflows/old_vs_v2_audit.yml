@@ -1,0 +1,34 @@
+name: Old vs Solaire V2 archived comparison
+
+on:
+  push:
+    branches:
+      - codex/old-vs-v2-comparison-20260924
+    paths:
+      - 'scripts/audit_old_vs_v2.py'
+      - '.github/workflows/old_vs_v2_audit.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Run archived comparison
+        run: python scripts/audit_old_vs_v2.py
+      - name: Show report
+        run: cat old_vs_v2_audit.md
+      - name: Persist report on audit branch
+        run: |
+          git config user.name 'bitvavo-live-bot'
+          git config user.email 'actions@users.noreply.github.com'
+          git add old_vs_v2_audit.json old_vs_v2_audit.md
+          if git diff --cached --quiet; then exit 0; fi
+          git commit -m 'Record Old vs Solaire V2 comparison'
+          git push origin HEAD:codex/old-vs-v2-comparison-20260924
