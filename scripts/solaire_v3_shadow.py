@@ -480,10 +480,15 @@ def execution_check(
 
 
 def _event_key(event: dict[str, Any]) -> str:
+    event_type = str(event.get("event_type") or "")
+    if "THESIS" in event_type:
+        scope = "thesis:" + str(event.get("thesis_id") or "")
+    else:
+        scope = "episode:" + str(event.get("episode") or "")
     return "|".join([
         str(event.get("market") or ""),
-        str(event.get("episode") or ""),
-        str(event.get("event_type") or ""),
+        scope,
+        event_type,
     ])
 
 
@@ -663,6 +668,7 @@ def main() -> int:
     state.setdefault("started_at_utc", utc(now))
     state.setdefault("markets", {})
     state.setdefault("previous_derivatives", {})
+    state.setdefault("theses", {})
     journal.setdefault("schema", "solaire_v3_prospective_journal_v1")
     journal.setdefault("started_ts", state["started_ts"])
     journal.setdefault("started_at_utc", state["started_at_utc"])
@@ -714,13 +720,16 @@ def main() -> int:
         raw_rotation = max([finite(x[1].get("rotation_score_0_3"), 0) for x in active_rotations] or [0])
         narrative_score = min(10.0, raw_rotation / 3.0 * 10.0)
         v2row = v2_tracking.get(market) or {}
+        prior_thesis = (state.get("theses") or {}).get(market) or {}
+        active_thesis = bool(prior_thesis.get("active"))
         local_priority = (
             finite(early.get("score_0_10"), 0)
             + news_score
             + narrative_score
             + (3.0 if v2row.get("signal_state") == "CONFIRMED_ACCELERATION" else 1.5 if v2row else 0.0)
+            + (1.0 if active_thesis else 0.0)
         )
-        if news_score > 0 or active_rotations or early.get("ready") or v2row:
+        if news_score > 0 or active_rotations or early.get("ready") or v2row or active_thesis:
             base_candidates.append({
                 **row,
                 "symbol": symbol,
@@ -770,21 +779,111 @@ def main() -> int:
         )
         independent_context = context_watch
         v2_confirmed = row.get("v2_state") == "CONFIRMED_ACCELERATION"
-        entry_hypothesis = (
+        fresh_opportunity_trigger = (
             bool((row.get("early_quant") or {}).get("ready")) and independent_context
         ) or v2_confirmed
+        entry_hypothesis = fresh_opportunity_trigger
         merged = {
             **row,
             "external": ext,
             "external_score": external_score,
             "opportunity_score": opp,
             "context_watch": context_watch,
+            "fresh_opportunity_trigger": fresh_opportunity_trigger,
             "entry_hypothesis": entry_hypothesis,
         }
         merged["horizon_class"] = classify_horizon(merged)
         candidates.append(merged)
 
     candidates.sort(key=lambda x: x["opportunity_score"], reverse=True)
+
+    # Sixth V3 research axis: persistent opportunity theses.  A thesis is
+    # independent from the short acceleration episode and remains research-only.
+    thesis_targets = [
+        x for x in candidates
+        if x.get("fresh_opportunity_trigger")
+        or bool(((state.get("theses") or {}).get(x["market"]) or {}).get("active"))
+    ]
+    thesis_targets.sort(
+        key=lambda x: (
+            0 if x.get("fresh_opportunity_trigger") else 1,
+            -finite(x.get("opportunity_score"), 0),
+        )
+    )
+    long_trend_profiles: dict[str, dict[str, Any]] = {}
+    if thesis_targets:
+        try:
+            trend_client = PublicClient(timeout=8, retries=2, requests_per_second=8)
+            long_trend_profiles, trend_errors = fetch_long_trend_profiles(
+                trend_client,
+                [x["market"] for x in thesis_targets],
+                now,
+            )
+            source_errors.extend(trend_errors)
+        except Exception as exc:
+            source_errors.append({"source": "long_trend", "reason": type(exc).__name__})
+
+    for row in candidates:
+        market = row["market"]
+        prior = (state.get("theses") or {}).get(market) or {}
+        long_trend = long_trend_profiles.get(market) or prior.get("last_long_trend") or {}
+        row["long_trend"] = long_trend
+        prior_state = prior.get("state")
+        prior_active = bool(prior.get("active"))
+        thesis = advance_persistent_thesis(prior, row, now)
+        if thesis:
+            state["theses"][market] = thesis
+        row["persistent_thesis"] = thesis or {}
+        row["thesis_reentry_hypothesis"] = bool(
+            thesis.get("active") and thesis.get("state") == "REENTRY_READY_THESIS"
+        )
+
+        opened = bool(thesis.get("active")) and not prior_active
+        if opened:
+            event = {
+                "event_type": "OPPORTUNITY_THESIS_START",
+                "market": market,
+                "thesis_id": thesis.get("thesis_id"),
+                "decision_ts": now,
+                "decision_at_utc": utc(now),
+                "price_eur": finite(row.get("price_eur")),
+                "opportunity_score": row.get("opportunity_score"),
+                "horizon_class": row.get("horizon_class"),
+                "long_trend": long_trend,
+                "early_quant": row.get("early_quant"),
+                "context": {
+                    "news_score": row.get("news_score"),
+                    "active_narratives": row.get("active_narratives"),
+                    "narrative_score": row.get("narrative_score"),
+                    "external": row.get("external"),
+                },
+                "v2_state_at_event": row.get("v2_state"),
+                "left_censored_at_v3_t0": initial_v3_cycle,
+                "evaluations": {},
+            }
+            _append_event(journal, event)
+
+        if (
+            thesis.get("active")
+            and thesis.get("state") == "REENTRY_READY_THESIS"
+            and prior_state != "REENTRY_READY_THESIS"
+        ):
+            event = {
+                "event_type": "OPPORTUNITY_THESIS_REENTRY_READY",
+                "market": market,
+                "thesis_id": thesis.get("thesis_id"),
+                "decision_ts": now,
+                "decision_at_utc": utc(now),
+                "price_eur": finite(row.get("price_eur")),
+                "opportunity_score": row.get("opportunity_score"),
+                "horizon_class": row.get("horizon_class"),
+                "long_trend": long_trend,
+                "thesis": thesis,
+                "v2_state_at_event": row.get("v2_state"),
+                "left_censored_at_v3_t0": False,
+                "evaluations": {},
+            }
+            _append_event(journal, event)
 
     # Derivatives are diagnostic only and sampled on the strongest candidates.
     for row in candidates[:8]:
@@ -797,9 +896,17 @@ def main() -> int:
 
     # Preserve V2 confirmed candidates in the execution check even if their V3
     # opportunity score is not in the top-N.
-    execution_rows = [x for x in candidates if x.get("entry_hypothesis")]
+    execution_rows = [
+        x for x in candidates
+        if x.get("entry_hypothesis") or x.get("thesis_reentry_hypothesis")
+    ]
     execution_rows.sort(
-        key=lambda x: (0 if x.get("v2_state") == "CONFIRMED_ACCELERATION" else 1, -finite(x.get("opportunity_score"), 0))
+        key=lambda x: (
+            0 if x.get("v2_state") == "CONFIRMED_ACCELERATION"
+            else 1 if x.get("thesis_reentry_hypothesis")
+            else 2,
+            -finite(x.get("opportunity_score"), 0),
+        )
     )
     execution_rows = execution_rows[:MAX_EXECUTION_MARKETS]
 
