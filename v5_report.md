@@ -1,40 +1,38 @@
 # Bitvavo — V4 mesurée / infrastructure V5
 
-Scan UTC : 2026-09-23T14:26:46.881410+00:00
-État : OK | marchés EUR : 426 | V4 : 408 | données valides : 426
-Récupération : 2026-09-23T14:26:14.149918+00:00 | âge ticker : 152.7 s | durée : 153.8 s
+Scan UTC : 2026-09-23T14:46:38.472775+00:00
+État : OK | marchés EUR : 426 | V4 : 409 | données valides : 426
+Récupération : 2026-09-23T14:45:37.512128+00:00 | âge ticker : 181.6 s | durée : 185.1 s
 
 ## ACHÈTE — signal V4 et plan théorique
 
+AUCUN ACHAT VALIDÉ — cette absence ne valide pas les marchés aux données insuffisantes.
 Bougies utilisables : 5 min 426/426 ; 15 min 426/426.
 Les intervalles sans transaction sont représentés explicitement à volume 0 ; aucune transaction n’est inventée.
-- LTC-EUR : 53.076 € | IGNITION | score 91.77/100 | entrée 6.70/10
-  Entrée 53.087 € ; stop 51.207 € ; TP1 56.847 € ; TP2 58.727 € ; montant 250.00 € ; risque théorique 10.57 € ; R/R net 1.50.
-  Chase risk : 0/10 (diagnostic non calibré). Probabilités +10/+20/+30/+40 % : indisponibles.
 
 ## SURVEILLE
 
-- GMT-EUR : 0.007303 € ; score 92.89/100 ; SURVEILLE ; STABILITY_HOLD
-- CHZ-EUR : 0.014098 € ; score 92.17/100 ; SURVEILLE ; STABILITY_HOLD
-- GAS-EUR : 1.2212 € ; score 92.11/100 ; SURVEILLE ; LOW_LIQUIDITY
-- AEVO-EUR : 0.021813 € ; score 91.23/100 ; SURVEILLE ; SPREAD_RISK, SELLER_HEAVY_BOOK
-- DOGE-EUR : 0.082946 € ; score 90.98/100 ; SURVEILLE ; seuil achat non atteint
+- ZORA-EUR : 0.007778 € ; score 92.31/100 ; SURVEILLE ; seuil achat non atteint
+- ARPA-EUR : 0.0099794 € ; score 91.28/100 ; SURVEILLE ; SPREAD_RISK, SELLER_HEAVY_BOOK
+- CARV-EUR : 0.037687 € ; score 91.12/100 ; SURVEILLE ; SPREAD_RISK
+- EGLD-EUR : 3.9426 € ; score 90.03/100 ; SURVEILLE ; SPREAD_RISK, SELLER_HEAVY_BOOK, WICK_SETUP
+- ICP-EUR : 2.5904 € ; score 87.69/100 ; SURVEILLE ; STABILITY_HOLD
 
 ## Contrôle des hausses
 
 | Marché | Prix € | 24 h | Détection | Couche d’échec | Actionnabilité |
 |---|---:|---:|---|---|---|
-| CPOOL-EUR | 0.033236 | +36.22 % | DETECTED_EARLY | NONE | ENTRY_TIMING_OR_EXECUTION |
-| ALLO-EUR | 0.306488 | +35.61 % | DETECTED_EARLY | NONE | INTERPRETATION |
-| MET-EUR | 0.32342 | +28.24 % | DETECTED_EARLY | NONE | ENTRY_TIMING_OR_EXECUTION |
-| SAGA-EUR | 0.040375 | +21.28 % | DETECTED_EARLY | NONE | INTERPRETATION |
-| ACE-EUR | 0.17694 | +20.68 % | DETECTED_EARLY | NONE | INTERPRETATION |
-| SENT-EUR | 0.019834 | +17.56 % | DETECTED_EARLY | NONE | INTERPRETATION |
-| ZRO-EUR | 1.2789 | +17.42 % | DETECTED_EARLY | NONE | INTERPRETATION |
-| DBR-EUR | 0.016783 | +16.37 % | NOT_DETECTED | SCANNER_COVERAGE | NOT_APPLICABLE |
-| SUPER-EUR | 0.15417 | +15.05 % | DETECTED_EARLY | NONE | ENTRY_TIMING_OR_EXECUTION |
-| LIGHTER-EUR | 4.632 | +13.73 % | DETECTED_EARLY | NONE | ENTRY_TIMING_OR_EXECUTION |
+| CPOOL-EUR | 0.0338 | +40.83 % | DETECTED_EARLY | NONE | ENTRY_TIMING_OR_EXECUTION |
+| ALLO-EUR | 0.299272 | +31.78 % | DETECTED_EARLY | NONE | INTERPRETATION |
+| MET-EUR | 0.32455 | +26.50 % | DETECTED_EARLY | NONE | ENTRY_TIMING_OR_EXECUTION |
+| ZRO-EUR | 1.3343 | +24.98 % | DETECTED_EARLY | NONE | INTERPRETATION |
+| SAGA-EUR | 0.041369 | +23.45 % | DETECTED_EARLY | NONE | INTERPRETATION |
+| ACE-EUR | 0.17521 | +19.58 % | DETECTED_EARLY | NONE | INTERPRETATION |
+| DBR-EUR | 0.016987 | +17.79 % | NOT_DETECTED | SCANNER_COVERAGE | NOT_APPLICABLE |
+| SENT-EUR | 0.019754 | +17.18 % | DETECTED_EARLY | NONE | INTERPRETATION |
+| SUPER-EUR | 0.1555 | +16.48 % | DETECTED_EARLY | NONE | ENTRY_TIMING_OR_EXECUTION |
+| LIGHTER-EUR | 4.7301 | +16.34 % | DETECTED_EARLY | NONE | ENTRY_TIMING_OR_EXECUTION |
 
-Historique : 1275 scans ; 545887 observations ; 655 épisodes d’achat évaluables.
+Historique : 1276 scans ; 546313 observations ; 655 épisodes d’achat évaluables.
 V5 optimisée : aucune. Supériorité sur V4 : non démontrée. Probabilités : non calibrées.
 Le cash et le portefeuille du plan sont hypothétiques. Aucun ordre réel n’est envoyé.
