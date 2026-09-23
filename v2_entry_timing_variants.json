@@ -1,0 +1,1506 @@
+{
+  "schema": "v2_entry_timing_variants_v1",
+  "generated_at_utc": "2026-09-23T22:58:36.711885+00:00",
+  "method": {
+    "population": "V2 BUY_SENT with mature 24h outcome",
+    "prices": "archived Old Decision Layer snapshot prices (~15m cadence)",
+    "warning": "Coarse snapshot counterfactual; stop_proxy can miss intrabar stop touches."
+  },
+  "summary": {
+    "baseline_snapshot": {
+      "n": 37,
+      "mean_net": -1.745,
+      "median_net": -4.154,
+      "median_mfe": 5.941,
+      "median_mae": -6.392,
+      "mfe10": 11,
+      "mae7": 16,
+      "stop_proxy": 14,
+      "positive": 8
+    },
+    "delay30": {
+      "n": 37,
+      "mean_net": -1.801,
+      "median_net": -2.926,
+      "median_mfe": 5.877,
+      "median_mae": -4.944,
+      "mfe10": 10,
+      "mae7": 11,
+      "stop_proxy": 14,
+      "positive": 9
+    },
+    "delay60": {
+      "n": 37,
+      "mean_net": -1.944,
+      "median_net": -4.221,
+      "median_mfe": 6.327,
+      "median_mae": -5.489,
+      "mfe10": 9,
+      "mae7": 14,
+      "stop_proxy": 14,
+      "positive": 9
+    },
+    "persist30_band_-2_+3": {
+      "n": 22,
+      "mean_net": -2.225,
+      "median_net": -3.297,
+      "median_mfe": 5.32,
+      "median_mae": -5.317,
+      "mfe10": 4,
+      "mae7": 7,
+      "stop_proxy": 8,
+      "positive": 4
+    },
+    "persist60_band_-2_+3": {
+      "n": 14,
+      "mean_net": -3.176,
+      "median_net": -5.761,
+      "median_mfe": 5.916,
+      "median_mae": -5.327,
+      "mfe10": 2,
+      "mae7": 5,
+      "stop_proxy": 6,
+      "positive": 2
+    },
+    "pullback2_reclaim1": {
+      "n": 23,
+      "mean_net": -1.743,
+      "median_net": -2.814,
+      "median_mfe": 6.057,
+      "median_mae": -4.174,
+      "mfe10": 6,
+      "mae7": 8,
+      "stop_proxy": 10,
+      "positive": 8
+    },
+    "strength_score8_rel4_4_then_delay30": {
+      "n": 7,
+      "mean_net": -4.508,
+      "median_net": -3.796,
+      "median_mfe": 4.905,
+      "median_mae": -3.589,
+      "mfe10": 0,
+      "mae7": 1,
+      "stop_proxy": 1,
+      "positive": 1
+    }
+  },
+  "details": [
+    {
+      "market": "KMNO-EUR",
+      "v2_result24": "STOP",
+      "signal_score": 7.196,
+      "rel4": 1.8298,
+      "choices": {
+        "delay30": {
+          "delay_min": 39.3,
+          "price_delta_pct": -2.135,
+          "mfe": 5.876520359598092,
+          "mae": -5.7244843997884765,
+          "net": -6.920253833950295,
+          "stop_proxy": true
+        },
+        "delay60": {
+          "delay_min": 68.2,
+          "price_delta_pct": -1.802,
+          "mfe": 5.517309529299386,
+          "mae": -6.538423531736881,
+          "net": -7.142899963766924,
+          "stop_proxy": true
+        },
+        "persist60_band_-2_+3": {
+          "delay_min": 68.2,
+          "price_delta_pct": -1.802,
+          "mfe": 5.517309529299386,
+          "mae": -6.538423531736881,
+          "net": -7.142899963766924,
+          "stop_proxy": true
+        },
+        "pullback2_reclaim1": {
+          "delay_min": 89.3,
+          "price_delta_pct": 0.582,
+          "mfe": 3.0164651402109666,
+          "mae": -8.753537432467196,
+          "net": -8.977591973244147,
+          "stop_proxy": true
+        }
+      }
+    },
+    {
+      "market": "TREAD-EUR",
+      "v2_result24": "TP1",
+      "signal_score": 7.175,
+      "rel4": -9.7415,
+      "choices": {
+        "delay30": {
+          "delay_min": 41.2,
+          "price_delta_pct": 3.384,
+          "mfe": 16.081298361973673,
+          "mae": -4.944226710883337,
+          "net": 16.403808662445986,
+          "stop_proxy": false
+        },
+        "delay60": {
+          "delay_min": 74.8,
+          "price_delta_pct": 7.353,
+          "mfe": 20.971644246588596,
+          "mae": -8.45833736572149,
+          "net": 13.763369786122126,
+          "stop_proxy": false
+        }
+      }
+    },
+    {
+      "market": "ARB-EUR",
+      "v2_result24": "OPEN",
+      "signal_score": 8.492,
+      "rel4": 7.1111,
+      "choices": {
+        "delay30": {
+          "delay_min": 42.0,
+          "price_delta_pct": -0.88,
+          "mfe": 6.690597267923026,
+          "mae": -6.202014158939084,
+          "net": -5.899920231329147,
+          "stop_proxy": false
+        },
+        "delay60": {
+          "delay_min": 69.9,
+          "price_delta_pct": -2.466,
+          "mfe": 8.425799260272582,
+          "mae": -4.676495921365953,
+          "net": -4.651968384252924,
+          "stop_proxy": false
+        },
+        "persist30_band_-2_+3": {
+          "delay_min": 42.0,
+          "price_delta_pct": -0.88,
+          "mfe": 6.690597267923026,
+          "mae": -6.202014158939084,
+          "net": -5.899920231329147,
+          "stop_proxy": false
+        },
+        "pullback2_reclaim1": {
+          "delay_min": 150.5,
+          "price_delta_pct": 2.861,
+          "mfe": 0.1921691088157651,
+          "mae": -9.61325966850829,
+          "net": -9.92411722315638,
+          "stop_proxy": false
+        },
+        "strength_score8_rel4_4_then_delay30": {
+          "delay_min": 42.0,
+          "price_delta_pct": -0.88,
+          "mfe": 6.690597267923026,
+          "mae": -6.202014158939084,
+          "net": -5.899920231329147,
+          "stop_proxy": false
+        }
+      }
+    },
+    {
+      "market": "G-EUR",
+      "v2_result24": "STOP",
+      "signal_score": 7.614,
+      "rel4": -2.3061,
+      "choices": {
+        "delay30": {
+          "delay_min": 31.0,
+          "price_delta_pct": 0.584,
+          "mfe": 0.499097196197984,
+          "mae": -10.164208087759352,
+          "net": -10.547375055360607,
+          "stop_proxy": true
+        },
+        "delay60": {
+          "delay_min": 77.1,
+          "price_delta_pct": -1.369,
+          "mfe": 0.5298266337768753,
+          "mae": -8.998367091686054,
+          "net": -8.166212694993579,
+          "stop_proxy": true
+        },
+        "persist30_band_-2_+3": {
+          "delay_min": 31.0,
+          "price_delta_pct": 0.584,
+          "mfe": 0.499097196197984,
+          "mae": -10.164208087759352,
+          "net": -10.547375055360607,
+          "stop_proxy": true
+        },
+        "persist60_band_-2_+3": {
+          "delay_min": 77.1,
+          "price_delta_pct": -1.369,
+          "mfe": 0.5298266337768753,
+          "mae": -8.998367091686054,
+          "net": -8.166212694993579,
+          "stop_proxy": true
+        },
+        "pullback2_reclaim1": {
+          "delay_min": 184.0,
+          "price_delta_pct": -1.141,
+          "mfe": 0.0,
+          "mae": -9.208131856704615,
+          "net": -9.454051196727841,
+          "stop_proxy": true
+        }
+      }
+    },
+    {
+      "market": "PROVE-EUR",
+      "v2_result24": "STOP",
+      "signal_score": 8.413,
+      "rel4": 7.9471,
+      "choices": {
+        "delay30": {
+          "delay_min": 38.1,
+          "price_delta_pct": 5.693,
+          "mfe": 5.065611330972697,
+          "mae": -18.49198083732556,
+          "net": -17.742282857737965,
+          "stop_proxy": true
+        },
+        "delay60": {
+          "delay_min": 70.6,
+          "price_delta_pct": 9.502,
+          "mfe": 0.0,
+          "mae": -21.32689987937274,
+          "net": -20.4708082026538,
+          "stop_proxy": true
+        },
+        "pullback2_reclaim1": {
+          "delay_min": 352.2,
+          "price_delta_pct": -6.794,
+          "mfe": 4.945911474325659,
+          "mae": -10.35948793046435,
+          "net": -7.247309745382391,
+          "stop_proxy": true
+        }
+      }
+    },
+    {
+      "market": "C-EUR",
+      "v2_result24": "OPEN",
+      "signal_score": 6.767,
+      "rel4": -0.0207,
+      "choices": {
+        "delay30": {
+          "delay_min": 36.5,
+          "price_delta_pct": 1.014,
+          "mfe": 6.905530825405148,
+          "mae": -2.8221465770562393,
+          "net": 1.9083035116813536,
+          "stop_proxy": false
+        },
+        "delay60": {
+          "delay_min": 76.4,
+          "price_delta_pct": 4.826,
+          "mfe": 3.0181114724683322,
+          "mae": -6.355837164965794,
+          "net": -0.5668274083211793,
+          "stop_proxy": false
+        },
+        "persist30_band_-2_+3": {
+          "delay_min": 36.5,
+          "price_delta_pct": 1.014,
+          "mfe": 6.905530825405148,
+          "mae": -2.8221465770562393,
+          "net": 1.9083035116813536,
+          "stop_proxy": false
+        }
+      }
+    },
+    {
+      "market": "CELR-EUR",
+      "v2_result24": "STOP",
+      "signal_score": 6.636,
+      "rel4": 3.0379,
+      "choices": {
+        "delay30": {
+          "delay_min": 42.4,
+          "price_delta_pct": 6.008,
+          "mfe": 0.6350157256252986,
+          "mae": -19.06544855474015,
+          "net": -20.412445709150816,
+          "stop_proxy": true
+        },
+        "delay60": {
+          "delay_min": 76.8,
+          "price_delta_pct": 1.489,
+          "mfe": 1.824041048745384,
+          "mae": -16.13791377260497,
+          "net": -17.00686440147676,
+          "stop_proxy": true
+        },
+        "persist60_band_-2_+3": {
+          "delay_min": 76.8,
+          "price_delta_pct": 1.489,
+          "mfe": 1.824041048745384,
+          "mae": -16.13791377260497,
+          "net": -17.00686440147676,
+          "stop_proxy": true
+        },
+        "pullback2_reclaim1": {
+          "delay_min": 248.2,
+          "price_delta_pct": -8.472,
+          "mfe": 1.3738074588031113,
+          "mae": -7.198612315698183,
+          "net": -7.1215091066782366,
+          "stop_proxy": true
+        }
+      }
+    },
+    {
+      "market": "ACE-EUR",
+      "v2_result24": "STOP",
+      "signal_score": 8.5,
+      "rel4": 0.4826,
+      "choices": {
+        "delay30": {
+          "delay_min": 34.6,
+          "price_delta_pct": -1.174,
+          "mfe": 3.8152743679914947,
+          "mae": -3.4967818990113475,
+          "net": -2.5246964368655025,
+          "stop_proxy": true
+        },
+        "delay60": {
+          "delay_min": 74.0,
+          "price_delta_pct": 0.564,
+          "mfe": 2.021387584767864,
+          "mae": -5.164319248826277,
+          "net": -4.221126760563376,
+          "stop_proxy": true
+        },
+        "persist30_band_-2_+3": {
+          "delay_min": 34.6,
+          "price_delta_pct": -1.174,
+          "mfe": 3.8152743679914947,
+          "mae": -3.4967818990113475,
+          "net": -2.5246964368655025,
+          "stop_proxy": true
+        },
+        "persist60_band_-2_+3": {
+          "delay_min": 74.0,
+          "price_delta_pct": 0.564,
+          "mfe": 2.021387584767864,
+          "mae": -5.164319248826277,
+          "net": -4.221126760563376,
+          "stop_proxy": true
+        }
+      }
+    },
+    {
+      "market": "ALLO-EUR",
+      "v2_result24": "STOP",
+      "signal_score": 9.71,
+      "rel4": 2.8589,
+      "choices": {
+        "delay30": {
+          "delay_min": 35.9,
+          "price_delta_pct": 1.046,
+          "mfe": 0.4121386181186848,
+          "mae": -9.456877563189858,
+          "net": -6.994038187725892,
+          "stop_proxy": true
+        },
+        "delay60": {
+          "delay_min": 68.2,
+          "price_delta_pct": -2.49,
+          "mfe": 0.0,
+          "mae": -6.173784012139915,
+          "net": -3.286036579470596,
+          "stop_proxy": true
+        },
+        "persist30_band_-2_+3": {
+          "delay_min": 35.9,
+          "price_delta_pct": 1.046,
+          "mfe": 0.4121386181186848,
+          "mae": -9.456877563189858,
+          "net": -6.994038187725892,
+          "stop_proxy": true
+        },
+        "pullback2_reclaim1": {
+          "delay_min": 135.8,
+          "price_delta_pct": -3.53,
+          "mfe": 0.0,
+          "mae": -5.161989335259509,
+          "net": -2.3362516198933587,
+          "stop_proxy": true
+        }
+      }
+    },
+    {
+      "market": "GRASS-EUR",
+      "v2_result24": "TP1",
+      "signal_score": 9.817,
+      "rel4": 5.6784,
+      "choices": {
+        "delay30": {
+          "delay_min": 30.2,
+          "price_delta_pct": 6.063,
+          "mfe": 9.223300970873783,
+          "mae": -2.6535398712774105,
+          "net": 1.7135485982327732,
+          "stop_proxy": false
+        },
+        "delay60": {
+          "delay_min": 63.9,
+          "price_delta_pct": 13.462,
+          "mfe": 2.100647529699695,
+          "mae": -9.001682557487378,
+          "net": -3.9911844184979275,
+          "stop_proxy": false
+        }
+      }
+    },
+    {
+      "market": "TAO-EUR",
+      "v2_result24": "OPEN",
+      "signal_score": 8.816,
+      "rel4": 8.1869,
+      "choices": {
+        "delay30": {
+          "delay_min": 35.1,
+          "price_delta_pct": 0.011,
+          "mfe": 4.905338816642568,
+          "mae": -2.126634804193994,
+          "net": -0.8556074246971239,
+          "stop_proxy": false
+        },
+        "delay60": {
+          "delay_min": 61.9,
+          "price_delta_pct": -1.315,
+          "mfe": 6.315473285022333,
+          "mae": -0.8110239176960743,
+          "net": 0.4451958097097537,
+          "stop_proxy": false
+        },
+        "persist30_band_-2_+3": {
+          "delay_min": 35.1,
+          "price_delta_pct": 0.011,
+          "mfe": 4.905338816642568,
+          "mae": -2.126634804193994,
+          "net": -0.8556074246971239,
+          "stop_proxy": false
+        },
+        "persist60_band_-2_+3": {
+          "delay_min": 61.9,
+          "price_delta_pct": -1.315,
+          "mfe": 6.315473285022333,
+          "mae": -0.8110239176960743,
+          "net": 0.4451958097097537,
+          "stop_proxy": false
+        },
+        "pullback2_reclaim1": {
+          "delay_min": 143.0,
+          "price_delta_pct": -1.075,
+          "mfe": 6.056633455689542,
+          "mae": 0.0,
+          "net": 1.929410442729796,
+          "stop_proxy": false
+        },
+        "strength_score8_rel4_4_then_delay30": {
+          "delay_min": 35.1,
+          "price_delta_pct": 0.011,
+          "mfe": 4.905338816642568,
+          "mae": -2.126634804193994,
+          "net": -0.8556074246971239,
+          "stop_proxy": false
+        }
+      }
+    },
+    {
+      "market": "COTI-EUR",
+      "v2_result24": "STOP",
+      "signal_score": 7.121,
+      "rel4": -9.7581,
+      "choices": {
+        "delay30": {
+          "delay_min": 35.2,
+          "price_delta_pct": -1.122,
+          "mfe": 4.2978435645052215,
+          "mae": -5.755503794424821,
+          "net": 2.4106769854985393,
+          "stop_proxy": true
+        },
+        "delay60": {
+          "delay_min": 61.4,
+          "price_delta_pct": -3.507,
+          "mfe": 6.875577456113335,
+          "mae": -3.426239605789949,
+          "net": 4.874376347397614,
+          "stop_proxy": true
+        },
+        "persist30_band_-2_+3": {
+          "delay_min": 35.2,
+          "price_delta_pct": -1.122,
+          "mfe": 4.2978435645052215,
+          "mae": -5.755503794424821,
+          "net": 2.4106769854985393,
+          "stop_proxy": true
+        },
+        "pullback2_reclaim1": {
+          "delay_min": 74.6,
+          "price_delta_pct": -2.155,
+          "mfe": 5.398633257403196,
+          "mae": -4.760820045558079,
+          "net": 4.076006074411554,
+          "stop_proxy": true
+        }
+      }
+    },
+    {
+      "market": "ZETA-EUR",
+      "v2_result24": "STOP",
+      "signal_score": 7.5,
+      "rel4": -6.5463,
+      "choices": {
+        "delay30": {
+          "delay_min": 34.4,
+          "price_delta_pct": -1.77,
+          "mfe": 13.235294117647056,
+          "mae": -7.875728310320051,
+          "net": -8.030992098331879,
+          "stop_proxy": true
+        },
+        "delay60": {
+          "delay_min": 68.2,
+          "price_delta_pct": 0.87,
+          "mfe": 10.271457163398946,
+          "mae": -10.770845073159352,
+          "net": -12.897112488584039,
+          "stop_proxy": true
+        },
+        "persist30_band_-2_+3": {
+          "delay_min": 34.4,
+          "price_delta_pct": -1.77,
+          "mfe": 13.235294117647056,
+          "mae": -7.875728310320051,
+          "net": -8.030992098331879,
+          "stop_proxy": true
+        },
+        "persist60_band_-2_+3": {
+          "delay_min": 68.2,
+          "price_delta_pct": 0.87,
+          "mfe": 10.271457163398946,
+          "mae": -10.770845073159352,
+          "net": -12.897112488584039,
+          "stop_proxy": true
+        }
+      }
+    },
+    {
+      "market": "EPIC-EUR",
+      "v2_result24": "STOP",
+      "signal_score": 8.334,
+      "rel4": 3.9158,
+      "choices": {
+        "delay30": {
+          "delay_min": 35.7,
+          "price_delta_pct": -2.627,
+          "mfe": 7.190477915866511,
+          "mae": -16.844813217870215,
+          "net": -11.43227290843871,
+          "stop_proxy": true
+        },
+        "delay60": {
+          "delay_min": 64.8,
+          "price_delta_pct": -1.836,
+          "mfe": 6.327498831901668,
+          "mae": -17.514286741185337,
+          "net": -10.459910865111597,
+          "stop_proxy": true
+        },
+        "persist60_band_-2_+3": {
+          "delay_min": 64.8,
+          "price_delta_pct": -1.836,
+          "mfe": 6.327498831901668,
+          "mae": -17.514286741185337,
+          "net": -10.459910865111597,
+          "stop_proxy": true
+        },
+        "pullback2_reclaim1": {
+          "delay_min": 64.8,
+          "price_delta_pct": -1.836,
+          "mfe": 6.327498831901668,
+          "mae": -17.514286741185337,
+          "net": -10.459910865111597,
+          "stop_proxy": true
+        }
+      }
+    },
+    {
+      "market": "NIL-EUR",
+      "v2_result24": "TP1",
+      "signal_score": 7.78,
+      "rel4": 7.2512,
+      "choices": {
+        "delay30": {
+          "delay_min": 49.1,
+          "price_delta_pct": 2.25,
+          "mfe": 48.6597875661015,
+          "mae": -2.7107292755731316,
+          "net": 38.6851235662227,
+          "stop_proxy": false
+        },
+        "delay60": {
+          "delay_min": 66.7,
+          "price_delta_pct": -0.098,
+          "mfe": 52.152538692968584,
+          "mae": -0.4249247852113669,
+          "net": 44.50176173195622,
+          "stop_proxy": false
+        },
+        "persist30_band_-2_+3": {
+          "delay_min": 49.1,
+          "price_delta_pct": 2.25,
+          "mfe": 48.6597875661015,
+          "mae": -2.7107292755731316,
+          "net": 38.6851235662227,
+          "stop_proxy": false
+        },
+        "persist60_band_-2_+3": {
+          "delay_min": 66.7,
+          "price_delta_pct": -0.098,
+          "mfe": 52.152538692968584,
+          "mae": -0.4249247852113669,
+          "net": 44.50176173195622,
+          "stop_proxy": false
+        }
+      }
+    },
+    {
+      "market": "CARV-EUR",
+      "v2_result24": "OPEN",
+      "signal_score": 7.98,
+      "rel4": 2.0958,
+      "choices": {
+        "delay30": {
+          "delay_min": 46.1,
+          "price_delta_pct": -1.591,
+          "mfe": 4.019304728150219,
+          "mae": -4.878968403589468,
+          "net": -2.374081894276447,
+          "stop_proxy": false
+        },
+        "delay60": {
+          "delay_min": 63.7,
+          "price_delta_pct": -1.425,
+          "mfe": 3.844416562107922,
+          "mae": -5.038895859473014,
+          "net": -3.31731493099121,
+          "stop_proxy": false
+        },
+        "persist30_band_-2_+3": {
+          "delay_min": 46.1,
+          "price_delta_pct": -1.591,
+          "mfe": 4.019304728150219,
+          "mae": -4.878968403589468,
+          "net": -2.374081894276447,
+          "stop_proxy": false
+        },
+        "persist60_band_-2_+3": {
+          "delay_min": 63.7,
+          "price_delta_pct": -1.425,
+          "mfe": 3.844416562107922,
+          "mae": -5.038895859473014,
+          "net": -3.31731493099121,
+          "stop_proxy": false
+        },
+        "pullback2_reclaim1": {
+          "delay_min": 308.6,
+          "price_delta_pct": -4.027,
+          "mfe": 6.660137120470133,
+          "mae": -2.4640445383782628,
+          "net": -0.9886746739522716,
+          "stop_proxy": false
+        }
+      }
+    },
+    {
+      "market": "FORM-EUR",
+      "v2_result24": "STOP",
+      "signal_score": 7.13,
+      "rel4": -2.5393,
+      "choices": {
+        "delay30": {
+          "delay_min": 31.7,
+          "price_delta_pct": 0.018,
+          "mfe": 4.204508448818611,
+          "mae": -3.857148026196766,
+          "net": -2.4621304772587385,
+          "stop_proxy": false
+        },
+        "delay60": {
+          "delay_min": 64.9,
+          "price_delta_pct": -2.023,
+          "mfe": 6.375355520260029,
+          "mae": -1.854245927677034,
+          "net": -0.41558379196985284,
+          "stop_proxy": false
+        },
+        "persist30_band_-2_+3": {
+          "delay_min": 31.7,
+          "price_delta_pct": 0.018,
+          "mfe": 4.204508448818611,
+          "mae": -3.857148026196766,
+          "net": -2.4621304772587385,
+          "stop_proxy": false
+        },
+        "pullback2_reclaim1": {
+          "delay_min": 81.4,
+          "price_delta_pct": -0.467,
+          "mfe": 4.712213213104044,
+          "mae": -3.388721230411229,
+          "net": -4.063269461513285,
+          "stop_proxy": false
+        }
+      }
+    },
+    {
+      "market": "S-EUR",
+      "v2_result24": "OPEN",
+      "signal_score": 7.818,
+      "rel4": 7.9101,
+      "choices": {
+        "delay30": {
+          "delay_min": 41.0,
+          "price_delta_pct": 0.382,
+          "mfe": 9.273713454160614,
+          "mae": -2.611456541870627,
+          "net": -0.2263923799444505,
+          "stop_proxy": false
+        },
+        "delay60": {
+          "delay_min": 64.3,
+          "price_delta_pct": 2.042,
+          "mfe": 7.496095783446122,
+          "mae": -4.195731389901103,
+          "net": -3.464185320145762,
+          "stop_proxy": false
+        },
+        "persist30_band_-2_+3": {
+          "delay_min": 41.0,
+          "price_delta_pct": 0.382,
+          "mfe": 9.273713454160614,
+          "mae": -2.611456541870627,
+          "net": -0.2263923799444505,
+          "stop_proxy": false
+        },
+        "persist60_band_-2_+3": {
+          "delay_min": 64.3,
+          "price_delta_pct": 2.042,
+          "mfe": 7.496095783446122,
+          "mae": -4.195731389901103,
+          "net": -3.464185320145762,
+          "stop_proxy": false
+        }
+      }
+    },
+    {
+      "market": "KERNEL-EUR",
+      "v2_result24": "STOP",
+      "signal_score": 8.5,
+      "rel4": 6.1793,
+      "choices": {
+        "delay30": {
+          "delay_min": 41.0,
+          "price_delta_pct": -1.831,
+          "mfe": 1.2224511892703793,
+          "mae": -12.732702315671817,
+          "net": -12.653826272222423,
+          "stop_proxy": true
+        },
+        "delay60": {
+          "delay_min": 64.3,
+          "price_delta_pct": -2.899,
+          "mfe": 2.3358463249704142,
+          "mae": -11.772806723282548,
+          "net": -12.695268278041636,
+          "stop_proxy": true
+        },
+        "persist30_band_-2_+3": {
+          "delay_min": 41.0,
+          "price_delta_pct": -1.831,
+          "mfe": 1.2224511892703793,
+          "mae": -12.732702315671817,
+          "net": -12.653826272222423,
+          "stop_proxy": true
+        },
+        "pullback2_reclaim1": {
+          "delay_min": 81.0,
+          "price_delta_pct": -0.631,
+          "mfe": 0.0,
+          "mae": -14.004002622407786,
+          "net": -13.549798143611323,
+          "stop_proxy": true
+        },
+        "strength_score8_rel4_4_then_delay30": {
+          "delay_min": 41.0,
+          "price_delta_pct": -1.831,
+          "mfe": 1.2224511892703793,
+          "mae": -12.732702315671817,
+          "net": -12.653826272222423,
+          "stop_proxy": true
+        }
+      }
+    },
+    {
+      "market": "USELESS-EUR",
+      "v2_result24": "TP1",
+      "signal_score": 8.03,
+      "rel4": 14.2104,
+      "choices": {
+        "delay30": {
+          "delay_min": 45.1,
+          "price_delta_pct": -2.638,
+          "mfe": 21.669276542436577,
+          "mae": -0.417319135609151,
+          "net": 11.206905731287211,
+          "stop_proxy": false
+        },
+        "delay60": {
+          "delay_min": 63.2,
+          "price_delta_pct": -2.494,
+          "mfe": 21.489021534757,
+          "mae": -0.564852493364465,
+          "net": 9.784365899327241,
+          "stop_proxy": false
+        },
+        "pullback2_reclaim1": {
+          "delay_min": 80.7,
+          "price_delta_pct": -1.654,
+          "mfe": 20.451744424894013,
+          "mae": -1.413832928975045,
+          "net": 8.979019618482166,
+          "stop_proxy": false
+        }
+      }
+    },
+    {
+      "market": "AVA-EUR",
+      "v2_result24": "OPEN",
+      "signal_score": 8.884,
+      "rel4": 6.1651,
+      "choices": {
+        "delay30": {
+          "delay_min": 44.1,
+          "price_delta_pct": -3.563,
+          "mfe": 3.650896521926983,
+          "mae": -3.7805141499243855,
+          "net": -1.1363793475912647,
+          "stop_proxy": false
+        },
+        "delay60": {
+          "delay_min": 61.6,
+          "price_delta_pct": -4.971,
+          "mfe": 5.1870039900030696,
+          "mae": -2.3545402727232823,
+          "net": 2.5226947866882847,
+          "stop_proxy": false
+        },
+        "pullback2_reclaim1": {
+          "delay_min": 74.7,
+          "price_delta_pct": -3.538,
+          "mfe": 3.6240335190704576,
+          "mae": -3.805451168416041,
+          "net": 2.01262580450089,
+          "stop_proxy": false
+        }
+      }
+    },
+    {
+      "market": "WIF-EUR",
+      "v2_result24": "OPEN",
+      "signal_score": 7.453,
+      "rel4": 0.7892,
+      "choices": {
+        "delay30": {
+          "delay_min": 46.0,
+          "price_delta_pct": 0.196,
+          "mfe": 5.73370047965891,
+          "mae": -3.6374133949191645,
+          "net": -3.6667791792503115,
+          "stop_proxy": false
+        },
+        "delay60": {
+          "delay_min": 81.8,
+          "price_delta_pct": -2.323,
+          "mfe": 8.460136674259688,
+          "mae": -1.1526195899772218,
+          "net": -2.280865603644643,
+          "stop_proxy": false
+        },
+        "persist30_band_-2_+3": {
+          "delay_min": 46.0,
+          "price_delta_pct": 0.196,
+          "mfe": 5.73370047965891,
+          "mae": -3.6374133949191645,
+          "net": -3.6667791792503115,
+          "stop_proxy": false
+        },
+        "pullback2_reclaim1": {
+          "delay_min": 99.3,
+          "price_delta_pct": -1.086,
+          "mfe": 7.103653050206948,
+          "mae": -2.8117689400755874,
+          "net": -2.8144502429368385,
+          "stop_proxy": false
+        }
+      }
+    },
+    {
+      "market": "LAPTOP-EUR",
+      "v2_result24": "STOP",
+      "signal_score": 7.226,
+      "rel4": 3.967,
+      "choices": {
+        "delay30": {
+          "delay_min": 38.0,
+          "price_delta_pct": -0.732,
+          "mfe": 0.0,
+          "mae": -10.955340367105082,
+          "net": -9.935438647203364,
+          "stop_proxy": true
+        },
+        "delay60": {
+          "delay_min": 62.9,
+          "price_delta_pct": -4.72,
+          "mfe": 3.282638156904083,
+          "mae": -7.227827134467701,
+          "net": -7.099638608643277,
+          "stop_proxy": true
+        },
+        "persist30_band_-2_+3": {
+          "delay_min": 38.0,
+          "price_delta_pct": -0.732,
+          "mfe": 0.0,
+          "mae": -10.955340367105082,
+          "net": -9.935438647203364,
+          "stop_proxy": true
+        },
+        "pullback2_reclaim1": {
+          "delay_min": 70.0,
+          "price_delta_pct": -2.568,
+          "mfe": 1.0013252834634168,
+          "mae": -9.27698424385216,
+          "net": -9.16708879399205,
+          "stop_proxy": true
+        }
+      }
+    },
+    {
+      "market": "FLOCK-EUR",
+      "v2_result24": "OPEN",
+      "signal_score": 7.941,
+      "rel4": 11.3382,
+      "choices": {
+        "delay30": {
+          "delay_min": 30.9,
+          "price_delta_pct": -4.579,
+          "mfe": 18.042009442229954,
+          "mae": -1.9958725581658232,
+          "net": -1.999013371780744,
+          "stop_proxy": false
+        },
+        "delay60": {
+          "delay_min": 68.1,
+          "price_delta_pct": -4.061,
+          "mfe": 17.404751862786448,
+          "mae": -1.8318571629410974,
+          "net": -3.472388584282304,
+          "stop_proxy": false
+        },
+        "pullback2_reclaim1": {
+          "delay_min": 44.7,
+          "price_delta_pct": -4.157,
+          "mfe": 17.5220591339591,
+          "mae": -2.4275601964564575,
+          "net": -1.6639876722160378,
+          "stop_proxy": false
+        }
+      }
+    },
+    {
+      "market": "UNI-EUR",
+      "v2_result24": "OPEN",
+      "signal_score": 8.839,
+      "rel4": 3.0129,
+      "choices": {
+        "delay30": {
+          "delay_min": 31.9,
+          "price_delta_pct": -4.871,
+          "mfe": 19.190156318664076,
+          "mae": -3.3561428840479746,
+          "net": 4.51313327892523,
+          "stop_proxy": false
+        },
+        "delay60": {
+          "delay_min": 62.7,
+          "price_delta_pct": -5.26,
+          "mfe": 19.680026223225223,
+          "mae": -2.9589379593792153,
+          "net": 5.14349273188014,
+          "stop_proxy": false
+        },
+        "pullback2_reclaim1": {
+          "delay_min": 120.6,
+          "price_delta_pct": -6.941,
+          "mfe": 21.841308142519765,
+          "mae": 0.0,
+          "net": 5.555775746996628,
+          "stop_proxy": false
+        }
+      }
+    },
+    {
+      "market": "GOAT-EUR",
+      "v2_result24": "OPEN",
+      "signal_score": 10.0,
+      "rel4": 8.5226,
+      "choices": {
+        "delay30": {
+          "delay_min": 37.4,
+          "price_delta_pct": -0.988,
+          "mfe": 9.760909935004648,
+          "mae": -2.6636490250696476,
+          "net": 2.2480037140204194,
+          "stop_proxy": false
+        },
+        "delay60": {
+          "delay_min": 77.7,
+          "price_delta_pct": -3.626,
+          "mfe": 12.764562093841292,
+          "mae": 0.0,
+          "net": 1.1422464675371231,
+          "stop_proxy": false
+        },
+        "persist30_band_-2_+3": {
+          "delay_min": 37.4,
+          "price_delta_pct": -0.988,
+          "mfe": 9.760909935004648,
+          "mae": -2.6636490250696476,
+          "net": 2.2480037140204194,
+          "stop_proxy": false
+        },
+        "pullback2_reclaim1": {
+          "delay_min": 37.4,
+          "price_delta_pct": -0.988,
+          "mfe": 9.760909935004648,
+          "mae": -2.6636490250696476,
+          "net": 2.2480037140204194,
+          "stop_proxy": false
+        },
+        "strength_score8_rel4_4_then_delay30": {
+          "delay_min": 37.4,
+          "price_delta_pct": -0.988,
+          "mfe": 9.760909935004648,
+          "mae": -2.6636490250696476,
+          "net": 2.2480037140204194,
+          "stop_proxy": false
+        }
+      }
+    },
+    {
+      "market": "PYTH-EUR",
+      "v2_result24": "OPEN",
+      "signal_score": 8.5,
+      "rel4": 8.202,
+      "choices": {
+        "delay30": {
+          "delay_min": 48.7,
+          "price_delta_pct": -1.278,
+          "mfe": 4.208996006445731,
+          "mae": -3.588944160302665,
+          "net": -2.926231345897844,
+          "stop_proxy": false
+        },
+        "delay60": {
+          "delay_min": 66.0,
+          "price_delta_pct": 0.061,
+          "mfe": 2.8151245982096507,
+          "mae": -4.878512425258352,
+          "net": -6.817581999792632,
+          "stop_proxy": false
+        },
+        "persist30_band_-2_+3": {
+          "delay_min": 48.7,
+          "price_delta_pct": -1.278,
+          "mfe": 4.208996006445731,
+          "mae": -3.588944160302665,
+          "net": -2.926231345897844,
+          "stop_proxy": false
+        },
+        "persist60_band_-2_+3": {
+          "delay_min": 66.0,
+          "price_delta_pct": 0.061,
+          "mfe": 2.8151245982096507,
+          "mae": -4.878512425258352,
+          "net": -6.817581999792632,
+          "stop_proxy": false
+        },
+        "strength_score8_rel4_4_then_delay30": {
+          "delay_min": 48.7,
+          "price_delta_pct": -1.278,
+          "mfe": 4.208996006445731,
+          "mae": -3.588944160302665,
+          "net": -2.926231345897844,
+          "stop_proxy": false
+        }
+      }
+    },
+    {
+      "market": "NOS-EUR",
+      "v2_result24": "OPEN",
+      "signal_score": 7.105,
+      "rel4": 6.364,
+      "choices": {
+        "delay30": {
+          "delay_min": 42.8,
+          "price_delta_pct": -0.424,
+          "mfe": 6.757969713640444,
+          "mae": -7.652662362104412,
+          "net": -5.358771752034053,
+          "stop_proxy": false
+        },
+        "delay60": {
+          "delay_min": 61.3,
+          "price_delta_pct": -0.531,
+          "mfe": 6.872463768115944,
+          "mae": -7.553623188405789,
+          "net": -4.395652173913044,
+          "stop_proxy": false
+        },
+        "persist30_band_-2_+3": {
+          "delay_min": 42.8,
+          "price_delta_pct": -0.424,
+          "mfe": 6.757969713640444,
+          "mae": -7.652662362104412,
+          "net": -5.358771752034053,
+          "stop_proxy": false
+        },
+        "persist60_band_-2_+3": {
+          "delay_min": 61.3,
+          "price_delta_pct": -0.531,
+          "mfe": 6.872463768115944,
+          "mae": -7.553623188405789,
+          "net": -4.395652173913044,
+          "stop_proxy": false
+        },
+        "pullback2_reclaim1": {
+          "delay_min": 164.6,
+          "price_delta_pct": -6.894,
+          "mfe": 14.176446907998642,
+          "mae": 0.0,
+          "net": 1.3654631034589644,
+          "stop_proxy": false
+        }
+      }
+    },
+    {
+      "market": "SAGA-EUR",
+      "v2_result24": "TP1",
+      "signal_score": 9.0,
+      "rel4": -5.0154,
+      "choices": {
+        "delay30": {
+          "delay_min": 42.6,
+          "price_delta_pct": -3.044,
+          "mfe": 32.3977449922034,
+          "mae": -2.030106753028682,
+          "net": 32.68431090320257,
+          "stop_proxy": false
+        },
+        "delay60": {
+          "delay_min": 74.2,
+          "price_delta_pct": -2.989,
+          "mfe": 34.64800551443044,
+          "mae": -2.0858932478197034,
+          "net": 33.825129619084734,
+          "stop_proxy": false
+        },
+        "pullback2_reclaim1": {
+          "delay_min": 196.0,
+          "price_delta_pct": -3.669,
+          "mfe": 37.74182838861557,
+          "mae": -0.44366643527601335,
+          "net": 31.980409259650475,
+          "stop_proxy": false
+        }
+      }
+    },
+    {
+      "market": "MERL-EUR",
+      "v2_result24": "OPEN",
+      "signal_score": 9.459,
+      "rel4": 6.1705,
+      "choices": {
+        "delay30": {
+          "delay_min": 42.1,
+          "price_delta_pct": 1.01,
+          "mfe": 7.650735294117661,
+          "mae": -3.095588235294111,
+          "net": -3.795588235294111,
+          "stop_proxy": false
+        },
+        "delay60": {
+          "delay_min": 69.2,
+          "price_delta_pct": 0.817,
+          "mfe": 7.856932370708725,
+          "mae": -4.597023721821126,
+          "net": -5.252821570649767,
+          "stop_proxy": false
+        },
+        "persist30_band_-2_+3": {
+          "delay_min": 42.1,
+          "price_delta_pct": 1.01,
+          "mfe": 7.650735294117661,
+          "mae": -3.095588235294111,
+          "net": -3.795588235294111,
+          "stop_proxy": false
+        },
+        "persist60_band_-2_+3": {
+          "delay_min": 69.2,
+          "price_delta_pct": 0.817,
+          "mfe": 7.856932370708725,
+          "mae": -4.597023721821126,
+          "net": -5.252821570649767,
+          "stop_proxy": false
+        },
+        "pullback2_reclaim1": {
+          "delay_min": 227.2,
+          "price_delta_pct": -0.609,
+          "mfe": 9.404423852936784,
+          "mae": -4.173516664175758,
+          "net": -5.172425646390677,
+          "stop_proxy": false
+        },
+        "strength_score8_rel4_4_then_delay30": {
+          "delay_min": 42.1,
+          "price_delta_pct": 1.01,
+          "mfe": 7.650735294117661,
+          "mae": -3.095588235294111,
+          "net": -3.795588235294111,
+          "stop_proxy": false
+        }
+      }
+    },
+    {
+      "market": "EPIC-EUR",
+      "v2_result24": "STOP",
+      "signal_score": 9.28,
+      "rel4": -1.4996,
+      "choices": {
+        "delay30": {
+          "delay_min": 43.5,
+          "price_delta_pct": -1.483,
+          "mfe": 11.140797812849513,
+          "mae": -6.681579056377118,
+          "net": -5.739145022989933,
+          "stop_proxy": true
+        },
+        "delay60": {
+          "delay_min": 81.5,
+          "price_delta_pct": -2.185,
+          "mfe": 11.938337018649104,
+          "mae": -6.011932078935278,
+          "net": -6.092381826525927,
+          "stop_proxy": true
+        },
+        "persist30_band_-2_+3": {
+          "delay_min": 43.5,
+          "price_delta_pct": -1.483,
+          "mfe": 11.140797812849513,
+          "mae": -6.681579056377118,
+          "net": -5.739145022989933,
+          "stop_proxy": true
+        },
+        "pullback2_reclaim1": {
+          "delay_min": 142.7,
+          "price_delta_pct": -2.746,
+          "mfe": 12.584184797431973,
+          "mae": -5.469651511654739,
+          "net": -5.284268719971463,
+          "stop_proxy": true
+        }
+      }
+    },
+    {
+      "market": "APE-EUR",
+      "v2_result24": "OPEN",
+      "signal_score": 8.731,
+      "rel4": 6.4118,
+      "choices": {
+        "delay30": {
+          "delay_min": 45.9,
+          "price_delta_pct": 1.656,
+          "mfe": 3.230417381360784,
+          "mae": -6.6037735849056585,
+          "net": -7.675414522584334,
+          "stop_proxy": false
+        },
+        "delay60": {
+          "delay_min": 65.4,
+          "price_delta_pct": 0.058,
+          "mfe": 4.8794655823409805,
+          "mae": -5.489398780133614,
+          "net": -6.2692709846064565,
+          "stop_proxy": false
+        },
+        "persist30_band_-2_+3": {
+          "delay_min": 45.9,
+          "price_delta_pct": 1.656,
+          "mfe": 3.230417381360784,
+          "mae": -6.6037735849056585,
+          "net": -7.675414522584334,
+          "stop_proxy": false
+        },
+        "persist60_band_-2_+3": {
+          "delay_min": 65.4,
+          "price_delta_pct": 0.058,
+          "mfe": 4.8794655823409805,
+          "mae": -5.489398780133614,
+          "net": -6.2692709846064565,
+          "stop_proxy": false
+        },
+        "strength_score8_rel4_4_then_delay30": {
+          "delay_min": 45.9,
+          "price_delta_pct": 1.656,
+          "mfe": 3.230417381360784,
+          "mae": -6.6037735849056585,
+          "net": -7.675414522584334,
+          "stop_proxy": false
+        }
+      }
+    },
+    {
+      "market": "STO-EUR",
+      "v2_result24": "STOP",
+      "signal_score": 6.99,
+      "rel4": 6.4223,
+      "choices": {
+        "delay30": {
+          "delay_min": 45.9,
+          "price_delta_pct": -3.969,
+          "mfe": 4.6209121187485325,
+          "mae": -2.2763630641735144,
+          "net": -2.2551650887729027,
+          "stop_proxy": false
+        },
+        "delay60": {
+          "delay_min": 65.4,
+          "price_delta_pct": -4.062,
+          "mfe": 4.7225284821756475,
+          "mae": -2.181445896991663,
+          "net": -1.910164330340746,
+          "stop_proxy": false
+        }
+      }
+    },
+    {
+      "market": "TREAD-EUR",
+      "v2_result24": "STOP",
+      "signal_score": 6.875,
+      "rel4": 2.1237,
+      "choices": {
+        "delay30": {
+          "delay_min": 36.0,
+          "price_delta_pct": 1.277,
+          "mfe": 10.294117647058831,
+          "mae": -7.535714285714279,
+          "net": -2.5424369747899185,
+          "stop_proxy": false
+        },
+        "delay60": {
+          "delay_min": 71.7,
+          "price_delta_pct": 3.491,
+          "mfe": 7.933636232807717,
+          "mae": -9.514607018770171,
+          "net": -5.919876236097121,
+          "stop_proxy": false
+        },
+        "persist30_band_-2_+3": {
+          "delay_min": 36.0,
+          "price_delta_pct": 1.277,
+          "mfe": 10.294117647058831,
+          "mae": -7.535714285714279,
+          "net": -2.5424369747899185,
+          "stop_proxy": false
+        }
+      }
+    },
+    {
+      "market": "MOVR-EUR",
+      "v2_result24": "STOP",
+      "signal_score": 10.0,
+      "rel4": 7.5825,
+      "choices": {
+        "delay30": {
+          "delay_min": 39.2,
+          "price_delta_pct": -3.272,
+          "mfe": 3.7562189054726414,
+          "mae": -6.741293532338311,
+          "net": -7.540796019900508,
+          "stop_proxy": true
+        },
+        "delay60": {
+          "delay_min": 74.9,
+          "price_delta_pct": -2.659,
+          "mfe": 3.1022123346928776,
+          "mae": -7.428006426894084,
+          "net": -8.066209368434063,
+          "stop_proxy": true
+        }
+      }
+    },
+    {
+      "market": "TIA-EUR",
+      "v2_result24": "TP1",
+      "signal_score": 9.615,
+      "rel4": 5.6229,
+      "choices": {
+        "delay30": {
+          "delay_min": 44.3,
+          "price_delta_pct": 3.633,
+          "mfe": 10.0109831047134,
+          "mae": -6.003318299721916,
+          "net": -5.763912322108744,
+          "stop_proxy": false
+        },
+        "delay60": {
+          "delay_min": 60.6,
+          "price_delta_pct": 5.606,
+          "mfe": 7.954962392221621,
+          "mae": -7.760044028618607,
+          "net": -7.558833241607054,
+          "stop_proxy": false
+        }
+      }
+    },
+    {
+      "market": "LAPTOP-EUR",
+      "v2_result24": "STOP",
+      "signal_score": 8.5,
+      "rel4": 5.7611,
+      "choices": {
+        "delay30": {
+          "delay_min": 44.8,
+          "price_delta_pct": -2.282,
+          "mfe": 1.0480610869890494,
+          "mae": -9.327743674202726,
+          "net": -9.009627189699053,
+          "stop_proxy": true
+        },
+        "delay60": {
+          "delay_min": 75.4,
+          "price_delta_pct": -2.151,
+          "mfe": 0.9120813397129224,
+          "mae": -9.44976076555023,
+          "net": -10.045095693779892,
+          "stop_proxy": true
+        }
+      }
+    }
+  ]
+}
