@@ -27,8 +27,8 @@ jobs:
         name: Critical tests
       - name: Validate direct Solaire production sources
         run: |
-          python -m py_compile research/production_gate.py research/production_acceleration.py research/production_alerts.py research/production_context.py research/solaire_v3.py research/features.py research/risk.py
-          python -m py_compile scripts/production_scan.py scripts/send_production_buy_alert.py scripts/solaire_v3_shadow.py scripts/update_solaire_v3_evaluation.py scripts/update_early_building_shadow.py scripts/update_v21_range5_shadow.py scripts/update_rejection_shadow.py scripts/check_production_health.py
+          python -m py_compile research/production_gate.py research/production_acceleration.py research/production_alerts.py research/production_context.py research/solaire_v3.py research/solaire_v31.py research/features.py research/risk.py
+          python -m py_compile scripts/production_scan.py scripts/send_production_buy_alert.py scripts/solaire_v3_shadow.py scripts/update_solaire_v3_evaluation.py scripts/solaire_v31_shadow.py scripts/update_solaire_v31_evaluation.py scripts/update_early_building_shadow.py scripts/update_v21_range5_shadow.py scripts/update_rejection_shadow.py scripts/check_production_health.py
           python - <<'PY'
           import pathlib
           text = pathlib.Path('scripts/production_scan.py').read_text()
@@ -87,6 +87,21 @@ jobs:
           comp = json.load(open('solaire_v3_comparison.json'))
           assert comp['frozen_v2_commit'] == '34b042121bb8425b0e4b46e3d1a694d4b1f4ec75', comp
           PY
+      - name: Run Solaire V3.1 economic challenger shadow
+        run: |
+          python scripts/solaire_v31_shadow.py
+          python scripts/update_solaire_v31_evaluation.py
+          python - <<'PY'
+          import json
+          v31 = json.load(open('solaire_v31_status.json'))
+          assert v31['mode'] == 'ECONOMIC_SELECTION_SHADOW', v31
+          assert v31['affects_v3'] is False, v31
+          assert v31['affects_v2'] is False, v31
+          assert v31['affects_email'] is False, v31
+          assert v31['orders_submitted'] is False, v31
+          comp = json.load(open('solaire_v31_comparison.json'))
+          assert comp['frozen_v3_commit'] == '2b0a5b25173e8ac5dd67625f80755f26acbedabf', comp
+          PY
       - name: Research live scan, no email or real order
         continue-on-error: true
         run: python pipeline.py
@@ -116,6 +131,13 @@ jobs:
             solaire_v3_comparison.json
             solaire_v2_frozen_benchmark_journal.json
             solaire_v2_reference_outcomes.json
+            solaire_v31_status.json
+            solaire_v31_candidates.json
+            solaire_v31_state.json
+            solaire_v31_journal.json
+            solaire_v31_portfolio.json
+            solaire_v31_evaluation_status.json
+            solaire_v31_comparison.json
             v5_report.json
             v5_report.md
             pipeline_health.json
