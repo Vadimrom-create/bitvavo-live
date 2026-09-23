@@ -1,8 +1,8 @@
 # Bitvavo — V4 mesurée / infrastructure V5
 
-Scan UTC : 2026-09-23T08:41:24.016978+00:00
-État : OK | marchés EUR : 426 | V4 : 400 | données valides : 426
-Récupération : 2026-09-23T08:40:54.266793+00:00 | âge ticker : 149.0 s | durée : 149.9 s
+Scan UTC : 2026-09-23T08:57:15.700595+00:00
+État : OK | marchés EUR : 426 | V4 : 399 | données valides : 426
+Récupération : 2026-09-23T08:56:46.098051+00:00 | âge ticker : 154.8 s | durée : 155.6 s
 
 ## ACHÈTE — signal V4 et plan théorique
 
@@ -10,39 +10,36 @@ Bougies utilisables : 5 min 426/426 ; 15 min 426/426.
 Les intervalles sans transaction sont représentés explicitement à volume 0 ; aucune transaction n’est inventée.
 
 Achats bruts V4 bloqués avant alerte :
-- INJ-EUR : CHASE_RISK, BASELINE_BUY_CHASE_CONTRADICTION
+- MEGA-EUR : WICK_SETUP, CHASE_RISK, BASELINE_BUY_CHASE_CONTRADICTION
 - NEAR-EUR : CHASE_RISK, BASELINE_BUY_CHASE_CONTRADICTION
-- TAIKO-EUR : INSUFFICIENT_NET_RISK_REWARD
-- ZIG-EUR : 0.045184 € | IGNITION | score 90.45/100 | entrée 7.25/10
-  Entrée 0.045184 € ; stop 0.043125 € ; TP1 0.049302 € ; TP2 0.051361 € ; montant 228.97 € ; risque théorique 12.00 € ; R/R net 1.60.
-  Chase risk : 4.468/10 (diagnostic non calibré). Probabilités +10/+20/+30/+40 % : indisponibles.
-- NPC-EUR : 0.022 € | IGNITION | score 84.13/100 | entrée 7.20/10
-  Entrée 0.022 € ; stop 0.0207854 € ; TP1 0.0244291 € ; TP2 0.0256437 € ; montant 193.50 € ; risque théorique 12.00 € ; R/R net 1.66.
-  Chase risk : 5.726/10 (diagnostic non calibré). Probabilités +10/+20/+30/+40 % : indisponibles.
+- TAIKO-EUR : STABILITY_HOLD, INSUFFICIENT_NET_RISK_REWARD
+- ZIG-EUR : 0.045399 € | IGNITION | score 90.12/100 | entrée 6.75/10
+  Entrée 0.045402 € ; stop 0.043107 € ; TP1 0.049991 € ; TP2 0.052286 € ; montant 209.16 € ; risque théorique 12.00 € ; R/R net 1.63.
+  Chase risk : 5.376/10 (diagnostic non calibré). Probabilités +10/+20/+30/+40 % : indisponibles.
 
 ## SURVEILLE
 
-- MOVR-EUR : 0.8294 € ; score 92.87/100 ; SURVEILLE ; SPREAD_RISK, SELLER_HEAVY_BOOK, WICK_SETUP
-- BEAM-EUR : 0.001763 € ; score 92.79/100 ; SURVEILLE ; SPREAD_RISK
-- JASMY-EUR : 0.0040874 € ; score 88.38/100 ; SURVEILLE ; WIDE_SPREAD_RISK, SELLER_HEAVY_BOOK
-- PROMPT-EUR : 0.020054 € ; score 87.51/100 ; SURVEILLE ; seuil achat non atteint
-- TRAC-EUR : 0.31046 € ; score 85.29/100 ; SURVEILLE ; SELLER_HEAVY_BOOK
+- ZBT-EUR : 0.080633 € ; score 93.66/100 ; SURVEILLE ; SELLER_HEAVY_BOOK
+- LDO-EUR : 0.37099 € ; score 89.90/100 ; SURVEILLE ; seuil achat non atteint
+- AI-EUR : 0.018617 € ; score 88.29/100 ; SURVEILLE ; SELLER_HEAVY_BOOK
+- BREV-EUR : 0.07855 € ; score 88.26/100 ; SURVEILLE ; LOW_LIQUIDITY, SPREAD_RISK
+- SAPIEN-EUR : 0.070229 € ; score 86.79/100 ; SURVEILLE ; SELLER_HEAVY_BOOK, WICK_SETUP, STABILITY_HOLD
 
 ## Contrôle des hausses
 
 | Marché | Prix € | 24 h | Détection | Couche d’échec | Actionnabilité |
 |---|---:|---:|---|---|---|
-| CPOOL-EUR | 0.035 | +42.93 % | DETECTED_EARLY | NONE | ENTRY_TIMING_OR_EXECUTION |
-| BCH-EUR | 315.82 | +34.40 % | DETECTED_EARLY | NONE | ENTRY_TIMING_OR_EXECUTION |
-| NIL-EUR | 0.088489 | +31.43 % | DETECTED_EARLY | NONE | ENTRY_TIMING_OR_EXECUTION |
-| MET-EUR | 0.32212 | +31.27 % | DETECTED_EARLY | NONE | ENTRY_TIMING_OR_EXECUTION |
-| SUPER-EUR | 0.1723 | +29.35 % | DETECTED_EARLY | NONE | ENTRY_TIMING_OR_EXECUTION |
-| CHR-EUR | 0.019561 | +26.48 % | NOT_DETECTED | SCANNER_SCORING | NOT_APPLICABLE |
-| ALLO-EUR | 0.282091 | +22.05 % | DETECTED_EARLY | NONE | INTERPRETATION |
-| ZRO-EUR | 1.2633 | +20.75 % | DETECTED_EARLY | NONE | INTERPRETATION |
-| PENGU-EUR | 0.00961 | +20.07 % | DETECTED_EARLY | NONE | INTERPRETATION |
-| SENT-EUR | 0.020048 | +19.55 % | DETECTED_EARLY | NONE | INTERPRETATION |
+| CPOOL-EUR | 0.036384 | +47.30 % | DETECTED_EARLY | NONE | ENTRY_TIMING_OR_EXECUTION |
+| BCH-EUR | 311.86 | +32.39 % | DETECTED_EARLY | NONE | ENTRY_TIMING_OR_EXECUTION |
+| MET-EUR | 0.32322 | +30.27 % | DETECTED_EARLY | NONE | ENTRY_TIMING_OR_EXECUTION |
+| SUPER-EUR | 0.16973 | +26.86 % | DETECTED_EARLY | NONE | ENTRY_TIMING_OR_EXECUTION |
+| CHR-EUR | 0.01911 | +23.59 % | NOT_DETECTED | SCANNER_SCORING | NOT_APPLICABLE |
+| NIL-EUR | 0.085564 | +23.16 % | DETECTED_EARLY | NONE | ENTRY_TIMING_OR_EXECUTION |
+| ZRO-EUR | 1.256 | +20.05 % | DETECTED_EARLY | NONE | INTERPRETATION |
+| ALLO-EUR | 0.275534 | +19.53 % | DETECTED_EARLY | NONE | INTERPRETATION |
+| PENGU-EUR | 0.0094398 | +17.48 % | DETECTED_EARLY | NONE | INTERPRETATION |
+| UP-EUR | 0.063036 | +17.35 % | NOT_DETECTED | SCANNER_COVERAGE | NOT_APPLICABLE |
 
-Historique : 1256 scans ; 537793 observations ; 629 épisodes d’achat évaluables.
+Historique : 1257 scans ; 538219 observations ; 629 épisodes d’achat évaluables.
 V5 optimisée : aucune. Supériorité sur V4 : non démontrée. Probabilités : non calibrées.
 Le cash et le portefeuille du plan sont hypothétiques. Aucun ordre réel n’est envoyé.
