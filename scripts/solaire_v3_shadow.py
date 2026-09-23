@@ -794,93 +794,144 @@ def main() -> int:
 
     candidates.sort(key=lambda x: x["opportunity_score"], reverse=True)
 
-    # Sixth V3 research axis: persistent opportunity theses.  A thesis is
-    # independent from the short acceleration episode and remains research-only.
-    thesis_targets = [
-        x for x in candidates
-        if x.get("fresh_opportunity_trigger")
-        or bool(((state.get("theses") or {}).get(x["market"]) or {}).get("active"))
-    ]
-    thesis_targets.sort(
+    # Sixth V3 research axis: persistent opportunity theses.  This runs on
+    # a separate observation set so the frozen V3 candidate stream consumed by
+    # V3.1 is not widened or re-ranked.
+    candidate_by_market = {x["market"]: x for x in candidates}
+    universe_by_market_thesis = {x.get("market"): x for x in rows if x.get("market")}
+    active_thesis_markets = {
+        market for market, thesis in (state.get("theses") or {}).items()
+        if thesis.get("active")
+    }
+    fresh_thesis_markets = {
+        x["market"] for x in candidates if x.get("fresh_opportunity_trigger")
+    }
+    thesis_markets = sorted(active_thesis_markets | fresh_thesis_markets)
+
+    thesis_observations: list[dict[str, Any]] = []
+    for market in thesis_markets:
+        current = candidate_by_market.get(market)
+        if current is not None:
+            obs = dict(current)
+        else:
+            raw = universe_by_market_thesis.get(market)
+            if not raw or not (raw.get("data_quality") or {}).get("ok", False):
+                continue
+            symbol = base_symbol(market)
+            early = early_quant_evidence(raw)
+            hits, news_score = news_for_symbol(symbol, news, now)
+            sector_names = narratives_for_market(market)
+            active_rotations = [
+                (name, rotations.get(name) or {})
+                for name in sector_names
+                if (rotations.get(name) or {}).get("active_watch")
+            ]
+            raw_rotation = max([finite(x[1].get("rotation_score_0_3"), 0) for x in active_rotations] or [0])
+            narrative_score = min(10.0, raw_rotation / 3.0 * 10.0)
+            v2row = v2_tracking.get(market) or {}
+            prior = (state.get("theses") or {}).get(market) or {}
+            obs = {
+                **raw,
+                "symbol": symbol,
+                "early_quant": early,
+                "news_items": hits,
+                "news_score": news_score,
+                "narratives": sector_names,
+                "active_narratives": [x[0] for x in active_rotations],
+                "narrative_score": round(narrative_score, 3),
+                "external": {"venues_available": 0, "external_score_0_10": 0.0, "reason": "THESIS_ONLY_NO_EXTRA_EXTERNAL_QUERY"},
+                "external_score": 0.0,
+                "opportunity_score": finite(prior.get("best_opportunity_score"), 0.0),
+                "context_watch": bool(news_score > 0 or active_rotations),
+                "fresh_opportunity_trigger": False,
+                "entry_hypothesis": False,
+                "v2_state": v2row.get("signal_state"),
+                "v2_score": finite(v2row.get("signal_score")),
+            }
+            obs["horizon_class"] = classify_horizon(obs)
+        thesis_observations.append(obs)
+
+    thesis_observations.sort(
         key=lambda x: (
             0 if x.get("fresh_opportunity_trigger") else 1,
             -finite(x.get("opportunity_score"), 0),
         )
     )
     long_trend_profiles: dict[str, dict[str, Any]] = {}
-    if thesis_targets:
+    if thesis_observations:
         try:
             trend_client = PublicClient(timeout=8, retries=2, requests_per_second=8)
             long_trend_profiles, trend_errors = fetch_long_trend_profiles(
                 trend_client,
-                [x["market"] for x in thesis_targets],
+                [x["market"] for x in thesis_observations],
                 now,
             )
             source_errors.extend(trend_errors)
         except Exception as exc:
             source_errors.append({"source": "long_trend", "reason": type(exc).__name__})
 
-    for row in candidates:
-        market = row["market"]
+    for obs in thesis_observations:
+        market = obs["market"]
         prior = (state.get("theses") or {}).get(market) or {}
         long_trend = long_trend_profiles.get(market) or prior.get("last_long_trend") or {}
-        row["long_trend"] = long_trend
+        obs["long_trend"] = long_trend
         prior_state = prior.get("state")
         prior_active = bool(prior.get("active"))
-        thesis = advance_persistent_thesis(prior, row, now)
+        thesis = advance_persistent_thesis(prior, obs, now)
         if thesis:
             state["theses"][market] = thesis
-        row["persistent_thesis"] = thesis or {}
-        row["thesis_reentry_hypothesis"] = bool(
+        obs["persistent_thesis"] = thesis or {}
+        obs["thesis_reentry_hypothesis"] = bool(
             thesis.get("active") and thesis.get("state") == "REENTRY_READY_THESIS"
         )
+        if market in candidate_by_market:
+            candidate_by_market[market]["long_trend"] = long_trend
+            candidate_by_market[market]["persistent_thesis"] = thesis or {}
 
         opened = bool(thesis.get("active")) and not prior_active
         if opened:
-            event = {
+            _append_event(journal, {
                 "event_type": "OPPORTUNITY_THESIS_START",
                 "market": market,
                 "thesis_id": thesis.get("thesis_id"),
                 "decision_ts": now,
                 "decision_at_utc": utc(now),
-                "price_eur": finite(row.get("price_eur")),
-                "opportunity_score": row.get("opportunity_score"),
-                "horizon_class": row.get("horizon_class"),
+                "price_eur": finite(obs.get("price_eur")),
+                "opportunity_score": obs.get("opportunity_score"),
+                "horizon_class": obs.get("horizon_class"),
                 "long_trend": long_trend,
-                "early_quant": row.get("early_quant"),
+                "early_quant": obs.get("early_quant"),
                 "context": {
-                    "news_score": row.get("news_score"),
-                    "active_narratives": row.get("active_narratives"),
-                    "narrative_score": row.get("narrative_score"),
-                    "external": row.get("external"),
+                    "news_score": obs.get("news_score"),
+                    "active_narratives": obs.get("active_narratives"),
+                    "narrative_score": obs.get("narrative_score"),
+                    "external": obs.get("external"),
                 },
-                "v2_state_at_event": row.get("v2_state"),
+                "v2_state_at_event": obs.get("v2_state"),
                 "left_censored_at_v3_t0": initial_v3_cycle,
                 "evaluations": {},
-            }
-            _append_event(journal, event)
+            })
 
         if (
             thesis.get("active")
             and thesis.get("state") == "REENTRY_READY_THESIS"
             and prior_state != "REENTRY_READY_THESIS"
         ):
-            event = {
+            _append_event(journal, {
                 "event_type": "OPPORTUNITY_THESIS_REENTRY_READY",
                 "market": market,
                 "thesis_id": thesis.get("thesis_id"),
                 "decision_ts": now,
                 "decision_at_utc": utc(now),
-                "price_eur": finite(row.get("price_eur")),
-                "opportunity_score": row.get("opportunity_score"),
-                "horizon_class": row.get("horizon_class"),
+                "price_eur": finite(obs.get("price_eur")),
+                "opportunity_score": obs.get("opportunity_score"),
+                "horizon_class": obs.get("horizon_class"),
                 "long_trend": long_trend,
                 "thesis": thesis,
-                "v2_state_at_event": row.get("v2_state"),
+                "v2_state_at_event": obs.get("v2_state"),
                 "left_censored_at_v3_t0": False,
                 "evaluations": {},
-            }
-            _append_event(journal, event)
+            })
 
     # Derivatives are diagnostic only and sampled on the strongest candidates.
     for row in candidates[:8]:
