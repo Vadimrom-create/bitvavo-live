@@ -252,7 +252,7 @@ def shadow_sizing(score: float, execution: dict[str, Any], quote_volume_24h_eur:
     # The stop-loss loss fraction is based on entry-to-stop distance plus the
     # same 0.70% round-trip cost convention used by the evaluator.
     effective_risk_pct = (entry - stop) / entry * 100.0 + ROUND_TRIP_COST_PCT
-    score_fraction = _clip((score - MIN_SELECTED_SCORE) / (10.0 - MIN_SELECTED_SCORE), 0.0, 1.0) / 10.0
+    score_fraction = _clip((score - MIN_SELECTED_SCORE) / (10.0 - MIN_SELECTED_SCORE), 0.0, 1.0)
     target_risk = BASE_RISK_EUR + (MAX_RISK_EUR - BASE_RISK_EUR) * score_fraction
     stake = target_risk / (effective_risk_pct / 100.0)
 
