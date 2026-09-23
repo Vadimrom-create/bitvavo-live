@@ -311,6 +311,8 @@ def main() -> int:
     summary = {
         "v3_prewatch": {str(h): _summary(v3.get("events", []), "PREWATCH_CONTEXT", h) for h in HORIZONS_HOURS},
         "v3_entry_ready": {str(h): _summary(v3.get("events", []), "ENTRY_READY_SHADOW", h) for h in HORIZONS_HOURS},
+        "v3_timing_persist_30m": {str(h): _summary(v3.get("events", []), "ENTRY_TIMING_PERSIST_30M", h) for h in HORIZONS_HOURS},
+        "v3_timing_pullback_reclaim": {str(h): _summary(v3.get("events", []), "ENTRY_TIMING_PULLBACK_RECLAIM", h) for h in HORIZONS_HOURS},
         "v2_first_detection": {str(h): _summary(benchmark.get("events", []), "V2_FIRST_DETECTION", h) for h in HORIZONS_HOURS},
         "v2_buy_sent": {str(h): _summary(v2_buy_events, "V2_BUY_SENT", h) for h in HORIZONS_HOURS},
     }
@@ -330,6 +332,7 @@ def main() -> int:
             "median_lead_minutes": None if not lead_values else round(statistics.median(lead_values), 2),
             "pairs": leads[-200:],
         },
+        "entry_timing_lab": {"raw": "ENTRY_READY_SHADOW", "persist_30m": "ENTRY_TIMING_PERSIST_30M", "pullback_reclaim": "ENTRY_TIMING_PULLBACK_RECLAIM"},
         "warning": "This is a shadow comparison, not actual account PnL or proof of causal edge.",
     }
     status = {

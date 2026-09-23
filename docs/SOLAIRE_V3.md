@@ -6,7 +6,7 @@ Solaire V3 is a research shadow deployed beside the frozen Solaire V2 decision p
 
 The immutable V2 code reference is commit `34b042121bb8425b0e4b46e3d1a694d4b1f4ec75`. Runtime JSON files on `main` may continue to evolve; the comparison code reference does not.
 
-## Four axes
+## Five axes
 
 1. **Where to look — context and narratives.** Public crypto news, project mentions and sector rotation can create a priority watch before a full V2 quantitative confirmation. Context never creates a BUY by itself. The direction must still be confirmed by market data.
 

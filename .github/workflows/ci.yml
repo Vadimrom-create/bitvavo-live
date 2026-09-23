@@ -86,6 +86,9 @@ jobs:
           assert v3['orders_submitted'] is False, v3
           comp = json.load(open('solaire_v3_comparison.json'))
           assert comp['frozen_v2_commit'] == '34b042121bb8425b0e4b46e3d1a694d4b1f4ec75', comp
+          assert 'v3_timing_persist_30m' in comp['summary'], comp
+          assert 'v3_timing_pullback_reclaim' in comp['summary'], comp
+          assert v3['affects_email'] is False and v3['orders_submitted'] is False, v3
           PY
       - name: Research live scan, no email or real order
         continue-on-error: true
