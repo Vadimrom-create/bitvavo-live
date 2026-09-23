@@ -7,6 +7,7 @@ on:
     paths:
       - 'scripts/audit_old_vs_v2.py'
       - 'scripts/audit_v2_old_timing.py'
+      - 'scripts/audit_v2_entry_timing_variants.py'
       - '.github/workflows/old_vs_v2_audit.yml'
   workflow_dispatch:
 
@@ -25,16 +26,20 @@ jobs:
         run: python scripts/audit_old_vs_v2.py
       - name: Run V2 detection plus Old timing counterfactual
         run: python scripts/audit_v2_old_timing.py
+      - name: Run causal V2 entry timing variants
+        run: python scripts/audit_v2_entry_timing_variants.py
       - name: Show reports
         run: |
           cat old_vs_v2_audit.md
           echo
           cat v2_old_timing_audit.md
+          echo
+          cat v2_entry_timing_variants.md
       - name: Persist report on audit branch
         run: |
           git config user.name 'bitvavo-live-bot'
           git config user.email 'actions@users.noreply.github.com'
-          git add old_vs_v2_audit.json old_vs_v2_audit.md v2_old_timing_audit.json v2_old_timing_audit.md
+          git add old_vs_v2_audit.json old_vs_v2_audit.md v2_old_timing_audit.json v2_old_timing_audit.md v2_entry_timing_variants.json v2_entry_timing_variants.md
           if git diff --cached --quiet; then exit 0; fi
           git commit -m 'Record Old vs Solaire V2 comparison'
           git push origin HEAD:codex/old-vs-v2-comparison-20260924
