@@ -1,8 +1,8 @@
 # Bitvavo — V4 mesurée / infrastructure V5
 
-Scan UTC : 2026-09-23T07:46:47.768292+00:00
+Scan UTC : 2026-09-23T08:00:16.715079+00:00
 État : OK | marchés EUR : 426 | V4 : 399 | données valides : 426
-Récupération : 2026-09-23T07:46:19.985911+00:00 | âge ticker : 142.4 s | durée : 143.2 s
+Récupération : 2026-09-23T07:59:47.057764+00:00 | âge ticker : 154.0 s | durée : 155.8 s
 
 ## ACHÈTE — signal V4 et plan théorique
 
@@ -11,31 +11,31 @@ Bougies utilisables : 5 min 426/426 ; 15 min 426/426.
 Les intervalles sans transaction sont représentés explicitement à volume 0 ; aucune transaction n’est inventée.
 
 Achats bruts V4 bloqués avant alerte :
-- LTC-EUR : STABILITY_HOLD, INSUFFICIENT_NET_RISK_REWARD
+- QNT-EUR : CHASE_RISK, BASELINE_BUY_CHASE_CONTRADICTION
 
 ## SURVEILLE
 
-- KMNO-EUR : 0.031656 € ; score 93.54/100 ; SURVEILLE ; SELLER_HEAVY_BOOK, WICK_SETUP
-- ARX-EUR : 0.19425 € ; score 91.53/100 ; SURVEILLE ; SPREAD_RISK, SELLER_HEAVY_BOOK
-- ARPA-EUR : 0.0100018 € ; score 88.78/100 ; SURVEILLE ; SPREAD_RISK, SELLER_HEAVY_BOOK, WICK_SETUP
-- ATOM-EUR : 1.5836 € ; score 83.67/100 ; SURVEILLE ; SELLER_HEAVY_BOOK
-- LRC-EUR : 0.008789 € ; score 80.70/100 ; SURVEILLE ; WICK_SETUP
+- API3-EUR : 0.24414 € ; score 93.15/100 ; SURVEILLE ; WICK_SETUP
+- ARPA-EUR : 0.0100018 € ; score 90.83/100 ; SURVEILLE ; SELLER_HEAVY_BOOK, WICK_SETUP
+- AI-EUR : 0.018587 € ; score 88.41/100 ; SURVEILLE ; LOW_LIQUIDITY, SELLER_HEAVY_BOOK
+- CRV-EUR : 0.31564 € ; score 86.11/100 ; SURVEILLE ; seuil achat non atteint
+- WAL-EUR : 0.030667 € ; score 85.43/100 ; SURVEILLE ; WICK_SETUP
 
 ## Contrôle des hausses
 
 | Marché | Prix € | 24 h | Détection | Couche d’échec | Actionnabilité |
 |---|---:|---:|---|---|---|
-| CPOOL-EUR | 0.035193 | +44.83 % | DETECTED_EARLY | NONE | ENTRY_TIMING_OR_EXECUTION |
-| NIL-EUR | 0.093629 | +43.18 % | DETECTED_EARLY | NONE | ENTRY_TIMING_OR_EXECUTION |
-| MET-EUR | 0.31718 | +33.41 % | DETECTED_EARLY | NONE | ENTRY_TIMING_OR_EXECUTION |
-| BCH-EUR | 307.16 | +32.88 % | DETECTED_EARLY | NONE | ENTRY_TIMING_OR_EXECUTION |
-| SUPER-EUR | 0.17114 | +29.98 % | DETECTED_EARLY | NONE | ENTRY_TIMING_OR_EXECUTION |
-| CHR-EUR | 0.019245 | +24.56 % | NOT_DETECTED | SCANNER_SCORING | NOT_APPLICABLE |
-| ZRO-EUR | 1.2505 | +22.79 % | DETECTED_EARLY | NONE | INTERPRETATION |
-| UP-EUR | 0.064585 | +20.63 % | NOT_DETECTED | SCANNER_COVERAGE | NOT_APPLICABLE |
-| PENGU-EUR | 0.0095412 | +19.02 % | DETECTED_EARLY | NONE | INTERPRETATION |
-| SENT-EUR | 0.020002 | +19.00 % | DETECTED_EARLY | NONE | INTERPRETATION |
+| NIL-EUR | 0.096109 | +48.87 % | DETECTED_EARLY | NONE | ENTRY_TIMING_OR_EXECUTION |
+| CPOOL-EUR | 0.033692 | +37.80 % | DETECTED_EARLY | NONE | ENTRY_TIMING_OR_EXECUTION |
+| MET-EUR | 0.31978 | +34.57 % | DETECTED_EARLY | NONE | ENTRY_TIMING_OR_EXECUTION |
+| BCH-EUR | 305.58 | +30.96 % | DETECTED_EARLY | NONE | ENTRY_TIMING_OR_EXECUTION |
+| SUPER-EUR | 0.16862 | +28.06 % | DETECTED_EARLY | NONE | ENTRY_TIMING_OR_EXECUTION |
+| CHR-EUR | 0.019107 | +23.66 % | NOT_DETECTED | SCANNER_SCORING | NOT_APPLICABLE |
+| UP-EUR | 0.064599 | +20.66 % | NOT_DETECTED | SCANNER_COVERAGE | NOT_APPLICABLE |
+| ZRO-EUR | 1.2456 | +20.39 % | DETECTED_EARLY | NONE | INTERPRETATION |
+| SENT-EUR | 0.020087 | +19.63 % | DETECTED_EARLY | NONE | INTERPRETATION |
+| PENGU-EUR | 0.0094627 | +19.14 % | DETECTED_EARLY | NONE | INTERPRETATION |
 
-Historique : 1253 scans ; 536515 observations ; 614 épisodes d’achat évaluables.
+Historique : 1254 scans ; 536941 observations ; 620 épisodes d’achat évaluables.
 V5 optimisée : aucune. Supériorité sur V4 : non démontrée. Probabilités : non calibrées.
 Le cash et le portefeuille du plan sont hypothétiques. Aucun ordre réel n’est envoyé.
