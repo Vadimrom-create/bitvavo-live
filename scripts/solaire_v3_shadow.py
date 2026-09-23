@@ -60,6 +60,7 @@ STATE = "solaire_v3_state.json"
 JOURNAL = "solaire_v3_journal.json"
 STATUS = "solaire_v3_status.json"
 CANDIDATES = "solaire_v3_candidates.json"
+THESES = "solaire_v3_theses.json"
 ROTATION = "solaire_v3_rotation_state.json"
 V2_BENCHMARK = "solaire_v2_frozen_benchmark_journal.json"
 
@@ -68,6 +69,7 @@ WATCH_EXPIRY = 24 * 3600
 MAX_EXTERNAL_MARKETS = 16
 MAX_EXECUTION_MARKETS = 14
 MAX_THESIS_PROFILE_MARKETS = 20
+MAX_THESIS_EXECUTION_MARKETS = 8
 MIN_QUOTE_VOLUME_EUR = 75_000.0
 MAX_SPREAD_PCT = 0.50
 MAX_DEPTH_SLIPPAGE_PCT = 0.50
@@ -970,9 +972,59 @@ def main() -> int:
         for row in execution_rows:
             checks[row["market"]] = execution_check(client, metadata, row, time.time())
 
+    # Thesis re-entry execution is deliberately separate from V3 execution
+    # checks so V3.1 continues to consume the unchanged V3 candidate stream.
+    thesis_execution_rows = [
+        x for x in thesis_observations if x.get("thesis_reentry_hypothesis")
+    ][:MAX_THESIS_EXECUTION_MARKETS]
+    thesis_checks: dict[str, dict[str, Any]] = {}
+    if metadata:
+        for obs in thesis_execution_rows:
+            thesis_checks[obs["market"]] = execution_check(client, metadata, obs, time.time())
+
+    new_thesis_entry_events = []
+    for obs in thesis_execution_rows:
+        market = obs["market"]
+        check = thesis_checks.get(market)
+        thesis = (state.get("theses") or {}).get(market) or {}
+        if check is None:
+            continue
+        thesis["last_execution_state"] = check.get("reason")
+        thesis["last_execution_checked_at_utc"] = utc(now)
+        thesis_id = thesis.get("thesis_id")
+        if (
+            check.get("ready")
+            and thesis_id is not None
+            and thesis.get("entry_recorded_thesis_id") != thesis_id
+        ):
+            plan = check.get("plan") or {}
+            event = {
+                "event_type": "ENTRY_THESIS_REENTRY_SHADOW",
+                "market": market,
+                "thesis_id": thesis_id,
+                "decision_ts": now,
+                "decision_at_utc": utc(now),
+                "price_eur": finite(obs.get("price_eur")),
+                "entry_eur": finite(plan.get("entry_eur")),
+                "stop_eur": finite(plan.get("stop_eur")),
+                "tp1_eur": finite(plan.get("tp1_eur")),
+                "stake_eur": REFERENCE_STAKE_EUR,
+                "opportunity_score": obs.get("opportunity_score"),
+                "horizon_class": obs.get("horizon_class"),
+                "entry_source": "V3_PERSISTENT_THESIS_REENTRY",
+                "execution": check,
+                "long_trend": obs.get("long_trend"),
+                "thesis": thesis,
+                "v2_state_at_event": obs.get("v2_state"),
+                "left_censored_at_v3_t0": False,
+                "evaluations": {},
+            }
+            if _append_event(journal, event):
+                thesis["entry_recorded_thesis_id"] = thesis_id
+                new_thesis_entry_events.append(event)
+
     current_markets = set()
     new_entry_events = []
-    new_thesis_entry_events = []
     rotation_ready_events = []
     for row in candidates:
         market = row["market"]
@@ -1178,42 +1230,6 @@ def main() -> int:
                     ms["entry_recorded_episode"] = ms["episode"]
                     new_entry_events.append(event)
 
-        if row.get("thesis_reentry_hypothesis") and check is not None:
-            thesis = (state.get("theses") or {}).get(market) or {}
-            thesis["last_execution_state"] = check.get("reason")
-            thesis["last_execution_checked_at_utc"] = utc(now)
-            thesis_id = thesis.get("thesis_id")
-            if (
-                check.get("ready")
-                and thesis_id is not None
-                and thesis.get("entry_recorded_thesis_id") != thesis_id
-            ):
-                plan = check.get("plan") or {}
-                event = {
-                    "event_type": "ENTRY_THESIS_REENTRY_SHADOW",
-                    "market": market,
-                    "thesis_id": thesis_id,
-                    "decision_ts": now,
-                    "decision_at_utc": utc(now),
-                    "price_eur": finite(row.get("price_eur")),
-                    "entry_eur": finite(plan.get("entry_eur")),
-                    "stop_eur": finite(plan.get("stop_eur")),
-                    "tp1_eur": finite(plan.get("tp1_eur")),
-                    "stake_eur": REFERENCE_STAKE_EUR,
-                    "opportunity_score": row.get("opportunity_score"),
-                    "horizon_class": row.get("horizon_class"),
-                    "entry_source": "V3_PERSISTENT_THESIS_REENTRY",
-                    "execution": check,
-                    "long_trend": row.get("long_trend"),
-                    "thesis": thesis,
-                    "v2_state_at_event": row.get("v2_state"),
-                    "left_censored_at_v3_t0": False,
-                    "evaluations": {},
-                }
-                if _append_event(journal, event):
-                    thesis["entry_recorded_thesis_id"] = thesis_id
-                    new_thesis_entry_events.append(event)
-
     for market, ms in state["markets"].items():
         if market not in current_markets and ms.get("active") and now - finite(ms.get("last_seen_ts"), 0) > WATCH_EXPIRY:
             ms["active"] = False
@@ -1242,17 +1258,13 @@ def main() -> int:
             "opportunity_score": row.get("opportunity_score"),
             "horizon_class": row.get("horizon_class"),
             "context_watch": row.get("context_watch"),
-            "fresh_opportunity_trigger": row.get("fresh_opportunity_trigger"),
             "entry_hypothesis": row.get("entry_hypothesis"),
-            "thesis_reentry_hypothesis": row.get("thesis_reentry_hypothesis"),
             "early_quant": row.get("early_quant"),
             "news_score": row.get("news_score"),
             "news_items": row.get("news_items"),
             "active_narratives": row.get("active_narratives"),
             "narrative_score": row.get("narrative_score"),
             "external": row.get("external"),
-            "long_trend": row.get("long_trend"),
-            "persistent_thesis": row.get("persistent_thesis"),
             "derivatives": row.get("derivatives"),
             "v2_state": row.get("v2_state"),
             "v2_score": row.get("v2_score"),
