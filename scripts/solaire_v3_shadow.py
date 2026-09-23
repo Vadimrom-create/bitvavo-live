@@ -720,16 +720,13 @@ def main() -> int:
         raw_rotation = max([finite(x[1].get("rotation_score_0_3"), 0) for x in active_rotations] or [0])
         narrative_score = min(10.0, raw_rotation / 3.0 * 10.0)
         v2row = v2_tracking.get(market) or {}
-        prior_thesis = (state.get("theses") or {}).get(market) or {}
-        active_thesis = bool(prior_thesis.get("active"))
         local_priority = (
             finite(early.get("score_0_10"), 0)
             + news_score
             + narrative_score
             + (3.0 if v2row.get("signal_state") == "CONFIRMED_ACCELERATION" else 1.5 if v2row else 0.0)
-            + (1.0 if active_thesis else 0.0)
         )
-        if news_score > 0 or active_rotations or early.get("ready") or v2row or active_thesis:
+        if news_score > 0 or active_rotations or early.get("ready") or v2row:
             base_candidates.append({
                 **row,
                 "symbol": symbol,
@@ -896,15 +893,10 @@ def main() -> int:
 
     # Preserve V2 confirmed candidates in the execution check even if their V3
     # opportunity score is not in the top-N.
-    execution_rows = [
-        x for x in candidates
-        if x.get("entry_hypothesis") or x.get("thesis_reentry_hypothesis")
-    ]
+    execution_rows = [x for x in candidates if x.get("entry_hypothesis")]
     execution_rows.sort(
         key=lambda x: (
-            0 if x.get("v2_state") == "CONFIRMED_ACCELERATION"
-            else 1 if x.get("thesis_reentry_hypothesis")
-            else 2,
+            0 if x.get("v2_state") == "CONFIRMED_ACCELERATION" else 1,
             -finite(x.get("opportunity_score"), 0),
         )
     )
