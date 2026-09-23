@@ -112,6 +112,11 @@ jobs:
           assert v31['orders_submitted'] is False, v31
           comp = json.load(open('solaire_v31_comparison.json'))
           assert comp['frozen_v3_commit'] == '2b0a5b25173e8ac5dd67625f80755f26acbedabf', comp
+          assert comp['v3_timing_lab_commit'] == '0c05e0fbf55b0ff99dae3f10bcfc3411bbee0cc6', comp
+          assert 'v31_raw_qualified' in comp['summary'], comp
+          assert 'v31_persist30_qualified' in comp['summary'], comp
+          assert 'v31_pullback_reclaim_qualified' in comp['summary'], comp
+          assert comp['factorial_axes']['timing'] == ['RAW', 'PERSIST_30M', 'PULLBACK_RECLAIM'], comp
           PY
       - name: Research live scan, no email or real order
         continue-on-error: true
@@ -148,6 +153,8 @@ jobs:
             solaire_v31_state.json
             solaire_v31_journal.json
             solaire_v31_portfolio.json
+            solaire_v31_portfolio_persist30.json
+            solaire_v31_portfolio_pullback_reclaim.json
             solaire_v31_evaluation_status.json
             solaire_v31_comparison.json
             v5_report.json
