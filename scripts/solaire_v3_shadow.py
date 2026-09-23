@@ -70,6 +70,13 @@ MAX_DEPTH_SLIPPAGE_PCT = 0.50
 MAX_STOP_DISTANCE_PCT = 10.0
 HTTP_TIMEOUT = 5
 
+TIMING_PERSIST_MIN_SECONDS = 30 * 60
+TIMING_PERSIST_MIN_DRIFT_PCT = -2.0
+TIMING_PERSIST_MAX_DRIFT_PCT = 3.0
+TIMING_PULLBACK_MIN_PCT = -2.0
+TIMING_RECLAIM_MIN_PCT = 1.0
+TIMING_RECLAIM_MAX_DRIFT_PCT = 3.0
+
 NEWS_FEEDS = (
     ("coindesk", "https://www.coindesk.com/arc/outboundfeeds/rss/"),
     ("cointelegraph", "https://cointelegraph.com/rss"),
@@ -758,6 +765,7 @@ def main() -> int:
             ms["started_at_utc"] = utc(now)
             ms.pop("prewatch_recorded_episode", None)
             ms.pop("entry_recorded_episode", None)
+            ms["timing"] = {"episode": ms["episode"]}
         ms["last_seen_ts"] = now
         ms["last_seen_at_utc"] = utc(now)
         ms["last_opportunity_score"] = row["opportunity_score"]
@@ -792,8 +800,117 @@ def main() -> int:
         if row.get("entry_hypothesis") and check is not None:
             ms["execution_state"] = check.get("reason")
             ms["execution_checked_at_utc"] = utc(now)
+
+            # Fifth V3 research axis: entry timing.  These timing variants are
+            # measured prospectively in parallel and never affect V2, email,
+            # orders, or the existing raw V3 entry-ready event.
+            timing = ms.setdefault("timing", {"episode": ms["episode"]})
+            if timing.get("episode") != ms["episode"]:
+                timing.clear()
+                timing["episode"] = ms["episode"]
+
+            observed_price = finite(row.get("price_eur"))
+            if timing.get("raw_ready_ts") is not None and observed_price is not None:
+                low = finite(timing.get("low_since_raw_ready_eur"), observed_price)
+                timing["low_since_raw_ready_eur"] = min(low, observed_price)
+
             if check.get("ready"):
                 plan = check.get("plan") or {}
+                current_entry = finite(plan.get("entry_eur"))
+                if current_entry is not None and current_entry > 0:
+                    if timing.get("raw_ready_ts") is None:
+                        timing["raw_ready_ts"] = now
+                        timing["raw_ready_at_utc"] = utc(now)
+                        timing["raw_entry_eur"] = current_entry
+                        timing["low_since_raw_ready_eur"] = current_entry
+                    low = finite(timing.get("low_since_raw_ready_eur"), current_entry)
+                    timing["low_since_raw_ready_eur"] = min(low, current_entry)
+
+                    raw_entry = finite(timing.get("raw_entry_eur"))
+                    raw_ts = finite(timing.get("raw_ready_ts"))
+                    low = finite(timing.get("low_since_raw_ready_eur"))
+                    drift_pct = None if not raw_entry else (current_entry / raw_entry - 1.0) * 100.0
+                    pullback_pct = None if not raw_entry or low is None else (low / raw_entry - 1.0) * 100.0
+                    reclaim_pct = None if low is None or low <= 0 else (current_entry / low - 1.0) * 100.0
+                    timing["current_drift_pct"] = None if drift_pct is None else round(drift_pct, 4)
+                    timing["max_pullback_pct"] = None if pullback_pct is None else round(pullback_pct, 4)
+                    timing["reclaim_from_low_pct"] = None if reclaim_pct is None else round(reclaim_pct, 4)
+
+                    if (
+                        raw_ts is not None
+                        and now - raw_ts >= TIMING_PERSIST_MIN_SECONDS
+                        and drift_pct is not None
+                        and TIMING_PERSIST_MIN_DRIFT_PCT <= drift_pct <= TIMING_PERSIST_MAX_DRIFT_PCT
+                        and timing.get("persist30_recorded_episode") != ms["episode"]
+                    ):
+                        event = {
+                            "event_type": "ENTRY_TIMING_PERSIST_30M",
+                            "market": market,
+                            "episode": ms["episode"],
+                            "decision_ts": now,
+                            "decision_at_utc": utc(now),
+                            "price_eur": finite(row.get("price_eur")),
+                            "entry_eur": current_entry,
+                            "stop_eur": finite(plan.get("stop_eur")),
+                            "tp1_eur": finite(plan.get("tp1_eur")),
+                            "stake_eur": REFERENCE_STAKE_EUR,
+                            "opportunity_score": row["opportunity_score"],
+                            "horizon_class": row["horizon_class"],
+                            "entry_source": "V3_TIMING_PERSIST_30M",
+                            "timing": {
+                                "raw_ready_ts": raw_ts,
+                                "raw_entry_eur": raw_entry,
+                                "delay_minutes": round((now - raw_ts) / 60.0, 2),
+                                "drift_from_raw_pct": round(drift_pct, 4),
+                                "max_pullback_pct": None if pullback_pct is None else round(pullback_pct, 4),
+                            },
+                            "execution": check,
+                            "v2_state_at_event": row.get("v2_state"),
+                            "left_censored_at_v3_t0": initial_v3_cycle,
+                            "evaluations": {},
+                        }
+                        if _append_event(journal, event):
+                            timing["persist30_recorded_episode"] = ms["episode"]
+
+                    if (
+                        pullback_pct is not None
+                        and pullback_pct <= TIMING_PULLBACK_MIN_PCT
+                        and reclaim_pct is not None
+                        and reclaim_pct >= TIMING_RECLAIM_MIN_PCT
+                        and drift_pct is not None
+                        and drift_pct <= TIMING_RECLAIM_MAX_DRIFT_PCT
+                        and timing.get("reclaim_recorded_episode") != ms["episode"]
+                    ):
+                        event = {
+                            "event_type": "ENTRY_TIMING_PULLBACK_RECLAIM",
+                            "market": market,
+                            "episode": ms["episode"],
+                            "decision_ts": now,
+                            "decision_at_utc": utc(now),
+                            "price_eur": finite(row.get("price_eur")),
+                            "entry_eur": current_entry,
+                            "stop_eur": finite(plan.get("stop_eur")),
+                            "tp1_eur": finite(plan.get("tp1_eur")),
+                            "stake_eur": REFERENCE_STAKE_EUR,
+                            "opportunity_score": row["opportunity_score"],
+                            "horizon_class": row["horizon_class"],
+                            "entry_source": "V3_TIMING_PULLBACK_RECLAIM",
+                            "timing": {
+                                "raw_ready_ts": raw_ts,
+                                "raw_entry_eur": raw_entry,
+                                "delay_minutes": None if raw_ts is None else round((now - raw_ts) / 60.0, 2),
+                                "drift_from_raw_pct": round(drift_pct, 4),
+                                "max_pullback_pct": round(pullback_pct, 4),
+                                "reclaim_from_low_pct": round(reclaim_pct, 4),
+                            },
+                            "execution": check,
+                            "v2_state_at_event": row.get("v2_state"),
+                            "left_censored_at_v3_t0": initial_v3_cycle,
+                            "evaluations": {},
+                        }
+                        if _append_event(journal, event):
+                            timing["reclaim_recorded_episode"] = ms["episode"]
+
                 rotation_ready_events.append({
                     "market": market,
                     "episode": ms["episode"],
@@ -880,6 +997,7 @@ def main() -> int:
             "v2_state": row.get("v2_state"),
             "v2_score": row.get("v2_score"),
             "execution": checks.get(row["market"]),
+            "timing_state": (state.get("markets", {}).get(row["market"], {}) or {}).get("timing"),
         })
 
     candidate_doc = {
@@ -912,6 +1030,8 @@ def main() -> int:
         "execution_checks": len(checks),
         "entry_ready_shadow_count": sum(bool(x.get("ready")) for x in checks.values()),
         "new_entry_events": len(new_entry_events),
+        "timing_persist_30m_events": sum(x.get("event_type") == "ENTRY_TIMING_PERSIST_30M" for x in journal.get("events", [])),
+        "timing_pullback_reclaim_events": sum(x.get("event_type") == "ENTRY_TIMING_PULLBACK_RECLAIM" for x in journal.get("events", [])),
         "rotation_positions": len(rotation.get("positions", [])),
         "rotation_marked_value_eur": rotation.get("marked_value_eur"),
         "critical_error": critical_error,
