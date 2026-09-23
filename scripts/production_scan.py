@@ -24,11 +24,12 @@ from research.common import atomic_json, finite, freshness, utc
 from research.features import closed_candles, describe
 from research.http import PublicClient
 from research.production_acceleration import acceleration_signal
-from research.production_context import build_market_context
+from research.production_context import build_market_context, candidate_context
 from research.production_gate import build_alert_payload
 
 CANDIDATES = "production_alert_candidates.json"
 STATUS = "production_scan_status.json"
+UNIVERSE_SNAPSHOT = "production_universe_snapshot.json"
 INTERVALS = ("5m", "15m")
 
 
@@ -159,6 +160,37 @@ def run() -> dict:
         for m in markets
     ]
     market_context = build_market_context(observations)
+    # Neutral full-universe export for the V3 prospective shadow.  It reuses the
+    # exact same Bitvavo observations as V2 and therefore adds no market-data
+    # requests and cannot alter the frozen V2 decision path.
+    universe_snapshot = {
+        "schema": "solaire_neutral_universe_snapshot_v1",
+        "generated_at_utc": utc(signal_ts),
+        "source": "same_direct_bitvavo_scan",
+        "affects_v2": False,
+        "affects_detection": False,
+        "affects_buy_gate": False,
+        "market_context": market_context,
+        "rows": [
+            {
+                "market": obs.get("market"),
+                "price_eur": obs.get("price_eur"),
+                "change_24h_pct": obs.get("change_24h_pct"),
+                "quote_volume_24h_eur": obs.get("quote_volume_24h_eur"),
+                "features": obs.get("features") or {},
+                "acceleration": obs.get("acceleration") or {},
+                "data_quality": obs.get("data_quality") or {},
+                "timestamps": obs.get("timestamps") or {},
+                "context": (
+                    candidate_context(obs, market_context)
+                    if (obs.get("data_quality") or {}).get("ok", False)
+                    else {}
+                ),
+            }
+            for obs in observations
+        ],
+    }
+    atomic_json(UNIVERSE_SNAPSHOT, universe_snapshot)
     payload = build_alert_payload(observations, utc(signal_ts), market_context)
     atomic_json(CANDIDATES, payload)
 
@@ -199,6 +231,7 @@ def run() -> dict:
         "confirmed_accelerations": len(confirmed),
         "alert_candidates": len(payload["watch"]),
         "candidate_markets": [r["market"] for r in payload["watch"][:20]],
+        "universe_snapshot_rows": len(universe_snapshot["rows"]),
         "market_context_status": market_context.get("status"),
         "market_regime": market_context.get("regime"),
         "market_breadth_1h_pct": market_context.get("breadth_positive_1h_pct"),
@@ -228,6 +261,19 @@ def main() -> int:
             "v4_required": False,
             "decision_layer_required": False,
         }
+        atomic_json(
+            UNIVERSE_SNAPSHOT,
+            {
+                "schema": "solaire_neutral_universe_snapshot_v1",
+                "generated_at_utc": utc(),
+                "source": "same_direct_bitvavo_scan",
+                "affects_v2": False,
+                "affects_detection": False,
+                "affects_buy_gate": False,
+                "market_context": {},
+                "rows": [],
+            },
+        )
         atomic_json(
             CANDIDATES,
             {
