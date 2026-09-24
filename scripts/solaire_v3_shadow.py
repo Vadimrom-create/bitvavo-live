@@ -334,7 +334,7 @@ def fetch_official_page_deltas(
             page = _text_url(url)
             for href, raw_title in re.findall(r"<a[^>]+href=['\\\"]([^'\\\"]+)['\\\"][^>]*>(.*?)</a>", page, flags=re.I | re.S):
                 title = html_lib.unescape(re.sub(r"<[^>]+>", " ", raw_title))
-                title = re.sub(r"\\s+", " ", title).strip()
+                title = re.sub(r"\s+", " ", title).strip()
                 if not (12 <= len(title) <= 260):
                     continue
                 symbols = _news_asset_symbols(title, asset_aliases)
