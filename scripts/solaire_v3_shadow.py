@@ -1115,6 +1115,21 @@ def main() -> int:
             thesis["baseline_excluded"] = True
             thesis["baseline_memory_only_migration_retired"] = True
             retired_near_miss_theses += 1
+            _append_event(journal, {
+                "event_type": "BASELINE_NEAR_MISS_THESIS_RETIRED",
+                "market": market,
+                "thesis_id": thesis.get("thesis_id"),
+                "attempt_id": (
+                    f"{market}|{thesis.get('thesis_id')}|"
+                    f"MEMORY_ONLY_RETIREMENT|{V3_ARCHITECTURE_VERSION}"
+                ),
+                "decision_ts": now,
+                "decision_at_utc": utc(now),
+                "price_eur": finite(thesis.get("last_price_eur")),
+                "seed_source": thesis.get("seed_source"),
+                "reason": "BASELINE_MEMORY_ONLY_MIGRATION",
+                "evaluation_excluded": True,
+            })
 
     source_errors: list[dict[str, Any]] = []
     if not rows:
