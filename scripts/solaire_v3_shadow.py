@@ -83,6 +83,7 @@ MAX_SPREAD_PCT = 0.50
 MAX_DEPTH_SLIPPAGE_PCT = 0.50
 MAX_STOP_DISTANCE_PCT = 10.0
 HTTP_TIMEOUT = 5
+RUNTIME_COMMIT = os.environ.get("GITHUB_SHA") or "LOCAL_OR_UNKNOWN"
 
 TIMING_PERSIST_MIN_SECONDS = 30 * 60
 TIMING_PERSIST_MIN_DRIFT_PCT = -2.0
@@ -706,6 +707,8 @@ def _event_key(event: dict[str, Any]) -> str:
 
 
 def _append_event(journal: dict[str, Any], event: dict[str, Any]) -> bool:
+    event.setdefault("architecture_version", V3_ARCHITECTURE_VERSION)
+    event.setdefault("runtime_commit", RUNTIME_COMMIT)
     keys = {_event_key(x) for x in journal.get("events", [])}
     if _event_key(event) in keys:
         return False
@@ -887,7 +890,7 @@ def main() -> int:
     state.setdefault("thesis_profile_cursor", 0)
     state.setdefault("derivatives_cursor", 0)
     state.setdefault("theses", {})
-    runtime_commit = os.environ.get("GITHUB_SHA") or "LOCAL_OR_UNKNOWN"
+    runtime_commit = RUNTIME_COMMIT
     journal.setdefault("schema", "solaire_v3_prospective_journal_v1")
     journal.setdefault("started_ts", state["started_ts"])
     journal.setdefault("started_at_utc", state["started_at_utc"])
@@ -1243,8 +1246,15 @@ def main() -> int:
                 "evaluations": {},
             })
 
-    # Derivatives are diagnostic only and sampled on the strongest candidates.
-    for row in candidates[:8]:
+    # Expensive diagnostics use a fair queue: bounded work is acceptable,
+    # permanent starvation is not.
+    derivative_rows, state["derivatives_cursor"], derivatives_fairness = select_fair_batch(
+        candidates,
+        MAX_DERIVATIVE_MARKETS,
+        state.get("derivatives_cursor", 0),
+        key=lambda x: x.get("market") or "",
+    )
+    for row in derivative_rows:
         prev = finite((state.get("previous_derivatives") or {}).get(row["market"]))
         derivative = bybit_derivatives(row["symbol"], prev)
         row["derivatives"] = derivative
@@ -1252,16 +1262,13 @@ def main() -> int:
         if oi is not None:
             state["previous_derivatives"][row["market"]] = oi
 
-    # Preserve V2 confirmed candidates in the execution check even if their V3
-    # opportunity score is not in the top-N.
-    execution_rows = [x for x in candidates if x.get("entry_hypothesis")]
-    execution_rows.sort(
-        key=lambda x: (
-            0 if x.get("v2_state") == "CONFIRMED_ACCELERATION" else 1,
-            -finite(x.get("opportunity_score"), 0),
-        )
+    execution_eligible = [x for x in candidates if x.get("entry_hypothesis")]
+    execution_rows, state["execution_cursor"], execution_fairness = select_fair_batch(
+        execution_eligible,
+        MAX_EXECUTION_MARKETS,
+        state.get("execution_cursor", 0),
+        key=lambda x: x.get("market") or "",
     )
-    execution_rows = execution_rows[:MAX_EXECUTION_MARKETS]
 
     client = PublicClient(timeout=8, retries=2, requests_per_second=10)
     metadata: dict[str, dict[str, Any]] = {}
@@ -1280,11 +1287,18 @@ def main() -> int:
         for row in execution_rows:
             checks[row["market"]] = execution_check(client, metadata, row, time.time())
 
-    # Thesis re-entry execution is deliberately separate from V3 execution
-    # checks so V3.1 continues to consume the unchanged V3 candidate stream.
-    thesis_execution_rows = [
+    # Re-entry theses are now a first-class upstream path for V3.1.  The
+    # bounded execution workload rotates fairly so an ONDO-like candidate can
+    # never remain 40th forever behind a fixed top-N slice.
+    thesis_execution_eligible = [
         x for x in thesis_observations if x.get("thesis_reentry_hypothesis")
-    ][:MAX_THESIS_EXECUTION_MARKETS]
+    ]
+    thesis_execution_rows, state["thesis_execution_cursor"], thesis_execution_fairness = select_fair_batch(
+        thesis_execution_eligible,
+        MAX_THESIS_EXECUTION_MARKETS,
+        state.get("thesis_execution_cursor", 0),
+        key=lambda x: x.get("market") or "",
+    )
     thesis_checks: dict[str, dict[str, Any]] = {}
     if metadata:
         for obs in thesis_execution_rows:
@@ -1299,6 +1313,9 @@ def main() -> int:
             continue
         thesis["last_execution_state"] = check.get("reason")
         thesis["last_execution_checked_at_utc"] = utc(now)
+        if market in candidate_by_market:
+            candidate_by_market[market]["thesis_execution"] = check
+            candidate_by_market[market]["thesis_reentry_hypothesis"] = True
         thesis_id = thesis.get("thesis_id")
         if (
             check.get("ready")
