@@ -233,6 +233,11 @@ def main() -> int:
     initial_cycle = not bool(state.get("initialized"))
     initial_timing_cycle = not bool(state.get("timing_lab_initialized"))
     state.setdefault("schema", "solaire_v31_state_v1")
+    prior_architecture_version = state.get("architecture_version")
+    state["architecture_version"] = V31_ARCHITECTURE_VERSION
+    if prior_architecture_version != V31_ARCHITECTURE_VERSION:
+        state["architecture_migrated_at_utc"] = utc(now)
+        state["architecture_migrated_from"] = prior_architecture_version or "legacy-unversioned"
     state.setdefault("started_ts", now)
     state.setdefault("started_at_utc", utc(now))
     state.setdefault("timing_lab_started_ts", now)
