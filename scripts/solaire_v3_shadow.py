@@ -43,14 +43,16 @@ from research.solaire_v3 import (
     MAX_SHADOW_POSITIONS,
     REFERENCE_CAPITAL_EUR,
     REFERENCE_STAKE_EUR,
-    TOKEN_ALIASES,
     advance_persistent_thesis,
     base_symbol,
+    build_asset_aliases,
     build_narrative_rotations,
     classify_horizon,
     early_quant_evidence,
+    match_news_assets,
     narratives_for_market,
     score_opportunity,
+    structured_news_symbols,
     walk_asks,
 )
 
@@ -198,27 +200,48 @@ def fetch_long_trend_profiles(
     return profiles, errors
 
 
-def _news_asset_symbols(text: str) -> list[str]:
-    low = " " + re.sub(r"\s+", " ", text.lower()) + " "
-    hits = []
-    for symbol, aliases in TOKEN_ALIASES.items():
-        matched = False
-        for alias in aliases:
-            a = alias.lower().strip()
-            if len(a) >= 4 and re.search(r"(?<![a-z0-9])" + re.escape(a) + r"(?![a-z0-9])", low):
-                matched = True
-                break
-        if not matched and symbol not in GENERIC_SYMBOLS:
-            if ("$" + symbol.lower()) in low:
-                matched = True
-            elif len(symbol) >= 4 and re.search(r"(?<![a-z0-9])" + re.escape(symbol.lower()) + r"(?![a-z0-9])", low):
-                matched = True
-        if matched:
-            hits.append(symbol)
-    return sorted(set(hits))
+def build_full_universe_news_aliases(
+    universe_rows: list[dict[str, Any]],
+) -> tuple[dict[str, tuple[str, ...]], dict[str, Any], list[dict[str, str]]]:
+    """Build ticker + canonical-name aliases for every Bitvavo EUR market."""
+    errors: list[dict[str, str]] = []
+    asset_rows: list[dict[str, Any]] = []
+    try:
+        raw = _json_url("https://api.bitvavo.com/v2/assets")
+        if isinstance(raw, list):
+            asset_rows = [x for x in raw if isinstance(x, dict)]
+        else:
+            errors.append({"source": "bitvavo_assets", "reason": "UNEXPECTED_RESPONSE"})
+    except Exception as exc:
+        errors.append({"source": "bitvavo_assets", "reason": type(exc).__name__})
+
+    aliases = build_asset_aliases(universe_rows, asset_rows)
+    asset_names = {
+        str(x.get("symbol") or "").upper(): str(x.get("name") or "").strip()
+        for x in asset_rows
+        if x.get("symbol") and x.get("name")
+    }
+    named = sum(bool(asset_names.get(symbol)) for symbol in aliases)
+    diagnostics = {
+        "mode": "FULL_BITVAVO_DYNAMIC_ASSET_MAP",
+        "asset_source": "Bitvavo /assets",
+        "universe_symbols": len(aliases),
+        "ticker_coverage_symbols": len(aliases),
+        "named_alias_symbols": named,
+        "named_alias_coverage_pct": round(named / len(aliases) * 100.0, 2) if aliases else 0.0,
+        "fallback_ticker_only_symbols": sorted(symbol for symbol in aliases if not asset_names.get(symbol))[:50],
+    }
+    return aliases, diagnostics, errors
 
 
-def fetch_news(now: float) -> tuple[list[dict[str, Any]], list[dict[str, str]]]:
+def _news_asset_symbols(text: str, asset_aliases: dict[str, tuple[str, ...]]) -> list[str]:
+    return match_news_assets(text, asset_aliases, GENERIC_SYMBOLS)
+
+
+def fetch_news(
+    now: float,
+    asset_aliases: dict[str, tuple[str, ...]],
+) -> tuple[list[dict[str, Any]], list[dict[str, str]]]:
     items: list[dict[str, Any]] = []
     errors: list[dict[str, str]] = []
 
@@ -230,7 +253,9 @@ def fetch_news(now: float) -> tuple[list[dict[str, Any]], list[dict[str, str]]]:
                 continue
             title = str(row.get("title") or "")
             body = str(row.get("body") or "")
-            symbols = _news_asset_symbols(title + " " + body)
+            symbols = set(_news_asset_symbols(title + " " + body, asset_aliases))
+            symbols.update(structured_news_symbols(row.get("categories"), set(asset_aliases)))
+            symbols = sorted(symbols)
             if symbols:
                 items.append({
                     "source": str(row.get("source") or "cryptocompare"),
@@ -253,7 +278,7 @@ def fetch_news(now: float) -> tuple[list[dict[str, Any]], list[dict[str, str]]]:
                 published = _parse_ts(node.findtext("pubDate"))
                 if published is None or now - published > MAX_CONTEXT_AGE or published - now > 300:
                     continue
-                symbols = _news_asset_symbols(title + " " + re.sub("<[^>]+>", " ", desc))
+                symbols = _news_asset_symbols(title + " " + re.sub("<[^>]+>", " ", desc), asset_aliases)
                 if symbols:
                     items.append({
                         "source": source,
@@ -694,7 +719,9 @@ def main() -> int:
         return 0
 
     rotations = build_narrative_rotations(rows)
-    news, news_errors = fetch_news(now)
+    asset_aliases, news_mapping, alias_errors = build_full_universe_news_aliases(rows)
+    source_errors.extend(alias_errors)
+    news, news_errors = fetch_news(now, asset_aliases)
     source_errors.extend(news_errors)
 
     v2_tracking = {
@@ -1282,6 +1309,7 @@ def main() -> int:
         "frozen_v2_commit": FROZEN_V2_COMMIT,
         "narrative_rotations": rotations,
         "news_items_considered": len(news),
+        "news_mapping": news_mapping,
         "candidates": compact_candidates,
     }
 
@@ -1322,6 +1350,11 @@ def main() -> int:
         "frozen_v2_commit": FROZEN_V2_COMMIT,
         "universe_rows": len(rows),
         "context_news_items": len(news),
+        "news_mapping_mode": news_mapping.get("mode"),
+        "news_universe_symbols": news_mapping.get("universe_symbols"),
+        "news_ticker_coverage_symbols": news_mapping.get("ticker_coverage_symbols"),
+        "news_named_alias_symbols": news_mapping.get("named_alias_symbols"),
+        "news_named_alias_coverage_pct": news_mapping.get("named_alias_coverage_pct"),
         "candidate_count": len(candidates),
         "context_watch_count": sum(bool(x.get("context_watch")) for x in candidates),
         "entry_hypothesis_count": sum(bool(x.get("entry_hypothesis")) for x in candidates),
