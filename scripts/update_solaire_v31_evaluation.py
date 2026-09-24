@@ -52,6 +52,54 @@ def _eligible_path(
     ]
 
 
+def _selectable_recovery_summary(events: list[dict[str, Any]]) -> dict[str, Any]:
+    rows = _eligible(events, "OPPORTUNITY_RECOVERY_SELECTABLE")
+    def med(values: list[float]) -> float | None:
+        return None if not values else round(statistics.median(values), 4)
+    credible_to_selectable = []
+    executable_to_selectable = []
+    consumed = []
+    scores = []
+    records = []
+    for event in rows:
+        funnel = event.get("funnel") or {}
+        delay = finite(funnel.get("credible_to_selectable_delay_seconds"))
+        exec_delay = finite(funnel.get("executable_to_selectable_delay_seconds"))
+        move = finite(funnel.get("movement_consumed_to_selectable_pct"))
+        score = finite(event.get("economic_score"))
+        if delay is not None:
+            credible_to_selectable.append(delay / 60.0)
+        if exec_delay is not None:
+            executable_to_selectable.append(exec_delay / 60.0)
+        if move is not None:
+            consumed.append(move)
+        if score is not None:
+            scores.append(score)
+        records.append({
+            "market": event.get("market"),
+            "entry_path": event.get("entry_path"),
+            "first_credible_at_utc": funnel.get("first_credible_at_utc"),
+            "first_entry_hypothesis_at_utc": funnel.get("first_entry_hypothesis_at_utc"),
+            "first_executable_at_utc": funnel.get("first_executable_at_utc"),
+            "first_selectable_at_utc": funnel.get("first_selectable_at_utc"),
+            "first_credible_price_eur": funnel.get("first_credible_price_eur"),
+            "first_executable_entry_eur": funnel.get("first_executable_entry_eur"),
+            "first_selectable_entry_eur": funnel.get("first_selectable_entry_eur"),
+            "credible_to_selectable_minutes": None if delay is None else round(delay / 60.0, 3),
+            "executable_to_selectable_minutes": None if exec_delay is None else round(exec_delay / 60.0, 3),
+            "movement_consumed_to_selectable_pct": move,
+            "economic_score": score,
+        })
+    return {
+        "n": len(rows),
+        "median_credible_to_selectable_minutes": med(credible_to_selectable),
+        "median_executable_to_selectable_minutes": med(executable_to_selectable),
+        "median_movement_consumed_to_selectable_pct": med(consumed),
+        "median_first_selectable_score": med(scores),
+        "records": records[-300:],
+    }
+
+
 def _score_bins(events: list[dict[str, Any]], horizon: int) -> list[dict[str, Any]]:
     bins = [(6.0, 7.0), (7.0, 8.0), (8.0, 9.0), (9.0, 10.01)]
     out = []
@@ -110,6 +158,7 @@ def main() -> int:
     persist_rejected = _eligible(current_events, "V31_PERSIST_30M_REJECTED_READY")
     reclaim_qualified = _eligible(current_events, "V31_PULLBACK_RECLAIM_QUALIFIED_ENTRY")
     reclaim_rejected = _eligible(current_events, "V31_PULLBACK_RECLAIM_REJECTED_READY")
+    recovery_selectable = _eligible(current_events, "OPPORTUNITY_RECOVERY_SELECTABLE")
 
     def v3_window(event_type: str) -> list[dict[str, Any]]:
         out = []
@@ -136,6 +185,7 @@ def main() -> int:
         "v31_persist30_rejected": {str(h): _summary(persist_rejected, "V31_PERSIST_30M_REJECTED_READY", h) for h in HORIZONS_HOURS},
         "v31_pullback_reclaim_qualified": {str(h): _summary(reclaim_qualified, "V31_PULLBACK_RECLAIM_QUALIFIED_ENTRY", h) for h in HORIZONS_HOURS},
         "v31_pullback_reclaim_rejected": {str(h): _summary(reclaim_rejected, "V31_PULLBACK_RECLAIM_REJECTED_READY", h) for h in HORIZONS_HOURS},
+        "v31_opportunity_recovery_selectable": {str(h): _summary(recovery_selectable, "OPPORTUNITY_RECOVERY_SELECTABLE", h) for h in HORIZONS_HOURS},
         "v3_raw_same_window": {str(h): _summary(v3_raw, "ENTRY_READY_SHADOW", h) for h in HORIZONS_HOURS},
         "v3_persist30_same_window": {str(h): _summary(v3_persist, "ENTRY_TIMING_PERSIST_30M", h) for h in HORIZONS_HOURS},
         "v3_pullback_reclaim_same_window": {str(h): _summary(v3_reclaim, "ENTRY_TIMING_PULLBACK_RECLAIM", h) for h in HORIZONS_HOURS},
@@ -155,6 +205,7 @@ def main() -> int:
         "method": "factorial shadow: V3 raw/persist/reclaim crossed with unchanged V3.1 economic gate; strict complete horizons",
         "horizons_hours": list(HORIZONS_HOURS),
         "summary": summary,
+        "near_miss_funnel": _selectable_recovery_summary(current_events),
         "score_calibration": {
             "raw": {str(h): _score_bins(raw_qualified, h) for h in (4, 24, 48, 96)},
             "reentry": {str(h): _score_bins(reentry_qualified, h) for h in (4, 24, 48, 96)},
@@ -191,6 +242,7 @@ def main() -> int:
         "persist30_rejected_events": len(persist_rejected),
         "pullback_reclaim_qualified_events": len(reclaim_qualified),
         "pullback_reclaim_rejected_events": len(reclaim_rejected),
+        "opportunity_recovery_selectable_events": len(recovery_selectable),
         "v3_raw_same_window_events": len(v3_raw),
         "v3_persist30_same_window_events": len(v3_persist),
         "v3_pullback_reclaim_same_window_events": len(v3_reclaim),
