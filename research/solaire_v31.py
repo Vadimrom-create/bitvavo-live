@@ -18,13 +18,14 @@ from typing import Any
 from research.common import finite
 
 FROZEN_V3_COMMIT = "2b0a5b25173e8ac5dd67625f80755f26acbedabf"
-V31_ARCHITECTURE_VERSION = "v3.1.1-architecture-hardening-20260924"
+V31_ARCHITECTURE_VERSION = "v3.1.2-measurement-hardening-20260924"
 V3_TIMING_LAB_COMMIT = "0c05e0fbf55b0ff99dae3f10bcfc3411bbee0cc6"
 REFERENCE_CAPITAL_EUR = 2400.0
 MAX_SHADOW_POSITIONS = 3
 MIN_SELECTED_SCORE = 6.0
 MIN_STAKE_EUR = 50.0
 MAX_STAKE_EUR = 250.0
+EXECUTION_PLAN_MAX_AGE_SECONDS = 600.0
 BASE_RISK_EUR = 8.0
 MAX_RISK_EUR = 12.0
 ROUND_TRIP_COST_PCT = 0.70
@@ -262,6 +263,116 @@ def final_economic_score(preliminary: dict[str, Any], execution: dict[str, Any] 
     }
 
 
+
+
+def execution_freshness(execution: dict[str, Any] | None, now: float) -> dict[str, Any] | None:
+    """Reject a plan whose causal availability timestamp is too old."""
+    if execution is None:
+        return None
+    available = finite(execution.get("available_ts"))
+    if available is None:
+        return {**execution, "ready": False, "reason": "EXECUTION_PLAN_MISSING_AVAILABLE_TS"}
+    age = max(0.0, now - available)
+    if age > EXECUTION_PLAN_MAX_AGE_SECONDS:
+        return {
+            **execution,
+            "ready": False,
+            "reason": "STALE_EXECUTION_PLAN",
+            "execution_age_seconds": round(age, 3),
+        }
+    return {**execution, "execution_age_seconds": round(age, 3)}
+
+
+def reprice_execution_for_stake(execution: dict[str, Any], stake_eur: float) -> dict[str, Any]:
+    """Reprice the stored causal order book at the actual simulated notional."""
+    if not execution.get("ready") or stake_eur <= 0:
+        return execution
+    snapshot = execution.get("book_snapshot") or {}
+    asks = snapshot.get("asks") or []
+    if not asks:
+        return {**execution, "ready": False, "reason": "MISSING_BOOK_SNAPSHOT_FOR_FINAL_STAKE"}
+
+    remaining = float(stake_eur)
+    cost = 0.0
+    qty = 0.0
+    levels = 0
+    best_ask = None
+    for level in asks:
+        if not isinstance(level, (list, tuple)) or len(level) < 2:
+            continue
+        price = finite(level[0])
+        amount = finite(level[1])
+        if price is None or amount is None or price <= 0 or amount <= 0:
+            continue
+        if best_ask is None:
+            best_ask = price
+        level_eur = price * amount
+        take_eur = min(remaining, level_eur)
+        take_qty = take_eur / price
+        cost += take_qty * price
+        qty += take_qty
+        remaining -= take_eur
+        levels += 1
+        if remaining <= 1e-9:
+            break
+    if remaining > max(0.01, stake_eur * 1e-6) or qty <= 0 or best_ask is None:
+        return {
+            **execution,
+            "ready": False,
+            "reason": "WAITING_VISIBLE_DEPTH_AT_FINAL_STAKE",
+            "final_stake_eur": round(stake_eur, 2),
+        }
+
+    entry = cost / qty
+    plan = dict(execution.get("plan") or {})
+    old_entry = finite(plan.get("entry_eur"))
+    stop = finite(plan.get("stop_eur"))
+    old_tp1 = finite(plan.get("tp1_eur"))
+    old_tp2 = finite(plan.get("tp2_eur"))
+    if old_entry is None or stop is None or not 0 < stop < entry:
+        return {**execution, "ready": False, "reason": "INVALID_REPRICED_EXECUTION_PLAN"}
+
+    old_risk = max(1e-12, old_entry - stop)
+    r1 = 2.0 if old_tp1 is None else max(0.0, (old_tp1 - old_entry) / old_risk)
+    r2 = 3.0 if old_tp2 is None else max(r1, (old_tp2 - old_entry) / old_risk)
+    tp1 = entry + r1 * (entry - stop)
+    tp2 = entry + r2 * (entry - stop)
+
+    assumptions = plan.get("cost_assumptions") or {}
+    side_cost = _n(assumptions.get("fee_rate_each_side"), 0.0025) + _n(
+        assumptions.get("slippage_rate_each_side"), 0.001
+    )
+    risk_per_unit = entry * (1 + side_cost) - stop * (1 - side_cost)
+    reward = tp1 * (1 - side_cost) - entry * (1 + side_cost)
+    rr = 0.0 if risk_per_unit <= 0 else reward / risk_per_unit
+    amount = stake_eur / entry
+    slippage = (entry / best_ask - 1.0) * 100.0
+
+    plan.update({
+        "entry_eur": entry,
+        "tp1_eur": tp1,
+        "tp2_eur": tp2,
+        "stake_eur": stake_eur,
+        "theoretical_loss_eur": amount * max(0.0, risk_per_unit),
+        "net_rr_tp1": rr,
+        "stop_distance_pct": (entry - stop) / entry * 100.0,
+        "final_notional_repriced": True,
+    })
+    depth = {
+        "valid": True,
+        "target_eur": stake_eur,
+        "vwap_eur": entry,
+        "best_ask_eur": best_ask,
+        "depth_slippage_pct": slippage,
+        "levels_used": levels,
+    }
+    return {
+        **execution,
+        "plan": plan,
+        "depth": depth,
+        "final_stake_eur": round(stake_eur, 2),
+        "repriced_from_causal_book": True,
+    }
 
 def timing_variants(candidate: dict[str, Any]) -> dict[str, bool]:
     """Read V3's timing-lab decisions without reimplementing its thresholds.
