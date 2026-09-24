@@ -7,6 +7,7 @@ It does not add discovery/network work, alter V3, send mail, or submit orders.
 from __future__ import annotations
 
 import json
+import math
 import time
 from pathlib import Path
 import sys
@@ -94,34 +95,62 @@ def _close_position(portfolio: dict[str, Any], position: dict[str, Any], current
     })
 
 
-def _observed_low_since(client: PublicClient | None, market: str, since_ts: float, now: float) -> float | None:
-    if client is None:
+def _first_stop_observation(
+    client: PublicClient | None,
+    market: str,
+    since_ts: float,
+    now: float,
+    stop_eur: float,
+) -> dict[str, Any] | None:
+    """Return the first completed 5m bar that proves a stop breach.
+
+    The opening partial bar is excluded because its low may predate the position.
+    A gap through the stop is approximated by that completed bar's opening price.
+    """
+    if client is None or stop_eur <= 0:
         return None
     try:
+        interval = 300.0
+        first_full_start = math.ceil(since_ts / interval) * interval
         raw = client.get(
             "/" + market + "/candles",
             {
                 "interval": "5m",
-                "start": max(0, int((since_ts - 300) * 1000)),
+                "start": max(0, int((first_full_start - interval) * 1000)),
                 "end": int(now * 1000),
                 "limit": 100,
             },
             cache=False,
         )
-        lows = []
+        bars = []
         for row in raw or []:
             if not isinstance(row, list) or len(row) < 4:
                 continue
-            ts = finite(row[0])
-            low = finite(row[3])
-            if ts is None or low is None:
+            ts_ms = finite(row[0])
+            open_eur = finite(row[1])
+            low_eur = finite(row[3])
+            if ts_ms is None or open_eur is None or low_eur is None:
                 continue
-            if ts / 1000.0 >= since_ts - 300:
-                lows.append(low)
-        return min(lows) if lows else None
+            start_ts = ts_ms / 1000.0
+            if start_ts < first_full_start or start_ts + interval > now:
+                continue
+            bars.append((start_ts, open_eur, low_eur))
+        bars.sort(key=lambda x: x[0])
+        for start_ts, open_eur, low_eur in bars:
+            if low_eur <= stop_eur:
+                exit_eur = min(stop_eur, open_eur)
+                return {
+                    "bar_start_ts": start_ts,
+                    "bar_start_at_utc": utc(start_ts),
+                    "open_eur": open_eur,
+                    "low_eur": low_eur,
+                    "exit_eur": exit_eur,
+                    "gap_through_stop": open_eur < stop_eur,
+                    "coverage": "COMPLETED_5M_BARS_AFTER_PRIOR_CHECK",
+                }
+        return None
     except Exception:
         return None
-
 
 def update_portfolio(
     portfolio: dict[str, Any],
@@ -153,17 +182,25 @@ def update_portfolio(
         since = finite(position.get("last_stop_check_ts"))
         if since is None:
             since = max(finite(position.get("opened_ts"), now - 600), now - 600)
-        observed_low = _observed_low_since(client, position["market"], since, now)
-        position["observed_low_since_last_check_eur"] = observed_low
+        stop_observation = (
+            None if stop is None
+            else _first_stop_observation(client, position["market"], since, now, stop)
+        )
+        position["stop_observation_since_last_check"] = stop_observation
         position["last_stop_check_ts"] = now
         position["last_stop_check_at_utc"] = utc(now)
-        if stop is not None and observed_low is not None and observed_low <= stop:
-            exit_price = stop
-            reason = "STOP_TOUCHED_BETWEEN_V31_CYCLES"
-            if current is not None and current < stop:
-                exit_price = current
-                reason = "STOP_GAP_OBSERVED_AT_V31_CYCLE"
-            _close_position(portfolio, position, exit_price, now, reason)
+        if stop_observation is not None:
+            _close_position(
+                portfolio,
+                position,
+                finite(stop_observation.get("exit_eur"), stop),
+                now,
+                "STOP_GAP_BETWEEN_V31_CYCLES"
+                if stop_observation.get("gap_through_stop")
+                else "STOP_TOUCHED_BETWEEN_V31_CYCLES",
+            )
+        elif stop is not None and current is not None and current <= stop:
+            _close_position(portfolio, position, current, now, "STOP_GAP_OBSERVED_AT_V31_CYCLE")
 
     for row in sorted(qualified, key=lambda x: finite(x.get("economic_score"), 0), reverse=True):
         market = row["market"]
@@ -233,7 +270,7 @@ def update_portfolio(
     portfolio["marked_value_eur"] = round(marked, 2)
     portfolio["updated_at_utc"] = utc(now)
     portfolio["research_only"] = True
-    portfolio["stop_detection"] = "5M_CANDLE_LOW_BETWEEN_CYCLES_WITH_GAP_FALLBACK"
+    portfolio["stop_detection"] = "COMPLETED_5M_BARS_BETWEEN_CYCLES_WITH_BAR_OPEN_GAP_FALLBACK"
     portfolio["score_rotation_enabled"] = allow_score_rotation
     return portfolio
 
