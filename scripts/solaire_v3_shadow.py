@@ -1727,6 +1727,7 @@ def main() -> int:
                     "horizon_class": row.get("horizon_class"),
                     "recovery": dict(recovery),
                     "observation_only": True,
+                    "evaluation_excluded": True,
                     "left_censored_at_v3_t0": initial_v3_cycle,
                     "evaluations": {},
                 })
@@ -1787,7 +1788,6 @@ def main() -> int:
                     "market": market,
                     "episode": ms["episode"],
                     "attempt_id": f"{market}|{ms['episode']}|FIRST_EXECUTABLE",
-                    "attempt_id": f"{market}|{ms['episode']}|FIRST_EXECUTABLE",
                     "decision_ts": executable_ts,
                     "decision_at_utc": utc(executable_ts),
                     "price_eur": finite(row.get("price_eur")),
@@ -1812,12 +1812,6 @@ def main() -> int:
             if recovery.get("episode") != ms["episode"]:
                 recovery.clear()
                 recovery["episode"] = ms["episode"]
-            if recovery.get("first_opportunity_ts") is None:
-                recovery["first_opportunity_ts"] = now
-                recovery["first_opportunity_at_utc"] = utc(now)
-                recovery["first_opportunity_price_eur"] = finite(row.get("price_eur"))
-                recovery["first_opportunity_definition"] = "FIRST_V3_ENTRY_HYPOTHESIS"
-
             gate_signature = "|".join([
                 "READY" if check.get("ready") else "REJECTED",
                 str(check.get("reason") or ""),
@@ -1874,6 +1868,7 @@ def main() -> int:
                     "event_type": "OPPORTUNITY_RECOVERY_EXECUTABLE",
                     "market": market,
                     "episode": ms["episode"],
+                    "attempt_id": f"{market}|{ms['episode']}|FIRST_EXECUTABLE",
                     "decision_ts": executable_ts,
                     "decision_at_utc": utc(executable_ts),
                     "price_eur": finite(row.get("price_eur")),
