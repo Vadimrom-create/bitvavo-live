@@ -1,0 +1,66 @@
+name: Solaire near-miss memory-entry challenger
+
+on:
+  workflow_dispatch:
+  workflow_run:
+    workflows: ["Solaire direct Bitvavo scan"]
+    types: [completed]
+
+permissions:
+  contents: write
+
+concurrency:
+  group: solaire-memory-entry-challenger
+  cancel-in-progress: false
+
+jobs:
+  memory-entry-shadow:
+    if: ${{ github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install monitoring dependencies
+        run: python -m pip install -r requirements-monitoring.txt
+
+      - name: Run MEMORY_ENTRY_CHALLENGER
+        run: python scripts/solaire_memory_entry_challenger.py
+
+      - name: Update MEMORY_ENTRY_CHALLENGER evaluation
+        if: always()
+        run: python scripts/update_solaire_memory_entry_challenger_evaluation.py
+
+      - name: Persist MEMORY_ENTRY_CHALLENGER state
+        if: always()
+        run: |
+          git config user.name 'bitvavo-live-bot'
+          git config user.email 'actions@users.noreply.github.com'
+          for file in \
+            solaire_memory_entry_challenger_state.json \
+            solaire_memory_entry_challenger_journal.json \
+            solaire_memory_entry_challenger_candidates.json \
+            solaire_memory_entry_challenger_portfolio.json \
+            solaire_memory_entry_challenger_status.json \
+            solaire_memory_entry_challenger_comparison.json \
+            solaire_memory_entry_challenger_evaluation_status.json; do
+            if [ -e "$file" ]; then git add "$file"; fi
+          done
+          if git diff --cached --quiet; then exit 0; fi
+          git commit -m 'Persist MEMORY_ENTRY_CHALLENGER runtime state'
+          for attempt in 1 2 3 4 5 6; do
+            git fetch origin main
+            if ! git rebase origin/main; then
+              git rebase --abort || true
+              exit 1
+            fi
+            if git push origin HEAD:main; then exit 0; fi
+            sleep $((attempt * 2))
+          done
+          exit 1
