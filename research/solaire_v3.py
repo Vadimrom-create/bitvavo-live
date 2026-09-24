@@ -471,9 +471,12 @@ def advance_persistent_thesis(
     long_trend = row.get("long_trend") or {}
     long_support = bool(long_trend.get("support"))
     early = row.get("early_quant") or {}
+    context_support = row.get("positive_context")
+    if context_support is None:
+        context_support = row.get("context_watch")
     short_support = (
         fresh
-        or bool(row.get("context_watch"))
+        or bool(context_support)
         or _n(row.get("external_score")) >= 1.0
         or int(early.get("evidence_count") or 0) >= 2
     )
