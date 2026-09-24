@@ -58,6 +58,7 @@ from research.solaire_v3 import (
     narratives_for_market,
     score_opportunity,
     select_fair_batch,
+    select_priority_fair_batch,
     structured_news_symbols,
     walk_asks,
 )
@@ -1403,10 +1404,15 @@ def main() -> int:
             state["previous_derivatives"][row["market"]] = oi
 
     execution_eligible = [x for x in candidates if x.get("entry_hypothesis")]
-    execution_rows, state["execution_cursor"], execution_fairness = select_fair_batch(
+    execution_rows, state["execution_cursor"], execution_fairness = select_priority_fair_batch(
         execution_eligible,
         MAX_EXECUTION_MARKETS,
         state.get("execution_cursor", 0),
+        priority_count=min(8, MAX_EXECUTION_MARKETS),
+        priority_key=lambda x: (
+            int(x.get("v2_state") == "CONFIRMED_ACCELERATION"),
+            finite(x.get("opportunity_score"), 0),
+        ),
         key=lambda x: x.get("market") or "",
     )
 
@@ -1433,10 +1439,16 @@ def main() -> int:
     thesis_execution_eligible = [
         x for x in thesis_observations if x.get("thesis_reentry_hypothesis")
     ]
-    thesis_execution_rows, state["thesis_execution_cursor"], thesis_execution_fairness = select_fair_batch(
+    thesis_execution_rows, state["thesis_execution_cursor"], thesis_execution_fairness = select_priority_fair_batch(
         thesis_execution_eligible,
         MAX_THESIS_EXECUTION_MARKETS,
         state.get("thesis_execution_cursor", 0),
+        priority_count=min(8, MAX_THESIS_EXECUTION_MARKETS),
+        priority_key=lambda x: (
+            int(((x.get("persistent_thesis") or {}).get("last_execution_state")) == "ENTRY_READY_SHADOW"),
+            finite(x.get("opportunity_score"), 0),
+            finite(((x.get("persistent_thesis") or {}).get("return_from_open_pct")), 0),
+        ),
         key=lambda x: x.get("market") or "",
     )
     thesis_checks: dict[str, dict[str, Any]] = {}
