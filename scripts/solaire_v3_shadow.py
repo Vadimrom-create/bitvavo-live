@@ -248,12 +248,75 @@ def _news_asset_symbols(text: str, asset_aliases: dict[str, tuple[str, ...]]) ->
     return match_news_assets(text, asset_aliases, GENERIC_SYMBOLS)
 
 
+def _decorate_news_item(
+    *,
+    source: str,
+    source_kind: str,
+    published: float,
+    title: str,
+    url: str | None,
+    symbols: list[str],
+) -> dict[str, Any]:
+    event = classify_news_event(title, source_kind=source_kind)
+    return {
+        "source": source,
+        "source_kind": source_kind,
+        "published_ts": published,
+        "published_at_utc": utc(published),
+        "title": title[:300],
+        "url": url,
+        "symbols": symbols,
+        "event": event,
+    }
+
+
+def _fetch_binance_official_news(
+    now: float,
+    asset_aliases: dict[str, tuple[str, ...]],
+) -> tuple[list[dict[str, Any]], list[dict[str, str]]]:
+    items: list[dict[str, Any]] = []
+    errors: list[dict[str, str]] = []
+    try:
+        url = (
+            "https://www.binance.com/bapi/composite/v1/public/cms/article/catalog/list/query?"
+            + urllib.parse.urlencode({"catalogId": 48, "pageNo": 1, "pageSize": 30, "type": 1})
+        )
+        data = _json_url(url)
+        catalogs = ((data or {}).get("data") or {}).get("catalogs") or []
+        articles = []
+        for catalog in catalogs:
+            articles.extend(catalog.get("articles") or [])
+        for row in articles:
+            title = str(row.get("title") or "").strip()
+            published = _parse_ts(row.get("releaseDate") or row.get("publishDate"))
+            if published is not None and published > 10_000_000_000:
+                published /= 1000.0
+            if published is None or now - published > MAX_CONTEXT_AGE or published - now > 300:
+                continue
+            symbols = _news_asset_symbols(title, asset_aliases)
+            if not symbols:
+                continue
+            code = str(row.get("code") or "").strip()
+            link = f"https://www.binance.com/en/support/announcement/detail/{code}" if code else None
+            items.append(_decorate_news_item(
+                source="binance_official", source_kind="official_exchange",
+                published=published, title=title, url=link, symbols=symbols,
+            ))
+    except Exception as exc:
+        errors.append({"source": "binance_official", "reason": type(exc).__name__})
+    return items, errors
+
+
 def fetch_news(
     now: float,
     asset_aliases: dict[str, tuple[str, ...]],
 ) -> tuple[list[dict[str, Any]], list[dict[str, str]]]:
     items: list[dict[str, Any]] = []
     errors: list[dict[str, str]] = []
+
+    official, official_errors = _fetch_binance_official_news(now, asset_aliases)
+    items.extend(official)
+    errors.extend(official_errors)
 
     try:
         data = _json_url("https://min-api.cryptocompare.com/data/v2/news/?lang=EN")
@@ -262,42 +325,38 @@ def fetch_news(
             if published is None or now - published > MAX_CONTEXT_AGE or published - now > 300:
                 continue
             title = str(row.get("title") or "")
-            body = str(row.get("body") or "")
-            symbols = set(_news_asset_symbols(title + " " + body, asset_aliases))
+            # Provider categories are structured evidence.  Free-form article
+            # bodies are deliberately excluded from entity resolution because
+            # they generated ordinary-word collisions (Across, Momentum, Form...).
+            symbols = set(_news_asset_symbols(title, asset_aliases))
             symbols.update(structured_news_symbols(row.get("categories"), set(asset_aliases)))
             symbols = sorted(symbols)
             if symbols:
-                items.append({
-                    "source": str(row.get("source") or "cryptocompare"),
-                    "published_ts": published,
-                    "published_at_utc": utc(published),
-                    "title": title[:300],
-                    "url": row.get("url"),
-                    "symbols": symbols,
-                })
+                items.append(_decorate_news_item(
+                    source=str(row.get("source") or "cryptocompare"),
+                    source_kind="aggregator", published=published, title=title,
+                    url=row.get("url"), symbols=symbols,
+                ))
     except Exception as exc:
         errors.append({"source": "cryptocompare", "reason": type(exc).__name__})
 
-    for source, url in NEWS_FEEDS:
+    for source, url, source_kind in NEWS_FEEDS:
         try:
             root = ET.fromstring(_text_url(url))
             for node in root.findall(".//item"):
                 title = (node.findtext("title") or "").strip()
-                desc = (node.findtext("description") or "").strip()
                 link = (node.findtext("link") or "").strip()
                 published = _parse_ts(node.findtext("pubDate"))
                 if published is None or now - published > MAX_CONTEXT_AGE or published - now > 300:
                     continue
-                symbols = _news_asset_symbols(title + " " + re.sub("<[^>]+>", " ", desc), asset_aliases)
+                # Title-only entity resolution is intentional: descriptions
+                # are prose-heavy and created false asset mentions.
+                symbols = _news_asset_symbols(title, asset_aliases)
                 if symbols:
-                    items.append({
-                        "source": source,
-                        "published_ts": published,
-                        "published_at_utc": utc(published),
-                        "title": title[:300],
-                        "url": link,
-                        "symbols": symbols,
-                    })
+                    items.append(_decorate_news_item(
+                        source=source, source_kind=source_kind,
+                        published=published, title=title, url=link, symbols=symbols,
+                    ))
         except Exception as exc:
             errors.append({"source": source, "reason": type(exc).__name__})
 
@@ -308,15 +367,31 @@ def fetch_news(
     return sorted(dedup.values(), key=lambda x: x["published_ts"], reverse=True), errors
 
 
-def news_for_symbol(symbol: str, news: list[dict[str, Any]], now: float) -> tuple[list[dict[str, Any]], float]:
+def news_for_symbol(
+    symbol: str,
+    news: list[dict[str, Any]],
+    now: float,
+) -> tuple[list[dict[str, Any]], float, float, float]:
     hits = [x for x in news if symbol in (x.get("symbols") or [])]
     if not hits:
-        return [], 0.0
+        return [], 0.0, 0.0, 0.0
     sources = {x.get("source") for x in hits}
     freshest_hours = min(max(0.0, (now - x["published_ts"]) / 3600) for x in hits)
     recency = max(0.0, 4.0 - freshest_hours / 6.0)
-    score = min(10.0, recency + min(3.0, len(hits) * 0.8) + min(3.0, len(sources) * 0.8))
-    return hits[:8], round(score, 3)
+
+    def weight(item: dict[str, Any]) -> float:
+        event = item.get("event") or {}
+        materiality = float(event.get("materiality") or 1.0)
+        reliability = 1.25 if item.get("source_kind") == "official_exchange" else 1.0
+        return materiality * reliability
+
+    total_weight = sum(weight(x) for x in hits)
+    positive_weight = sum(weight(x) for x in hits if (x.get("event") or {}).get("direction") == "POSITIVE")
+    negative_weight = sum(weight(x) for x in hits if (x.get("event") or {}).get("direction") == "NEGATIVE")
+    score = min(10.0, recency + min(3.5, total_weight * 0.55) + min(2.5, len(sources) * 0.65))
+    positive_score = min(10.0, recency * 0.5 + positive_weight * 1.25) if positive_weight else 0.0
+    negative_score = min(10.0, recency * 0.5 + negative_weight * 1.25) if negative_weight else 0.0
+    return hits[:10], round(score, 3), round(positive_score, 3), round(negative_score, 3)
 
 
 def _return_from_points(points: list[tuple[float, float]], minutes: int) -> float | None:
