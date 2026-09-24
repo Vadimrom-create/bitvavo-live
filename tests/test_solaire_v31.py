@@ -3,6 +3,7 @@ import unittest
 from research.solaire_v31 import (
     final_economic_score,
     preliminary_economic_score,
+    select_execution_path,
     shadow_sizing,
     timing_variants,
 )
@@ -101,6 +102,33 @@ class SolaireV31Tests(unittest.TestCase):
         self.assertTrue(sized["valid"])
         self.assertLessEqual(sized["stake_eur"], 100.0)
 
+
+    def test_ondo_style_thesis_reentry_is_first_class_and_retryable(self):
+        ready = {"ready": True, "reason": "ENTRY_READY_SHADOW", "plan": {"entry_eur": 1.0}}
+        waiting = {"ready": False, "reason": "WAITING_INSUFFICIENT_NET_RISK_REWARD"}
+        selected, path = select_execution_path({
+            "execution": None,
+            "thesis_reentry_hypothesis": True,
+            "thesis_execution": ready,
+        })
+        self.assertIs(selected, ready)
+        self.assertEqual(path, "THESIS_REENTRY")
+
+        selected, path = select_execution_path({
+            "execution": None,
+            "thesis_reentry_hypothesis": True,
+            "thesis_execution": waiting,
+        })
+        self.assertIs(selected, waiting)
+        self.assertEqual(path, "THESIS_REENTRY_WAIT")
+
+        selected, path = select_execution_path({
+            "execution": None,
+            "thesis_reentry_hypothesis": True,
+            "thesis_execution": None,
+        })
+        self.assertIsNone(selected)
+        self.assertEqual(path, "THESIS_REENTRY_PENDING_CHECK")
 
     def test_timing_variants_follow_v3_recorded_episode(self):
         candidate_row = {
