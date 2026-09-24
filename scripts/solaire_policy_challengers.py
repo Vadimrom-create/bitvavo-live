@@ -11,6 +11,7 @@ No email, order or production trading threshold is changed.
 """
 from __future__ import annotations
 
+import copy
 import json
 import time
 from pathlib import Path
@@ -40,7 +41,7 @@ JOURNAL = "solaire_policy_challengers_journal.json"
 PORTFOLIOS = "solaire_policy_challengers_portfolios.json"
 STATUS = "solaire_policy_challengers_status.json"
 
-CHALLENGER_VERSION = "solaire-policy-challengers-v1-20260924"
+CHALLENGER_VERSION = "solaire-policy-challengers-v2-baseline-aligned-20260924"
 MAX_STOP_BASELINE_PCT = 10.0
 
 
@@ -137,6 +138,7 @@ def main() -> int:
     universe = read_json(UNIVERSE, {}) or {}
     journal = read_json(JOURNAL, {}) or {}
     portfolios = read_json(PORTFOLIOS, {}) or {}
+    baseline_portfolio = read_json(V31_PORTFOLIO, {}) or {}
 
     journal.setdefault("schema", "solaire_policy_challengers_journal_v1")
     journal.setdefault("started_ts", now)
@@ -184,8 +186,26 @@ def main() -> int:
                     if _append_event(journal, event):
                         new_rr += 1
 
-    # Third challenger: same selectable V3.1 inputs, but no score-based rotation.
-    hold = portfolios.get("hold_no_score_rotation") or {}
+    # Third challenger: fork the live shadow portfolio prospectively, then
+    # disable only score-based rotation. Starting both arms from the same state
+    # prevents historical baseline losses from being compared with a fresh book.
+    if portfolios.get("hold_epoch_version") != CHALLENGER_VERSION:
+        hold = copy.deepcopy(baseline_portfolio)
+        hold["challenger_inception_at_utc"] = utc(now)
+        hold["challenger_inception_marked_value_eur"] = finite(
+            baseline_portfolio.get("marked_value_eur")
+        )
+        hold["challenger_inception_baseline_closed_count"] = len(
+            baseline_portfolio.get("closed", [])
+        )
+        hold["actions"] = list(hold.get("actions") or [])
+        hold["actions"].append({
+            "at_utc": utc(now),
+            "action": "FORK_BASELINE_FOR_HOLD_CHALLENGER",
+            "marked_value_eur": finite(baseline_portfolio.get("marked_value_eur")),
+        })
+    else:
+        hold = portfolios.get("hold_no_score_rotation") or {}
     ranked = v31_doc.get("candidates") or []
     qualified = []
     for row in ranked:
@@ -225,9 +245,9 @@ def main() -> int:
     portfolios["schema"] = "solaire_policy_challengers_portfolios_v1"
     portfolios["updated_at_utc"] = utc(now)
     portfolios["architecture_version"] = CHALLENGER_VERSION
+    portfolios["hold_epoch_version"] = CHALLENGER_VERSION
     portfolios["hold_no_score_rotation"] = hold
 
-    baseline_portfolio = read_json(V31_PORTFOLIO, {}) or {}
     status = {
         "schema": "solaire_policy_challengers_status_v1",
         "checked_at_utc": utc(now),
@@ -248,6 +268,20 @@ def main() -> int:
         "hold_marked_value_eur": hold.get("marked_value_eur"),
         "baseline_rotation_positions": len(baseline_portfolio.get("positions", [])),
         "baseline_rotation_marked_value_eur": baseline_portfolio.get("marked_value_eur"),
+        "hold_vs_baseline_marked_delta_eur": (
+            None
+            if finite(hold.get("marked_value_eur")) is None
+            or finite(baseline_portfolio.get("marked_value_eur")) is None
+            else round(
+                finite(hold.get("marked_value_eur"))
+                - finite(baseline_portfolio.get("marked_value_eur")),
+                2,
+            )
+        ),
+        "hold_challenger_inception_at_utc": hold.get("challenger_inception_at_utc"),
+        "hold_challenger_inception_marked_value_eur": hold.get(
+            "challenger_inception_marked_value_eur"
+        ),
         "research_only": True,
         "affects_v3": False,
         "affects_v31": False,
