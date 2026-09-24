@@ -94,6 +94,7 @@ TIMING_RECLAIM_MIN_PCT = 1.0
 TIMING_RECLAIM_MAX_DRIFT_PCT = 3.0
 
 OFFICIAL_ANNOUNCEMENT_PAGES = (
+    ("binance_official_page", "https://www.binance.com/en/support/announcement/", "https://www.binance.com"),
     ("bybit_official", "https://announcements.bybit.com/en/", "https://announcements.bybit.com"),
     ("okx_official", "https://www.okx.com/help/category/announcements", "https://www.okx.com"),
 )
@@ -497,6 +498,46 @@ def fetch_external_price_snapshot(
                 prices[symbol]["okx"] = px
     except Exception as exc:
         errors.append({"source": "external_batch_okx", "reason": type(exc).__name__})
+
+    try:
+        pairs_data = _json_url("https://api.kraken.com/0/public/AssetPairs")
+        pair_rows = (pairs_data or {}).get("result") or {}
+        aliases: dict[str, str] = {}
+        request_pairs: list[str] = []
+        symbol_aliases = {"XBT": "BTC", "XDG": "DOGE"}
+        for pair_key, row in pair_rows.items():
+            wsname = str(row.get("wsname") or "")
+            altname = str(row.get("altname") or pair_key)
+            if "/" not in wsname:
+                continue
+            base, quote = wsname.split("/", 1)
+            if quote not in {"USD", "USDT"}:
+                continue
+            symbol = symbol_aliases.get(base, base)
+            if symbol not in prices:
+                continue
+            request_pairs.append(altname)
+            aliases[pair_key] = symbol
+            aliases[altname] = symbol
+        for offset in range(0, len(request_pairs), 40):
+            chunk = request_pairs[offset: offset + 40]
+            if not chunk:
+                continue
+            data = _json_url(
+                "https://api.kraken.com/0/public/Ticker?"
+                + urllib.parse.urlencode({"pair": ",".join(chunk)})
+            )
+            for result_key, row in ((data or {}).get("result") or {}).items():
+                symbol = aliases.get(result_key)
+                if symbol is None:
+                    compact = result_key.replace("X", "", 1) if result_key.startswith("X") else result_key
+                    symbol = aliases.get(compact)
+                close = row.get("c") or []
+                px = finite(close[0]) if close else None
+                if symbol in prices and px is not None and px > 0:
+                    prices[symbol]["kraken"] = px
+    except Exception as exc:
+        errors.append({"source": "external_batch_kraken", "reason": type(exc).__name__})
 
     return {k: v for k, v in prices.items() if v}, errors
 
