@@ -2065,6 +2065,18 @@ def main() -> int:
 
     compact_candidates = []
     for row in candidates:
+        market_state = (state.get("markets", {}).get(row["market"], {}) or {})
+        recovery_payload = dict(market_state.get("opportunity_recovery") or {})
+        thesis_payload = row.get("persistent_thesis") or {}
+        thesis_origin_ts = finite(thesis_payload.get("origin_credible_ts"))
+        if recovery_payload.get("first_credible_ts") is None and thesis_origin_ts is not None:
+            recovery_payload.update({
+                "first_credible_ts": thesis_origin_ts,
+                "first_credible_at_utc": utc(thesis_origin_ts),
+                "first_credible_price_eur": finite(thesis_payload.get("origin_credible_price_eur")),
+                "first_credible_source": thesis_payload.get("origin_credible_source"),
+                "restored_from_persistent_thesis": True,
+            })
         compact_candidates.append({
             "market": row["market"],
             "price_eur": row.get("price_eur"),
@@ -2095,7 +2107,7 @@ def main() -> int:
             "thesis_execution": row.get("thesis_execution"),
             "thesis_last_execution": row.get("thesis_last_execution"),
             "near_miss_execution": near_miss_checks.get(row["market"]),
-            "opportunity_recovery": (state.get("markets", {}).get(row["market"], {}) or {}).get("opportunity_recovery"),
+            "opportunity_recovery": recovery_payload,
             "derivatives": row.get("derivatives"),
             "v2_state": row.get("v2_state"),
             "v2_score": row.get("v2_score"),
