@@ -93,7 +93,10 @@ jobs:
           assert 'v3_thesis_reentry_entry' in comp['summary'], comp
           theses = json.load(open('solaire_v3_theses.json'))
           assert theses['affects_v3_candidate_selection'] is False, theses
-          assert theses['affects_v31'] is False, theses
+          assert theses['affects_v31'] is True, theses
+          assert v3['architecture_version'].startswith('v3.2-'), v3
+          assert v3['news_ticker_coverage_symbols'] == v3['universe_rows'], v3
+          assert 'execution_fairness' in v3 and 'thesis_execution_fairness' in v3, v3
           assert theses['affects_email'] is False, theses
           assert theses['orders_submitted'] is False, theses
           assert v3['affects_email'] is False and v3['orders_submitted'] is False, v3
@@ -110,6 +113,8 @@ jobs:
           assert v31['affects_v2'] is False, v31
           assert v31['affects_email'] is False, v31
           assert v31['orders_submitted'] is False, v31
+          assert v31['architecture_version'].startswith('v3.1.1-'), v31
+          assert v31['upstream_v3_architecture_version'].startswith('v3.2-'), v31
           comp = json.load(open('solaire_v31_comparison.json'))
           assert comp['frozen_v3_commit'] == '2b0a5b25173e8ac5dd67625f80755f26acbedabf', comp
           assert comp['v3_timing_lab_commit'] == '0c05e0fbf55b0ff99dae3f10bcfc3411bbee0cc6', comp
