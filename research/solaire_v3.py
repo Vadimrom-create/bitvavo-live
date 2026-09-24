@@ -228,6 +228,43 @@ def select_fair_batch(
     return selected, next_cursor, {"eligible": n, "selected": take, "next_cursor": next_cursor}
 
 
+def select_priority_fair_batch(
+    items: list[Any],
+    limit: int,
+    cursor: int = 0,
+    *,
+    priority_count: int,
+    priority_key,
+    key=lambda x: str(x),
+) -> tuple[list[Any], int, dict[str, int]]:
+    """Blend immediate priority with a rotating lane that guarantees coverage."""
+    if limit <= 0 or not items:
+        return [], 0, {"eligible": len(items), "selected": 0, "priority_selected": 0, "fair_selected": 0, "next_cursor": 0}
+    unique: dict[str, Any] = {}
+    for item in items:
+        unique[str(key(item))] = item
+    rows = list(unique.values())
+    pcount = min(max(0, priority_count), limit, len(rows))
+    priority = sorted(rows, key=priority_key, reverse=True)[:pcount]
+    priority_ids = {str(key(x)) for x in priority}
+    fair_pool = sorted((x for x in rows if str(key(x)) not in priority_ids), key=key)
+    remaining = min(limit - len(priority), len(fair_pool))
+    fair: list[Any] = []
+    next_cursor = 0
+    if fair_pool and remaining > 0:
+        start = int(cursor or 0) % len(fair_pool)
+        fair = [fair_pool[(start + i) % len(fair_pool)] for i in range(remaining)]
+        next_cursor = (start + remaining) % len(fair_pool)
+    selected = priority + fair
+    return selected, next_cursor, {
+        "eligible": len(rows),
+        "selected": len(selected),
+        "priority_selected": len(priority),
+        "fair_selected": len(fair),
+        "next_cursor": next_cursor,
+    }
+
+
 def _n(value: Any, default: float = 0.0) -> float:
     result = finite(value)
     return default if result is None else result
