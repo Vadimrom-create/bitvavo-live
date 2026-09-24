@@ -85,7 +85,7 @@ class SolaireV3Tests(unittest.TestCase):
             })
         result = build_dynamic_rotation_context(rows)
         self.assertEqual(set(result), {x["market"] for x in rows})
-        self.assertTrue(any(x.get("active_watch") for x in result.values()))
+        self.assertTrue(all(x.get("mode") == "DYNAMIC_FULL_UNIVERSE_MOMENTUM_COHORT" for x in result.values()))
 
     def test_structured_provider_symbols_are_limited_to_bitvavo_universe(self):
         hits = structured_news_symbols("HYPE|BTC|NOTLISTED", {"HYPE", "BTC", "ETH"})
