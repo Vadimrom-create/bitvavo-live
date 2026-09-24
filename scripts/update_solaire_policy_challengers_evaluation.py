@@ -23,7 +23,7 @@ BASELINE_PORTFOLIO = "solaire_v31_portfolio.json"
 COMPARISON = "solaire_policy_challengers_comparison.json"
 STATUS = "solaire_policy_challengers_evaluation_status.json"
 
-CHALLENGER_VERSION = "solaire-policy-challengers-v1-20260924"
+CHALLENGER_VERSION = "solaire-policy-challengers-v2-baseline-aligned-20260924"
 MAX_NEW_EVALUATIONS_PER_RUN = 24
 
 
@@ -122,6 +122,29 @@ def main() -> int:
         "portfolios": {
             "baseline_v31_rotation": _portfolio_summary(baseline),
             "hold_no_score_rotation": _portfolio_summary(hold),
+            "hold_vs_baseline": {
+                "same_inception": bool(
+                    hold.get("challenger_inception_at_utc")
+                    and hold.get("challenger_inception_marked_value_eur") is not None
+                ),
+                "challenger_inception_at_utc": hold.get("challenger_inception_at_utc"),
+                "challenger_inception_marked_value_eur": finite(
+                    hold.get("challenger_inception_marked_value_eur")
+                ),
+                "marked_value_delta_eur": (
+                    None
+                    if finite(hold.get("marked_value_eur")) is None
+                    or finite(baseline.get("marked_value_eur")) is None
+                    else round(
+                        finite(hold.get("marked_value_eur"))
+                        - finite(baseline.get("marked_value_eur")),
+                        2,
+                    )
+                ),
+                "closed_count_delta": (
+                    len(hold.get("closed") or []) - len(baseline.get("closed") or [])
+                ),
+            },
         },
         "warnings": [
             "No challenger sends email or submits orders.",
