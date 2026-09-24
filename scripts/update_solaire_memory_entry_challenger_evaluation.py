@@ -98,6 +98,13 @@ def main() -> int:
         x for x in (journal.get("events") or [])
         if x.get("architecture_version") == CHALLENGER_VERSION
     ]
+    decision_events = [
+        x for x in events
+        if x.get("event_type") in {
+            "MEMORY_ENTRY_CHALLENGER_QUALIFIED",
+            "MEMORY_ENTRY_CHALLENGER_REJECTED",
+        }
+    ]
 
     errors: list[dict[str, Any]] = []
     critical_error = None
@@ -107,7 +114,7 @@ def main() -> int:
         client.get("/time", cache=False)
         completed = _evaluate_event_collection(
             client,
-            events,
+            decision_events,
             now,
             MAX_NEW_EVALUATIONS_PER_RUN,
             errors,
