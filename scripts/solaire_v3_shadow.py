@@ -1176,10 +1176,6 @@ def main() -> int:
             and (
                 finite(row.get("news_positive_score"), 0) >= 4.0
                 or external_spark_ready
-                or (
-                    int((row.get("early_quant") or {}).get("evidence_count") or 0) >= 2
-                    and (bool(row.get("active_narratives")) or external_confirmed)
-                )
             )
         )
         merged = {
