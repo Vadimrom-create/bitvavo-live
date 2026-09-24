@@ -637,13 +637,14 @@ def evaluate_candles_strict(
     rows = []
     for bar in candles:
         t = finite(bar.get("t"))
+        o = finite(bar.get("o"))
         h = finite(bar.get("h"))
         l = finite(bar.get("l"))
         c = finite(bar.get("c"))
-        if None in (t, h, l, c):
+        if None in (t, o, h, l, c):
             continue
         if first_start <= int(t) <= last_start:
-            rows.append((int(t), h, l, c))
+            rows.append((int(t), o, h, l, c))
     rows.sort(key=lambda x: x[0])
     expected_count = 0
     if last_start >= first_start:
@@ -659,30 +660,35 @@ def evaluate_candles_strict(
     if not rows:
         return None
 
-    high = max(x[1] for x in rows)
-    low = min(x[2] for x in rows)
-    close = rows[-1][3]
+    high = max(x[2] for x in rows)
+    low = min(x[3] for x in rows)
+    close = rows[-1][4]
     mfe = (high / baseline - 1.0) * 100.0
     mae = (low / baseline - 1.0) * 100.0
     close_ret = (close / baseline - 1.0) * 100.0
 
     first_stop_row = None
     if stop_eur is not None and stop_eur > 0:
-        first_stop_row = next((x for x in rows if x[2] <= stop_eur), None)
+        first_stop_row = next((x for x in rows if x[3] <= stop_eur), None)
     first_stop_ts = None if first_stop_row is None else first_stop_row[0] / 1000
     rows_before_stop = rows
     if first_stop_row is not None:
         stop_index = rows.index(first_stop_row)
         rows_before_stop = rows[: stop_index + 1]
-    pre_stop_high = max(x[1] for x in rows_before_stop)
-    pre_stop_low = min(x[2] for x in rows_before_stop)
+    pre_stop_high = max(x[2] for x in rows_before_stop)
+    pre_stop_low = min(x[3] for x in rows_before_stop)
     mfe_before_stop = (pre_stop_high / baseline - 1.0) * 100.0
     mae_before_stop = (pre_stop_low / baseline - 1.0) * 100.0
 
     if first_stop_row is not None and stop_eur is not None:
-        policy_gross = (stop_eur / baseline - 1.0) * 100.0
-        policy_exit = stop_eur
-        policy_reason = "STOP_TOUCH_ASSUMED_FILLED_AT_STOP"
+        first_stop_open = first_stop_row[1]
+        policy_exit = min(stop_eur, first_stop_open)
+        policy_gross = (policy_exit / baseline - 1.0) * 100.0
+        policy_reason = (
+            "STOP_GAP_TO_BAR_OPEN"
+            if first_stop_open < stop_eur
+            else "STOP_TOUCH_ASSUMED_FILLED_AT_STOP"
+        )
     else:
         policy_gross = close_ret
         policy_exit = close
@@ -709,7 +715,7 @@ def evaluate_candles_strict(
         "method": "strict_chronological_complete_intervals_path_aware",
     }
     for target in (10, 20, 50, 100):
-        first = next((t for t, h, _, _ in rows if h >= baseline * (1 + target / 100)), None)
+        first = next((t for t, _, h, _, _ in rows if h >= baseline * (1 + target / 100)), None)
         result[f"mfe_ge_{target}pct"] = mfe >= target
         result[f"first_plus_{target}_ts"] = None if first is None else first / 1000
         if first_stop_ts is None:
