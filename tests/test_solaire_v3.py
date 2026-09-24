@@ -1,14 +1,43 @@
 import unittest
 
 from research.solaire_v3 import (
+    build_asset_aliases,
     build_narrative_rotations,
     early_quant_evidence,
     evaluate_candles_strict,
+    match_news_assets,
+    structured_news_symbols,
     walk_asks,
 )
 
 
 class SolaireV3Tests(unittest.TestCase):
+    def test_dynamic_news_aliases_cover_complete_universe_and_hype(self):
+        universe = [
+            {"market": "HYPE-EUR"},
+            {"market": "BTC-EUR"},
+            {"market": "MOVE-EUR"},
+        ]
+        assets = [
+            {"symbol": "HYPE", "name": "Hyperliquid"},
+            {"symbol": "BTC", "name": "Bitcoin"},
+            {"symbol": "MOVE", "name": "Movement"},
+        ]
+        aliases = build_asset_aliases(universe, assets)
+        self.assertEqual(set(aliases), {"HYPE", "BTC", "MOVE"})
+        self.assertIn("Hyperliquid", aliases["HYPE"])
+        hits = match_news_assets(
+            "Binance Will List Hyperliquid (HYPE) with Seed Tag Applied",
+            aliases,
+            {"MOVE"},
+        )
+        self.assertIn("HYPE", hits)
+        self.assertNotIn("MOVE", match_news_assets("markets move higher", aliases, {"MOVE"}))
+
+    def test_structured_provider_symbols_are_limited_to_bitvavo_universe(self):
+        hits = structured_news_symbols("HYPE|BTC|NOTLISTED", {"HYPE", "BTC", "ETH"})
+        self.assertEqual(hits, ["BTC", "HYPE"])
+
     def test_narrative_rotation_ai(self):
         rows = []
         members = ["AIOZ", "PHA", "AKT", "NOS"]
