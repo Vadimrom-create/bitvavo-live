@@ -285,6 +285,59 @@ def _prewatch_leads(v3_events: list[dict[str, Any]], v2_events: list[dict[str, A
     return out
 
 
+def _opportunity_recovery_summary(events: list[dict[str, Any]]) -> dict[str, Any]:
+    rows = [
+        x for x in events
+        if x.get("event_type") == "OPPORTUNITY_RECOVERY_EXECUTABLE"
+        and not x.get("left_censored_at_v3_t0")
+    ]
+    def values(key: str) -> list[float]:
+        out = []
+        for event in rows:
+            value = finite((event.get("recovery") or {}).get(key))
+            if value is not None:
+                out.append(value)
+        return out
+    delays = [x / 60.0 for x in values("delay_seconds")]
+    consumed = values("movement_consumed_pct")
+    structural = values("structural_residual_to_tp1_pct")
+    residual_4h = [
+        finite((x.get("evaluations") or {}).get("4", {}).get("mfe_before_stop_pct"))
+        for x in rows
+    ]
+    residual_4h = [x for x in residual_4h if x is not None]
+    residual_24h = [
+        finite((x.get("evaluations") or {}).get("24", {}).get("mfe_before_stop_pct"))
+        for x in rows
+    ]
+    residual_24h = [x for x in residual_24h if x is not None]
+    def med(xs: list[float]) -> float | None:
+        return None if not xs else round(statistics.median(xs), 4)
+    return {
+        "definition": "FIRST_V3_ENTRY_HYPOTHESIS_TO_FIRST_EXECUTION_READY",
+        "n": len(rows),
+        "median_delay_minutes": med(delays),
+        "median_movement_consumed_pct": med(consumed),
+        "median_structural_residual_to_tp1_pct": med(structural),
+        "median_residual_mfe_before_stop_4h_pct": med(residual_4h),
+        "median_residual_mfe_before_stop_24h_pct": med(residual_24h),
+        "records": [
+            {
+                "market": x.get("market"),
+                "episode": x.get("episode"),
+                "first_opportunity_at_utc": (x.get("recovery") or {}).get("first_opportunity_at_utc"),
+                "first_executable_at_utc": (x.get("recovery") or {}).get("first_executable_at_utc"),
+                "delay_seconds": (x.get("recovery") or {}).get("delay_seconds"),
+                "movement_consumed_pct": (x.get("recovery") or {}).get("movement_consumed_pct"),
+                "structural_residual_to_tp1_pct": (x.get("recovery") or {}).get("structural_residual_to_tp1_pct"),
+                "residual_mfe_before_stop_4h_pct": finite((x.get("evaluations") or {}).get("4", {}).get("mfe_before_stop_pct")),
+                "residual_mfe_before_stop_24h_pct": finite((x.get("evaluations") or {}).get("24", {}).get("mfe_before_stop_pct")),
+            }
+            for x in rows[-200:]
+        ],
+    }
+
+
 def main() -> int:
     now = time.time()
     v3 = read_json(V3_JOURNAL, {}) or {}
@@ -340,6 +393,7 @@ def main() -> int:
         "v3_thesis_start": {str(h): _summary(current_v3_events, "OPPORTUNITY_THESIS_START", h) for h in HORIZONS_HOURS},
         "v3_thesis_reentry_ready": {str(h): _summary(current_v3_events, "OPPORTUNITY_THESIS_REENTRY_READY", h) for h in HORIZONS_HOURS},
         "v3_thesis_reentry_entry": {str(h): _summary(current_v3_events, "ENTRY_THESIS_REENTRY_SHADOW", h) for h in HORIZONS_HOURS},
+        "v3_opportunity_recovery_executable": {str(h): _summary(current_v3_events, "OPPORTUNITY_RECOVERY_EXECUTABLE", h) for h in HORIZONS_HOURS},
         "v2_first_detection": {str(h): _summary(benchmark.get("events", []), "V2_FIRST_DETECTION", h) for h in HORIZONS_HOURS},
         "v2_buy_sent": {str(h): _summary(v2_buy_events, "V2_BUY_SENT", h) for h in HORIZONS_HOURS},
     }
@@ -357,6 +411,7 @@ def main() -> int:
         "method": "same-market prospective events; strict chronological complete horizons; 0.70% round-trip cost estimate",
         "horizons_hours": list(HORIZONS_HOURS),
         "summary": summary,
+        "opportunity_recovery": _opportunity_recovery_summary(current_v3_events),
         "prewatch_vs_v2_detection": {
             "paired_n": len(leads),
             "median_lead_minutes": None if not lead_values else round(statistics.median(lead_values), 2),
