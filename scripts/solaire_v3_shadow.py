@@ -1571,6 +1571,8 @@ def main() -> int:
     journal["updated_at_utc"] = utc(now)
     journal["research_only"] = True
     journal["frozen_v2_commit"] = FROZEN_V2_COMMIT
+    journal["architecture_version"] = V3_ARCHITECTURE_VERSION
+    journal["runtime_commit"] = runtime_commit
     journal["events"] = journal["events"][-10000:]
 
     compact_candidates = []
@@ -1587,10 +1589,19 @@ def main() -> int:
             "early_quant": row.get("early_quant"),
             "market_data_quality_ok": row.get("market_data_quality_ok"),
             "news_score": row.get("news_score"),
+            "news_positive_score": row.get("news_positive_score"),
+            "news_negative_score": row.get("news_negative_score"),
             "news_items": row.get("news_items"),
             "active_narratives": row.get("active_narratives"),
             "narrative_score": row.get("narrative_score"),
+            "dynamic_rotation": row.get("dynamic_rotation"),
+            "external_spark": row.get("external_spark"),
             "external": row.get("external"),
+            "strong_negative_news": row.get("strong_negative_news"),
+            "thesis_seed": row.get("thesis_seed"),
+            "persistent_thesis": row.get("persistent_thesis"),
+            "thesis_reentry_hypothesis": row.get("thesis_reentry_hypothesis"),
+            "thesis_execution": row.get("thesis_execution"),
             "derivatives": row.get("derivatives"),
             "v2_state": row.get("v2_state"),
             "v2_score": row.get("v2_score"),
@@ -1601,12 +1612,15 @@ def main() -> int:
     candidate_doc = {
         "schema": "solaire_v3_candidates_v1",
         "generated_at_utc": utc(now),
+        "architecture_version": V3_ARCHITECTURE_VERSION,
+        "runtime_commit": runtime_commit,
         "research_only": True,
         "affects_v2": False,
         "affects_email": False,
         "orders_submitted": False,
         "frozen_v2_commit": FROZEN_V2_COMMIT,
         "narrative_rotations": rotations,
+        "dynamic_rotation_mode": "DYNAMIC_FULL_UNIVERSE_MOMENTUM_COHORT",
         "news_items_considered": len(news),
         "news_mapping": news_mapping,
         "candidates": compact_candidates,
@@ -1615,10 +1629,12 @@ def main() -> int:
     thesis_doc = {
         "schema": "solaire_v3_persistent_theses_v1",
         "generated_at_utc": utc(now),
+        "architecture_version": V3_ARCHITECTURE_VERSION,
+        "runtime_commit": runtime_commit,
         "research_only": True,
         "affects_v2": False,
         "affects_v3_candidate_selection": False,
-        "affects_v31": False,
+        "affects_v31": True,
         "affects_email": False,
         "orders_submitted": False,
         "max_profile_markets": MAX_THESIS_PROFILE_MARKETS,
@@ -1642,6 +1658,8 @@ def main() -> int:
         "checked_at_utc": utc(now),
         "status": "DEGRADED_NONBLOCKING" if critical_error else ("OK_WITH_SOURCE_GAPS" if source_errors else "OK"),
         "mode": "PROSPECTIVE_SHADOW",
+        "architecture_version": V3_ARCHITECTURE_VERSION,
+        "runtime_commit": runtime_commit,
         "research_only": True,
         "affects_v2": False,
         "affects_email": False,
@@ -1655,10 +1673,17 @@ def main() -> int:
         "news_named_alias_symbols": news_mapping.get("named_alias_symbols"),
         "news_named_alias_coverage_pct": news_mapping.get("named_alias_coverage_pct"),
         "candidate_count": len(candidates),
+        "external_batch_universe_symbols": len(external_snapshot),
+        "external_spark_count": sum(bool((x.get("external_spark") or {}).get("ready")) for x in candidates),
+        "dynamic_rotation_active_count": sum(bool((x.get("dynamic_rotation") or {}).get("active_watch")) for x in candidates),
         "context_watch_count": sum(bool(x.get("context_watch")) for x in candidates),
         "entry_hypothesis_count": sum(bool(x.get("entry_hypothesis")) for x in candidates),
         "thesis_reentry_hypothesis_count": sum(bool(x.get("thesis_reentry_hypothesis")) for x in thesis_observations),
         "execution_checks": len(checks),
+        "execution_fairness": execution_fairness,
+        "thesis_execution_fairness": thesis_execution_fairness,
+        "thesis_profile_fairness": thesis_profile_fairness,
+        "derivatives_fairness": derivatives_fairness,
         "entry_ready_shadow_count": sum(
             bool(checks.get(x["market"], {}).get("ready"))
             for x in candidates if x.get("entry_hypothesis")
