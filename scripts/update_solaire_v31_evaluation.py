@@ -78,13 +78,13 @@ def main() -> int:
     try:
         client = PublicClient(timeout=10, retries=2, requests_per_second=8)
         client.get("/time", cache=False)
-        total_new = _evaluate_event_collection(
-            client,
-            events,
-            now,
-            MAX_NEW_EVALUATIONS_PER_RUN,
-            errors,
-        )
+        budget = MAX_NEW_EVALUATIONS_PER_RUN
+        added = _evaluate_event_collection(client, current_events, now, budget, errors)
+        total_new += added
+        budget -= added
+        if budget > 0:
+            added = _evaluate_event_collection(client, legacy_events, now, budget, errors)
+            total_new += added
     except Exception as exc:
         critical = type(exc).__name__ + ":" + str(exc)
 
