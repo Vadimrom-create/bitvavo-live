@@ -129,7 +129,7 @@ def match_news_assets(
     uppercase, which limits false positives from ordinary words such as NEAR,
     SAFE or MOVE.
     """
-    original = " " + re.sub(r"\\s+", " ", str(text or "")) + " "
+    original = " " + re.sub(r"\s+", " ", str(text or "")) + " "
     low = original.lower()
     generic = {str(x).upper() for x in (generic_symbols or set())}
     hits: list[str] = []
@@ -145,9 +145,9 @@ def match_news_assets(
                 break
         if not matched:
             explicit_patterns = (
-                r"\\$" + re.escape(symbol) + r"(?![A-Z0-9])",
-                r"\\(" + re.escape(symbol) + r"\\)",
-                r"\\[" + re.escape(symbol) + r"\\]",
+                r"\$" + re.escape(symbol) + r"(?![A-Z0-9])",
+                r"\(" + re.escape(symbol) + r"\)",
+                r"\[" + re.escape(symbol) + r"\]",
             )
             if any(re.search(p, original) for p in explicit_patterns):
                 matched = True
