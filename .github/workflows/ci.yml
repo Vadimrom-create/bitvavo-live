@@ -121,9 +121,10 @@ jobs:
           assert 'v31_raw_qualified' in comp['summary'], comp
           assert 'v31_persist30_qualified' in comp['summary'], comp
           assert 'v31_pullback_reclaim_qualified' in comp['summary'], comp
-          assert comp['factorial_axes']['timing'] == ['RAW', 'PERSIST_30M', 'PULLBACK_RECLAIM'], comp
+          assert comp['factorial_axes']['timing'] == ['RAW', 'THESIS_REENTRY', 'PERSIST_30M', 'PULLBACK_RECLAIM'], comp
           PY
       - name: Run Solaire full-funnel measurement audit
+        if: always()
         run: |
           python scripts/solaire_funnel_audit.py
           python - <<'PY'
