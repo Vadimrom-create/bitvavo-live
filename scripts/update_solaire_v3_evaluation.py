@@ -166,6 +166,8 @@ def _summary(
         "n": len(rows),
         "mean_net_close_return_pct_est": mean(vals("net_close_return_pct_est")),
         "median_net_close_return_pct_est": med(vals("net_close_return_pct_est")),
+        "mean_net_stop_or_horizon_return_pct_est": mean(vals("net_stop_or_horizon_return_pct_est")),
+        "median_net_stop_or_horizon_return_pct_est": med(vals("net_stop_or_horizon_return_pct_est")),
         "median_mfe_pct": med(vals("mfe_pct")),
         "median_mae_pct": med(vals("mae_pct")),
         "mfe_ge_10pct": sum(bool(x.get("mfe_ge_10pct")) for x in rows),
@@ -189,6 +191,8 @@ def _evaluate_event_collection(
     for event in ordered:
         if completed >= budget:
             break
+        if event.get("evaluation_excluded"):
+            continue
         baseline = _baseline_for_event(event)
         decision_ts = finite(event.get("decision_ts"))
         market = event.get("market")
