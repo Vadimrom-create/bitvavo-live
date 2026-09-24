@@ -291,6 +291,14 @@ def main() -> int:
 
     v3_start = finite(v3.get("started_ts"), now)
     v2_buy_events = _v2_buy_reference(decisions, outcomes, v3_start)
+    current_v3_events = [
+        x for x in v3.get("events", [])
+        if x.get("architecture_version") == V3_ARCHITECTURE_VERSION
+    ]
+    legacy_v3_events = [
+        x for x in v3.get("events", [])
+        if x.get("architecture_version") != V3_ARCHITECTURE_VERSION
+    ]
 
     client = PublicClient(timeout=10, retries=2, requests_per_second=8)
     critical = None
@@ -298,9 +306,13 @@ def main() -> int:
     try:
         client.get("/time", cache=False)
         budget = MAX_NEW_EVALUATIONS_PER_RUN
-        added = _evaluate_event_collection(client, v3.get("events", []), now, budget, errors)
+        added = _evaluate_event_collection(client, current_v3_events, now, budget, errors)
         total_new += added
         budget -= added
+        if budget > 0:
+            added = _evaluate_event_collection(client, legacy_v3_events, now, budget, errors)
+            total_new += added
+            budget -= added
         if budget > 0:
             added = _evaluate_event_collection(client, benchmark.get("events", []), now, budget, errors)
             total_new += added
@@ -316,14 +328,6 @@ def main() -> int:
     outcomes["updated_at_utc"] = utc(now)
     outcomes["frozen_v2_commit"] = FROZEN_V2_COMMIT
 
-    current_v3_events = [
-        x for x in v3.get("events", [])
-        if x.get("architecture_version") == V3_ARCHITECTURE_VERSION
-    ]
-    legacy_v3_events = [
-        x for x in v3.get("events", [])
-        if x.get("architecture_version") != V3_ARCHITECTURE_VERSION
-    ]
     summary = {
         "v3_prewatch": {str(h): _summary(current_v3_events, "PREWATCH_CONTEXT", h) for h in HORIZONS_HOURS},
         "v3_entry_ready": {str(h): _summary(current_v3_events, "ENTRY_READY_SHADOW", h) for h in HORIZONS_HOURS},
