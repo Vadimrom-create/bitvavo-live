@@ -17,6 +17,7 @@ if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
 from research.common import atomic_json, finite, read_json, utc
+from research.http import PublicClient
 from research.solaire_v31 import (
     FROZEN_V3_COMMIT,
     V31_ARCHITECTURE_VERSION,
@@ -25,6 +26,8 @@ from research.solaire_v31 import (
     REFERENCE_CAPITAL_EUR,
     final_economic_score,
     preliminary_economic_score,
+    execution_freshness,
+    reprice_execution_for_stake,
     select_execution_path,
     shadow_sizing,
     timing_variants,
@@ -38,6 +41,8 @@ CANDIDATES = "solaire_v31_candidates.json"
 PORTFOLIO = "solaire_v31_portfolio.json"
 PORTFOLIO_PERSIST = "solaire_v31_portfolio_persist30.json"
 PORTFOLIO_RECLAIM = "solaire_v31_portfolio_pullback_reclaim.json"
+PORTFOLIO_RAW = "solaire_v31_portfolio_raw.json"
+PORTFOLIO_REENTRY = "solaire_v31_portfolio_reentry.json"
 STATUS = "solaire_v31_status.json"
 
 WATCH_EXPIRY = 24 * 3600
@@ -47,6 +52,9 @@ EXIT_FEE_EST = 0.0035
 
 
 def _event_key(event: dict[str, Any]) -> str:
+    attempt_id = event.get("attempt_id")
+    if attempt_id:
+        return str(attempt_id)
     return "|".join([
         str(event.get("market") or ""),
         str(event.get("episode") or ""),
@@ -81,7 +89,38 @@ def _close_position(portfolio: dict[str, Any], position: dict[str, Any], current
         "market": position.get("market"),
         "reason": reason,
         "exit_eur": current,
+        "stake_eur": stake,
+        "decision_id": position.get("decision_id"),
     })
+
+
+def _observed_low_since(client: PublicClient | None, market: str, since_ts: float, now: float) -> float | None:
+    if client is None:
+        return None
+    try:
+        raw = client.get(
+            "/" + market + "/candles",
+            {
+                "interval": "5m",
+                "start": max(0, int((since_ts - 300) * 1000)),
+                "end": int(now * 1000),
+                "limit": 100,
+            },
+            cache=False,
+        )
+        lows = []
+        for row in raw or []:
+            if not isinstance(row, list) or len(row) < 4:
+                continue
+            ts = finite(row[0])
+            low = finite(row[3])
+            if ts is None or low is None:
+                continue
+            if ts / 1000.0 >= since_ts - 300:
+                lows.append(low)
+        return min(lows) if lows else None
+    except Exception:
+        return None
 
 
 def update_portfolio(
@@ -90,8 +129,11 @@ def update_portfolio(
     universe_by_market: dict[str, dict[str, Any]],
     current_scores: dict[str, float],
     now: float,
+    *,
+    client: PublicClient | None = None,
+    allow_score_rotation: bool = True,
 ) -> dict[str, Any]:
-    portfolio.setdefault("schema", "solaire_v31_portfolio_v1")
+    portfolio.setdefault("schema", "solaire_v31_portfolio_v2")
     portfolio.setdefault("reference_capital_eur", REFERENCE_CAPITAL_EUR)
     portfolio.setdefault("cash_eur", REFERENCE_CAPITAL_EUR)
     portfolio.setdefault("positions", [])
@@ -108,8 +150,20 @@ def update_portfolio(
         if position["market"] in current_scores:
             position["economic_score"] = current_scores[position["market"]]
         stop = finite(position.get("stop_eur"))
-        if current is not None and stop is not None and current <= stop:
-            _close_position(portfolio, position, current, now, "STOP_OBSERVED_AT_V31_CYCLE")
+        since = finite(position.get("last_stop_check_ts"))
+        if since is None:
+            since = max(finite(position.get("opened_ts"), now - 600), now - 600)
+        observed_low = _observed_low_since(client, position["market"], since, now)
+        position["observed_low_since_last_check_eur"] = observed_low
+        position["last_stop_check_ts"] = now
+        position["last_stop_check_at_utc"] = utc(now)
+        if stop is not None and observed_low is not None and observed_low <= stop:
+            exit_price = stop
+            reason = "STOP_TOUCHED_BETWEEN_V31_CYCLES"
+            if current is not None and current < stop:
+                exit_price = current
+                reason = "STOP_GAP_OBSERVED_AT_V31_CYCLE"
+            _close_position(portfolio, position, exit_price, now, reason)
 
     for row in sorted(qualified, key=lambda x: finite(x.get("economic_score"), 0), reverse=True):
         market = row["market"]
@@ -121,6 +175,8 @@ def update_portfolio(
 
         score = finite(row.get("economic_score"), 0)
         if len(portfolio["positions"]) >= MAX_SHADOW_POSITIONS:
+            if not allow_score_rotation:
+                continue
             weakest = min(portfolio["positions"], key=lambda p: finite(p.get("economic_score"), 0))
             weakest_score = finite(weakest.get("economic_score"), 0)
             if score < weakest_score + ROTATION_SCORE_DELTA:
@@ -151,6 +207,9 @@ def update_portfolio(
             "theoretical_risk_eur": finite(sizing.get("theoretical_risk_eur")),
             "economic_score": score,
             "entry_path": row.get("entry_path") or "RAW",
+            "decision_id": row.get("decision_id"),
+            "last_stop_check_ts": now,
+            "last_stop_check_at_utc": utc(now),
         })
         portfolio["actions"].append({
             "at_utc": utc(now),
@@ -158,6 +217,8 @@ def update_portfolio(
             "market": market,
             "economic_score": score,
             "stake_eur": stake,
+            "entry_path": row.get("entry_path") or "RAW",
+            "decision_id": row.get("decision_id"),
         })
         consumed.add(episode_key)
 
@@ -172,8 +233,9 @@ def update_portfolio(
     portfolio["marked_value_eur"] = round(marked, 2)
     portfolio["updated_at_utc"] = utc(now)
     portfolio["research_only"] = True
+    portfolio["stop_detection"] = "5M_CANDLE_LOW_BETWEEN_CYCLES_WITH_GAP_FALLBACK"
+    portfolio["score_rotation_enabled"] = allow_score_rotation
     return portfolio
-
 
 
 def _timing_event(
