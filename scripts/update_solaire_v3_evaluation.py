@@ -316,7 +316,16 @@ def _opportunity_recovery_summary(events: list[dict[str, Any]], now: float) -> d
         for x in rows
     ]
     residual_24h = [x for x in residual_24h if x is not None]
-    recovered_keys = {(x.get("market"), x.get("episode")) for x in rows}
+    first_keys = {(x.get("market"), x.get("episode")) for x in firsts}
+    anchored_rows = [
+        x for x in rows
+        if (x.get("market"), x.get("episode")) in first_keys
+    ]
+    legacy_rows_without_first_anchor = [
+        x for x in rows
+        if (x.get("market"), x.get("episode")) not in first_keys
+    ]
+    recovered_keys = {(x.get("market"), x.get("episode")) for x in anchored_rows}
     unresolved = [
         x for x in firsts
         if (x.get("market"), x.get("episode")) not in recovered_keys
@@ -326,9 +335,10 @@ def _opportunity_recovery_summary(events: list[dict[str, Any]], now: float) -> d
     return {
         "definition": "FIRST_V3_ENTRY_HYPOTHESIS_TO_FIRST_EXECUTION_READY",
         "first_opportunity_n": len(firsts),
-        "recovered_n": len(rows),
+        "recovered_n": len(anchored_rows),
         "unresolved_n": len(unresolved),
-        "recovery_rate_pct": None if not firsts else round(100.0 * len(rows) / len(firsts), 2),
+        "legacy_recoveries_without_first_anchor_excluded": len(legacy_rows_without_first_anchor),
+        "recovery_rate_pct": None if not firsts else round(100.0 * len(anchored_rows) / len(firsts), 2),
         "median_delay_minutes": med(delays),
         "median_movement_consumed_pct": med(consumed),
         "median_structural_residual_to_tp1_pct": med(structural),
@@ -359,7 +369,7 @@ def _opportunity_recovery_summary(events: list[dict[str, Any]], now: float) -> d
                 "residual_mfe_before_stop_4h_pct": finite((x.get("evaluations") or {}).get("4", {}).get("mfe_before_stop_pct")),
                 "residual_mfe_before_stop_24h_pct": finite((x.get("evaluations") or {}).get("24", {}).get("mfe_before_stop_pct")),
             }
-            for x in rows[-200:]
+            for x in anchored_rows[-200:]
         ],
     }
 
