@@ -286,93 +286,170 @@ def _prewatch_leads(v3_events: list[dict[str, Any]], v2_events: list[dict[str, A
 
 
 def _opportunity_recovery_summary(events: list[dict[str, Any]], now: float) -> dict[str, Any]:
+    """Measure the full early-opportunity funnel without treating observation as a trade."""
     firsts = [
         x for x in events
-        if x.get("event_type") == "FIRST_OPPORTUNITY_OBSERVED"
+        if x.get("event_type") == "FIRST_CREDIBLE_OPPORTUNITY"
         and not x.get("left_censored_at_v3_t0")
     ]
-    rows = [
+    hypotheses = [
+        x for x in events
+        if x.get("event_type") == "OPPORTUNITY_ENTRY_HYPOTHESIS"
+        and not x.get("left_censored_at_v3_t0")
+    ]
+    executables = [
         x for x in events
         if x.get("event_type") == "OPPORTUNITY_RECOVERY_EXECUTABLE"
         and not x.get("left_censored_at_v3_t0")
     ]
-    def values(key: str) -> list[float]:
-        out = []
-        for event in rows:
-            value = finite((event.get("recovery") or {}).get(key))
-            if value is not None:
-                out.append(value)
-        return out
-    delays = [x / 60.0 for x in values("delay_seconds")]
-    consumed = values("movement_consumed_pct")
-    structural = values("structural_residual_to_tp1_pct")
-    residual_4h = [
-        finite((x.get("evaluations") or {}).get("4", {}).get("mfe_before_stop_pct"))
-        for x in rows
-    ]
-    residual_4h = [x for x in residual_4h if x is not None]
-    residual_24h = [
-        finite((x.get("evaluations") or {}).get("24", {}).get("mfe_before_stop_pct"))
-        for x in rows
-    ]
-    residual_24h = [x for x in residual_24h if x is not None]
-    first_keys = {(x.get("market"), x.get("episode")) for x in firsts}
-    anchored_rows = [
-        x for x in rows
-        if (x.get("market"), x.get("episode")) in first_keys
-    ]
-    legacy_rows_without_first_anchor = [
-        x for x in rows
-        if (x.get("market"), x.get("episode")) not in first_keys
-    ]
-    recovered_keys = {(x.get("market"), x.get("episode")) for x in anchored_rows}
-    unresolved = [
-        x for x in firsts
-        if (x.get("market"), x.get("episode")) not in recovered_keys
-    ]
-    def med(xs: list[float]) -> float | None:
-        return None if not xs else round(statistics.median(xs), 4)
-    return {
-        "definition": "FIRST_V3_ENTRY_HYPOTHESIS_TO_FIRST_EXECUTION_READY",
-        "first_opportunity_n": len(firsts),
-        "recovered_n": len(anchored_rows),
-        "unresolved_n": len(unresolved),
-        "legacy_recoveries_without_first_anchor_excluded": len(legacy_rows_without_first_anchor),
-        "recovery_rate_pct": None if not firsts else round(100.0 * len(anchored_rows) / len(firsts), 2),
-        "median_delay_minutes": med(delays),
-        "median_movement_consumed_pct": med(consumed),
-        "median_structural_residual_to_tp1_pct": med(structural),
-        "median_residual_mfe_before_stop_4h_pct": med(residual_4h),
-        "median_residual_mfe_before_stop_24h_pct": med(residual_24h),
-        "unresolved_records": [
-            {
-                "market": x.get("market"),
-                "episode": x.get("episode"),
-                "first_opportunity_at_utc": x.get("decision_at_utc"),
-                "first_opportunity_price_eur": x.get("price_eur"),
-                "censored_elapsed_minutes": (
-                    None if finite(x.get("decision_ts")) is None
-                    else round((now - finite(x.get("decision_ts"))) / 60.0, 2)
-                ),
-            }
-            for x in unresolved[-200:]
-        ],
-        "records": [
-            {
-                "market": x.get("market"),
-                "episode": x.get("episode"),
-                "first_opportunity_at_utc": (x.get("recovery") or {}).get("first_opportunity_at_utc"),
-                "first_executable_at_utc": (x.get("recovery") or {}).get("first_executable_at_utc"),
-                "delay_seconds": (x.get("recovery") or {}).get("delay_seconds"),
-                "movement_consumed_pct": (x.get("recovery") or {}).get("movement_consumed_pct"),
-                "structural_residual_to_tp1_pct": (x.get("recovery") or {}).get("structural_residual_to_tp1_pct"),
-                "residual_mfe_before_stop_4h_pct": finite((x.get("evaluations") or {}).get("4", {}).get("mfe_before_stop_pct")),
-                "residual_mfe_before_stop_24h_pct": finite((x.get("evaluations") or {}).get("24", {}).get("mfe_before_stop_pct")),
-            }
-            for x in anchored_rows[-200:]
-        ],
-    }
 
+    def key(event: dict[str, Any]) -> tuple[Any, Any]:
+        return event.get("market"), event.get("episode")
+
+    first_by_key = {key(x): x for x in firsts}
+    hypothesis_by_key: dict[tuple[Any, Any], dict[str, Any]] = {}
+    for event in sorted(hypotheses, key=lambda x: finite(x.get("decision_ts"), 1e30)):
+        hypothesis_by_key.setdefault(key(event), event)
+    executable_by_key: dict[tuple[Any, Any], dict[str, Any]] = {}
+    for event in sorted(executables, key=lambda x: finite(x.get("decision_ts"), 1e30)):
+        executable_by_key.setdefault(key(event), event)
+
+    def med(values: list[float]) -> float | None:
+        return None if not values else round(statistics.median(values), 4)
+
+    hypothesis_delays = []
+    hypothesis_consumed = []
+    executable_delays = []
+    executable_consumed = []
+    structural_residual = []
+    credible_mfe_4h = []
+    credible_mfe_24h = []
+    credible_close_4h = []
+    credible_close_24h = []
+    records = []
+
+    for k, first in first_by_key.items():
+        hyp = hypothesis_by_key.get(k)
+        exe = executable_by_key.get(k)
+        first_ts = finite(first.get("decision_ts"))
+        first_price = finite(first.get("price_eur"))
+
+        if hyp is not None and first_ts is not None:
+            hyp_ts = finite(hyp.get("decision_ts"))
+            hyp_price = finite(hyp.get("price_eur"))
+            if hyp_ts is not None:
+                hypothesis_delays.append((hyp_ts - first_ts) / 60.0)
+            if first_price and hyp_price is not None:
+                hypothesis_consumed.append((hyp_price / first_price - 1.0) * 100.0)
+
+        if exe is not None:
+            rec = exe.get("recovery") or {}
+            delay = finite(rec.get("credible_to_executable_delay_seconds"))
+            consumed = finite(rec.get("movement_consumed_to_executable_pct"))
+            residual = finite(rec.get("structural_residual_to_tp1_pct"))
+            if delay is not None:
+                executable_delays.append(delay / 60.0)
+            if consumed is not None:
+                executable_consumed.append(consumed)
+            if residual is not None:
+                structural_residual.append(residual)
+
+        ev4 = (first.get("evaluations") or {}).get("4") or {}
+        ev24 = (first.get("evaluations") or {}).get("24") or {}
+        if ev4.get("complete_horizon"):
+            v = finite(ev4.get("mfe_pct"))
+            if v is not None:
+                credible_mfe_4h.append(v)
+            v = finite(ev4.get("net_close_return_pct_est"))
+            if v is not None:
+                credible_close_4h.append(v)
+        if ev24.get("complete_horizon"):
+            v = finite(ev24.get("mfe_pct"))
+            if v is not None:
+                credible_mfe_24h.append(v)
+            v = finite(ev24.get("net_close_return_pct_est"))
+            if v is not None:
+                credible_close_24h.append(v)
+
+        records.append({
+            "market": first.get("market"),
+            "episode": first.get("episode"),
+            "source": first.get("near_miss_opportunity") and "EARLY_QUANT_NEAR_MISS" or "ENTRY_HYPOTHESIS",
+            "first_credible_at_utc": first.get("decision_at_utc"),
+            "first_credible_price_eur": first.get("price_eur"),
+            "first_entry_hypothesis_at_utc": None if hyp is None else hyp.get("decision_at_utc"),
+            "first_entry_hypothesis_price_eur": None if hyp is None else hyp.get("price_eur"),
+            "first_executable_at_utc": None if exe is None else exe.get("decision_at_utc"),
+            "first_executable_entry_eur": None if exe is None else exe.get("entry_eur"),
+            "first_executable_source": None if exe is None else exe.get("execution_source"),
+            "credible_to_hypothesis_minutes": (
+                None if hyp is None or first_ts is None or finite(hyp.get("decision_ts")) is None
+                else round((finite(hyp.get("decision_ts")) - first_ts) / 60.0, 3)
+            ),
+            "credible_to_executable_minutes": (
+                None if exe is None
+                else (
+                    None if finite((exe.get("recovery") or {}).get("credible_to_executable_delay_seconds")) is None
+                    else round(finite((exe.get("recovery") or {}).get("credible_to_executable_delay_seconds")) / 60.0, 3)
+                )
+            ),
+            "movement_consumed_to_executable_pct": (
+                None if exe is None
+                else finite((exe.get("recovery") or {}).get("movement_consumed_to_executable_pct"))
+            ),
+            "structural_residual_to_tp1_pct": (
+                None if exe is None
+                else finite((exe.get("recovery") or {}).get("structural_residual_to_tp1_pct"))
+            ),
+            "credible_mfe_4h_pct": finite(ev4.get("mfe_pct")) if ev4.get("complete_horizon") else None,
+            "credible_net_close_4h_pct": finite(ev4.get("net_close_return_pct_est")) if ev4.get("complete_horizon") else None,
+            "credible_mfe_24h_pct": finite(ev24.get("mfe_pct")) if ev24.get("complete_horizon") else None,
+            "credible_net_close_24h_pct": finite(ev24.get("net_close_return_pct_est")) if ev24.get("complete_horizon") else None,
+            "censored_elapsed_minutes": (
+                None if exe is not None or first_ts is None
+                else round((now - first_ts) / 60.0, 2)
+            ),
+        })
+
+    near_miss_firsts = [x for x in firsts if x.get("near_miss_opportunity") and not x.get("entry_hypothesis")]
+    near_miss_4h = [
+        (x.get("evaluations") or {}).get("4") or {}
+        for x in near_miss_firsts
+        if ((x.get("evaluations") or {}).get("4") or {}).get("complete_horizon")
+    ]
+    near_miss_24h = [
+        (x.get("evaluations") or {}).get("24") or {}
+        for x in near_miss_firsts
+        if ((x.get("evaluations") or {}).get("24") or {}).get("complete_horizon")
+    ]
+
+    return {
+        "definition": "FIRST_CREDIBLE_OPPORTUNITY_TO_ENTRY_HYPOTHESIS_TO_EXECUTABLE",
+        "first_credible_n": len(firsts),
+        "early_quant_near_miss_n": len(near_miss_firsts),
+        "entry_hypothesis_reached_n": len([k for k in first_by_key if k in hypothesis_by_key]),
+        "executable_reached_n": len([k for k in first_by_key if k in executable_by_key]),
+        "unresolved_executable_n": len([k for k in first_by_key if k not in executable_by_key]),
+        "median_credible_to_hypothesis_minutes": med(hypothesis_delays),
+        "median_movement_consumed_to_hypothesis_pct": med(hypothesis_consumed),
+        "median_credible_to_executable_minutes": med(executable_delays),
+        "median_movement_consumed_to_executable_pct": med(executable_consumed),
+        "median_structural_residual_to_tp1_pct": med(structural_residual),
+        "median_first_credible_mfe_4h_pct": med(credible_mfe_4h),
+        "median_first_credible_net_close_4h_pct": med(credible_close_4h),
+        "median_first_credible_mfe_24h_pct": med(credible_mfe_24h),
+        "median_first_credible_net_close_24h_pct": med(credible_close_24h),
+        "near_miss_control_dataset": {
+            "complete_4h_n": len(near_miss_4h),
+            "mfe_ge_10pct_4h": sum(bool(x.get("mfe_ge_10pct")) for x in near_miss_4h),
+            "negative_net_close_4h": sum(finite(x.get("net_close_return_pct_est"), 0) < 0 for x in near_miss_4h),
+            "complete_24h_n": len(near_miss_24h),
+            "mfe_ge_10pct_24h": sum(bool(x.get("mfe_ge_10pct")) for x in near_miss_24h),
+            "negative_net_close_24h": sum(finite(x.get("net_close_return_pct_est"), 0) < 0 for x in near_miss_24h),
+            "purpose": "Measure both costly misses and near-misses that later fail; never a buy rule.",
+        },
+        "records": records[-300:],
+    }
 
 def main() -> int:
     now = time.time()
@@ -423,6 +500,7 @@ def main() -> int:
 
     summary = {
         "v3_prewatch": {str(h): _summary(current_v3_events, "PREWATCH_CONTEXT", h) for h in HORIZONS_HOURS},
+        "v3_first_credible_opportunity": {str(h): _summary(current_v3_events, "FIRST_CREDIBLE_OPPORTUNITY", h) for h in HORIZONS_HOURS},
         "v3_entry_ready": {str(h): _summary(current_v3_events, "ENTRY_READY_SHADOW", h) for h in HORIZONS_HOURS},
         "v3_timing_persist_30m": {str(h): _summary(current_v3_events, "ENTRY_TIMING_PERSIST_30M", h) for h in HORIZONS_HOURS},
         "v3_timing_pullback_reclaim": {str(h): _summary(current_v3_events, "ENTRY_TIMING_PULLBACK_RECLAIM", h) for h in HORIZONS_HOURS},
