@@ -439,7 +439,7 @@ def score_opportunity(
 
 def classify_horizon(row: dict[str, Any]) -> str:
     """Provisional opportunity role, allowed to evolve as evidence changes."""
-    news = _n(row.get("news_score"))
+    news = _n(row.get("news_positive_score"), _n(row.get("news_score")))
     narrative = _n(row.get("narrative_score"))
     external = _n(row.get("external_score"))
     quant = _n((row.get("early_quant") or {}).get("score_0_10"))
@@ -467,6 +467,7 @@ def advance_persistent_thesis(
     thesis = dict(prior or {})
     price = finite(row.get("price_eur"))
     fresh = bool(row.get("fresh_opportunity_trigger"))
+    seed = bool(row.get("thesis_seed") or fresh)
     long_trend = row.get("long_trend") or {}
     long_support = bool(long_trend.get("support"))
     early = row.get("early_quant") or {}
@@ -479,7 +480,7 @@ def advance_persistent_thesis(
     support = bool(short_support or long_support)
 
     if not thesis.get("active"):
-        if not fresh or price is None or price <= 0:
+        if not seed or price is None or price <= 0:
             return thesis
         thesis_id = int(thesis.get("thesis_id") or 0) + 1
         return {
@@ -500,7 +501,8 @@ def advance_persistent_thesis(
             "last_horizon_class": row.get("horizon_class"),
             "last_long_trend": long_trend,
             "last_support": support,
-            "fresh_trigger_count": 1,
+            "fresh_trigger_count": 1 if fresh else 0,
+            "seed_source": "FRESH_ENTRY_TRIGGER" if fresh else "EARLY_CONTEXT_PREWATCH",
         }
 
     if price is None or price <= 0:
