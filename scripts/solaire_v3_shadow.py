@@ -1097,19 +1097,24 @@ def main() -> int:
         legacy_event.setdefault("runtime_commit", None)
 
     retired_near_miss_theses = 0
-    if architecture_rollover and prior_architecture_version == "v3.4-near-miss-recovery-20260924":
-        for market, thesis in (state.get("theses") or {}).items():
-            if (
-                thesis.get("active")
-                and thesis.get("seed_source") == "EARLY_QUANT_NEAR_MISS"
-            ):
-                thesis["active"] = False
-                thesis["state"] = "RETIRED_EXPERIMENTAL_NEAR_MISS_SEED"
-                thesis["ended_ts"] = now
-                thesis["ended_at_utc"] = utc(now)
-                thesis["end_reason"] = "BASELINE_MEMORY_ONLY_MIGRATION"
-                thesis["baseline_excluded"] = True
-                retired_near_miss_theses += 1
+    # Idempotent cleanup: runtime commits can race with code commits.  Any active
+    # thesis whose origin was the experimental V3.4 near-miss seed is excluded
+    # from the MEMORY_ONLY baseline regardless of the version string currently
+    # persisted in state.  If the market now has a legitimate baseline seed, a
+    # new thesis can open later in this same cycle with a new thesis_id.
+    for market, thesis in (state.get("theses") or {}).items():
+        if (
+            thesis.get("active")
+            and thesis.get("seed_source") == "EARLY_QUANT_NEAR_MISS"
+        ):
+            thesis["active"] = False
+            thesis["state"] = "RETIRED_EXPERIMENTAL_NEAR_MISS_SEED"
+            thesis["ended_ts"] = now
+            thesis["ended_at_utc"] = utc(now)
+            thesis["end_reason"] = "BASELINE_MEMORY_ONLY_MIGRATION"
+            thesis["baseline_excluded"] = True
+            thesis["baseline_memory_only_migration_retired"] = True
+            retired_near_miss_theses += 1
 
     source_errors: list[dict[str, Any]] = []
     if not rows:
