@@ -542,7 +542,23 @@ def advance_persistent_thesis(
             "last_long_trend": long_trend,
             "last_support": support,
             "fresh_trigger_count": 1 if fresh else 0,
-            "seed_source": "FRESH_ENTRY_TRIGGER" if fresh else "EARLY_CONTEXT_PREWATCH",
+            "seed_source": (
+                "FRESH_ENTRY_TRIGGER"
+                if fresh
+                else "EARLY_QUANT_NEAR_MISS"
+                if row.get("near_miss_opportunity")
+                else "EARLY_CONTEXT_PREWATCH"
+            ),
+            "origin_credible_ts": now if row.get("credible_opportunity") else None,
+            "origin_credible_at_utc": None,
+            "origin_credible_price_eur": price if row.get("credible_opportunity") else None,
+            "origin_credible_source": (
+                "EARLY_QUANT_NEAR_MISS"
+                if row.get("near_miss_opportunity") and not row.get("entry_hypothesis")
+                else "ENTRY_HYPOTHESIS"
+                if row.get("credible_opportunity")
+                else None
+            ),
         }
 
     if price is None or price <= 0:
