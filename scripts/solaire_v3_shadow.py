@@ -89,6 +89,8 @@ NEWS_FEEDS = (
     ("coindesk", "https://www.coindesk.com/arc/outboundfeeds/rss/"),
     ("cointelegraph", "https://cointelegraph.com/rss"),
     ("decrypt", "https://decrypt.co/feed"),
+    ("crypto.news", "https://crypto.news/feed/"),
+    ("cryptoast", "https://cryptoast.fr/feed/"),
 )
 
 GENERIC_SYMBOLS = {
@@ -1276,7 +1278,7 @@ def main() -> int:
     journal["events"] = journal["events"][-10000:]
 
     compact_candidates = []
-    for row in candidates[:40]:
+    for row in candidates:
         compact_candidates.append({
             "market": row["market"],
             "price_eur": row.get("price_eur"),
