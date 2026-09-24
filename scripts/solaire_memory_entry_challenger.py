@@ -58,7 +58,7 @@ CANDIDATES = "solaire_memory_entry_challenger_candidates.json"
 PORTFOLIO = "solaire_memory_entry_challenger_portfolio.json"
 STATUS = "solaire_memory_entry_challenger_status.json"
 
-CHALLENGER_VERSION = "memory-entry-challenger-v1-20260924"
+CHALLENGER_VERSION = "memory-entry-challenger-v2-decoupled-20260924"
 MAX_PROFILE_MARKETS = 24
 MAX_EXECUTION_MARKETS = 20
 
@@ -241,6 +241,13 @@ def main() -> int:
         state["architecture_migrated_from"] = prior_version
         state["prospective_start_ts"] = now
         state["prospective_start_at_utc"] = utc(now)
+        # A challenger version is a distinct prospective experiment.  Keep the
+        # journal history, but never carry treatment theses/attempt state across
+        # experiment versions.
+        state["theses"] = {}
+        state["markets"] = {}
+        state["profile_cursor"] = 0
+        state["execution_cursor"] = 0
 
     journal.setdefault("schema", "solaire_memory_entry_challenger_journal_v1")
     journal.setdefault("events", [])
