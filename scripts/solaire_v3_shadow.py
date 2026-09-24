@@ -546,6 +546,8 @@ def build_external_sparks(
     universe_rows: list[dict[str, Any]],
     current: dict[str, dict[str, float]],
     previous: dict[str, dict[str, float]] | None,
+    *,
+    elapsed_seconds: float | None = None,
 ) -> dict[str, dict[str, Any]]:
     """Detect short external acceleration for every Bitvavo asset between cycles."""
     previous = previous or {}
@@ -572,8 +574,10 @@ def build_external_sparks(
             score += min(2.0, max(0.0, breadth - 50.0) / 25.0)
         if max_up is not None:
             score += min(2.0, max(0.0, max_up - (med or 0.0)) * 2.0)
+        cadence_valid = elapsed_seconds is not None and 60 <= elapsed_seconds <= 45 * 60
         ready = bool(
-            len(deltas) >= 2
+            cadence_valid
+            and len(deltas) >= 2
             and (
                 ((med or 0.0) >= 0.30 and (breadth or 0.0) >= 66.0)
                 or ((max_up or 0.0) >= 0.75 and sum(x > 0 for x in deltas) >= 2)
@@ -582,6 +586,8 @@ def build_external_sparks(
         result[market] = {
             "mode": "FULL_UNIVERSE_BATCH_EXTERNAL_SPARK",
             "venues_observed": len(deltas),
+            "elapsed_since_previous_snapshot_minutes": None if elapsed_seconds is None else round(elapsed_seconds / 60.0, 2),
+            "cadence_valid_for_spark": cadence_valid,
             "venue_deltas_pct": venue_deltas,
             "median_change_since_previous_cycle_pct": None if med is None else round(med, 4),
             "breadth_positive_pct": None if breadth is None else round(breadth, 2),
@@ -1041,12 +1047,16 @@ def main() -> int:
     allowed_symbols = {base_symbol(x.get("market")) for x in rows if x.get("market")}
     external_snapshot, external_batch_errors = fetch_external_price_snapshot(allowed_symbols)
     source_errors.extend(external_batch_errors)
+    previous_external_ts = finite(state.get("previous_external_prices_ts"))
+    elapsed_external = None if previous_external_ts is None else max(0.0, now - previous_external_ts)
     external_sparks = build_external_sparks(
         rows,
         external_snapshot,
         state.get("previous_external_prices") or {},
+        elapsed_seconds=elapsed_external,
     )
     state["previous_external_prices"] = external_snapshot
+    state["previous_external_prices_ts"] = now
 
     v2_tracking = {
         r["market"]: r
