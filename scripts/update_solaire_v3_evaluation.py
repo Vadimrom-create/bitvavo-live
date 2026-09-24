@@ -285,7 +285,12 @@ def _prewatch_leads(v3_events: list[dict[str, Any]], v2_events: list[dict[str, A
     return out
 
 
-def _opportunity_recovery_summary(events: list[dict[str, Any]]) -> dict[str, Any]:
+def _opportunity_recovery_summary(events: list[dict[str, Any]], now: float) -> dict[str, Any]:
+    firsts = [
+        x for x in events
+        if x.get("event_type") == "FIRST_OPPORTUNITY_OBSERVED"
+        and not x.get("left_censored_at_v3_t0")
+    ]
     rows = [
         x for x in events
         if x.get("event_type") == "OPPORTUNITY_RECOVERY_EXECUTABLE"
@@ -311,16 +316,37 @@ def _opportunity_recovery_summary(events: list[dict[str, Any]]) -> dict[str, Any
         for x in rows
     ]
     residual_24h = [x for x in residual_24h if x is not None]
+    recovered_keys = {(x.get("market"), x.get("episode")) for x in rows}
+    unresolved = [
+        x for x in firsts
+        if (x.get("market"), x.get("episode")) not in recovered_keys
+    ]
     def med(xs: list[float]) -> float | None:
         return None if not xs else round(statistics.median(xs), 4)
     return {
         "definition": "FIRST_V3_ENTRY_HYPOTHESIS_TO_FIRST_EXECUTION_READY",
-        "n": len(rows),
+        "first_opportunity_n": len(firsts),
+        "recovered_n": len(rows),
+        "unresolved_n": len(unresolved),
+        "recovery_rate_pct": None if not firsts else round(100.0 * len(rows) / len(firsts), 2),
         "median_delay_minutes": med(delays),
         "median_movement_consumed_pct": med(consumed),
         "median_structural_residual_to_tp1_pct": med(structural),
         "median_residual_mfe_before_stop_4h_pct": med(residual_4h),
         "median_residual_mfe_before_stop_24h_pct": med(residual_24h),
+        "unresolved_records": [
+            {
+                "market": x.get("market"),
+                "episode": x.get("episode"),
+                "first_opportunity_at_utc": x.get("decision_at_utc"),
+                "first_opportunity_price_eur": x.get("price_eur"),
+                "censored_elapsed_minutes": (
+                    None if finite(x.get("decision_ts")) is None
+                    else round((now - finite(x.get("decision_ts"))) / 60.0, 2)
+                ),
+            }
+            for x in unresolved[-200:]
+        ],
         "records": [
             {
                 "market": x.get("market"),
@@ -411,7 +437,7 @@ def main() -> int:
         "method": "same-market prospective events; strict chronological complete horizons; 0.70% round-trip cost estimate",
         "horizons_hours": list(HORIZONS_HOURS),
         "summary": summary,
-        "opportunity_recovery": _opportunity_recovery_summary(current_v3_events),
+        "opportunity_recovery": _opportunity_recovery_summary(current_v3_events, now),
         "prewatch_vs_v2_detection": {
             "paired_n": len(leads),
             "median_lead_minutes": None if not lead_values else round(statistics.median(lead_values), 2),
