@@ -21,7 +21,7 @@ if str(ROOT) not in sys.path:
 
 from research.common import INTERVAL_MS, atomic_json, finite, read_json, utc
 from research.http import PublicClient
-from research.solaire_v3 import FROZEN_V2_COMMIT, HORIZONS_HOURS, evaluate_candles_strict
+from research.solaire_v3 import FROZEN_V2_COMMIT, HORIZONS_HOURS, V3_ARCHITECTURE_VERSION, evaluate_candles_strict
 
 V3_JOURNAL = "solaire_v3_journal.json"
 V2_BENCHMARK = "solaire_v2_frozen_benchmark_journal.json"
@@ -140,10 +140,18 @@ def _due(event: dict[str, Any], now: float) -> list[int]:
     ]
 
 
-def _summary(events: list[dict[str, Any]], event_type: str, horizon: int) -> dict[str, Any]:
+def _summary(
+    events: list[dict[str, Any]],
+    event_type: str,
+    horizon: int,
+    *,
+    architecture_version: str | None = None,
+) -> dict[str, Any]:
     rows = []
     for event in events:
         if event.get("event_type") != event_type or event.get("left_censored_at_v3_t0"):
+            continue
+        if architecture_version is not None and event.get("architecture_version") != architecture_version:
             continue
         ev = (event.get("evaluations") or {}).get(str(horizon))
         if ev and ev.get("complete_horizon"):
@@ -308,24 +316,35 @@ def main() -> int:
     outcomes["updated_at_utc"] = utc(now)
     outcomes["frozen_v2_commit"] = FROZEN_V2_COMMIT
 
+    current_v3_events = [
+        x for x in v3.get("events", [])
+        if x.get("architecture_version") == V3_ARCHITECTURE_VERSION
+    ]
+    legacy_v3_events = [
+        x for x in v3.get("events", [])
+        if x.get("architecture_version") != V3_ARCHITECTURE_VERSION
+    ]
     summary = {
-        "v3_prewatch": {str(h): _summary(v3.get("events", []), "PREWATCH_CONTEXT", h) for h in HORIZONS_HOURS},
-        "v3_entry_ready": {str(h): _summary(v3.get("events", []), "ENTRY_READY_SHADOW", h) for h in HORIZONS_HOURS},
-        "v3_timing_persist_30m": {str(h): _summary(v3.get("events", []), "ENTRY_TIMING_PERSIST_30M", h) for h in HORIZONS_HOURS},
-        "v3_timing_pullback_reclaim": {str(h): _summary(v3.get("events", []), "ENTRY_TIMING_PULLBACK_RECLAIM", h) for h in HORIZONS_HOURS},
-        "v3_thesis_start": {str(h): _summary(v3.get("events", []), "OPPORTUNITY_THESIS_START", h) for h in HORIZONS_HOURS},
-        "v3_thesis_reentry_ready": {str(h): _summary(v3.get("events", []), "OPPORTUNITY_THESIS_REENTRY_READY", h) for h in HORIZONS_HOURS},
-        "v3_thesis_reentry_entry": {str(h): _summary(v3.get("events", []), "ENTRY_THESIS_REENTRY_SHADOW", h) for h in HORIZONS_HOURS},
+        "v3_prewatch": {str(h): _summary(current_v3_events, "PREWATCH_CONTEXT", h) for h in HORIZONS_HOURS},
+        "v3_entry_ready": {str(h): _summary(current_v3_events, "ENTRY_READY_SHADOW", h) for h in HORIZONS_HOURS},
+        "v3_timing_persist_30m": {str(h): _summary(current_v3_events, "ENTRY_TIMING_PERSIST_30M", h) for h in HORIZONS_HOURS},
+        "v3_timing_pullback_reclaim": {str(h): _summary(current_v3_events, "ENTRY_TIMING_PULLBACK_RECLAIM", h) for h in HORIZONS_HOURS},
+        "v3_thesis_start": {str(h): _summary(current_v3_events, "OPPORTUNITY_THESIS_START", h) for h in HORIZONS_HOURS},
+        "v3_thesis_reentry_ready": {str(h): _summary(current_v3_events, "OPPORTUNITY_THESIS_REENTRY_READY", h) for h in HORIZONS_HOURS},
+        "v3_thesis_reentry_entry": {str(h): _summary(current_v3_events, "ENTRY_THESIS_REENTRY_SHADOW", h) for h in HORIZONS_HOURS},
         "v2_first_detection": {str(h): _summary(benchmark.get("events", []), "V2_FIRST_DETECTION", h) for h in HORIZONS_HOURS},
         "v2_buy_sent": {str(h): _summary(v2_buy_events, "V2_BUY_SENT", h) for h in HORIZONS_HOURS},
     }
-    leads = _prewatch_leads(v3.get("events", []), benchmark.get("events", []))
+    leads = _prewatch_leads(current_v3_events, benchmark.get("events", []))
     lead_values = [finite(x.get("lead_minutes")) for x in leads if finite(x.get("lead_minutes")) is not None]
 
     comparison = {
         "schema": "solaire_v3_vs_v2_comparison_v1",
         "checked_at_utc": utc(now),
         "prospective_started_at_utc": v3.get("started_at_utc"),
+        "architecture_version": V3_ARCHITECTURE_VERSION,
+        "architecture_scope": "CURRENT_VERSION_ONLY_FOR_V3_SUMMARIES",
+        "legacy_v3_event_count_excluded_from_summary": len(legacy_v3_events),
         "frozen_v2_commit": FROZEN_V2_COMMIT,
         "method": "same-market prospective events; strict chronological complete horizons; 0.70% round-trip cost estimate",
         "horizons_hours": list(HORIZONS_HOURS),
@@ -349,6 +368,9 @@ def main() -> int:
         "checked_at_utc": utc(now),
         "status": "DEGRADED_NONBLOCKING" if critical else ("OK_WITH_SOURCE_GAPS" if errors else "OK"),
         "prospective_started_at_utc": v3.get("started_at_utc"),
+        "architecture_version": V3_ARCHITECTURE_VERSION,
+        "current_architecture_events": len(current_v3_events),
+        "legacy_v3_events": len(legacy_v3_events),
         "frozen_v2_commit": FROZEN_V2_COMMIT,
         "new_complete_evaluations": total_new,
         "evaluation_budget_per_run": MAX_NEW_EVALUATIONS_PER_RUN,
