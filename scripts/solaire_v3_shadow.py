@@ -394,6 +394,107 @@ def news_for_symbol(
     return hits[:10], round(score, 3), round(positive_score, 3), round(negative_score, 3)
 
 
+def fetch_external_price_snapshot(
+    allowed_symbols: set[str],
+) -> tuple[dict[str, dict[str, float]], list[dict[str, str]]]:
+    """One batch request per venue gives full-universe external discovery."""
+    prices: dict[str, dict[str, float]] = {symbol: {} for symbol in allowed_symbols}
+    errors: list[dict[str, str]] = []
+
+    try:
+        rows = _json_url("https://api.binance.com/api/v3/ticker/price") or []
+        for row in rows if isinstance(rows, list) else []:
+            pair = str(row.get("symbol") or "")
+            if not pair.endswith("USDT"):
+                continue
+            symbol = pair[:-4]
+            px = finite(row.get("price"))
+            if symbol in prices and px is not None and px > 0:
+                prices[symbol]["binance"] = px
+    except Exception as exc:
+        errors.append({"source": "external_batch_binance", "reason": type(exc).__name__})
+
+    try:
+        data = _json_url("https://api.bybit.com/v5/market/tickers?category=spot")
+        rows = ((data or {}).get("result") or {}).get("list") or []
+        for row in rows:
+            pair = str(row.get("symbol") or "")
+            if not pair.endswith("USDT"):
+                continue
+            symbol = pair[:-4]
+            px = finite(row.get("lastPrice"))
+            if symbol in prices and px is not None and px > 0:
+                prices[symbol]["bybit"] = px
+    except Exception as exc:
+        errors.append({"source": "external_batch_bybit", "reason": type(exc).__name__})
+
+    try:
+        data = _json_url("https://www.okx.com/api/v5/market/tickers?instType=SPOT")
+        rows = (data or {}).get("data") or []
+        for row in rows:
+            pair = str(row.get("instId") or "")
+            if not pair.endswith("-USDT"):
+                continue
+            symbol = pair[:-5]
+            px = finite(row.get("last"))
+            if symbol in prices and px is not None and px > 0:
+                prices[symbol]["okx"] = px
+    except Exception as exc:
+        errors.append({"source": "external_batch_okx", "reason": type(exc).__name__})
+
+    return {k: v for k, v in prices.items() if v}, errors
+
+
+def build_external_sparks(
+    universe_rows: list[dict[str, Any]],
+    current: dict[str, dict[str, float]],
+    previous: dict[str, dict[str, float]] | None,
+) -> dict[str, dict[str, Any]]:
+    """Detect short external acceleration for every Bitvavo asset between cycles."""
+    previous = previous or {}
+    result: dict[str, dict[str, Any]] = {}
+    for row in universe_rows:
+        market = str(row.get("market") or "")
+        symbol = base_symbol(market)
+        deltas = []
+        venue_deltas = {}
+        for venue, px in (current.get(symbol) or {}).items():
+            prior = finite((previous.get(symbol) or {}).get(venue))
+            if prior is None or prior <= 0 or px <= 0:
+                continue
+            delta = (px / prior - 1.0) * 100.0
+            venue_deltas[venue] = round(delta, 4)
+            deltas.append(delta)
+        med = _median(deltas)
+        breadth = None if not deltas else 100.0 * sum(x > 0 for x in deltas) / len(deltas)
+        max_up = max(deltas) if deltas else None
+        score = 0.0
+        if med is not None:
+            score += min(6.0, max(0.0, med) * 8.0)
+        if breadth is not None:
+            score += min(2.0, max(0.0, breadth - 50.0) / 25.0)
+        if max_up is not None:
+            score += min(2.0, max(0.0, max_up - (med or 0.0)) * 2.0)
+        ready = bool(
+            len(deltas) >= 2
+            and (
+                ((med or 0.0) >= 0.30 and (breadth or 0.0) >= 66.0)
+                or ((max_up or 0.0) >= 0.75 and sum(x > 0 for x in deltas) >= 2)
+            )
+        )
+        result[market] = {
+            "mode": "FULL_UNIVERSE_BATCH_EXTERNAL_SPARK",
+            "venues_observed": len(deltas),
+            "venue_deltas_pct": venue_deltas,
+            "median_change_since_previous_cycle_pct": None if med is None else round(med, 4),
+            "breadth_positive_pct": None if breadth is None else round(breadth, 2),
+            "max_change_since_previous_cycle_pct": None if max_up is None else round(max_up, 4),
+            "score_0_10": round(min(10.0, score), 3),
+            "ready": ready,
+        }
+    return result
+
+
 def _return_from_points(points: list[tuple[float, float]], minutes: int) -> float | None:
     pts = sorted((t, p) for t, p in points if t and p and p > 0)
     if len(pts) < 2:
