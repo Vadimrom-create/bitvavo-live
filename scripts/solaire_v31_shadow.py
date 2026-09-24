@@ -25,6 +25,7 @@ from research.solaire_v31 import (
     REFERENCE_CAPITAL_EUR,
     final_economic_score,
     preliminary_economic_score,
+    select_execution_path,
     shadow_sizing,
     timing_variants,
 )
@@ -272,21 +273,7 @@ def main() -> int:
         raw_execution = candidate.get("execution")
         thesis_execution = candidate.get("thesis_execution")
         thesis_reentry = bool(candidate.get("thesis_reentry_hypothesis"))
-        if thesis_reentry and (thesis_execution or {}).get("ready"):
-            selected_execution = thesis_execution
-            entry_path = "THESIS_REENTRY"
-        elif (raw_execution or {}).get("ready"):
-            selected_execution = raw_execution
-            entry_path = "RAW"
-        elif thesis_reentry and thesis_execution is not None:
-            selected_execution = thesis_execution
-            entry_path = "THESIS_REENTRY_WAIT"
-        elif thesis_reentry and raw_execution is None:
-            selected_execution = None
-            entry_path = "THESIS_REENTRY_PENDING_CHECK"
-        else:
-            selected_execution = raw_execution
-            entry_path = "RAW"
+        selected_execution, entry_path = select_execution_path(candidate)
         final = final_economic_score(preliminary, selected_execution)
         sizing = None
         if final.get("selectable"):
