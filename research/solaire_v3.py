@@ -17,7 +17,7 @@ from typing import Any
 from research.common import finite
 
 FROZEN_V2_COMMIT = "34b042121bb8425b0e4b46e3d1a694d4b1f4ec75"
-V3_ARCHITECTURE_VERSION = "v3.4-near-miss-recovery-20260924"
+V3_ARCHITECTURE_VERSION = "v3.5-near-miss-memory-only-20260924"
 REFERENCE_STAKE_EUR = 100.0
 REFERENCE_CAPITAL_EUR = 2400.0
 MAX_SHADOW_POSITIONS = 3
