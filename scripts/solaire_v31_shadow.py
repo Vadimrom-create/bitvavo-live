@@ -607,7 +607,10 @@ def main() -> int:
                     "funnel": funnel,
                     "upstream_v3_architecture_version": upstream_v3_architecture_version,
                     "observation_only": True,
-                    "left_censored_at_v31_t0": prospective_censor,
+                    "left_censored_at_v31_t0": bool(
+                        prospective_censor
+                        or upstream_recovery.get("first_credible_left_censored")
+                    ),
                     "evaluations": {},
                 }
                 if _append_event(journal, recovery_event):
