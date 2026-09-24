@@ -19,6 +19,7 @@ import concurrent.futures
 import email.utils
 import json
 import math
+import os
 import re
 import statistics
 import sys
@@ -40,18 +41,22 @@ from research.http import PublicClient
 from research.risk import structural_plan
 from research.solaire_v3 import (
     FROZEN_V2_COMMIT,
+    V3_ARCHITECTURE_VERSION,
     MAX_SHADOW_POSITIONS,
     REFERENCE_CAPITAL_EUR,
     REFERENCE_STAKE_EUR,
     advance_persistent_thesis,
     base_symbol,
     build_asset_aliases,
+    build_dynamic_rotation_context,
     build_narrative_rotations,
     classify_horizon,
+    classify_news_event,
     early_quant_evidence,
     match_news_assets,
     narratives_for_market,
     score_opportunity,
+    select_fair_batch,
     structured_news_symbols,
     walk_asks,
 )
@@ -68,10 +73,11 @@ V2_BENCHMARK = "solaire_v2_frozen_benchmark_journal.json"
 
 MAX_CONTEXT_AGE = 36 * 3600
 WATCH_EXPIRY = 24 * 3600
-MAX_EXTERNAL_MARKETS = 16
-MAX_EXECUTION_MARKETS = 14
-MAX_THESIS_PROFILE_MARKETS = 20
-MAX_THESIS_EXECUTION_MARKETS = 8
+MAX_EXTERNAL_MARKETS = 18
+MAX_EXECUTION_MARKETS = 18
+MAX_THESIS_PROFILE_MARKETS = 24
+MAX_THESIS_EXECUTION_MARKETS = 20
+MAX_DERIVATIVE_MARKETS = 12
 MIN_QUOTE_VOLUME_EUR = 75_000.0
 MAX_SPREAD_PCT = 0.50
 MAX_DEPTH_SLIPPAGE_PCT = 0.50
@@ -86,11 +92,13 @@ TIMING_RECLAIM_MIN_PCT = 1.0
 TIMING_RECLAIM_MAX_DRIFT_PCT = 3.0
 
 NEWS_FEEDS = (
-    ("coindesk", "https://www.coindesk.com/arc/outboundfeeds/rss/"),
-    ("cointelegraph", "https://cointelegraph.com/rss"),
-    ("decrypt", "https://decrypt.co/feed"),
-    ("crypto.news", "https://crypto.news/feed/"),
-    ("cryptoast", "https://cryptoast.fr/feed/"),
+    ("coindesk", "https://www.coindesk.com/arc/outboundfeeds/rss/", "media"),
+    ("cointelegraph", "https://cointelegraph.com/rss", "media"),
+    ("decrypt", "https://decrypt.co/feed", "media"),
+    ("crypto.news", "https://crypto.news/feed/", "media"),
+    ("cryptoast", "https://cryptoast.fr/feed/", "media"),
+    ("coinbase_official", "https://www.coinbase.com/blog/rss.xml", "official_exchange"),
+    ("kraken_official", "https://blog.kraken.com/feed", "official_exchange"),
 )
 
 GENERIC_SYMBOLS = {
