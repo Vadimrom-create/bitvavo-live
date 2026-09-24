@@ -50,6 +50,7 @@ def _event_key(event: dict[str, Any]) -> str:
         str(event.get("market") or ""),
         str(event.get("episode") or ""),
         str(event.get("event_type") or ""),
+        str(event.get("entry_path") or ""),
     ])
 
 
@@ -200,6 +201,7 @@ def _timing_event(
         "execution_quality": row["execution_quality"],
         "sizing": row.get("sizing"),
         "timing_path": path,
+        "entry_path": "RAW_TIMING",
         "timing_state": row.get("timing_state"),
         "upstream_v3_timing_lab_commit": V3_TIMING_LAB_COMMIT,
         "legacy_v2_score_unused": row.get("v2_score"),
@@ -334,6 +336,7 @@ def main() -> int:
             ms["started_ts"] = now
             ms["started_at_utc"] = utc(now)
             ms.pop("decision_recorded_episode", None)
+            ms.pop("decision_recorded_paths", None)
             ms.pop("timing_decisions", None)
 
         ms["last_seen_ts"] = now
@@ -371,8 +374,10 @@ def main() -> int:
             "left_censored_at_v31_t0": initial_cycle,
             "evaluations": {},
         }
-        if ms.get("decision_recorded_episode") != ms["episode"] and _append_event(journal, event):
-            ms["decision_recorded_episode"] = ms["episode"]
+        decision_paths = ms.setdefault("decision_recorded_paths", {})
+        decision_key = row.get("entry_path") or "RAW"
+        if decision_paths.get(decision_key) != ms["episode"] and _append_event(journal, event):
+            decision_paths[decision_key] = ms["episode"]
 
         if row.get("selectable"):
             qualified_for_portfolio.append({
