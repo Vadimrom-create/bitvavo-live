@@ -4,9 +4,7 @@ V3.1 is a prospective shadow challenger launched after the NIL / APE / FORM obse
 
 ## Frozen comparator
 
-V3 detector/ranking code reference: `2b0a5b25173e8ac5dd67625f80755f26acbedabf`.
-
-The existing V3 path remains unchanged. V3.1 sends no email and no order.
+Historical V3 benchmark reference: `2b0a5b25173e8ac5dd67625f80755f26acbedabf`. This commit is now labelled **benchmark-only**; it is not represented as the live V3 input. Each V3.1 cycle records the actual upstream V3 architecture version and runtime commit. V3.1 sends no email and no order.
 
 ## Pre-registered hypotheses
 
@@ -35,7 +33,7 @@ V3.1 performs no additional market discovery and no extra external-venue calls. 
 
 This avoids slowing the production scan or changing what V3 sees.
 
-Only candidates already execution-checked by V3 can become V3.1-qualified entries. Candidates not checked by V3 are reported as unchecked rather than silently treated as failures.
+V3.1 can qualify either the RAW V3 execution path or a persistent-thesis re-entry path forwarded by V3. A re-entry that is temporarily blocked by net R:R, spread, structure or another execution condition remains visible as a retryable wait; it is not discarded. Raw and thesis re-entry decisions are journalled separately even when they occur in the same market episode.
 
 ## Prospective measurement
 
@@ -80,3 +78,8 @@ The original V3.1 RAW journal and portfolio remain intact. Two new shadow portfo
 The first timing-extension cycle is left-censored. A timing condition already active when the extension starts cannot be counted as a fresh prospective timing success or open a timing portfolio position.
 
 This extension still sends no email, submits no order, and cannot modify V2 or V3.
+
+
+## Architecture provenance and catalyst handling
+
+V3.1 uses positive/material news context rather than raw headline count in its context component, and applies an explicit penalty when a strong negative catalyst dominates. It inherits V3's full-universe news/external discovery and dynamic rotation context without maintaining its own discovery whitelist. New V3.1 events are architecture-versioned; legacy events are tagged as pre-versioning observations.
