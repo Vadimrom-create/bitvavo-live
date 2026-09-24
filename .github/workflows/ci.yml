@@ -92,7 +92,7 @@ jobs:
           assert 'v3_thesis_reentry_ready' in comp['summary'], comp
           assert 'v3_thesis_reentry_entry' in comp['summary'], comp
           theses = json.load(open('solaire_v3_theses.json'))
-          assert theses['affects_v3_candidate_selection'] is False, theses
+          assert theses['affects_v3_candidate_selection'] is True, theses
           assert theses['affects_v31'] is True, theses
           assert v3['architecture_version'].startswith('v3.2-'), v3
           assert v3['news_ticker_coverage_symbols'] == v3['universe_rows'], v3
