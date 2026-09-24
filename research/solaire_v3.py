@@ -17,6 +17,7 @@ from typing import Any
 from research.common import finite
 
 FROZEN_V2_COMMIT = "34b042121bb8425b0e4b46e3d1a694d4b1f4ec75"
+V3_ARCHITECTURE_VERSION = "v3.2-architecture-hardening-20260924"
 REFERENCE_STAKE_EUR = 100.0
 REFERENCE_CAPITAL_EUR = 2400.0
 MAX_SHADOW_POSITIONS = 3
@@ -102,13 +103,10 @@ def build_asset_aliases(
         aliases: set[str] = set()
         name = names.get(symbol)
         if name:
+            # Keep the canonical Bitvavo project name intact.  Shortening
+            # "Across Protocol" -> "Across" or "Gains Network" -> "Gains"
+            # created severe false positives in ordinary prose.
             aliases.add(name)
-            low = name.lower().strip()
-            for suffix in (" token", " protocol", " network"):
-                if low.endswith(suffix):
-                    short = name[: -len(suffix)].strip()
-                    if len(short) >= 4:
-                        aliases.add(short)
         for alias in supplemental.get(symbol, ()):
             alias = str(alias or "").strip()
             if alias:
@@ -137,10 +135,20 @@ def match_news_assets(
         symbol = symbol.upper()
         matched = False
         for alias in aliases:
-            a = str(alias or "").lower().strip()
+            raw_alias = str(alias or "").strip()
+            a = raw_alias.lower()
             if len(a) < 4 or a == symbol.lower():
                 continue
-            if re.search(r"(?<![a-z0-9])" + re.escape(a) + r"(?![a-z0-9])", low):
+            words = re.findall(r"[A-Za-z0-9]+", raw_alias)
+            if len(words) <= 1:
+                # Single-word project names are often ordinary English words
+                # (Movement, Momentum, Vision, Form...).  Require the proper
+                # project casing instead of a case-insensitive prose match.
+                pattern = r"(?<![A-Za-z0-9])" + re.escape(raw_alias) + r"(?![A-Za-z0-9])"
+                if re.search(pattern, original):
+                    matched = True
+                    break
+            elif re.search(r"(?<![a-z0-9])" + re.escape(a) + r"(?![a-z0-9])", low):
                 matched = True
                 break
         if not matched:
@@ -165,6 +173,59 @@ def structured_news_symbols(value: Any, allowed_symbols: set[str]) -> list[str]:
     allowed = {str(x).upper() for x in allowed_symbols}
     tokens = re.findall(r"[A-Za-z0-9]{1,20}", str(value).upper())
     return sorted({token for token in tokens if token in allowed})
+
+
+def classify_news_event(title: str, *, source_kind: str = "media") -> dict[str, Any]:
+    """Classify catalyst type/direction without turning headlines into BUYs."""
+    low = " " + re.sub(r"\\s+", " ", str(title or "").lower()) + " "
+    positive = {
+        "LISTING": (" will list ", " to list ", " listing ", " lists ", " spot trading ", " now live "),
+        "PARTNERSHIP": (" partnership ", " partners with ", " integrates ", " integration "),
+        "APPROVAL": (" approved ", " approval ", " greenlight ", " green light "),
+        "PRODUCT_LAUNCH": (" launches ", " launch of ", " mainnet ", " goes live "),
+    }
+    negative = {
+        "DELISTING": (" delist ", " delisting ", " remove trading ", " trading removal "),
+        "SECURITY": (" hack ", " hacked ", " exploit ", " exploited ", " breach ", " stolen "),
+        "REGULATORY": (" lawsuit ", " charged ", " charges ", " investigation ", " enforcement "),
+        "SUPPLY": (" token unlock ", " unlocks ", " unlock "),
+    }
+    for event_type, needles in negative.items():
+        if any(n in low for n in needles):
+            return {
+                "event_type": event_type,
+                "direction": "NEGATIVE",
+                "materiality": 3 if event_type in {"DELISTING", "SECURITY"} else 2,
+                "source_kind": source_kind,
+            }
+    for event_type, needles in positive.items():
+        if any(n in low for n in needles):
+            return {
+                "event_type": event_type,
+                "direction": "POSITIVE",
+                "materiality": 3 if event_type == "LISTING" else 2,
+                "source_kind": source_kind,
+            }
+    return {"event_type": "OTHER", "direction": "NEUTRAL", "materiality": 1, "source_kind": source_kind}
+
+
+def select_fair_batch(
+    items: list[Any],
+    limit: int,
+    cursor: int = 0,
+    *,
+    key=lambda x: str(x),
+) -> tuple[list[Any], int, dict[str, int]]:
+    """Round-robin bounded work so no candidate is permanently starved."""
+    if limit <= 0 or not items:
+        return [], 0, {"eligible": len(items), "selected": 0, "next_cursor": 0}
+    ordered = sorted(items, key=key)
+    n = len(ordered)
+    start = int(cursor or 0) % n
+    take = min(limit, n)
+    selected = [ordered[(start + i) % n] for i in range(take)]
+    next_cursor = (start + take) % n
+    return selected, next_cursor, {"eligible": n, "selected": take, "next_cursor": next_cursor}
 
 
 def _n(value: Any, default: float = 0.0) -> float:
@@ -228,6 +289,59 @@ def build_narrative_rotations(universe: list[dict[str, Any]]) -> dict[str, dict[
             "breadth_above_market_1h_pct": round(breadth, 2),
             "rotation_score_0_3": round(score, 3),
             "active_watch": score >= 1.2,
+        }
+    return result
+
+
+def build_dynamic_rotation_context(universe: list[dict[str, Any]]) -> dict[str, dict[str, Any]]:
+    """Full-universe rotation context from nearest short/mid-horizon movers.
+
+    Static semantic narratives remain useful labels, but are not allowed to be
+    the only way an asset can receive rotation context.  Every Bitvavo market
+    with valid 1h/4h returns gets a peer-cohort rotation estimate.
+    """
+    points: list[tuple[str, float, float]] = []
+    for row in universe:
+        market = str(row.get("market") or "")
+        f15 = ((row.get("features") or {}).get("15m") or {})
+        r1 = finite(f15.get("return_4bar_pct"))
+        r4 = finite(f15.get("return_16bar_pct"))
+        if market and r1 is not None and r4 is not None:
+            points.append((market, r1, r4))
+    if not points:
+        return {}
+    global_1h = median([x[1] for x in points]) or 0.0
+    global_4h = median([x[2] for x in points]) or 0.0
+    result: dict[str, dict[str, Any]] = {}
+    peer_count = min(12, max(4, len(points) - 1))
+    for market, r1, r4 in points:
+        peers = sorted(
+            (x for x in points if x[0] != market),
+            key=lambda x: abs(x[1] - r1) + 0.35 * abs(x[2] - r4),
+        )[:peer_count]
+        if not peers:
+            continue
+        p1 = median([x[1] for x in peers]) or 0.0
+        p4 = median([x[2] for x in peers]) or 0.0
+        breadth = 100.0 * sum(x[1] > global_1h for x in peers) / len(peers)
+        rel1 = p1 - global_1h
+        rel4 = p4 - global_4h
+        score = (
+            min(1.2, max(0.0, rel1 / 1.25))
+            + min(1.2, max(0.0, rel4 / 3.0))
+            + min(0.6, max(0.0, (breadth - 50.0) / 50.0 * 0.6))
+        )
+        # The asset itself must participate in the cohort move; otherwise it
+        # should not inherit a bullish rotation merely from nearby peers.
+        participating = r1 >= global_1h and r4 >= global_4h - 0.5
+        result[market] = {
+            "mode": "DYNAMIC_FULL_UNIVERSE_MOMENTUM_COHORT",
+            "peer_count": len(peers),
+            "peer_median_1h_pct": round(p1, 4),
+            "peer_median_4h_pct": round(p4, 4),
+            "peer_breadth_above_market_1h_pct": round(breadth, 2),
+            "rotation_score_0_3": round(score, 3),
+            "active_watch": bool(participating and score >= 1.2),
         }
     return result
 
