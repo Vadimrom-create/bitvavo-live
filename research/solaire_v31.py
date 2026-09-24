@@ -18,6 +18,7 @@ from typing import Any
 from research.common import finite
 
 FROZEN_V3_COMMIT = "2b0a5b25173e8ac5dd67625f80755f26acbedabf"
+V31_ARCHITECTURE_VERSION = "v3.1.1-architecture-hardening-20260924"
 V3_TIMING_LAB_COMMIT = "0c05e0fbf55b0ff99dae3f10bcfc3411bbee0cc6"
 REFERENCE_CAPITAL_EUR = 2400.0
 MAX_SHADOW_POSITIONS = 3
@@ -113,10 +114,12 @@ def preliminary_economic_score(candidate: dict[str, Any], universe_row: dict[str
         + 0.15 * wick_quality
     )
 
+    positive_news = _n(candidate.get("news_positive_score"), _n(candidate.get("news_score")))
+    negative_news = _n(candidate.get("news_negative_score"))
     context_score = (
         0.50 * _n(candidate.get("external_score"))
         + 0.30 * _n(candidate.get("narrative_score"))
-        + 0.20 * _n(candidate.get("news_score"))
+        + 0.20 * positive_news
     )
 
     penalties: dict[str, float] = {}
@@ -130,6 +133,8 @@ def preliminary_economic_score(candidate: dict[str, Any], universe_row: dict[str
         penalties["late_extension"] = min(1.4, (change24 - 20.0) / 20.0 + (extension - 6.0) / 10.0)
     if early_score >= 5.0 and r4h <= -2.0:
         penalties["horizon_disagreement"] = 0.8
+    if negative_news >= 6.0 and negative_news > positive_news + 2.0:
+        penalties["negative_catalyst"] = min(2.0, negative_news / 5.0)
 
     contradiction_penalty = sum(penalties.values())
     raw = (
