@@ -218,6 +218,7 @@ def main() -> int:
     portfolio_reclaim = read_json(PORTFOLIO_RECLAIM, {}) or {}
 
     v3_candidates = v3_doc.get("candidates") or []
+    news_mapping = v3_doc.get("news_mapping") or {}
     rows = universe.get("rows") or []
     universe_by_market = {x.get("market"): x for x in rows if x.get("market")}
 
@@ -395,7 +396,8 @@ def main() -> int:
         "affects_v2": False,
         "affects_email": False,
         "orders_submitted": False,
-        "method_note": "RAW ranking is unchanged; timing variants consume only V3-recorded timing events. No extra discovery or network calls.",
+        "method_note": "RAW ranking is unchanged; timing variants consume only V3-recorded timing events. News discovery is inherited from V3's full Bitvavo dynamic asset map; V3.1 adds no separate whitelist.",
+        "news_mapping": news_mapping,
         "candidates": ranked,
     }
     status = {
@@ -406,6 +408,11 @@ def main() -> int:
         "frozen_v3_commit": FROZEN_V3_COMMIT,
         "v3_timing_lab_commit": V3_TIMING_LAB_COMMIT,
         "candidate_count": len(ranked),
+        "news_mapping_mode": news_mapping.get("mode"),
+        "news_universe_symbols": news_mapping.get("universe_symbols"),
+        "news_ticker_coverage_symbols": news_mapping.get("ticker_coverage_symbols"),
+        "news_named_alias_symbols": news_mapping.get("named_alias_symbols"),
+        "news_mapping_inherited_from_v3": True,
         "execution_ready_count": sum(bool((x.get("execution") or {}).get("ready")) for x in ranked),
         "qualified_count": len(qualified_for_portfolio),
         "ready_rejected_count": len(ready_rejected),
