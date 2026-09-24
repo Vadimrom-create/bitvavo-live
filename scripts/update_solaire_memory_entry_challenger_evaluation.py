@@ -24,7 +24,7 @@ BASELINE_PORTFOLIO = "solaire_v31_portfolio.json"
 COMPARISON = "solaire_memory_entry_challenger_comparison.json"
 STATUS = "solaire_memory_entry_challenger_evaluation_status.json"
 
-CHALLENGER_VERSION = "memory-entry-challenger-v1-20260924"
+CHALLENGER_VERSION = "memory-entry-challenger-v2-decoupled-20260924"
 MAX_NEW_EVALUATIONS_PER_RUN = 24
 
 
