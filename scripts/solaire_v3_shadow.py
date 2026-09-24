@@ -1095,10 +1095,10 @@ def main() -> int:
         market for market, thesis in (state.get("theses") or {}).items()
         if thesis.get("active")
     }
-    fresh_thesis_markets = {
-        x["market"] for x in candidates if x.get("fresh_opportunity_trigger")
+    seeded_thesis_markets = {
+        x["market"] for x in candidates if x.get("thesis_seed")
     }
-    thesis_markets = sorted(active_thesis_markets | fresh_thesis_markets)
+    thesis_markets = sorted(active_thesis_markets | seeded_thesis_markets)
 
     thesis_observations: list[dict[str, Any]] = []
     for market in thesis_markets:
@@ -1111,32 +1111,43 @@ def main() -> int:
                 continue
             symbol = base_symbol(market)
             early = early_quant_evidence(raw)
-            hits, news_score = news_for_symbol(symbol, news, now)
+            hits, news_score, news_positive_score, news_negative_score = news_for_symbol(symbol, news, now)
             sector_names = narratives_for_market(market)
             active_rotations = [
                 (name, rotations.get(name) or {})
                 for name in sector_names
                 if (rotations.get(name) or {}).get("active_watch")
             ]
-            raw_rotation = max([finite(x[1].get("rotation_score_0_3"), 0) for x in active_rotations] or [0])
+            dynamic_rotation = dynamic_rotations.get(market) or {}
+            active_narratives = [x[0] for x in active_rotations]
+            if dynamic_rotation.get("active_watch"):
+                active_narratives.append("DYNAMIC_MOMENTUM_COHORT")
+            static_rotation = max([finite(x[1].get("rotation_score_0_3"), 0) for x in active_rotations] or [0])
+            raw_rotation = max(static_rotation, finite(dynamic_rotation.get("rotation_score_0_3"), 0))
             narrative_score = min(10.0, raw_rotation / 3.0 * 10.0)
             v2row = v2_tracking.get(market) or {}
             prior = (state.get("theses") or {}).get(market) or {}
+            external_spark = external_sparks.get(market) or {}
             obs = {
                 **raw,
                 "symbol": symbol,
                 "early_quant": early,
                 "news_items": hits,
                 "news_score": news_score,
+                "news_positive_score": news_positive_score,
+                "news_negative_score": news_negative_score,
                 "narratives": sector_names,
-                "active_narratives": [x[0] for x in active_rotations],
+                "active_narratives": active_narratives,
                 "narrative_score": round(narrative_score, 3),
-                "external": {"venues_available": 0, "external_score_0_10": 0.0, "reason": "THESIS_ONLY_NO_EXTRA_EXTERNAL_QUERY"},
-                "external_score": 0.0,
+                "dynamic_rotation": dynamic_rotation,
+                "external_spark": external_spark,
+                "external": {"venues_available": 0, "external_score_0_10": 0.0, "reason": "THESIS_ONLY_NO_DETAILED_EXTERNAL_QUERY"},
+                "external_score": finite(external_spark.get("score_0_10"), 0),
                 "opportunity_score": finite(prior.get("best_opportunity_score"), 0.0),
-                "context_watch": bool(news_score > 0 or active_rotations),
+                "context_watch": bool(news_score > 0 or active_narratives or external_spark.get("ready")),
                 "fresh_opportunity_trigger": False,
                 "entry_hypothesis": False,
+                "thesis_seed": False,
                 "v2_state": v2row.get("signal_state"),
                 "v2_score": finite(v2row.get("signal_score")),
             }
@@ -1150,12 +1161,18 @@ def main() -> int:
         )
     )
     long_trend_profiles: dict[str, dict[str, Any]] = {}
-    if thesis_observations:
+    profile_rows, state["thesis_profile_cursor"], thesis_profile_fairness = select_fair_batch(
+        thesis_observations,
+        MAX_THESIS_PROFILE_MARKETS,
+        state.get("thesis_profile_cursor", 0),
+        key=lambda x: x.get("market") or "",
+    )
+    if profile_rows:
         try:
             trend_client = PublicClient(timeout=8, retries=2, requests_per_second=8)
             long_trend_profiles, trend_errors = fetch_long_trend_profiles(
                 trend_client,
-                [x["market"] for x in thesis_observations],
+                [x["market"] for x in profile_rows],
                 now,
             )
             source_errors.extend(trend_errors)
@@ -1179,6 +1196,7 @@ def main() -> int:
         if market in candidate_by_market:
             candidate_by_market[market]["long_trend"] = long_trend
             candidate_by_market[market]["persistent_thesis"] = thesis or {}
+            candidate_by_market[market]["thesis_reentry_hypothesis"] = obs["thesis_reentry_hypothesis"]
 
         opened = bool(thesis.get("active")) and not prior_active
         if opened:
