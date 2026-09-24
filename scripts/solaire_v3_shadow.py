@@ -77,6 +77,7 @@ MAX_CONTEXT_AGE = 36 * 3600
 WATCH_EXPIRY = 24 * 3600
 MAX_EXTERNAL_MARKETS = 18
 MAX_EXECUTION_MARKETS = 18
+MAX_NEAR_MISS_EXECUTION_MARKETS = 20
 MAX_THESIS_PROFILE_MARKETS = 24
 MAX_THESIS_EXECUTION_MARKETS = 20
 MAX_DERIVATIVE_MARKETS = 12
@@ -1268,15 +1269,22 @@ def main() -> int:
             and finite(row.get("news_negative_score"), 0) > finite(row.get("news_positive_score"), 0) + 2.0
         )
         v2_confirmed = row.get("v2_state") == "CONFIRMED_ACCELERATION"
+        early_quant_ready = bool((row.get("early_quant") or {}).get("ready"))
+        near_miss_opportunity = bool(
+            early_quant_ready
+            and not strong_negative_news
+        )
         fresh_opportunity_trigger = (
-            bool((row.get("early_quant") or {}).get("ready"))
+            early_quant_ready
             and positive_context
             and not strong_negative_news
         ) or v2_confirmed
+        credible_opportunity = bool(near_miss_opportunity or fresh_opportunity_trigger)
         thesis_seed = bool(
             not strong_negative_news
             and (
-                finite(row.get("news_positive_score"), 0) >= 4.0
+                near_miss_opportunity
+                or finite(row.get("news_positive_score"), 0) >= 4.0
                 or external_spark_ready
             )
         )
@@ -1288,6 +1296,8 @@ def main() -> int:
             "context_watch": context_watch,
             "positive_context": positive_context,
             "strong_negative_news": strong_negative_news,
+            "near_miss_opportunity": near_miss_opportunity,
+            "credible_opportunity": credible_opportunity,
             "fresh_opportunity_trigger": fresh_opportunity_trigger,
             "entry_hypothesis": fresh_opportunity_trigger,
             "thesis_seed": thesis_seed,
@@ -1501,6 +1511,23 @@ def main() -> int:
         key=lambda x: x.get("market") or "",
     )
 
+    near_miss_execution_eligible = [
+        x for x in candidates
+        if x.get("near_miss_opportunity") and not x.get("entry_hypothesis")
+    ]
+    near_miss_execution_rows, state["near_miss_execution_cursor"], near_miss_execution_fairness = select_priority_fair_batch(
+        near_miss_execution_eligible,
+        MAX_NEAR_MISS_EXECUTION_MARKETS,
+        state.get("near_miss_execution_cursor", 0),
+        priority_count=min(8, MAX_NEAR_MISS_EXECUTION_MARKETS),
+        priority_key=lambda x: (
+            int((x.get("early_quant") or {}).get("evidence_count") or 0),
+            finite((x.get("early_quant") or {}).get("score_0_10"), 0),
+            finite(x.get("opportunity_score"), 0),
+        ),
+        key=lambda x: x.get("market") or "",
+    )
+
     client = PublicClient(timeout=8, retries=2, requests_per_second=10)
     metadata: dict[str, dict[str, Any]] = {}
     critical_error = None
@@ -1514,9 +1541,12 @@ def main() -> int:
         critical_error = type(exc).__name__ + ":" + str(exc)
 
     checks = {}
+    near_miss_checks: dict[str, dict[str, Any]] = {}
     if metadata:
         for row in execution_rows:
             checks[row["market"]] = execution_check(client, metadata, row, time.time())
+        for row in near_miss_execution_rows:
+            near_miss_checks[row["market"]] = execution_check(client, metadata, row, time.time())
 
     # Re-entry theses are now a first-class upstream path for V3.1.  The
     # bounded execution workload rotates fairly so an ONDO-like candidate can
@@ -1632,30 +1662,146 @@ def main() -> int:
             if _append_event(journal, event):
                 ms["prewatch_recorded_episode"] = ms["episode"]
 
-        if row.get("entry_hypothesis"):
+        if row.get("credible_opportunity"):
             recovery = ms.setdefault("opportunity_recovery", {"episode": ms["episode"]})
             if recovery.get("episode") != ms["episode"]:
                 recovery.clear()
                 recovery["episode"] = ms["episode"]
-            if recovery.get("first_opportunity_ts") is None:
-                recovery["first_opportunity_ts"] = now
-                recovery["first_opportunity_at_utc"] = utc(now)
-                recovery["first_opportunity_price_eur"] = finite(row.get("price_eur"))
-                recovery["first_opportunity_definition"] = "FIRST_V3_ENTRY_HYPOTHESIS"
-                first_event = {
-                    "event_type": "FIRST_OPPORTUNITY_OBSERVED",
+            if recovery.get("first_credible_ts") is None:
+                recovery["first_credible_ts"] = now
+                recovery["first_credible_at_utc"] = utc(now)
+                recovery["first_credible_price_eur"] = finite(row.get("price_eur"))
+                recovery["first_credible_source"] = (
+                    "EARLY_QUANT_NEAR_MISS"
+                    if row.get("near_miss_opportunity") and not row.get("entry_hypothesis")
+                    else "ENTRY_HYPOTHESIS"
+                )
+                recovery["first_credible_early_quant"] = row.get("early_quant")
+                credible_event = {
+                    "event_type": "FIRST_CREDIBLE_OPPORTUNITY",
                     "market": market,
                     "episode": ms["episode"],
-                    "attempt_id": f"{market}|{ms['episode']}|FIRST_OPPORTUNITY",
+                    "attempt_id": f"{market}|{ms['episode']}|FIRST_CREDIBLE",
                     "decision_ts": now,
                     "decision_at_utc": utc(now),
                     "price_eur": finite(row.get("price_eur")),
                     "opportunity_score": row.get("opportunity_score"),
                     "horizon_class": row.get("horizon_class"),
+                    "near_miss_opportunity": bool(row.get("near_miss_opportunity")),
+                    "entry_hypothesis": bool(row.get("entry_hypothesis")),
+                    "early_quant": row.get("early_quant"),
+                    "positive_context": row.get("positive_context"),
+                    "v2_state_at_event": row.get("v2_state"),
+                    "observation_only": True,
+                    "left_censored_at_v3_t0": initial_v3_cycle,
+                    "evaluations": {},
+                }
+                _append_event(journal, credible_event)
+
+        if row.get("entry_hypothesis"):
+            recovery = ms.setdefault("opportunity_recovery", {"episode": ms["episode"]})
+            if recovery.get("first_entry_hypothesis_ts") is None:
+                recovery["first_entry_hypothesis_ts"] = now
+                recovery["first_entry_hypothesis_at_utc"] = utc(now)
+                recovery["first_entry_hypothesis_price_eur"] = finite(row.get("price_eur"))
+                first_credible_ts = finite(recovery.get("first_credible_ts"), now)
+                first_credible_price = finite(recovery.get("first_credible_price_eur"))
+                current_price = finite(row.get("price_eur"))
+                recovery["credible_to_hypothesis_delay_seconds"] = now - first_credible_ts
+                if (
+                    first_credible_price is not None and first_credible_price > 0
+                    and current_price is not None
+                ):
+                    recovery["movement_consumed_to_hypothesis_pct"] = (
+                        current_price / first_credible_price - 1.0
+                    ) * 100.0
+                _append_event(journal, {
+                    "event_type": "OPPORTUNITY_ENTRY_HYPOTHESIS",
+                    "market": market,
+                    "episode": ms["episode"],
+                    "attempt_id": f"{market}|{ms['episode']}|FIRST_ENTRY_HYPOTHESIS",
+                    "decision_ts": now,
+                    "decision_at_utc": utc(now),
+                    "price_eur": current_price,
+                    "opportunity_score": row.get("opportunity_score"),
+                    "horizon_class": row.get("horizon_class"),
+                    "recovery": dict(recovery),
+                    "observation_only": True,
+                    "left_censored_at_v3_t0": initial_v3_cycle,
+                    "evaluations": {},
+                })
+
+        diagnostic_check = near_miss_checks.get(market)
+        if row.get("near_miss_opportunity") and not row.get("entry_hypothesis") and diagnostic_check is not None:
+            recovery = ms.setdefault("opportunity_recovery", {"episode": ms["episode"]})
+            diagnostic_signature = "|".join([
+                "READY" if diagnostic_check.get("ready") else "REJECTED",
+                str(diagnostic_check.get("reason") or ""),
+            ])
+            if ms.get("last_near_miss_execution_signature") != diagnostic_signature:
+                ms["near_miss_execution_sequence"] = int(ms.get("near_miss_execution_sequence", 0)) + 1
+                diagnostic_ts = finite(diagnostic_check.get("available_ts"), now)
+                _append_event(journal, {
+                    "event_type": "NEAR_MISS_EXECUTION_OBSERVATION",
+                    "market": market,
+                    "episode": ms["episode"],
+                    "attempt_id": f"{market}|{ms['episode']}|NEAR_MISS_GATE|{ms['near_miss_execution_sequence']}",
+                    "decision_ts": diagnostic_ts,
+                    "decision_at_utc": utc(diagnostic_ts),
+                    "price_eur": finite(row.get("price_eur")),
+                    "ready": bool(diagnostic_check.get("ready")),
+                    "gate_reason": diagnostic_check.get("reason"),
+                    "execution": diagnostic_check,
+                    "plan": diagnostic_check.get("plan"),
+                    "observation_only": True,
                     "evaluation_excluded": True,
                     "left_censored_at_v3_t0": initial_v3_cycle,
-                }
-                _append_event(journal, first_event)
+                })
+                ms["last_near_miss_execution_signature"] = diagnostic_signature
+
+            if diagnostic_check.get("ready") and recovery.get("first_executable_ts") is None:
+                plan = diagnostic_check.get("plan") or {}
+                executable_ts = finite(diagnostic_check.get("available_ts"), now)
+                executable_entry = finite(plan.get("entry_eur"))
+                first_price = finite(recovery.get("first_credible_price_eur"))
+                movement = None
+                if executable_entry is not None and first_price is not None and first_price > 0:
+                    movement = (executable_entry / first_price - 1.0) * 100.0
+                tp1 = finite(plan.get("tp1_eur"))
+                residual_to_tp1 = None
+                if executable_entry is not None and executable_entry > 0 and tp1 is not None:
+                    residual_to_tp1 = (tp1 / executable_entry - 1.0) * 100.0
+                recovery.update({
+                    "first_executable_ts": executable_ts,
+                    "first_executable_at_utc": utc(executable_ts),
+                    "first_executable_entry_eur": executable_entry,
+                    "first_executable_source": "NEAR_MISS_DIAGNOSTIC",
+                    "credible_to_executable_delay_seconds": (
+                        executable_ts - finite(recovery.get("first_credible_ts"), executable_ts)
+                    ),
+                    "movement_consumed_to_executable_pct": movement,
+                    "structural_residual_to_tp1_pct": residual_to_tp1,
+                })
+                _append_event(journal, {
+                    "event_type": "OPPORTUNITY_RECOVERY_EXECUTABLE",
+                    "market": market,
+                    "episode": ms["episode"],
+                    "attempt_id": f"{market}|{ms['episode']}|FIRST_EXECUTABLE",
+                    "attempt_id": f"{market}|{ms['episode']}|FIRST_EXECUTABLE",
+                    "decision_ts": executable_ts,
+                    "decision_at_utc": utc(executable_ts),
+                    "price_eur": finite(row.get("price_eur")),
+                    "entry_eur": executable_entry,
+                    "stop_eur": finite(plan.get("stop_eur")),
+                    "tp1_eur": tp1,
+                    "stake_eur": finite(plan.get("stake_eur"), REFERENCE_STAKE_EUR),
+                    "execution_source": "NEAR_MISS_DIAGNOSTIC",
+                    "recovery": dict(recovery),
+                    "execution": diagnostic_check,
+                    "observation_only": True,
+                    "left_censored_at_v3_t0": initial_v3_cycle,
+                    "evaluations": {},
+                })
 
         check = checks.get(market)
         if row.get("entry_hypothesis") and check is not None:
@@ -1707,7 +1853,7 @@ def main() -> int:
                 plan = check.get("plan") or {}
                 executable_ts = finite(check.get("available_ts"), now)
                 executable_entry = finite(plan.get("entry_eur"))
-                first_price = finite(recovery.get("first_opportunity_price_eur"))
+                first_price = finite(recovery.get("first_credible_price_eur"))
                 movement = None
                 if executable_entry is not None and first_price is not None and first_price > 0:
                     movement = (executable_entry / first_price - 1.0) * 100.0
@@ -1719,8 +1865,9 @@ def main() -> int:
                     "first_executable_ts": executable_ts,
                     "first_executable_at_utc": utc(executable_ts),
                     "first_executable_entry_eur": executable_entry,
-                    "delay_seconds": executable_ts - finite(recovery.get("first_opportunity_ts"), executable_ts),
-                    "movement_consumed_pct": movement,
+                    "first_executable_source": "ENTRY_HYPOTHESIS_EXECUTION",
+                    "credible_to_executable_delay_seconds": executable_ts - finite(recovery.get("first_credible_ts"), executable_ts),
+                    "movement_consumed_to_executable_pct": movement,
                     "structural_residual_to_tp1_pct": residual_to_tp1,
                 })
                 recovery_event = {
@@ -1734,6 +1881,7 @@ def main() -> int:
                     "stop_eur": finite(plan.get("stop_eur")),
                     "tp1_eur": tp1,
                     "stake_eur": finite(plan.get("stake_eur"), REFERENCE_STAKE_EUR),
+                    "execution_source": "ENTRY_HYPOTHESIS_EXECUTION",
                     "recovery": dict(recovery),
                     "execution": check,
                     "left_censored_at_v3_t0": initial_v3_cycle,
@@ -1930,6 +2078,8 @@ def main() -> int:
             "opportunity_score": row.get("opportunity_score"),
             "horizon_class": row.get("horizon_class"),
             "context_watch": row.get("context_watch"),
+            "near_miss_opportunity": row.get("near_miss_opportunity"),
+            "credible_opportunity": row.get("credible_opportunity"),
             "entry_hypothesis": row.get("entry_hypothesis"),
             "early_quant": row.get("early_quant"),
             "market_data_quality_ok": row.get("market_data_quality_ok"),
@@ -1942,13 +2092,15 @@ def main() -> int:
             "dynamic_rotation": row.get("dynamic_rotation"),
             "external_spark": row.get("external_spark"),
             "external": row.get("external"),
-            "external_score": finite((row.get("external") or {}).get("external_score_0_10")),
+            "external_score": finite(row.get("external_score")),
             "strong_negative_news": row.get("strong_negative_news"),
             "thesis_seed": row.get("thesis_seed"),
             "persistent_thesis": row.get("persistent_thesis"),
             "thesis_reentry_hypothesis": row.get("thesis_reentry_hypothesis"),
             "thesis_execution": row.get("thesis_execution"),
             "thesis_last_execution": row.get("thesis_last_execution"),
+            "near_miss_execution": near_miss_checks.get(row["market"]),
+            "opportunity_recovery": (state.get("markets", {}).get(row["market"], {}) or {}).get("opportunity_recovery"),
             "derivatives": row.get("derivatives"),
             "v2_state": row.get("v2_state"),
             "v2_score": row.get("v2_score"),
@@ -2024,10 +2176,14 @@ def main() -> int:
         "external_spark_count": sum(bool((x.get("external_spark") or {}).get("ready")) for x in candidates),
         "dynamic_rotation_active_count": sum(bool((x.get("dynamic_rotation") or {}).get("active_watch")) for x in candidates),
         "context_watch_count": sum(bool(x.get("context_watch")) for x in candidates),
+        "near_miss_opportunity_count": sum(bool(x.get("near_miss_opportunity")) for x in candidates),
+        "credible_opportunity_count": sum(bool(x.get("credible_opportunity")) for x in candidates),
         "entry_hypothesis_count": sum(bool(x.get("entry_hypothesis")) for x in candidates),
         "thesis_reentry_hypothesis_count": sum(bool(x.get("thesis_reentry_hypothesis")) for x in thesis_observations),
         "execution_checks": len(checks),
         "execution_fairness": execution_fairness,
+        "near_miss_execution_checks": len(near_miss_checks),
+        "near_miss_execution_fairness": near_miss_execution_fairness,
         "thesis_execution_fairness": thesis_execution_fairness,
         "thesis_profile_fairness": thesis_profile_fairness,
         "derivatives_fairness": derivatives_fairness,
