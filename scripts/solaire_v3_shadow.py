@@ -1096,6 +1096,21 @@ def main() -> int:
         legacy_event.setdefault("architecture_version", "legacy-pre-v3.2-unversioned")
         legacy_event.setdefault("runtime_commit", None)
 
+    retired_near_miss_theses = 0
+    if architecture_rollover and prior_architecture_version == "v3.4-near-miss-recovery-20260924":
+        for market, thesis in (state.get("theses") or {}).items():
+            if (
+                thesis.get("active")
+                and thesis.get("seed_source") == "EARLY_QUANT_NEAR_MISS"
+            ):
+                thesis["active"] = False
+                thesis["state"] = "RETIRED_EXPERIMENTAL_NEAR_MISS_SEED"
+                thesis["ended_ts"] = now
+                thesis["ended_at_utc"] = utc(now)
+                thesis["end_reason"] = "BASELINE_MEMORY_ONLY_MIGRATION"
+                thesis["baseline_excluded"] = True
+                retired_near_miss_theses += 1
+
     source_errors: list[dict[str, Any]] = []
     if not rows:
         status = {
@@ -1285,8 +1300,7 @@ def main() -> int:
         thesis_seed = bool(
             not strong_negative_news
             and (
-                near_miss_opportunity
-                or finite(row.get("news_positive_score"), 0) >= 4.0
+                finite(row.get("news_positive_score"), 0) >= 4.0
                 or external_spark_ready
             )
         )
@@ -2118,6 +2132,7 @@ def main() -> int:
             "external_score": finite(row.get("external_score")),
             "strong_negative_news": row.get("strong_negative_news"),
             "thesis_seed": row.get("thesis_seed"),
+            "near_miss_memory_only": True,
             "persistent_thesis": row.get("persistent_thesis"),
             "thesis_reentry_hypothesis": row.get("thesis_reentry_hypothesis"),
             "thesis_execution": row.get("thesis_execution"),
@@ -2207,6 +2222,8 @@ def main() -> int:
         "execution_fairness": execution_fairness,
         "near_miss_execution_checks": len(near_miss_checks),
         "near_miss_execution_fairness": near_miss_execution_fairness,
+        "near_miss_policy": "MEMORY_AND_DIAGNOSTICS_ONLY_DO_NOT_SEED_BASELINE_THESIS",
+        "retired_experimental_near_miss_theses": retired_near_miss_theses,
         "thesis_execution_fairness": thesis_execution_fairness,
         "thesis_profile_fairness": thesis_profile_fairness,
         "derivatives_fairness": derivatives_fairness,
