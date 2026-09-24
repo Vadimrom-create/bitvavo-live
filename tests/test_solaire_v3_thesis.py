@@ -4,10 +4,11 @@ from research.solaire_v3 import advance_persistent_thesis
 
 
 class PersistentThesisTests(unittest.TestCase):
-    def row(self, price, fresh=False, context=False, external=0.0, evidence=0, long_support=False):
+    def row(self, price, fresh=False, seed=False, context=False, external=0.0, evidence=0, long_support=False):
         return {
             "price_eur": price,
             "fresh_opportunity_trigger": fresh,
+            "thesis_seed": seed,
             "context_watch": context,
             "external_score": external,
             "early_quant": {"evidence_count": evidence},
@@ -18,6 +19,12 @@ class PersistentThesisTests(unittest.TestCase):
 
     def test_no_thesis_without_fresh_trigger(self):
         self.assertEqual(advance_persistent_thesis({}, self.row(100), 1000), {})
+
+    def test_strong_prewatch_seed_opens_thesis_before_entry_trigger(self):
+        t = advance_persistent_thesis({}, self.row(100, seed=True, context=True), 1000)
+        self.assertTrue(t["active"])
+        self.assertEqual(t["seed_source"], "EARLY_CONTEXT_PREWATCH")
+        self.assertEqual(t["fresh_trigger_count"], 0)
 
     def test_fresh_trigger_opens_thesis(self):
         t = advance_persistent_thesis({}, self.row(100, fresh=True), 1000)

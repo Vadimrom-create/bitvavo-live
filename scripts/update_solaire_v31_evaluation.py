@@ -15,8 +15,8 @@ if str(ROOT) not in sys.path:
 
 from research.common import atomic_json, finite, read_json, utc
 from research.http import PublicClient
-from research.solaire_v3 import HORIZONS_HOURS
-from research.solaire_v31 import FROZEN_V3_COMMIT, V3_TIMING_LAB_COMMIT
+from research.solaire_v3 import HORIZONS_HOURS, V3_ARCHITECTURE_VERSION
+from research.solaire_v31 import FROZEN_V3_COMMIT, V31_ARCHITECTURE_VERSION, V3_TIMING_LAB_COMMIT
 from scripts.update_solaire_v3_evaluation import _evaluate_event_collection, _summary
 
 V31_JOURNAL = "solaire_v31_journal.json"
@@ -69,6 +69,8 @@ def main() -> int:
     v3 = read_json(V3_JOURNAL, {}) or {}
     start_ts = finite(v31.get("started_ts"))
     events = v31.get("events", []) or []
+    current_events = [x for x in events if x.get("architecture_version") == V31_ARCHITECTURE_VERSION]
+    legacy_events = [x for x in events if x.get("architecture_version") != V31_ARCHITECTURE_VERSION]
     errors: list[dict[str, Any]] = []
     critical = None
     total_new = 0
@@ -76,27 +78,29 @@ def main() -> int:
     try:
         client = PublicClient(timeout=10, retries=2, requests_per_second=8)
         client.get("/time", cache=False)
-        total_new = _evaluate_event_collection(
-            client,
-            events,
-            now,
-            MAX_NEW_EVALUATIONS_PER_RUN,
-            errors,
-        )
+        budget = MAX_NEW_EVALUATIONS_PER_RUN
+        added = _evaluate_event_collection(client, current_events, now, budget, errors)
+        total_new += added
+        budget -= added
+        if budget > 0:
+            added = _evaluate_event_collection(client, legacy_events, now, budget, errors)
+            total_new += added
     except Exception as exc:
         critical = type(exc).__name__ + ":" + str(exc)
 
-    qualified = _eligible(events, "V31_QUALIFIED_ENTRY")
-    rejected = _eligible(events, "V31_REJECTED_READY")
-    persist_qualified = _eligible(events, "V31_PERSIST_30M_QUALIFIED_ENTRY")
-    persist_rejected = _eligible(events, "V31_PERSIST_30M_REJECTED_READY")
-    reclaim_qualified = _eligible(events, "V31_PULLBACK_RECLAIM_QUALIFIED_ENTRY")
-    reclaim_rejected = _eligible(events, "V31_PULLBACK_RECLAIM_REJECTED_READY")
+    qualified = _eligible(current_events, "V31_QUALIFIED_ENTRY")
+    rejected = _eligible(current_events, "V31_REJECTED_READY")
+    persist_qualified = _eligible(current_events, "V31_PERSIST_30M_QUALIFIED_ENTRY")
+    persist_rejected = _eligible(current_events, "V31_PERSIST_30M_REJECTED_READY")
+    reclaim_qualified = _eligible(current_events, "V31_PULLBACK_RECLAIM_QUALIFIED_ENTRY")
+    reclaim_rejected = _eligible(current_events, "V31_PULLBACK_RECLAIM_REJECTED_READY")
 
     def v3_window(event_type: str) -> list[dict[str, Any]]:
         out = []
         for event in v3.get("events", []) or []:
             if event.get("event_type") != event_type or event.get("left_censored_at_v3_t0"):
+                continue
+            if event.get("architecture_version") != V3_ARCHITECTURE_VERSION:
                 continue
             ts = finite(event.get("decision_ts"))
             if start_ts is not None and ts is not None and ts >= start_ts:
@@ -123,7 +127,12 @@ def main() -> int:
         "schema": "solaire_v31_vs_frozen_v3_comparison_v1",
         "checked_at_utc": utc(now),
         "prospective_started_at_utc": v31.get("started_at_utc"),
+        "architecture_version": V31_ARCHITECTURE_VERSION,
+        "upstream_v3_architecture_version": V3_ARCHITECTURE_VERSION,
+        "architecture_scope": "CURRENT_VERSION_ONLY",
+        "legacy_v31_event_count_excluded_from_summary": len(legacy_events),
         "frozen_v3_commit": FROZEN_V3_COMMIT,
+        "frozen_v3_commit_role": "BENCHMARK_ONLY_NOT_LIVE_INPUT",
         "v3_timing_lab_commit": V3_TIMING_LAB_COMMIT,
         "method": "factorial shadow: V3 raw/persist/reclaim crossed with unchanged V3.1 economic gate; strict complete horizons",
         "horizons_hours": list(HORIZONS_HOURS),
@@ -144,7 +153,12 @@ def main() -> int:
         "checked_at_utc": utc(now),
         "status": "DEGRADED_NONBLOCKING" if critical else ("OK_WITH_SOURCE_GAPS" if errors else "OK"),
         "prospective_started_at_utc": v31.get("started_at_utc"),
+        "architecture_version": V31_ARCHITECTURE_VERSION,
+        "upstream_v3_architecture_version": V3_ARCHITECTURE_VERSION,
+        "current_architecture_events": len(current_events),
+        "legacy_v31_events": len(legacy_events),
         "frozen_v3_commit": FROZEN_V3_COMMIT,
+        "frozen_v3_commit_role": "BENCHMARK_ONLY_NOT_LIVE_INPUT",
         "v3_timing_lab_commit": V3_TIMING_LAB_COMMIT,
         "new_complete_evaluations": total_new,
         "evaluation_budget_per_run": MAX_NEW_EVALUATIONS_PER_RUN,

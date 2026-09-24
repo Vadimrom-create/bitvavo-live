@@ -17,8 +17,10 @@ from __future__ import annotations
 
 import concurrent.futures
 import email.utils
+import html as html_lib
 import json
 import math
+import os
 import re
 import statistics
 import sys
@@ -40,18 +42,23 @@ from research.http import PublicClient
 from research.risk import structural_plan
 from research.solaire_v3 import (
     FROZEN_V2_COMMIT,
+    V3_ARCHITECTURE_VERSION,
     MAX_SHADOW_POSITIONS,
     REFERENCE_CAPITAL_EUR,
     REFERENCE_STAKE_EUR,
     advance_persistent_thesis,
     base_symbol,
     build_asset_aliases,
+    build_dynamic_rotation_context,
     build_narrative_rotations,
     classify_horizon,
+    classify_news_event,
     early_quant_evidence,
     match_news_assets,
     narratives_for_market,
     score_opportunity,
+    select_fair_batch,
+    select_priority_fair_batch,
     structured_news_symbols,
     walk_asks,
 )
@@ -68,15 +75,17 @@ V2_BENCHMARK = "solaire_v2_frozen_benchmark_journal.json"
 
 MAX_CONTEXT_AGE = 36 * 3600
 WATCH_EXPIRY = 24 * 3600
-MAX_EXTERNAL_MARKETS = 16
-MAX_EXECUTION_MARKETS = 14
-MAX_THESIS_PROFILE_MARKETS = 20
-MAX_THESIS_EXECUTION_MARKETS = 8
+MAX_EXTERNAL_MARKETS = 18
+MAX_EXECUTION_MARKETS = 18
+MAX_THESIS_PROFILE_MARKETS = 24
+MAX_THESIS_EXECUTION_MARKETS = 20
+MAX_DERIVATIVE_MARKETS = 12
 MIN_QUOTE_VOLUME_EUR = 75_000.0
 MAX_SPREAD_PCT = 0.50
 MAX_DEPTH_SLIPPAGE_PCT = 0.50
 MAX_STOP_DISTANCE_PCT = 10.0
 HTTP_TIMEOUT = 5
+RUNTIME_COMMIT = os.environ.get("GITHUB_SHA") or "LOCAL_OR_UNKNOWN"
 
 TIMING_PERSIST_MIN_SECONDS = 30 * 60
 TIMING_PERSIST_MIN_DRIFT_PCT = -2.0
@@ -85,12 +94,21 @@ TIMING_PULLBACK_MIN_PCT = -2.0
 TIMING_RECLAIM_MIN_PCT = 1.0
 TIMING_RECLAIM_MAX_DRIFT_PCT = 3.0
 
+OFFICIAL_ANNOUNCEMENT_PAGES = (
+    ("binance_official_page", "https://www.binance.com/en/support/announcement/", "https://www.binance.com"),
+    ("coinbase_official_page", "https://www.coinbase.com/blog", "https://www.coinbase.com"),
+    ("bybit_official", "https://announcements.bybit.com/en/", "https://announcements.bybit.com"),
+    ("okx_official", "https://www.okx.com/help/category/announcements", "https://www.okx.com"),
+)
+
 NEWS_FEEDS = (
-    ("coindesk", "https://www.coindesk.com/arc/outboundfeeds/rss/"),
-    ("cointelegraph", "https://cointelegraph.com/rss"),
-    ("decrypt", "https://decrypt.co/feed"),
-    ("crypto.news", "https://crypto.news/feed/"),
-    ("cryptoast", "https://cryptoast.fr/feed/"),
+    ("coindesk", "https://www.coindesk.com/arc/outboundfeeds/rss/", "media"),
+    ("cointelegraph", "https://cointelegraph.com/rss", "media"),
+    ("decrypt", "https://decrypt.co/feed", "media"),
+    ("crypto.news", "https://crypto.news/feed/", "media"),
+    ("cryptoast", "https://cryptoast.fr/feed/", "media"),
+    ("coinbase_official", "https://www.coinbase.com/blog/rss.xml", "official_exchange"),
+    ("kraken_official", "https://blog.kraken.com/feed", "official_exchange"),
 )
 
 GENERIC_SYMBOLS = {
@@ -240,12 +258,124 @@ def _news_asset_symbols(text: str, asset_aliases: dict[str, tuple[str, ...]]) ->
     return match_news_assets(text, asset_aliases, GENERIC_SYMBOLS)
 
 
+def _decorate_news_item(
+    *,
+    source: str,
+    source_kind: str,
+    published: float,
+    title: str,
+    url: str | None,
+    symbols: list[str],
+) -> dict[str, Any]:
+    event = classify_news_event(title, source_kind=source_kind)
+    return {
+        "source": source,
+        "source_kind": source_kind,
+        "published_ts": published,
+        "published_at_utc": utc(published),
+        "title": title[:300],
+        "url": url,
+        "symbols": symbols,
+        "event": event,
+    }
+
+
+def _fetch_binance_official_news(
+    now: float,
+    asset_aliases: dict[str, tuple[str, ...]],
+) -> tuple[list[dict[str, Any]], list[dict[str, str]]]:
+    items: list[dict[str, Any]] = []
+    errors: list[dict[str, str]] = []
+    try:
+        url = (
+            "https://www.binance.com/bapi/composite/v1/public/cms/article/catalog/list/query?"
+            + urllib.parse.urlencode({"catalogId": 48, "pageNo": 1, "pageSize": 30, "type": 1})
+        )
+        data = _json_url(url)
+        catalogs = ((data or {}).get("data") or {}).get("catalogs") or []
+        articles = []
+        for catalog in catalogs:
+            articles.extend(catalog.get("articles") or [])
+        for row in articles:
+            title = str(row.get("title") or "").strip()
+            published = _parse_ts(row.get("releaseDate") or row.get("publishDate"))
+            if published is not None and published > 10_000_000_000:
+                published /= 1000.0
+            if published is None or now - published > MAX_CONTEXT_AGE or published - now > 300:
+                continue
+            symbols = _news_asset_symbols(title, asset_aliases)
+            if not symbols:
+                continue
+            code = str(row.get("code") or "").strip()
+            link = f"https://www.binance.com/en/support/announcement/detail/{code}" if code else None
+            items.append(_decorate_news_item(
+                source="binance_official", source_kind="official_exchange",
+                published=published, title=title, url=link, symbols=symbols,
+            ))
+    except Exception as exc:
+        errors.append({"source": "binance_official", "reason": type(exc).__name__})
+    return items, errors
+
+
+def fetch_official_page_deltas(
+    now: float,
+    asset_aliases: dict[str, tuple[str, ...]],
+    seen: dict[str, float] | None,
+    *,
+    initialized: bool,
+) -> tuple[list[dict[str, Any]], dict[str, float], list[dict[str, str]]]:
+    """Poll official announcement pages without pretending old page items are fresh.
+
+    The first successful observation seeds the registry and emits nothing.  On
+    later cycles, only newly observed announcement titles enter the news stream.
+    """
+    seen = dict(seen or {})
+    items: list[dict[str, Any]] = []
+    errors: list[dict[str, str]] = []
+    for source, url, base_url in OFFICIAL_ANNOUNCEMENT_PAGES:
+        try:
+            page = _text_url(url)
+            for href, raw_title in re.findall(r"<a[^>]+href=['\\\"]([^'\\\"]+)['\\\"][^>]*>(.*?)</a>", page, flags=re.I | re.S):
+                title = html_lib.unescape(re.sub(r"<[^>]+>", " ", raw_title))
+                title = re.sub(r"\s+", " ", title).strip()
+                if not (12 <= len(title) <= 260):
+                    continue
+                symbols = _news_asset_symbols(title, asset_aliases)
+                if not symbols:
+                    continue
+                fingerprint = source + "|" + title.lower()
+                first_seen = seen.get(fingerprint)
+                if first_seen is None:
+                    seen[fingerprint] = now
+                    if initialized:
+                        first_seen = now
+                    else:
+                        continue
+                if now - first_seen > MAX_CONTEXT_AGE:
+                    continue
+                link = href if href.startswith("http") else base_url.rstrip("/") + "/" + href.lstrip("/")
+                items.append(_decorate_news_item(
+                    source=source, source_kind="official_exchange", published=first_seen,
+                    title=title, url=link, symbols=symbols,
+                ))
+        except Exception as exc:
+            errors.append({"source": source, "reason": type(exc).__name__})
+    # Bound persistent state while keeping the full context window plus margin.
+    keep_after = now - MAX_CONTEXT_AGE * 2
+    seen = {k: v for k, v in seen.items() if finite(v, 0) >= keep_after}
+    return items, seen, errors
+
+
 def fetch_news(
     now: float,
     asset_aliases: dict[str, tuple[str, ...]],
 ) -> tuple[list[dict[str, Any]], list[dict[str, str]]]:
     items: list[dict[str, Any]] = []
     errors: list[dict[str, str]] = []
+
+    official, official_errors = _fetch_binance_official_news(now, asset_aliases)
+    items.extend(official)
+    errors.extend(official_errors)
 
     try:
         data = _json_url("https://min-api.cryptocompare.com/data/v2/news/?lang=EN")
@@ -254,42 +384,38 @@ def fetch_news(
             if published is None or now - published > MAX_CONTEXT_AGE or published - now > 300:
                 continue
             title = str(row.get("title") or "")
-            body = str(row.get("body") or "")
-            symbols = set(_news_asset_symbols(title + " " + body, asset_aliases))
+            # Provider categories are structured evidence.  Free-form article
+            # bodies are deliberately excluded from entity resolution because
+            # they generated ordinary-word collisions (Across, Momentum, Form...).
+            symbols = set(_news_asset_symbols(title, asset_aliases))
             symbols.update(structured_news_symbols(row.get("categories"), set(asset_aliases)))
             symbols = sorted(symbols)
             if symbols:
-                items.append({
-                    "source": str(row.get("source") or "cryptocompare"),
-                    "published_ts": published,
-                    "published_at_utc": utc(published),
-                    "title": title[:300],
-                    "url": row.get("url"),
-                    "symbols": symbols,
-                })
+                items.append(_decorate_news_item(
+                    source=str(row.get("source") or "cryptocompare"),
+                    source_kind="aggregator", published=published, title=title,
+                    url=row.get("url"), symbols=symbols,
+                ))
     except Exception as exc:
         errors.append({"source": "cryptocompare", "reason": type(exc).__name__})
 
-    for source, url in NEWS_FEEDS:
+    for source, url, source_kind in NEWS_FEEDS:
         try:
             root = ET.fromstring(_text_url(url))
             for node in root.findall(".//item"):
                 title = (node.findtext("title") or "").strip()
-                desc = (node.findtext("description") or "").strip()
                 link = (node.findtext("link") or "").strip()
                 published = _parse_ts(node.findtext("pubDate"))
                 if published is None or now - published > MAX_CONTEXT_AGE or published - now > 300:
                     continue
-                symbols = _news_asset_symbols(title + " " + re.sub("<[^>]+>", " ", desc), asset_aliases)
+                # Title-only entity resolution is intentional: descriptions
+                # are prose-heavy and created false asset mentions.
+                symbols = _news_asset_symbols(title, asset_aliases)
                 if symbols:
-                    items.append({
-                        "source": source,
-                        "published_ts": published,
-                        "published_at_utc": utc(published),
-                        "title": title[:300],
-                        "url": link,
-                        "symbols": symbols,
-                    })
+                    items.append(_decorate_news_item(
+                        source=source, source_kind=source_kind,
+                        published=published, title=title, url=link, symbols=symbols,
+                    ))
         except Exception as exc:
             errors.append({"source": source, "reason": type(exc).__name__})
 
@@ -300,15 +426,178 @@ def fetch_news(
     return sorted(dedup.values(), key=lambda x: x["published_ts"], reverse=True), errors
 
 
-def news_for_symbol(symbol: str, news: list[dict[str, Any]], now: float) -> tuple[list[dict[str, Any]], float]:
+def news_for_symbol(
+    symbol: str,
+    news: list[dict[str, Any]],
+    now: float,
+) -> tuple[list[dict[str, Any]], float, float, float]:
     hits = [x for x in news if symbol in (x.get("symbols") or [])]
     if not hits:
-        return [], 0.0
+        return [], 0.0, 0.0, 0.0
     sources = {x.get("source") for x in hits}
     freshest_hours = min(max(0.0, (now - x["published_ts"]) / 3600) for x in hits)
     recency = max(0.0, 4.0 - freshest_hours / 6.0)
-    score = min(10.0, recency + min(3.0, len(hits) * 0.8) + min(3.0, len(sources) * 0.8))
-    return hits[:8], round(score, 3)
+
+    def weight(item: dict[str, Any]) -> float:
+        event = item.get("event") or {}
+        materiality = float(event.get("materiality") or 1.0)
+        reliability = 1.25 if item.get("source_kind") == "official_exchange" else 1.0
+        return materiality * reliability
+
+    total_weight = sum(weight(x) for x in hits)
+    positive_weight = sum(weight(x) for x in hits if (x.get("event") or {}).get("direction") == "POSITIVE")
+    negative_weight = sum(weight(x) for x in hits if (x.get("event") or {}).get("direction") == "NEGATIVE")
+    score = min(10.0, recency + min(3.5, total_weight * 0.55) + min(2.5, len(sources) * 0.65))
+    positive_score = min(10.0, recency * 0.5 + positive_weight * 1.25) if positive_weight else 0.0
+    negative_score = min(10.0, recency * 0.5 + negative_weight * 1.25) if negative_weight else 0.0
+    return hits[:10], round(score, 3), round(positive_score, 3), round(negative_score, 3)
+
+
+def fetch_external_price_snapshot(
+    allowed_symbols: set[str],
+) -> tuple[dict[str, dict[str, float]], list[dict[str, str]]]:
+    """One batch request per venue gives full-universe external discovery."""
+    prices: dict[str, dict[str, float]] = {symbol: {} for symbol in allowed_symbols}
+    errors: list[dict[str, str]] = []
+
+    try:
+        rows = _json_url("https://api.binance.com/api/v3/ticker/price") or []
+        for row in rows if isinstance(rows, list) else []:
+            pair = str(row.get("symbol") or "")
+            if not pair.endswith("USDT"):
+                continue
+            symbol = pair[:-4]
+            px = finite(row.get("price"))
+            if symbol in prices and px is not None and px > 0:
+                prices[symbol]["binance"] = px
+    except Exception as exc:
+        errors.append({"source": "external_batch_binance", "reason": type(exc).__name__})
+
+    try:
+        data = _json_url("https://api.bybit.com/v5/market/tickers?category=spot")
+        rows = ((data or {}).get("result") or {}).get("list") or []
+        for row in rows:
+            pair = str(row.get("symbol") or "")
+            if not pair.endswith("USDT"):
+                continue
+            symbol = pair[:-4]
+            px = finite(row.get("lastPrice"))
+            if symbol in prices and px is not None and px > 0:
+                prices[symbol]["bybit"] = px
+    except Exception as exc:
+        errors.append({"source": "external_batch_bybit", "reason": type(exc).__name__})
+
+    try:
+        data = _json_url("https://www.okx.com/api/v5/market/tickers?instType=SPOT")
+        rows = (data or {}).get("data") or []
+        for row in rows:
+            pair = str(row.get("instId") or "")
+            if not pair.endswith("-USDT"):
+                continue
+            symbol = pair[:-5]
+            px = finite(row.get("last"))
+            if symbol in prices and px is not None and px > 0:
+                prices[symbol]["okx"] = px
+    except Exception as exc:
+        errors.append({"source": "external_batch_okx", "reason": type(exc).__name__})
+
+    try:
+        pairs_data = _json_url("https://api.kraken.com/0/public/AssetPairs")
+        pair_rows = (pairs_data or {}).get("result") or {}
+        aliases: dict[str, str] = {}
+        request_pairs: list[str] = []
+        symbol_aliases = {"XBT": "BTC", "XDG": "DOGE"}
+        for pair_key, row in pair_rows.items():
+            wsname = str(row.get("wsname") or "")
+            altname = str(row.get("altname") or pair_key)
+            if "/" not in wsname:
+                continue
+            base, quote = wsname.split("/", 1)
+            if quote not in {"USD", "USDT"}:
+                continue
+            symbol = symbol_aliases.get(base, base)
+            if symbol not in prices:
+                continue
+            request_pairs.append(altname)
+            aliases[pair_key] = symbol
+            aliases[altname] = symbol
+        for offset in range(0, len(request_pairs), 40):
+            chunk = request_pairs[offset: offset + 40]
+            if not chunk:
+                continue
+            data = _json_url(
+                "https://api.kraken.com/0/public/Ticker?"
+                + urllib.parse.urlencode({"pair": ",".join(chunk)})
+            )
+            for result_key, row in ((data or {}).get("result") or {}).items():
+                symbol = aliases.get(result_key)
+                if symbol is None:
+                    compact = result_key.replace("X", "", 1) if result_key.startswith("X") else result_key
+                    symbol = aliases.get(compact)
+                close = row.get("c") or []
+                px = finite(close[0]) if close else None
+                if symbol in prices and px is not None and px > 0:
+                    prices[symbol]["kraken"] = px
+    except Exception as exc:
+        errors.append({"source": "external_batch_kraken", "reason": type(exc).__name__})
+
+    return {k: v for k, v in prices.items() if v}, errors
+
+
+def build_external_sparks(
+    universe_rows: list[dict[str, Any]],
+    current: dict[str, dict[str, float]],
+    previous: dict[str, dict[str, float]] | None,
+    *,
+    elapsed_seconds: float | None = None,
+) -> dict[str, dict[str, Any]]:
+    """Detect short external acceleration for every Bitvavo asset between cycles."""
+    previous = previous or {}
+    result: dict[str, dict[str, Any]] = {}
+    for row in universe_rows:
+        market = str(row.get("market") or "")
+        symbol = base_symbol(market)
+        deltas = []
+        venue_deltas = {}
+        for venue, px in (current.get(symbol) or {}).items():
+            prior = finite((previous.get(symbol) or {}).get(venue))
+            if prior is None or prior <= 0 or px <= 0:
+                continue
+            delta = (px / prior - 1.0) * 100.0
+            venue_deltas[venue] = round(delta, 4)
+            deltas.append(delta)
+        med = _median(deltas)
+        breadth = None if not deltas else 100.0 * sum(x > 0 for x in deltas) / len(deltas)
+        max_up = max(deltas) if deltas else None
+        score = 0.0
+        if med is not None:
+            score += min(6.0, max(0.0, med) * 8.0)
+        if breadth is not None:
+            score += min(2.0, max(0.0, breadth - 50.0) / 25.0)
+        if max_up is not None:
+            score += min(2.0, max(0.0, max_up - (med or 0.0)) * 2.0)
+        cadence_valid = elapsed_seconds is not None and 60 <= elapsed_seconds <= 45 * 60
+        ready = bool(
+            cadence_valid
+            and len(deltas) >= 2
+            and (
+                ((med or 0.0) >= 0.30 and (breadth or 0.0) >= 66.0)
+                or ((max_up or 0.0) >= 0.75 and sum(x > 0 for x in deltas) >= 2)
+            )
+        )
+        result[market] = {
+            "mode": "FULL_UNIVERSE_BATCH_EXTERNAL_SPARK",
+            "venues_observed": len(deltas),
+            "elapsed_since_previous_snapshot_minutes": None if elapsed_seconds is None else round(elapsed_seconds / 60.0, 2),
+            "cadence_valid_for_spark": cadence_valid,
+            "venue_deltas_pct": venue_deltas,
+            "median_change_since_previous_cycle_pct": None if med is None else round(med, 4),
+            "breadth_positive_pct": None if breadth is None else round(breadth, 2),
+            "max_change_since_previous_cycle_pct": None if max_up is None else round(max_up, 4),
+            "score_0_10": round(min(10.0, score), 3),
+            "ready": ready,
+        }
+    return result
 
 
 def _return_from_points(points: list[tuple[float, float]], minutes: int) -> float | None:
@@ -522,6 +811,8 @@ def _event_key(event: dict[str, Any]) -> str:
 
 
 def _append_event(journal: dict[str, Any], event: dict[str, Any]) -> bool:
+    event.setdefault("architecture_version", V3_ARCHITECTURE_VERSION)
+    event.setdefault("runtime_commit", RUNTIME_COMMIT)
     keys = {_event_key(x) for x in journal.get("events", [])}
     if _event_key(event) in keys:
         return False
@@ -693,15 +984,29 @@ def main() -> int:
 
     initial_v3_cycle = not bool(state.get("initialized"))
     state.setdefault("schema", "solaire_v3_state_v1")
+    prior_architecture_version = state.get("architecture_version")
+    state["architecture_version"] = V3_ARCHITECTURE_VERSION
+    if prior_architecture_version != V3_ARCHITECTURE_VERSION:
+        state["architecture_migrated_at_utc"] = utc(now)
+        state["architecture_migrated_from"] = prior_architecture_version or "legacy-unversioned"
     state.setdefault("started_ts", now)
     state.setdefault("started_at_utc", utc(now))
     state.setdefault("markets", {})
     state.setdefault("previous_derivatives", {})
+    state.setdefault("previous_external_prices", {})
+    state.setdefault("execution_cursor", 0)
+    state.setdefault("thesis_execution_cursor", 0)
+    state.setdefault("thesis_profile_cursor", 0)
+    state.setdefault("derivatives_cursor", 0)
     state.setdefault("theses", {})
+    runtime_commit = RUNTIME_COMMIT
     journal.setdefault("schema", "solaire_v3_prospective_journal_v1")
     journal.setdefault("started_ts", state["started_ts"])
     journal.setdefault("started_at_utc", state["started_at_utc"])
     journal.setdefault("events", [])
+    for legacy_event in journal.get("events", []):
+        legacy_event.setdefault("architecture_version", "legacy-pre-v3.2-unversioned")
+        legacy_event.setdefault("runtime_commit", None)
 
     source_errors: list[dict[str, Any]] = []
     if not rows:
@@ -721,10 +1026,39 @@ def main() -> int:
         return 0
 
     rotations = build_narrative_rotations(rows)
+    dynamic_rotations = build_dynamic_rotation_context(rows)
     asset_aliases, news_mapping, alias_errors = build_full_universe_news_aliases(rows)
     source_errors.extend(alias_errors)
     news, news_errors = fetch_news(now, asset_aliases)
     source_errors.extend(news_errors)
+    page_news, official_page_seen, official_page_errors = fetch_official_page_deltas(
+        now,
+        asset_aliases,
+        state.get("official_page_seen") or {},
+        initialized=bool(state.get("official_page_seen_initialized")),
+    )
+    state["official_page_seen"] = official_page_seen
+    state["official_page_seen_initialized"] = True
+    source_errors.extend(official_page_errors)
+    if page_news:
+        keyed = {(x.get("source"), x.get("title"), x.get("published_at_utc")): x for x in news}
+        for item in page_news:
+            keyed[(item.get("source"), item.get("title"), item.get("published_at_utc"))] = item
+        news = sorted(keyed.values(), key=lambda x: x["published_ts"], reverse=True)
+
+    allowed_symbols = {base_symbol(x.get("market")) for x in rows if x.get("market")}
+    external_snapshot, external_batch_errors = fetch_external_price_snapshot(allowed_symbols)
+    source_errors.extend(external_batch_errors)
+    previous_external_ts = finite(state.get("previous_external_prices_ts"))
+    elapsed_external = None if previous_external_ts is None else max(0.0, now - previous_external_ts)
+    external_sparks = build_external_sparks(
+        rows,
+        external_snapshot,
+        state.get("previous_external_prices") or {},
+        elapsed_seconds=elapsed_external,
+    )
+    state["previous_external_prices"] = external_snapshot
+    state["previous_external_prices_ts"] = now
 
     v2_tracking = {
         r["market"]: r
@@ -746,23 +1080,34 @@ def main() -> int:
             "flags": {},
             "reason": "MARKET_DATA_NOT_STRATEGY_GRADE",
         }
-        hits, news_score = news_for_symbol(symbol, news, now)
+        hits, news_score, news_positive_score, news_negative_score = news_for_symbol(symbol, news, now)
         sector_names = narratives_for_market(market)
         active_rotations = [
             (name, rotations.get(name) or {})
             for name in sector_names
             if (rotations.get(name) or {}).get("active_watch")
         ]
-        raw_rotation = max([finite(x[1].get("rotation_score_0_3"), 0) for x in active_rotations] or [0])
+        dynamic_rotation = dynamic_rotations.get(market) or {}
+        active_narratives = [x[0] for x in active_rotations]
+        if dynamic_rotation.get("active_watch"):
+            active_narratives.append("DYNAMIC_MOMENTUM_COHORT")
+        static_rotation = max([finite(x[1].get("rotation_score_0_3"), 0) for x in active_rotations] or [0])
+        raw_rotation = max(static_rotation, finite(dynamic_rotation.get("rotation_score_0_3"), 0))
         narrative_score = min(10.0, raw_rotation / 3.0 * 10.0)
+        external_spark = external_sparks.get(market) or {}
         v2row = v2_tracking.get(market) or {}
         local_priority = (
             finite(early.get("score_0_10"), 0)
-            + news_score
+            + news_positive_score
             + narrative_score
+            + finite(external_spark.get("score_0_10"), 0)
             + (3.0 if v2row.get("signal_state") == "CONFIRMED_ACCELERATION" else 1.5 if v2row else 0.0)
         )
-        if news_score > 0 or (quality_ok and (active_rotations or early.get("ready") or v2row)):
+        if (
+            news_score > 0
+            or bool(external_spark.get("ready"))
+            or (quality_ok and (active_narratives or early.get("ready") or v2row))
+        ):
             base_candidates.append({
                 **row,
                 "market_data_quality_ok": quality_ok,
@@ -770,15 +1115,25 @@ def main() -> int:
                 "early_quant": early,
                 "news_items": hits,
                 "news_score": news_score,
+                "news_positive_score": news_positive_score,
+                "news_negative_score": news_negative_score,
                 "narratives": sector_names,
-                "active_narratives": [x[0] for x in active_rotations],
+                "active_narratives": active_narratives,
                 "narrative_score": round(narrative_score, 3),
+                "dynamic_rotation": dynamic_rotation,
+                "external_spark": external_spark,
                 "local_priority": round(local_priority, 3),
                 "v2_state": v2row.get("signal_state"),
                 "v2_score": finite(v2row.get("signal_score")),
             })
 
-    base_candidates.sort(key=lambda x: x["local_priority"], reverse=True)
+    base_candidates.sort(
+        key=lambda x: (
+            -int(bool((x.get("external_spark") or {}).get("ready"))),
+            -finite((x.get("external_spark") or {}).get("score_0_10"), 0),
+            -finite(x.get("local_priority"), 0),
+        )
+    )
     external_targets = base_candidates[:MAX_EXTERNAL_MARKETS]
     external_map: dict[str, dict[str, Any]] = {}
     with concurrent.futures.ThreadPoolExecutor(max_workers=8) as pool:
@@ -796,35 +1151,61 @@ def main() -> int:
     candidates = []
     for row in base_candidates:
         ext = external_map.get(row["market"]) or {
-            "market": row["market"], "venues_available": 0, "external_score_0_10": 0.0, "errors": [{"reason": "NOT_QUERIED_OR_UNAVAILABLE"}]
+            "market": row["market"], "venues_available": 0, "external_score_0_10": 0.0,
+            "errors": [{"reason": "DETAILED_EXTERNAL_NOT_SELECTED_THIS_CYCLE"}],
         }
-        external_score = finite(ext.get("external_score_0_10"), 0.0)
+        external_score = max(
+            finite(ext.get("external_score_0_10"), 0.0),
+            finite((row.get("external_spark") or {}).get("score_0_10"), 0.0),
+        )
         opp = score_opportunity(
             finite((row.get("early_quant") or {}).get("score_0_10"), 0),
-            finite(row.get("news_score"), 0),
+            finite(row.get("news_positive_score"), 0),
             finite(row.get("narrative_score"), 0),
             external_score,
         )
-        external_confirmed = int(ext.get("venues_available") or 0) >= 2 and external_score >= 1.0
+        external_confirmed = int(ext.get("venues_available") or 0) >= 2 and finite(ext.get("external_score_0_10"), 0) >= 1.0
+        external_spark_ready = bool((row.get("external_spark") or {}).get("ready"))
         context_watch = (
             finite(row.get("news_score"), 0) > 0
             or bool(row.get("active_narratives"))
             or external_confirmed
+            or external_spark_ready
         )
-        independent_context = context_watch
+        positive_context = (
+            finite(row.get("news_positive_score"), 0) > 0
+            or bool(row.get("active_narratives"))
+            or external_confirmed
+            or external_spark_ready
+        )
+        strong_negative_news = (
+            finite(row.get("news_negative_score"), 0) >= 6.0
+            and finite(row.get("news_negative_score"), 0) > finite(row.get("news_positive_score"), 0) + 2.0
+        )
         v2_confirmed = row.get("v2_state") == "CONFIRMED_ACCELERATION"
         fresh_opportunity_trigger = (
-            bool((row.get("early_quant") or {}).get("ready")) and independent_context
+            bool((row.get("early_quant") or {}).get("ready"))
+            and positive_context
+            and not strong_negative_news
         ) or v2_confirmed
-        entry_hypothesis = fresh_opportunity_trigger
+        thesis_seed = bool(
+            not strong_negative_news
+            and (
+                finite(row.get("news_positive_score"), 0) >= 4.0
+                or external_spark_ready
+            )
+        )
         merged = {
             **row,
             "external": ext,
             "external_score": external_score,
             "opportunity_score": opp,
             "context_watch": context_watch,
+            "positive_context": positive_context,
+            "strong_negative_news": strong_negative_news,
             "fresh_opportunity_trigger": fresh_opportunity_trigger,
-            "entry_hypothesis": entry_hypothesis,
+            "entry_hypothesis": fresh_opportunity_trigger,
+            "thesis_seed": thesis_seed,
         }
         merged["horizon_class"] = classify_horizon(merged)
         candidates.append(merged)
@@ -840,10 +1221,10 @@ def main() -> int:
         market for market, thesis in (state.get("theses") or {}).items()
         if thesis.get("active")
     }
-    fresh_thesis_markets = {
-        x["market"] for x in candidates if x.get("fresh_opportunity_trigger")
+    seeded_thesis_markets = {
+        x["market"] for x in candidates if x.get("thesis_seed")
     }
-    thesis_markets = sorted(active_thesis_markets | fresh_thesis_markets)
+    thesis_markets = sorted(active_thesis_markets | seeded_thesis_markets)
 
     thesis_observations: list[dict[str, Any]] = []
     for market in thesis_markets:
@@ -856,32 +1237,43 @@ def main() -> int:
                 continue
             symbol = base_symbol(market)
             early = early_quant_evidence(raw)
-            hits, news_score = news_for_symbol(symbol, news, now)
+            hits, news_score, news_positive_score, news_negative_score = news_for_symbol(symbol, news, now)
             sector_names = narratives_for_market(market)
             active_rotations = [
                 (name, rotations.get(name) or {})
                 for name in sector_names
                 if (rotations.get(name) or {}).get("active_watch")
             ]
-            raw_rotation = max([finite(x[1].get("rotation_score_0_3"), 0) for x in active_rotations] or [0])
+            dynamic_rotation = dynamic_rotations.get(market) or {}
+            active_narratives = [x[0] for x in active_rotations]
+            if dynamic_rotation.get("active_watch"):
+                active_narratives.append("DYNAMIC_MOMENTUM_COHORT")
+            static_rotation = max([finite(x[1].get("rotation_score_0_3"), 0) for x in active_rotations] or [0])
+            raw_rotation = max(static_rotation, finite(dynamic_rotation.get("rotation_score_0_3"), 0))
             narrative_score = min(10.0, raw_rotation / 3.0 * 10.0)
             v2row = v2_tracking.get(market) or {}
             prior = (state.get("theses") or {}).get(market) or {}
+            external_spark = external_sparks.get(market) or {}
             obs = {
                 **raw,
                 "symbol": symbol,
                 "early_quant": early,
                 "news_items": hits,
                 "news_score": news_score,
+                "news_positive_score": news_positive_score,
+                "news_negative_score": news_negative_score,
                 "narratives": sector_names,
-                "active_narratives": [x[0] for x in active_rotations],
+                "active_narratives": active_narratives,
                 "narrative_score": round(narrative_score, 3),
-                "external": {"venues_available": 0, "external_score_0_10": 0.0, "reason": "THESIS_ONLY_NO_EXTRA_EXTERNAL_QUERY"},
-                "external_score": 0.0,
+                "dynamic_rotation": dynamic_rotation,
+                "external_spark": external_spark,
+                "external": {"venues_available": 0, "external_score_0_10": 0.0, "reason": "THESIS_ONLY_NO_DETAILED_EXTERNAL_QUERY"},
+                "external_score": finite(external_spark.get("score_0_10"), 0),
                 "opportunity_score": finite(prior.get("best_opportunity_score"), 0.0),
-                "context_watch": bool(news_score > 0 or active_rotations),
+                "context_watch": bool(news_score > 0 or active_narratives or external_spark.get("ready")),
                 "fresh_opportunity_trigger": False,
                 "entry_hypothesis": False,
+                "thesis_seed": False,
                 "v2_state": v2row.get("signal_state"),
                 "v2_score": finite(v2row.get("signal_score")),
             }
@@ -895,12 +1287,18 @@ def main() -> int:
         )
     )
     long_trend_profiles: dict[str, dict[str, Any]] = {}
-    if thesis_observations:
+    profile_rows, state["thesis_profile_cursor"], thesis_profile_fairness = select_fair_batch(
+        thesis_observations,
+        MAX_THESIS_PROFILE_MARKETS,
+        state.get("thesis_profile_cursor", 0),
+        key=lambda x: x.get("market") or "",
+    )
+    if profile_rows:
         try:
             trend_client = PublicClient(timeout=8, retries=2, requests_per_second=8)
             long_trend_profiles, trend_errors = fetch_long_trend_profiles(
                 trend_client,
-                [x["market"] for x in thesis_observations],
+                [x["market"] for x in profile_rows],
                 now,
             )
             source_errors.extend(trend_errors)
@@ -924,6 +1322,23 @@ def main() -> int:
         if market in candidate_by_market:
             candidate_by_market[market]["long_trend"] = long_trend
             candidate_by_market[market]["persistent_thesis"] = thesis or {}
+            candidate_by_market[market]["thesis_reentry_hypothesis"] = obs["thesis_reentry_hypothesis"]
+            candidate_by_market[market]["thesis_execution"] = None
+            candidate_by_market[market]["thesis_last_execution"] = (thesis or {}).get("last_execution")
+        elif obs["thesis_reentry_hypothesis"]:
+            # A persistent thesis re-entry must rejoin the main candidate stream
+            # even when the original short-lived trigger/news has disappeared.
+            promoted = {
+                **obs,
+                "persistent_thesis": thesis or {},
+                "thesis_reentry_hypothesis": True,
+                "thesis_execution": None,
+                "thesis_last_execution": (thesis or {}).get("last_execution"),
+                "entry_hypothesis": False,
+                "candidate_source": "PERSISTENT_THESIS_REENTRY",
+            }
+            candidates.append(promoted)
+            candidate_by_market[market] = promoted
 
         opened = bool(thesis.get("active")) and not prior_active
         if opened:
@@ -970,8 +1385,17 @@ def main() -> int:
                 "evaluations": {},
             })
 
-    # Derivatives are diagnostic only and sampled on the strongest candidates.
-    for row in candidates[:8]:
+    candidates.sort(key=lambda x: finite(x.get("opportunity_score"), 0), reverse=True)
+
+    # Expensive diagnostics use a fair queue: bounded work is acceptable,
+    # permanent starvation is not.
+    derivative_rows, state["derivatives_cursor"], derivatives_fairness = select_fair_batch(
+        candidates,
+        MAX_DERIVATIVE_MARKETS,
+        state.get("derivatives_cursor", 0),
+        key=lambda x: x.get("market") or "",
+    )
+    for row in derivative_rows:
         prev = finite((state.get("previous_derivatives") or {}).get(row["market"]))
         derivative = bybit_derivatives(row["symbol"], prev)
         row["derivatives"] = derivative
@@ -979,16 +1403,18 @@ def main() -> int:
         if oi is not None:
             state["previous_derivatives"][row["market"]] = oi
 
-    # Preserve V2 confirmed candidates in the execution check even if their V3
-    # opportunity score is not in the top-N.
-    execution_rows = [x for x in candidates if x.get("entry_hypothesis")]
-    execution_rows.sort(
-        key=lambda x: (
-            0 if x.get("v2_state") == "CONFIRMED_ACCELERATION" else 1,
-            -finite(x.get("opportunity_score"), 0),
-        )
+    execution_eligible = [x for x in candidates if x.get("entry_hypothesis")]
+    execution_rows, state["execution_cursor"], execution_fairness = select_priority_fair_batch(
+        execution_eligible,
+        MAX_EXECUTION_MARKETS,
+        state.get("execution_cursor", 0),
+        priority_count=min(8, MAX_EXECUTION_MARKETS),
+        priority_key=lambda x: (
+            int(x.get("v2_state") == "CONFIRMED_ACCELERATION"),
+            finite(x.get("opportunity_score"), 0),
+        ),
+        key=lambda x: x.get("market") or "",
     )
-    execution_rows = execution_rows[:MAX_EXECUTION_MARKETS]
 
     client = PublicClient(timeout=8, retries=2, requests_per_second=10)
     metadata: dict[str, dict[str, Any]] = {}
@@ -1007,11 +1433,24 @@ def main() -> int:
         for row in execution_rows:
             checks[row["market"]] = execution_check(client, metadata, row, time.time())
 
-    # Thesis re-entry execution is deliberately separate from V3 execution
-    # checks so V3.1 continues to consume the unchanged V3 candidate stream.
-    thesis_execution_rows = [
+    # Re-entry theses are now a first-class upstream path for V3.1.  The
+    # bounded execution workload rotates fairly so an ONDO-like candidate can
+    # never remain 40th forever behind a fixed top-N slice.
+    thesis_execution_eligible = [
         x for x in thesis_observations if x.get("thesis_reentry_hypothesis")
-    ][:MAX_THESIS_EXECUTION_MARKETS]
+    ]
+    thesis_execution_rows, state["thesis_execution_cursor"], thesis_execution_fairness = select_priority_fair_batch(
+        thesis_execution_eligible,
+        MAX_THESIS_EXECUTION_MARKETS,
+        state.get("thesis_execution_cursor", 0),
+        priority_count=min(8, MAX_THESIS_EXECUTION_MARKETS),
+        priority_key=lambda x: (
+            int(((x.get("persistent_thesis") or {}).get("last_execution_state")) == "ENTRY_READY_SHADOW"),
+            finite(x.get("opportunity_score"), 0),
+            finite(((x.get("persistent_thesis") or {}).get("return_from_open_pct")), 0),
+        ),
+        key=lambda x: x.get("market") or "",
+    )
     thesis_checks: dict[str, dict[str, Any]] = {}
     if metadata:
         for obs in thesis_execution_rows:
@@ -1026,6 +1465,10 @@ def main() -> int:
             continue
         thesis["last_execution_state"] = check.get("reason")
         thesis["last_execution_checked_at_utc"] = utc(now)
+        thesis["last_execution"] = check
+        if market in candidate_by_market:
+            candidate_by_market[market]["thesis_execution"] = check
+            candidate_by_market[market]["thesis_reentry_hypothesis"] = True
         thesis_id = thesis.get("thesis_id")
         if (
             check.get("ready")
@@ -1281,6 +1724,8 @@ def main() -> int:
     journal["updated_at_utc"] = utc(now)
     journal["research_only"] = True
     journal["frozen_v2_commit"] = FROZEN_V2_COMMIT
+    journal["architecture_version"] = V3_ARCHITECTURE_VERSION
+    journal["runtime_commit"] = runtime_commit
     journal["events"] = journal["events"][-10000:]
 
     compact_candidates = []
@@ -1297,10 +1742,20 @@ def main() -> int:
             "early_quant": row.get("early_quant"),
             "market_data_quality_ok": row.get("market_data_quality_ok"),
             "news_score": row.get("news_score"),
+            "news_positive_score": row.get("news_positive_score"),
+            "news_negative_score": row.get("news_negative_score"),
             "news_items": row.get("news_items"),
             "active_narratives": row.get("active_narratives"),
             "narrative_score": row.get("narrative_score"),
+            "dynamic_rotation": row.get("dynamic_rotation"),
+            "external_spark": row.get("external_spark"),
             "external": row.get("external"),
+            "strong_negative_news": row.get("strong_negative_news"),
+            "thesis_seed": row.get("thesis_seed"),
+            "persistent_thesis": row.get("persistent_thesis"),
+            "thesis_reentry_hypothesis": row.get("thesis_reentry_hypothesis"),
+            "thesis_execution": row.get("thesis_execution"),
+            "thesis_last_execution": row.get("thesis_last_execution"),
             "derivatives": row.get("derivatives"),
             "v2_state": row.get("v2_state"),
             "v2_score": row.get("v2_score"),
@@ -1311,12 +1766,15 @@ def main() -> int:
     candidate_doc = {
         "schema": "solaire_v3_candidates_v1",
         "generated_at_utc": utc(now),
+        "architecture_version": V3_ARCHITECTURE_VERSION,
+        "runtime_commit": runtime_commit,
         "research_only": True,
         "affects_v2": False,
         "affects_email": False,
         "orders_submitted": False,
         "frozen_v2_commit": FROZEN_V2_COMMIT,
         "narrative_rotations": rotations,
+        "dynamic_rotation_mode": "DYNAMIC_FULL_UNIVERSE_MOMENTUM_COHORT",
         "news_items_considered": len(news),
         "news_mapping": news_mapping,
         "candidates": compact_candidates,
@@ -1325,10 +1783,12 @@ def main() -> int:
     thesis_doc = {
         "schema": "solaire_v3_persistent_theses_v1",
         "generated_at_utc": utc(now),
+        "architecture_version": V3_ARCHITECTURE_VERSION,
+        "runtime_commit": runtime_commit,
         "research_only": True,
         "affects_v2": False,
-        "affects_v3_candidate_selection": False,
-        "affects_v31": False,
+        "affects_v3_candidate_selection": True,
+        "affects_v31": True,
         "affects_email": False,
         "orders_submitted": False,
         "max_profile_markets": MAX_THESIS_PROFILE_MARKETS,
@@ -1352,6 +1812,8 @@ def main() -> int:
         "checked_at_utc": utc(now),
         "status": "DEGRADED_NONBLOCKING" if critical_error else ("OK_WITH_SOURCE_GAPS" if source_errors else "OK"),
         "mode": "PROSPECTIVE_SHADOW",
+        "architecture_version": V3_ARCHITECTURE_VERSION,
+        "runtime_commit": runtime_commit,
         "research_only": True,
         "affects_v2": False,
         "affects_email": False,
@@ -1365,10 +1827,17 @@ def main() -> int:
         "news_named_alias_symbols": news_mapping.get("named_alias_symbols"),
         "news_named_alias_coverage_pct": news_mapping.get("named_alias_coverage_pct"),
         "candidate_count": len(candidates),
+        "external_batch_universe_symbols": len(external_snapshot),
+        "external_spark_count": sum(bool((x.get("external_spark") or {}).get("ready")) for x in candidates),
+        "dynamic_rotation_active_count": sum(bool((x.get("dynamic_rotation") or {}).get("active_watch")) for x in candidates),
         "context_watch_count": sum(bool(x.get("context_watch")) for x in candidates),
         "entry_hypothesis_count": sum(bool(x.get("entry_hypothesis")) for x in candidates),
         "thesis_reentry_hypothesis_count": sum(bool(x.get("thesis_reentry_hypothesis")) for x in thesis_observations),
         "execution_checks": len(checks),
+        "execution_fairness": execution_fairness,
+        "thesis_execution_fairness": thesis_execution_fairness,
+        "thesis_profile_fairness": thesis_profile_fairness,
+        "derivatives_fairness": derivatives_fairness,
         "entry_ready_shadow_count": sum(
             bool(checks.get(x["market"], {}).get("ready"))
             for x in candidates if x.get("entry_hypothesis")

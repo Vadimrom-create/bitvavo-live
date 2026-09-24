@@ -14,17 +14,19 @@ The immutable V2 code reference is commit `34b042121bb8425b0e4b46e3d1a694d4b1f4e
 
 3. **Where to place capital — opportunity cost.** A standardized shadow portfolio (EUR 2,400 reference capital, EUR 100 reference position, max three positions) records KEEP/OPEN/ROTATE/CLOSE logic. It is **not** the user's account balance and does not trade. Rotation requires a materially higher forward opportunity score, so churn is measurable.
 
-4. **Where/when price discovery starts — global market.** Prioritized candidates are checked on available public Binance, Bybit, OKX, Coinbase and Kraken spot markets. Bybit linear-perpetual open interest/funding is sampled diagnostically for the strongest candidates. Bitvavo remains the execution-quality reference.
+4. **Where/when price discovery starts — global market.** A batch first-stage scan now covers the complete Bitvavo symbol universe on available Binance, Bybit and OKX spot tickers every cycle and compares each venue with its prior V3 cycle. External sparks can therefore create a watch before Bitvavo itself accelerates. A bounded second-stage candle check then uses Binance, Bybit, OKX, Coinbase and Kraken for richer 20m/60m confirmation. Expensive second-stage work, derivatives, long-trend profiles and execution checks use rotating fair queues rather than fixed top-N slices, so no eligible market can be starved indefinitely. Bitvavo remains the execution-quality reference.
 
 5. **When to enter — entry-timing laboratory.** The raw `ENTRY_READY_SHADOW` remains the neutral baseline. V3 also measures a 30-minute persistence path and a pullback/reclaim path. These variants never affect V2, emails, orders or the baseline capital-rotation shadow.
 
-6. **Opportunity is not entry — persistent thesis layer.** A fresh opportunity can open a thesis that survives disappearance of the short acceleration. The thesis tracks continuation, pullback, reclaim/re-entry, invalidation and expiry independently from the short episode. Up to twenty prioritized thesis markets also receive closed 4h-candle context over 24h, 72h and 7d, including relative performance versus BTC when available. A thesis re-entry is logged and evaluated separately; it does not alter the existing rotation portfolio.
+6. **Opportunity is not entry — persistent thesis layer.** A strong prewatch context can seed a thesis **before** a full entry trigger, and a fresh opportunity can also open one. The thesis survives disappearance of the short acceleration and tracks continuation, pullback, reclaim/re-entry, invalidation and expiry independently from the short episode. Long-horizon profiling is refreshed through a fair rotating queue. A credible `REENTRY_READY_THESIS` is promoted back into the main V3 candidate stream and its latest execution state is forwarded to V3.1; a temporary R:R/spread/structure failure remains a retryable WAIT rather than causing the opportunity to disappear.
 
 ## V3 entry path
 
 A V3-only early entry hypothesis requires:
 - multiple early quantitative facts, **and**
-- independent context (news, active narrative rotation, or cross-exchange confirmation).
+- independent positive context (positive/material news catalyst, static or dynamic full-universe rotation context, or cross-exchange confirmation).
+
+News attention and entry direction are separated: negative catalysts can create a watch and an explicit penalty but do not count as bullish entry confirmation.
 
 The frozen V2 confirmed path is also evaluated as a common reference.
 
@@ -68,4 +70,6 @@ Estimated net close returns use a fixed 0.70% round-trip cost convention for com
 
 GitHub Actions remains a scheduled, non-continuous runtime. Astra measured a much slower effective cadence than the nominal five-minute cron. V3 therefore tests whether these research axes add value **despite** that limitation; it does not claim to solve latency. Astra remains the independent continuous-architecture challenger.
 
-External feeds are best-effort and non-blocking. A missing external venue/news source cannot become positive evidence. News mapping itself is full-universe, but source coverage is still bounded by the configured feeds/aggregator; source gaps are reported explicitly. News is used as dated attention/context, not as inferred sentiment. No live order is submitted by V3.
+External feeds are best-effort and non-blocking. A missing external venue/news source cannot become positive evidence. News mapping is full-universe and uses title-level entity resolution plus structured provider tickers to avoid ordinary-word collisions. Canonical project names are never shortened into generic words. The source set includes media/aggregator feeds plus official Binance announcements, Coinbase/Kraken feeds and first-seen monitoring of official Bybit/OKX announcement pages. Every event is classified by catalyst type/direction/materiality before it can support an entry. No live order is submitted by V3.
+
+Every new prospective event is stamped with the current V3 architecture version and runtime commit. Legacy journal events are explicitly marked as pre-versioning observations so pre- and post-change performance cannot be silently pooled.

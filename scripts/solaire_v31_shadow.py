@@ -19,11 +19,13 @@ if str(ROOT) not in sys.path:
 from research.common import atomic_json, finite, read_json, utc
 from research.solaire_v31 import (
     FROZEN_V3_COMMIT,
+    V31_ARCHITECTURE_VERSION,
     V3_TIMING_LAB_COMMIT,
     MAX_SHADOW_POSITIONS,
     REFERENCE_CAPITAL_EUR,
     final_economic_score,
     preliminary_economic_score,
+    select_execution_path,
     shadow_sizing,
     timing_variants,
 )
@@ -49,10 +51,12 @@ def _event_key(event: dict[str, Any]) -> str:
         str(event.get("market") or ""),
         str(event.get("episode") or ""),
         str(event.get("event_type") or ""),
+        str(event.get("entry_path") or ""),
     ])
 
 
 def _append_event(journal: dict[str, Any], event: dict[str, Any]) -> bool:
+    event.setdefault("architecture_version", V31_ARCHITECTURE_VERSION)
     keys = {_event_key(x) for x in journal.get("events", [])}
     if _event_key(event) in keys:
         return False
@@ -109,7 +113,7 @@ def update_portfolio(
 
     for row in sorted(qualified, key=lambda x: finite(x.get("economic_score"), 0), reverse=True):
         market = row["market"]
-        episode_key = market + "|" + str(row.get("episode") or "")
+        episode_key = market + "|" + str(row.get("episode") or "") + "|" + str(row.get("entry_path") or "RAW")
         if episode_key in consumed:
             continue
         if any(p.get("market") == market for p in portfolio["positions"]):
@@ -146,6 +150,7 @@ def update_portfolio(
             "stake_eur": stake,
             "theoretical_risk_eur": finite(sizing.get("theoretical_risk_eur")),
             "economic_score": score,
+            "entry_path": row.get("entry_path") or "RAW",
         })
         portfolio["actions"].append({
             "at_utc": utc(now),
@@ -197,6 +202,7 @@ def _timing_event(
         "execution_quality": row["execution_quality"],
         "sizing": row.get("sizing"),
         "timing_path": path,
+        "entry_path": "RAW_TIMING",
         "timing_state": row.get("timing_state"),
         "upstream_v3_timing_lab_commit": V3_TIMING_LAB_COMMIT,
         "legacy_v2_score_unused": row.get("v2_score"),
@@ -219,12 +225,19 @@ def main() -> int:
 
     v3_candidates = v3_doc.get("candidates") or []
     news_mapping = v3_doc.get("news_mapping") or {}
+    upstream_v3_architecture_version = v3_doc.get("architecture_version") or "legacy-unversioned-v3"
+    upstream_v3_runtime_commit = v3_doc.get("runtime_commit")
     rows = universe.get("rows") or []
     universe_by_market = {x.get("market"): x for x in rows if x.get("market")}
 
     initial_cycle = not bool(state.get("initialized"))
     initial_timing_cycle = not bool(state.get("timing_lab_initialized"))
     state.setdefault("schema", "solaire_v31_state_v1")
+    prior_architecture_version = state.get("architecture_version")
+    state["architecture_version"] = V31_ARCHITECTURE_VERSION
+    if prior_architecture_version != V31_ARCHITECTURE_VERSION:
+        state["architecture_migrated_at_utc"] = utc(now)
+        state["architecture_migrated_from"] = prior_architecture_version or "legacy-unversioned"
     state.setdefault("started_ts", now)
     state.setdefault("started_at_utc", utc(now))
     state.setdefault("timing_lab_started_ts", now)
@@ -234,6 +247,9 @@ def main() -> int:
     journal.setdefault("started_ts", state["started_ts"])
     journal.setdefault("started_at_utc", state["started_at_utc"])
     journal.setdefault("events", [])
+    for legacy_event in journal.get("events", []):
+        legacy_event.setdefault("architecture_version", "legacy-pre-v3.1.1-unversioned")
+        legacy_event.setdefault("upstream_v3_architecture_version", None)
 
     if not v3_candidates or not rows:
         status = {
@@ -259,12 +275,16 @@ def main() -> int:
         if not market or row is None:
             continue
         preliminary = preliminary_economic_score(candidate, row)
-        final = final_economic_score(preliminary, candidate.get("execution"))
+        raw_execution = candidate.get("execution")
+        thesis_execution = candidate.get("thesis_execution")
+        thesis_reentry = bool(candidate.get("thesis_reentry_hypothesis"))
+        selected_execution, entry_path = select_execution_path(candidate)
+        final = final_economic_score(preliminary, selected_execution)
         sizing = None
         if final.get("selectable"):
             sizing = shadow_sizing(
                 finite(final.get("score"), 0),
-                candidate.get("execution") or {},
+                selected_execution or {},
                 finite(row.get("quote_volume_24h_eur")),
             )
             if not sizing.get("valid"):
@@ -278,7 +298,15 @@ def main() -> int:
             "selectable": bool(final.get("selectable")),
             "selection_reason": final.get("reason"),
             "execution_quality": final.get("execution_quality"),
-            "execution": candidate.get("execution"),
+            "execution": selected_execution,
+            "entry_path": entry_path,
+            "raw_execution": raw_execution,
+            "thesis_execution": thesis_execution,
+            "thesis_last_execution": candidate.get("thesis_last_execution"),
+            "thesis_reentry_hypothesis": thesis_reentry,
+            "persistent_thesis": candidate.get("persistent_thesis"),
+            "news_positive_score": candidate.get("news_positive_score"),
+            "news_negative_score": candidate.get("news_negative_score"),
             "sizing": sizing,
             "v2_state": candidate.get("v2_state"),
             "v2_score": candidate.get("v2_score"),
@@ -304,6 +332,7 @@ def main() -> int:
             ms["started_ts"] = now
             ms["started_at_utc"] = utc(now)
             ms.pop("decision_recorded_episode", None)
+            ms.pop("decision_recorded_paths", None)
             ms.pop("timing_decisions", None)
 
         ms["last_seen_ts"] = now
@@ -334,13 +363,17 @@ def main() -> int:
             "preliminary": row["preliminary"],
             "execution_quality": row["execution_quality"],
             "sizing": row.get("sizing"),
+            "entry_path": row.get("entry_path"),
+            "upstream_v3_architecture_version": upstream_v3_architecture_version,
             "legacy_v2_score_unused": row.get("v2_score"),
             "legacy_v3_opportunity_score_unused": row.get("v3_opportunity_score"),
             "left_censored_at_v31_t0": initial_cycle,
             "evaluations": {},
         }
-        if ms.get("decision_recorded_episode") != ms["episode"] and _append_event(journal, event):
-            ms["decision_recorded_episode"] = ms["episode"]
+        decision_paths = ms.setdefault("decision_recorded_paths", {})
+        decision_key = row.get("entry_path") or "RAW"
+        if decision_paths.get(decision_key) != ms["episode"] and _append_event(journal, event):
+            decision_paths[decision_key] = ms["episode"]
 
         if row.get("selectable"):
             qualified_for_portfolio.append({
@@ -388,8 +421,12 @@ def main() -> int:
     candidate_doc = {
         "schema": "solaire_v31_candidates_v1",
         "generated_at_utc": utc(now),
+        "architecture_version": V31_ARCHITECTURE_VERSION,
+        "upstream_v3_architecture_version": upstream_v3_architecture_version,
+        "upstream_v3_runtime_commit": upstream_v3_runtime_commit,
         "mode": "ECONOMIC_SELECTION_SHADOW",
         "frozen_v3_commit": FROZEN_V3_COMMIT,
+        "frozen_v3_commit_role": "BENCHMARK_ONLY_NOT_LIVE_INPUT",
         "v3_timing_lab_commit": V3_TIMING_LAB_COMMIT,
         "research_only": True,
         "affects_v3": False,
@@ -405,7 +442,11 @@ def main() -> int:
         "checked_at_utc": utc(now),
         "status": "OK",
         "mode": "ECONOMIC_SELECTION_SHADOW",
+        "architecture_version": V31_ARCHITECTURE_VERSION,
+        "upstream_v3_architecture_version": upstream_v3_architecture_version,
+        "upstream_v3_runtime_commit": upstream_v3_runtime_commit,
         "frozen_v3_commit": FROZEN_V3_COMMIT,
+        "frozen_v3_commit_role": "BENCHMARK_ONLY_NOT_LIVE_INPUT",
         "v3_timing_lab_commit": V3_TIMING_LAB_COMMIT,
         "candidate_count": len(ranked),
         "news_mapping_mode": news_mapping.get("mode"),
@@ -436,7 +477,11 @@ def main() -> int:
     state["updated_at_utc"] = utc(now)
     journal["updated_at_utc"] = utc(now)
     journal["research_only"] = True
+    journal["architecture_version"] = V31_ARCHITECTURE_VERSION
+    journal["upstream_v3_architecture_version"] = upstream_v3_architecture_version
+    journal["upstream_v3_runtime_commit"] = upstream_v3_runtime_commit
     journal["frozen_v3_commit"] = FROZEN_V3_COMMIT
+    journal["frozen_v3_commit_role"] = "BENCHMARK_ONLY_NOT_LIVE_INPUT"
     journal["v3_timing_lab_commit"] = V3_TIMING_LAB_COMMIT
     journal["events"] = journal["events"][-10000:]
 
