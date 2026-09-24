@@ -95,6 +95,7 @@ TIMING_RECLAIM_MAX_DRIFT_PCT = 3.0
 
 OFFICIAL_ANNOUNCEMENT_PAGES = (
     ("binance_official_page", "https://www.binance.com/en/support/announcement/", "https://www.binance.com"),
+    ("coinbase_official_page", "https://www.coinbase.com/blog", "https://www.coinbase.com"),
     ("bybit_official", "https://announcements.bybit.com/en/", "https://announcements.bybit.com"),
     ("okx_official", "https://www.okx.com/help/category/announcements", "https://www.okx.com"),
 )
