@@ -872,6 +872,8 @@ def execution_check(
         return finish({"ready": False, "reason": "EXECUTION_SOURCE_ERROR", "error": type(exc).__name__})
 
 def _event_key(event: dict[str, Any]) -> str:
+    if event.get("attempt_id"):
+        return str(event.get("attempt_id"))
     event_type = str(event.get("event_type") or "")
     if "THESIS" in event_type:
         scope = "thesis:" + str(event.get("thesis_id") or "")
@@ -1629,6 +1631,31 @@ def main() -> int:
             }
             if _append_event(journal, event):
                 ms["prewatch_recorded_episode"] = ms["episode"]
+
+        if row.get("entry_hypothesis"):
+            recovery = ms.setdefault("opportunity_recovery", {"episode": ms["episode"]})
+            if recovery.get("episode") != ms["episode"]:
+                recovery.clear()
+                recovery["episode"] = ms["episode"]
+            if recovery.get("first_opportunity_ts") is None:
+                recovery["first_opportunity_ts"] = now
+                recovery["first_opportunity_at_utc"] = utc(now)
+                recovery["first_opportunity_price_eur"] = finite(row.get("price_eur"))
+                recovery["first_opportunity_definition"] = "FIRST_V3_ENTRY_HYPOTHESIS"
+                first_event = {
+                    "event_type": "FIRST_OPPORTUNITY_OBSERVED",
+                    "market": market,
+                    "episode": ms["episode"],
+                    "attempt_id": f"{market}|{ms['episode']}|FIRST_OPPORTUNITY",
+                    "decision_ts": now,
+                    "decision_at_utc": utc(now),
+                    "price_eur": finite(row.get("price_eur")),
+                    "opportunity_score": row.get("opportunity_score"),
+                    "horizon_class": row.get("horizon_class"),
+                    "evaluation_excluded": True,
+                    "left_censored_at_v3_t0": initial_v3_cycle,
+                }
+                _append_event(journal, first_event)
 
         check = checks.get(market)
         if row.get("entry_hypothesis") and check is not None:
