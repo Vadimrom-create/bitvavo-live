@@ -1269,7 +1269,8 @@ def main() -> int:
             candidate_by_market[market]["long_trend"] = long_trend
             candidate_by_market[market]["persistent_thesis"] = thesis or {}
             candidate_by_market[market]["thesis_reentry_hypothesis"] = obs["thesis_reentry_hypothesis"]
-            candidate_by_market[market]["thesis_execution"] = (thesis or {}).get("last_execution")
+            candidate_by_market[market]["thesis_execution"] = None
+            candidate_by_market[market]["thesis_last_execution"] = (thesis or {}).get("last_execution")
         elif obs["thesis_reentry_hypothesis"]:
             # A persistent thesis re-entry must rejoin the main candidate stream
             # even when the original short-lived trigger/news has disappeared.
@@ -1277,7 +1278,8 @@ def main() -> int:
                 **obs,
                 "persistent_thesis": thesis or {},
                 "thesis_reentry_hypothesis": True,
-                "thesis_execution": (thesis or {}).get("last_execution"),
+                "thesis_execution": None,
+                "thesis_last_execution": (thesis or {}).get("last_execution"),
                 "entry_hypothesis": False,
                 "candidate_source": "PERSISTENT_THESIS_REENTRY",
             }
@@ -1688,6 +1690,7 @@ def main() -> int:
             "persistent_thesis": row.get("persistent_thesis"),
             "thesis_reentry_hypothesis": row.get("thesis_reentry_hypothesis"),
             "thesis_execution": row.get("thesis_execution"),
+            "thesis_last_execution": row.get("thesis_last_execution"),
             "derivatives": row.get("derivatives"),
             "v2_state": row.get("v2_state"),
             "v2_score": row.get("v2_score"),
