@@ -281,6 +281,9 @@ def main() -> int:
         elif thesis_reentry and thesis_execution is not None:
             selected_execution = thesis_execution
             entry_path = "THESIS_REENTRY_WAIT"
+        elif thesis_reentry and raw_execution is None:
+            selected_execution = None
+            entry_path = "THESIS_REENTRY_PENDING_CHECK"
         else:
             selected_execution = raw_execution
             entry_path = "RAW"
@@ -307,6 +310,7 @@ def main() -> int:
             "entry_path": entry_path,
             "raw_execution": raw_execution,
             "thesis_execution": thesis_execution,
+            "thesis_last_execution": candidate.get("thesis_last_execution"),
             "thesis_reentry_hypothesis": thesis_reentry,
             "persistent_thesis": candidate.get("persistent_thesis"),
             "news_positive_score": candidate.get("news_positive_score"),
