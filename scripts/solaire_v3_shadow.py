@@ -1679,6 +1679,7 @@ def main() -> int:
                     else "ENTRY_HYPOTHESIS"
                 )
                 recovery["first_credible_early_quant"] = row.get("early_quant")
+                recovery["first_credible_left_censored"] = prospective_censor
                 credible_event = {
                     "event_type": "FIRST_CREDIBLE_OPPORTUNITY",
                     "market": market,
@@ -1730,7 +1731,9 @@ def main() -> int:
                     "recovery": dict(recovery),
                     "observation_only": True,
                     "evaluation_excluded": True,
-                    "left_censored_at_v3_t0": prospective_censor,
+                    "left_censored_at_v3_t0": bool(
+                        prospective_censor or recovery.get("first_credible_left_censored")
+                    ),
                     "evaluations": {},
                 })
 
@@ -1801,7 +1804,9 @@ def main() -> int:
                     "recovery": dict(recovery),
                     "execution": diagnostic_check,
                     "observation_only": True,
-                    "left_censored_at_v3_t0": prospective_censor,
+                    "left_censored_at_v3_t0": bool(
+                        prospective_censor or recovery.get("first_credible_left_censored")
+                    ),
                     "evaluations": {},
                 })
 
@@ -1881,7 +1886,9 @@ def main() -> int:
                     "execution_source": "ENTRY_HYPOTHESIS_EXECUTION",
                     "recovery": dict(recovery),
                     "execution": check,
-                    "left_censored_at_v3_t0": prospective_censor,
+                    "left_censored_at_v3_t0": bool(
+                        prospective_censor or recovery.get("first_credible_left_censored")
+                    ),
                     "evaluations": {},
                 }
                 _append_event(journal, recovery_event)
