@@ -881,11 +881,20 @@ def main() -> int:
     state.setdefault("started_at_utc", utc(now))
     state.setdefault("markets", {})
     state.setdefault("previous_derivatives", {})
+    state.setdefault("previous_external_prices", {})
+    state.setdefault("execution_cursor", 0)
+    state.setdefault("thesis_execution_cursor", 0)
+    state.setdefault("thesis_profile_cursor", 0)
+    state.setdefault("derivatives_cursor", 0)
     state.setdefault("theses", {})
+    runtime_commit = os.environ.get("GITHUB_SHA") or "LOCAL_OR_UNKNOWN"
     journal.setdefault("schema", "solaire_v3_prospective_journal_v1")
     journal.setdefault("started_ts", state["started_ts"])
     journal.setdefault("started_at_utc", state["started_at_utc"])
     journal.setdefault("events", [])
+    for legacy_event in journal.get("events", []):
+        legacy_event.setdefault("architecture_version", "legacy-pre-v3.2-unversioned")
+        legacy_event.setdefault("runtime_commit", None)
 
     source_errors: list[dict[str, Any]] = []
     if not rows:
@@ -905,10 +914,21 @@ def main() -> int:
         return 0
 
     rotations = build_narrative_rotations(rows)
+    dynamic_rotations = build_dynamic_rotation_context(rows)
     asset_aliases, news_mapping, alias_errors = build_full_universe_news_aliases(rows)
     source_errors.extend(alias_errors)
     news, news_errors = fetch_news(now, asset_aliases)
     source_errors.extend(news_errors)
+
+    allowed_symbols = {base_symbol(x.get("market")) for x in rows if x.get("market")}
+    external_snapshot, external_batch_errors = fetch_external_price_snapshot(allowed_symbols)
+    source_errors.extend(external_batch_errors)
+    external_sparks = build_external_sparks(
+        rows,
+        external_snapshot,
+        state.get("previous_external_prices") or {},
+    )
+    state["previous_external_prices"] = external_snapshot
 
     v2_tracking = {
         r["market"]: r
@@ -930,23 +950,34 @@ def main() -> int:
             "flags": {},
             "reason": "MARKET_DATA_NOT_STRATEGY_GRADE",
         }
-        hits, news_score = news_for_symbol(symbol, news, now)
+        hits, news_score, news_positive_score, news_negative_score = news_for_symbol(symbol, news, now)
         sector_names = narratives_for_market(market)
         active_rotations = [
             (name, rotations.get(name) or {})
             for name in sector_names
             if (rotations.get(name) or {}).get("active_watch")
         ]
-        raw_rotation = max([finite(x[1].get("rotation_score_0_3"), 0) for x in active_rotations] or [0])
+        dynamic_rotation = dynamic_rotations.get(market) or {}
+        active_narratives = [x[0] for x in active_rotations]
+        if dynamic_rotation.get("active_watch"):
+            active_narratives.append("DYNAMIC_MOMENTUM_COHORT")
+        static_rotation = max([finite(x[1].get("rotation_score_0_3"), 0) for x in active_rotations] or [0])
+        raw_rotation = max(static_rotation, finite(dynamic_rotation.get("rotation_score_0_3"), 0))
         narrative_score = min(10.0, raw_rotation / 3.0 * 10.0)
+        external_spark = external_sparks.get(market) or {}
         v2row = v2_tracking.get(market) or {}
         local_priority = (
             finite(early.get("score_0_10"), 0)
-            + news_score
+            + news_positive_score
             + narrative_score
+            + finite(external_spark.get("score_0_10"), 0)
             + (3.0 if v2row.get("signal_state") == "CONFIRMED_ACCELERATION" else 1.5 if v2row else 0.0)
         )
-        if news_score > 0 or (quality_ok and (active_rotations or early.get("ready") or v2row)):
+        if (
+            news_score > 0
+            or bool(external_spark.get("ready"))
+            or (quality_ok and (active_narratives or early.get("ready") or v2row))
+        ):
             base_candidates.append({
                 **row,
                 "market_data_quality_ok": quality_ok,
@@ -954,15 +985,25 @@ def main() -> int:
                 "early_quant": early,
                 "news_items": hits,
                 "news_score": news_score,
+                "news_positive_score": news_positive_score,
+                "news_negative_score": news_negative_score,
                 "narratives": sector_names,
-                "active_narratives": [x[0] for x in active_rotations],
+                "active_narratives": active_narratives,
                 "narrative_score": round(narrative_score, 3),
+                "dynamic_rotation": dynamic_rotation,
+                "external_spark": external_spark,
                 "local_priority": round(local_priority, 3),
                 "v2_state": v2row.get("signal_state"),
                 "v2_score": finite(v2row.get("signal_score")),
             })
 
-    base_candidates.sort(key=lambda x: x["local_priority"], reverse=True)
+    base_candidates.sort(
+        key=lambda x: (
+            -int(bool((x.get("external_spark") or {}).get("ready"))),
+            -finite((x.get("external_spark") or {}).get("score_0_10"), 0),
+            -finite(x.get("local_priority"), 0),
+        )
+    )
     external_targets = base_candidates[:MAX_EXTERNAL_MARKETS]
     external_map: dict[str, dict[str, Any]] = {}
     with concurrent.futures.ThreadPoolExecutor(max_workers=8) as pool:
@@ -980,35 +1021,65 @@ def main() -> int:
     candidates = []
     for row in base_candidates:
         ext = external_map.get(row["market"]) or {
-            "market": row["market"], "venues_available": 0, "external_score_0_10": 0.0, "errors": [{"reason": "NOT_QUERIED_OR_UNAVAILABLE"}]
+            "market": row["market"], "venues_available": 0, "external_score_0_10": 0.0,
+            "errors": [{"reason": "DETAILED_EXTERNAL_NOT_SELECTED_THIS_CYCLE"}],
         }
-        external_score = finite(ext.get("external_score_0_10"), 0.0)
+        external_score = max(
+            finite(ext.get("external_score_0_10"), 0.0),
+            finite((row.get("external_spark") or {}).get("score_0_10"), 0.0),
+        )
         opp = score_opportunity(
             finite((row.get("early_quant") or {}).get("score_0_10"), 0),
-            finite(row.get("news_score"), 0),
+            finite(row.get("news_positive_score"), 0),
             finite(row.get("narrative_score"), 0),
             external_score,
         )
-        external_confirmed = int(ext.get("venues_available") or 0) >= 2 and external_score >= 1.0
+        external_confirmed = int(ext.get("venues_available") or 0) >= 2 and finite(ext.get("external_score_0_10"), 0) >= 1.0
+        external_spark_ready = bool((row.get("external_spark") or {}).get("ready"))
         context_watch = (
             finite(row.get("news_score"), 0) > 0
             or bool(row.get("active_narratives"))
             or external_confirmed
+            or external_spark_ready
         )
-        independent_context = context_watch
+        positive_context = (
+            finite(row.get("news_positive_score"), 0) > 0
+            or bool(row.get("active_narratives"))
+            or external_confirmed
+            or external_spark_ready
+        )
+        strong_negative_news = (
+            finite(row.get("news_negative_score"), 0) >= 6.0
+            and finite(row.get("news_negative_score"), 0) > finite(row.get("news_positive_score"), 0) + 2.0
+        )
         v2_confirmed = row.get("v2_state") == "CONFIRMED_ACCELERATION"
         fresh_opportunity_trigger = (
-            bool((row.get("early_quant") or {}).get("ready")) and independent_context
+            bool((row.get("early_quant") or {}).get("ready"))
+            and positive_context
+            and not strong_negative_news
         ) or v2_confirmed
-        entry_hypothesis = fresh_opportunity_trigger
+        thesis_seed = bool(
+            not strong_negative_news
+            and (
+                finite(row.get("news_positive_score"), 0) >= 4.0
+                or external_spark_ready
+                or (
+                    int((row.get("early_quant") or {}).get("evidence_count") or 0) >= 2
+                    and (bool(row.get("active_narratives")) or external_confirmed)
+                )
+            )
+        )
         merged = {
             **row,
             "external": ext,
             "external_score": external_score,
             "opportunity_score": opp,
             "context_watch": context_watch,
+            "positive_context": positive_context,
+            "strong_negative_news": strong_negative_news,
             "fresh_opportunity_trigger": fresh_opportunity_trigger,
-            "entry_hypothesis": entry_hypothesis,
+            "entry_hypothesis": fresh_opportunity_trigger,
+            "thesis_seed": thesis_seed,
         }
         merged["horizon_class"] = classify_horizon(merged)
         candidates.append(merged)
