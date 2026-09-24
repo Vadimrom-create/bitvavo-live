@@ -1,5 +1,7 @@
 import unittest
 
+from scripts.solaire_v3_shadow import build_external_sparks
+
 from research.solaire_v3 import (
     build_asset_aliases,
     build_dynamic_rotation_context,
@@ -65,6 +67,17 @@ class SolaireV3Tests(unittest.TestCase):
         self.assertEqual(listing["event_type"], "LISTING")
         self.assertEqual(delisting["direction"], "NEGATIVE")
         self.assertEqual(delisting["event_type"], "DELISTING")
+
+    def test_external_spark_requires_two_venues_and_fresh_cycle_interval(self):
+        universe = [{"market": "ONDO-EUR"}]
+        previous = {"ONDO": {"okx": 1.0, "kraken": 1.0}}
+        current = {"ONDO": {"okx": 1.01, "kraken": 1.008}}
+        fresh = build_external_sparks(universe, current, previous, elapsed_seconds=300)["ONDO-EUR"]
+        stale = build_external_sparks(universe, current, previous, elapsed_seconds=7200)["ONDO-EUR"]
+        self.assertTrue(fresh["ready"])
+        self.assertTrue(fresh["cadence_valid_for_spark"])
+        self.assertFalse(stale["ready"])
+        self.assertFalse(stale["cadence_valid_for_spark"])
 
     def test_fair_batch_eventually_visits_every_candidate(self):
         items = [{"market": f"M{i:02d}-EUR"} for i in range(41)]
