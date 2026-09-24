@@ -401,9 +401,35 @@ def main() -> int:
                 if not final.get("selectable"):
                     sizing = None
                 else:
-                    actual_risk = finite((selected_execution.get("plan") or {}).get("theoretical_loss_eur"))
-                    if actual_risk is not None:
-                        sizing = {**sizing, "theoretical_risk_eur": round(actual_risk, 2)}
+                    resized = shadow_sizing(
+                        finite(final.get("score"), 0),
+                        selected_execution or {},
+                        finite(row.get("quote_volume_24h_eur")),
+                    )
+                    if not resized.get("valid"):
+                        final = {**final, "selectable": False, "reason": resized.get("reason")}
+                        sizing = None
+                    else:
+                        old_stake = finite(sizing.get("stake_eur"), 0.0)
+                        new_stake = finite(resized.get("stake_eur"), 0.0)
+                        if abs(new_stake - old_stake) > 0.01:
+                            selected_execution = reprice_execution_for_stake(
+                                selected_execution or {}, new_stake
+                            )
+                            final = final_economic_score(preliminary, selected_execution)
+                        if final.get("selectable"):
+                            sizing = resized
+                            actual_risk = finite(
+                                (selected_execution.get("plan") or {}).get("theoretical_loss_eur")
+                            )
+                            if actual_risk is not None:
+                                sizing = {
+                                    **sizing,
+                                    "theoretical_risk_eur": round(actual_risk, 2),
+                                    "final_stake_repriced": True,
+                                }
+                        else:
+                            sizing = None
         ranked.append({
             "market": market,
             "price_eur": finite(row.get("price_eur")),
