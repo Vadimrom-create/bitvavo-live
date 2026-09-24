@@ -1,8 +1,8 @@
 # Bitvavo — V4 mesurée / infrastructure V5
 
-Scan UTC : 2026-09-24T18:23:52.971519+00:00
-État : OK | marchés EUR : 427 | V4 : 389 | données valides : 427
-Récupération : 2026-09-24T18:22:48.132482+00:00 | âge ticker : 183.1 s | durée : 184.4 s
+Scan UTC : 2026-09-24T18:36:01.052539+00:00
+État : OK | marchés EUR : 427 | V4 : 388 | données valides : 427
+Récupération : 2026-09-24T18:35:27.032157+00:00 | âge ticker : 161.7 s | durée : 162.7 s
 
 ## ACHÈTE — signal V4 et plan théorique
 
@@ -12,27 +12,27 @@ Les intervalles sans transaction sont représentés explicitement à volume 0 ; 
 
 ## SURVEILLE
 
-- SLP-EUR : 0.00060407 € ; score 83.72/100 ; SURVEILLE ; LOW_LIQUIDITY
-- SIGN-EUR : 0.011357 € ; score 82.59/100 ; SURVEILLE ; LOW_LIQUIDITY
-- BEAM-EUR : 0.0017714 € ; score 82.57/100 ; SURVEILLE ; WIDE_SPREAD_RISK
-- RARE-EUR : 0.011609 € ; score 81.37/100 ; SURVEILLE ; LOW_LIQUIDITY
-- GMT-EUR : 0.007597 € ; score 80.82/100 ; SURVEILLE ; seuil achat non atteint
+- CHZ-EUR : 0.014424 € ; score 89.70/100 ; SURVEILLE ; STABILITY_HOLD
+- BEAM-EUR : 0.0018007 € ; score 89.07/100 ; SURVEILLE ; SPREAD_RISK
+- ALICE-EUR : 0.13231 € ; score 84.30/100 ; SURVEILLE ; SELLER_HEAVY_BOOK
+- LINK-EUR : 11.5788 € ; score 84.00/100 ; SURVEILLE ; WICK_SETUP
+- A-EUR : 0.087142 € ; score 83.36/100 ; SURVEILLE ; seuil achat non atteint
 
 ## Contrôle des hausses
 
 | Marché | Prix € | 24 h | Détection | Couche d’échec | Actionnabilité |
 |---|---:|---:|---|---|---|
-| XAI-EUR | 0.010426 | +51.92 % | DETECTED_EARLY | NONE | INTERPRETATION |
-| LSK-EUR | 0.36 | +33.48 % | NOT_DETECTED | SCANNER_SCORING | NOT_APPLICABLE |
-| NOM-EUR | 0.0019289 | +28.29 % | DETECTED_TOO_LATE | NONE | INTERPRETATION |
-| ONDO-EUR | 0.4455 | +23.14 % | DETECTED_EARLY | NONE | NONE |
-| PEAQ-EUR | 0.036374 | +20.38 % | DETECTED_EARLY | NONE | ENTRY_TIMING_OR_EXECUTION |
-| QNT-EUR | 74.647 | +19.67 % | DETECTED_EARLY | NONE | NONE |
-| LTC-EUR | 63.261 | +19.23 % | DETECTED_EARLY | NONE | ENTRY_TIMING_OR_EXECUTION |
-| NIL-EUR | 0.102089 | +18.32 % | NOT_DETECTED | SCANNER_SCORING | NOT_APPLICABLE |
-| PLUME-EUR | 0.0160734 | +17.86 % | DETECTED_EARLY | NONE | ENTRY_TIMING_OR_EXECUTION |
-| ARX-EUR | 0.22264 | +16.84 % | DETECTED_EARLY | NONE | ENTRY_TIMING_OR_EXECUTION |
+| XAI-EUR | 0.0100783 | +46.83 % | DETECTED_EARLY | NONE | INTERPRETATION |
+| LSK-EUR | 0.36328 | +34.33 % | NOT_DETECTED | SCANNER_SCORING | NOT_APPLICABLE |
+| NOM-EUR | 0.0019699 | +30.07 % | DETECTED_TOO_LATE | NONE | INTERPRETATION |
+| ONDO-EUR | 0.44338 | +22.45 % | DETECTED_EARLY | NONE | NONE |
+| QNT-EUR | 75.361 | +21.23 % | DETECTED_EARLY | NONE | NONE |
+| PEAQ-EUR | 0.036774 | +21.00 % | DETECTED_EARLY | NONE | ENTRY_TIMING_OR_EXECUTION |
+| XPL-EUR | 0.090627 | +18.62 % | NOT_DETECTED | SCANNER_SCORING | NOT_APPLICABLE |
+| PLUME-EUR | 0.0160286 | +18.13 % | DETECTED_EARLY | NONE | ENTRY_TIMING_OR_EXECUTION |
+| LTC-EUR | 62.732 | +17.72 % | DETECTED_EARLY | NONE | ENTRY_TIMING_OR_EXECUTION |
+| ARX-EUR | 0.22273 | +17.55 % | DETECTED_EARLY | NONE | ENTRY_TIMING_OR_EXECUTION |
 
-Historique : 1374 scans ; 588066 observations ; 745 épisodes d’achat évaluables.
+Historique : 1375 scans ; 588493 observations ; 752 épisodes d’achat évaluables.
 V5 optimisée : aucune. Supériorité sur V4 : non démontrée. Probabilités : non calibrées.
 Le cash et le portefeuille du plan sont hypothétiques. Aucun ordre réel n’est envoyé.
