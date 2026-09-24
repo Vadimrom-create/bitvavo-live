@@ -84,6 +84,7 @@ MIN_QUOTE_VOLUME_EUR = 75_000.0
 MAX_SPREAD_PCT = 0.50
 MAX_DEPTH_SLIPPAGE_PCT = 0.50
 MAX_STOP_DISTANCE_PCT = 10.0
+MIN_NET_RR = 1.5
 HTTP_TIMEOUT = 5
 RUNTIME_COMMIT = os.environ.get("GITHUB_SHA") or "LOCAL_OR_UNKNOWN"
 
@@ -735,67 +736,140 @@ def execution_check(
     row: dict[str, Any],
     now: float,
 ) -> dict[str, Any]:
+    """Validate an executable plan and retain causal timing + rejected-plan detail."""
+    started_ts = time.time()
     market = row["market"]
+
+    def finish(payload: dict[str, Any], *, book_ts: float | None = None, structure_ts: float | None = None,
+               book_snapshot: dict[str, Any] | None = None) -> dict[str, Any]:
+        available_ts = time.time()
+        return {
+            **payload,
+            "check_started_ts": started_ts,
+            "check_started_at_utc": utc(started_ts),
+            "book_observed_ts": book_ts,
+            "book_observed_at_utc": None if book_ts is None else utc(book_ts),
+            "structure_observed_ts": structure_ts,
+            "structure_observed_at_utc": None if structure_ts is None else utc(structure_ts),
+            "available_ts": available_ts,
+            "available_at_utc": utc(available_ts),
+            "latency_ms": round((available_ts - started_ts) * 1000.0, 2),
+            "book_snapshot": book_snapshot,
+        }
+
     if market not in metadata:
-        return {"ready": False, "reason": "MARKET_UNAVAILABLE"}
+        return finish({"ready": False, "reason": "MARKET_UNAVAILABLE"})
     if finite(row.get("quote_volume_24h_eur"), 0.0) < MIN_QUOTE_VOLUME_EUR:
-        return {"ready": False, "reason": "WAITING_EXECUTION_LIQUIDITY"}
+        return finish({"ready": False, "reason": "WAITING_EXECUTION_LIQUIDITY"})
 
     try:
         book = client.get("/" + market + "/book", {"depth": 25}, cache=False)
+        book_ts = time.time()
         bid = finite(book["bids"][0][0]) if book.get("bids") else None
         ask = finite(book["asks"][0][0]) if book.get("asks") else None
+        snapshot = {
+            "best_bid_eur": bid,
+            "best_ask_eur": ask,
+            "asks": (book.get("asks") or [])[:25],
+            "depth_levels": min(25, len(book.get("asks") or [])),
+        }
         if bid is None or ask is None or not 0 < bid <= ask:
-            return {"ready": False, "reason": "WAITING_VALID_BOOK"}
+            return finish({"ready": False, "reason": "WAITING_VALID_BOOK"}, book_ts=book_ts, book_snapshot=snapshot)
         spread_pct = (ask / bid - 1.0) * 100.0
-        depth = walk_asks(book, REFERENCE_STAKE_EUR)
+        benchmark_depth = walk_asks(book, REFERENCE_STAKE_EUR)
         if spread_pct > MAX_SPREAD_PCT:
-            return {
+            return finish({
                 "ready": False, "reason": "WAITING_SPREAD",
-                "spread_pct": round(spread_pct, 4), "depth": depth,
-            }
-        if not depth.get("valid"):
-            return {"ready": False, "reason": "WAITING_VISIBLE_DEPTH", "spread_pct": round(spread_pct, 4), "depth": depth}
-        if finite(depth.get("depth_slippage_pct"), 999) > MAX_DEPTH_SLIPPAGE_PCT:
-            return {"ready": False, "reason": "WAITING_DEPTH_SLIPPAGE", "spread_pct": round(spread_pct, 4), "depth": depth}
+                "spread_pct": round(spread_pct, 4), "depth": benchmark_depth,
+            }, book_ts=book_ts, book_snapshot=snapshot)
+        if not benchmark_depth.get("valid"):
+            return finish({
+                "ready": False, "reason": "WAITING_VISIBLE_DEPTH",
+                "spread_pct": round(spread_pct, 4), "depth": benchmark_depth,
+            }, book_ts=book_ts, book_snapshot=snapshot)
+        if finite(benchmark_depth.get("depth_slippage_pct"), 999) > MAX_DEPTH_SLIPPAGE_PCT:
+            return finish({
+                "ready": False, "reason": "WAITING_DEPTH_SLIPPAGE",
+                "spread_pct": round(spread_pct, 4), "depth": benchmark_depth,
+            }, book_ts=book_ts, book_snapshot=snapshot)
 
         raw = client.get("/" + market + "/candles", {"interval": "15m", "limit": 100}, cache=False)
-        features = describe(closed_candles(raw, "15m", now), "15m")
+        structure_ts = time.time()
+        features = describe(closed_candles(raw, "15m", structure_ts), "15m")
         if not features.get("valid"):
-            return {"ready": False, "reason": "WAITING_VALID_STRUCTURE", "spread_pct": round(spread_pct, 4), "depth": depth}
+            return finish({
+                "ready": False, "reason": "WAITING_VALID_STRUCTURE",
+                "spread_pct": round(spread_pct, 4), "depth": benchmark_depth,
+            }, book_ts=book_ts, structure_ts=structure_ts, book_snapshot=snapshot)
 
-        # V3 intentionally does not require V2's >=6% consolidation-range gate.
-        # It still requires a causal structural invalidation and acceptable risk.
+        # Build the structural plan without hiding the R:R diagnostics. The
+        # unchanged 1.5 net-R:R gate is applied explicitly below so rejected
+        # plans remain inspectable by the shadow challenger.
         plan = structural_plan(
-            {**row, "ask": depth.get("vwap_eur") or ask},
+            {**row, "ask": benchmark_depth.get("vwap_eur") or ask},
             features,
             metadata[market],
             max_position_eur=REFERENCE_STAKE_EUR,
             max_trade_risk_eur=6.0,
+            min_net_rr=0.0,
         )
         if not plan.get("valid"):
-            return {
+            return finish({
                 "ready": False,
                 "reason": "WAITING_" + str(plan.get("reason") or "STRUCTURAL_PLAN"),
                 "spread_pct": round(spread_pct, 4),
-                "depth": depth,
-            }
-        if finite(plan.get("stop_distance_pct"), 999) > MAX_STOP_DISTANCE_PCT:
-            return {
-                "ready": False, "reason": "WAITING_STOP_GEOMETRY",
-                "spread_pct": round(spread_pct, 4), "depth": depth, "plan": plan,
-            }
-        return {
-            "ready": True,
-            "reason": "ENTRY_READY_SHADOW",
+                "depth": benchmark_depth,
+                "plan": plan,
+            }, book_ts=book_ts, structure_ts=structure_ts, book_snapshot=snapshot)
+
+        # Reprice the plan on the same causal book at the nominal that the risk
+        # model actually proposes. This removes the previous 100 EUR-vs-smaller
+        # plan inconsistency while keeping the 100 EUR depth check as a separate
+        # conservative benchmark.
+        proposed_stake = finite(plan.get("stake_eur"), REFERENCE_STAKE_EUR)
+        plan_depth = walk_asks(book, min(REFERENCE_STAKE_EUR, proposed_stake))
+        if not plan_depth.get("valid"):
+            return finish({
+                "ready": False, "reason": "WAITING_VISIBLE_DEPTH",
+                "spread_pct": round(spread_pct, 4), "depth": plan_depth,
+                "depth_benchmark_100_eur": benchmark_depth, "plan": plan,
+            }, book_ts=book_ts, structure_ts=structure_ts, book_snapshot=snapshot)
+        repriced = structural_plan(
+            {**row, "ask": plan_depth.get("vwap_eur") or ask},
+            features,
+            metadata[market],
+            max_position_eur=min(REFERENCE_STAKE_EUR, proposed_stake),
+            max_trade_risk_eur=6.0,
+            min_net_rr=0.0,
+        )
+        if repriced.get("valid"):
+            plan = repriced
+
+        base = {
             "spread_pct": round(spread_pct, 4),
-            "depth": depth,
+            "depth": plan_depth,
+            "depth_benchmark_100_eur": benchmark_depth,
             "plan": plan,
             "structural_range_15m_pct": finite(features.get("consolidation_range_pct")),
+            "structural_features": {
+                "atr14_eur": finite(features.get("atr14_eur")),
+                "support_eur": finite(features.get("support_eur")),
+                "consolidation_range_pct": finite(features.get("consolidation_range_pct")),
+            },
         }
+        if finite(plan.get("net_rr_tp1"), 0.0) < MIN_NET_RR:
+            return finish({
+                **base, "ready": False, "reason": "WAITING_INSUFFICIENT_NET_RISK_REWARD",
+            }, book_ts=book_ts, structure_ts=structure_ts, book_snapshot=snapshot)
+        if finite(plan.get("stop_distance_pct"), 999) > MAX_STOP_DISTANCE_PCT:
+            return finish({
+                **base, "ready": False, "reason": "WAITING_STOP_GEOMETRY",
+            }, book_ts=book_ts, structure_ts=structure_ts, book_snapshot=snapshot)
+        return finish({
+            **base, "ready": True, "reason": "ENTRY_READY_SHADOW",
+        }, book_ts=book_ts, structure_ts=structure_ts, book_snapshot=snapshot)
     except Exception as exc:
-        return {"ready": False, "reason": "EXECUTION_SOURCE_ERROR", "error": type(exc).__name__}
-
+        return finish({"ready": False, "reason": "EXECUTION_SOURCE_ERROR", "error": type(exc).__name__})
 
 def _event_key(event: dict[str, Any]) -> str:
     event_type = str(event.get("event_type") or "")
