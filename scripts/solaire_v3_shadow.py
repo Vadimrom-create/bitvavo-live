@@ -1439,6 +1439,10 @@ def main() -> int:
 
         opened = bool(thesis.get("active")) and not prior_active
         if opened:
+            origin_ts = finite(thesis.get("origin_credible_ts"))
+            if origin_ts is not None:
+                thesis["origin_credible_at_utc"] = utc(origin_ts)
+                thesis["origin_credible_left_censored"] = prospective_censor
             _append_event(journal, {
                 "event_type": "OPPORTUNITY_THESIS_START",
                 "market": market,
@@ -2084,6 +2088,9 @@ def main() -> int:
                 "first_credible_at_utc": utc(thesis_origin_ts),
                 "first_credible_price_eur": finite(thesis_payload.get("origin_credible_price_eur")),
                 "first_credible_source": thesis_payload.get("origin_credible_source"),
+                "first_credible_left_censored": bool(
+                    thesis_payload.get("origin_credible_left_censored")
+                ),
                 "restored_from_persistent_thesis": True,
             })
         compact_candidates.append({
