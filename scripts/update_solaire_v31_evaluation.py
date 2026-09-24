@@ -40,6 +40,18 @@ def _eligible(events: list[dict[str, Any]], event_type: str, start_ts: float | N
     return out
 
 
+def _eligible_path(
+    events: list[dict[str, Any]],
+    event_type: str,
+    entry_path: str,
+    start_ts: float | None = None,
+) -> list[dict[str, Any]]:
+    return [
+        x for x in _eligible(events, event_type, start_ts)
+        if (x.get("entry_path") or "RAW") == entry_path
+    ]
+
+
 def _score_bins(events: list[dict[str, Any]], horizon: int) -> list[dict[str, Any]]:
     bins = [(6.0, 7.0), (7.0, 8.0), (8.0, 9.0), (9.0, 10.01)]
     out = []
@@ -90,6 +102,10 @@ def main() -> int:
 
     qualified = _eligible(current_events, "V31_QUALIFIED_ENTRY")
     rejected = _eligible(current_events, "V31_REJECTED_READY")
+    raw_qualified = _eligible_path(current_events, "V31_QUALIFIED_ENTRY", "RAW")
+    raw_rejected = _eligible_path(current_events, "V31_REJECTED_READY", "RAW")
+    reentry_qualified = _eligible_path(current_events, "V31_QUALIFIED_ENTRY", "THESIS_REENTRY")
+    reentry_rejected = _eligible_path(current_events, "V31_REJECTED_READY", "THESIS_REENTRY")
     persist_qualified = _eligible(current_events, "V31_PERSIST_30M_QUALIFIED_ENTRY")
     persist_rejected = _eligible(current_events, "V31_PERSIST_30M_REJECTED_READY")
     reclaim_qualified = _eligible(current_events, "V31_PULLBACK_RECLAIM_QUALIFIED_ENTRY")
@@ -112,8 +128,10 @@ def main() -> int:
     v3_reclaim = v3_window("ENTRY_TIMING_PULLBACK_RECLAIM")
 
     summary = {
-        "v31_raw_qualified": {str(h): _summary(qualified, "V31_QUALIFIED_ENTRY", h) for h in HORIZONS_HOURS},
-        "v31_raw_rejected": {str(h): _summary(rejected, "V31_REJECTED_READY", h) for h in HORIZONS_HOURS},
+        "v31_raw_qualified": {str(h): _summary(raw_qualified, "V31_QUALIFIED_ENTRY", h) for h in HORIZONS_HOURS},
+        "v31_raw_rejected": {str(h): _summary(raw_rejected, "V31_REJECTED_READY", h) for h in HORIZONS_HOURS},
+        "v31_reentry_qualified": {str(h): _summary(reentry_qualified, "V31_QUALIFIED_ENTRY", h) for h in HORIZONS_HOURS},
+        "v31_reentry_rejected": {str(h): _summary(reentry_rejected, "V31_REJECTED_READY", h) for h in HORIZONS_HOURS},
         "v31_persist30_qualified": {str(h): _summary(persist_qualified, "V31_PERSIST_30M_QUALIFIED_ENTRY", h) for h in HORIZONS_HOURS},
         "v31_persist30_rejected": {str(h): _summary(persist_rejected, "V31_PERSIST_30M_REJECTED_READY", h) for h in HORIZONS_HOURS},
         "v31_pullback_reclaim_qualified": {str(h): _summary(reclaim_qualified, "V31_PULLBACK_RECLAIM_QUALIFIED_ENTRY", h) for h in HORIZONS_HOURS},
@@ -138,13 +156,14 @@ def main() -> int:
         "horizons_hours": list(HORIZONS_HOURS),
         "summary": summary,
         "score_calibration": {
-            "raw": {str(h): _score_bins(qualified, h) for h in (4, 24, 48, 96)},
+            "raw": {str(h): _score_bins(raw_qualified, h) for h in (4, 24, 48, 96)},
+            "reentry": {str(h): _score_bins(reentry_qualified, h) for h in (4, 24, 48, 96)},
             "persist30": {str(h): _score_bins(persist_qualified, h) for h in (4, 24, 48, 96)},
             "pullback_reclaim": {str(h): _score_bins(reclaim_qualified, h) for h in (4, 24, 48, 96)},
         },
         "factorial_axes": {
             "ranking": ["V3", "V3.1_ECONOMIC_GATE"],
-            "timing": ["RAW", "PERSIST_30M", "PULLBACK_RECLAIM"],
+            "timing": ["RAW", "THESIS_REENTRY", "PERSIST_30M", "PULLBACK_RECLAIM"],
         },
         "warning": "Pre-V3.1 NIL/APE/FORM outcomes motivated the hypotheses but are excluded from prospective V3.1 performance.",
     }
@@ -164,6 +183,10 @@ def main() -> int:
         "evaluation_budget_per_run": MAX_NEW_EVALUATIONS_PER_RUN,
         "qualified_events": len(qualified),
         "rejected_ready_events": len(rejected),
+        "raw_qualified_events": len(raw_qualified),
+        "raw_rejected_events": len(raw_rejected),
+        "reentry_qualified_events": len(reentry_qualified),
+        "reentry_rejected_events": len(reentry_rejected),
         "persist30_qualified_events": len(persist_qualified),
         "persist30_rejected_events": len(persist_rejected),
         "pullback_reclaim_qualified_events": len(reclaim_qualified),
