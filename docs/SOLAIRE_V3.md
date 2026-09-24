@@ -8,7 +8,7 @@ The immutable V2 code reference is commit `34b042121bb8425b0e4b46e3d1a694d4b1f4e
 
 ## Six axes
 
-1. **Where to look — context and narratives.** Public crypto news, project mentions and sector rotation can create a priority watch before a full V2 quantitative confirmation. Context never creates a BUY by itself. The direction must still be confirmed by market data.
+1. **Where to look — context and narratives.** Public crypto news, project mentions and sector rotation can create a priority watch before a full V2 quantitative confirmation. Context never creates a BUY by itself. The direction must still be confirmed by market data. News-to-asset resolution covers the complete current Bitvavo EUR universe: tickers come from the neutral universe snapshot, canonical project names are fetched dynamically from Bitvavo `/assets`, and the small legacy alias table is supplemental only—not a whitelist. RSS/aggregated news is matched against that dynamic map, so any listed asset can open a news prewatch.
 
 2. **How long to stay — adaptive horizons.** The evaluation grid is 4h, 24h, 48h, 72h, 96h, 7d, 14d and 30d. Opportunities are provisionally labelled WATCH / TACTICAL / SWING / POSITION and can be reclassified as evidence changes. The +10%/24h outcome remains diagnostic, not the economic objective.
 
@@ -68,4 +68,4 @@ Estimated net close returns use a fixed 0.70% round-trip cost convention for com
 
 GitHub Actions remains a scheduled, non-continuous runtime. Astra measured a much slower effective cadence than the nominal five-minute cron. V3 therefore tests whether these research axes add value **despite** that limitation; it does not claim to solve latency. Astra remains the independent continuous-architecture challenger.
 
-External feeds are best-effort and non-blocking. A missing external venue/news source cannot become positive evidence. News is used as dated attention/context, not as inferred sentiment. No live order is submitted by V3.
+External feeds are best-effort and non-blocking. A missing external venue/news source cannot become positive evidence. News mapping itself is full-universe, but source coverage is still bounded by the configured feeds/aggregator; source gaps are reported explicitly. News is used as dated attention/context, not as inferred sentiment. No live order is submitted by V3.

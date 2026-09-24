@@ -10,6 +10,7 @@ Nothing in this module sends mail or submits orders.
 from __future__ import annotations
 
 import math
+import re
 import statistics
 from typing import Any
 
@@ -69,6 +70,101 @@ TOKEN_ALIASES = {
     "BONK": ("bonk",),
     "QNT": ("quant network", "qnt"),
 }
+
+
+def build_asset_aliases(
+    universe_rows: list[dict[str, Any]],
+    asset_rows: list[dict[str, Any]] | None = None,
+    supplemental_aliases: dict[str, tuple[str, ...]] | None = None,
+) -> dict[str, tuple[str, ...]]:
+    """Build news aliases for every Bitvavo EUR asset, not a hand-picked subset.
+
+    The market universe supplies complete ticker coverage. Bitvavo /assets adds
+    the canonical project name dynamically; TOKEN_ALIASES is retained only as
+    supplemental synonym data for names that are commonly written differently.
+    """
+    symbols = {
+        base_symbol(row.get("market"))
+        for row in universe_rows
+        if row.get("market")
+    }
+    symbols.discard("")
+    names: dict[str, str] = {}
+    for row in asset_rows or []:
+        symbol = str(row.get("symbol") or "").upper().strip()
+        name = str(row.get("name") or "").strip()
+        if symbol and name:
+            names[symbol] = name
+
+    supplemental = supplemental_aliases if supplemental_aliases is not None else TOKEN_ALIASES
+    result: dict[str, tuple[str, ...]] = {}
+    for symbol in sorted(symbols):
+        aliases: set[str] = set()
+        name = names.get(symbol)
+        if name:
+            aliases.add(name)
+            low = name.lower().strip()
+            for suffix in (" token", " protocol", " network"):
+                if low.endswith(suffix):
+                    short = name[: -len(suffix)].strip()
+                    if len(short) >= 4:
+                        aliases.add(short)
+        for alias in supplemental.get(symbol, ()):
+            alias = str(alias or "").strip()
+            if alias:
+                aliases.add(alias)
+        result[symbol] = tuple(sorted(aliases, key=lambda x: (len(x), x.lower()), reverse=True))
+    return result
+
+
+def match_news_assets(
+    text: str,
+    asset_aliases: dict[str, tuple[str, ...]],
+    generic_symbols: set[str] | None = None,
+) -> list[str]:
+    """Resolve arbitrary news text to the complete Bitvavo asset map.
+
+    Project names and aliases are matched case-insensitively. Tickers are
+    matched only when explicitly formatted ($ABC, (ABC), [ABC]) or written in
+    uppercase, which limits false positives from ordinary words such as NEAR,
+    SAFE or MOVE.
+    """
+    original = " " + re.sub(r"\s+", " ", str(text or "")) + " "
+    low = original.lower()
+    generic = {str(x).upper() for x in (generic_symbols or set())}
+    hits: list[str] = []
+    for symbol, aliases in asset_aliases.items():
+        symbol = symbol.upper()
+        matched = False
+        for alias in aliases:
+            a = str(alias or "").lower().strip()
+            if len(a) < 4 or a == symbol.lower():
+                continue
+            if re.search(r"(?<![a-z0-9])" + re.escape(a) + r"(?![a-z0-9])", low):
+                matched = True
+                break
+        if not matched:
+            explicit_patterns = (
+                r"\$" + re.escape(symbol) + r"(?![A-Z0-9])",
+                r"\(" + re.escape(symbol) + r"\)",
+                r"\[" + re.escape(symbol) + r"\]",
+            )
+            if any(re.search(p, original) for p in explicit_patterns):
+                matched = True
+            elif len(symbol) >= 3 and symbol not in generic:
+                matched = bool(re.search(r"(?<![A-Za-z0-9])" + re.escape(symbol) + r"(?![A-Za-z0-9])", original))
+        if matched:
+            hits.append(symbol)
+    return sorted(set(hits))
+
+
+def structured_news_symbols(value: Any, allowed_symbols: set[str]) -> list[str]:
+    """Use provider-supplied categories/tickers when they map to Bitvavo."""
+    if value is None:
+        return []
+    allowed = {str(x).upper() for x in allowed_symbols}
+    tokens = re.findall(r"[A-Za-z0-9]{1,20}", str(value).upper())
+    return sorted({token for token in tokens if token in allowed})
 
 
 def _n(value: Any, default: float = 0.0) -> float:
