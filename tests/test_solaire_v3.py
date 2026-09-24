@@ -2,10 +2,13 @@ import unittest
 
 from research.solaire_v3 import (
     build_asset_aliases,
+    build_dynamic_rotation_context,
     build_narrative_rotations,
+    classify_news_event,
     early_quant_evidence,
     evaluate_candles_strict,
     match_news_assets,
+    select_fair_batch,
     structured_news_symbols,
     walk_asks,
 )
@@ -33,6 +36,56 @@ class SolaireV3Tests(unittest.TestCase):
         )
         self.assertIn("HYPE", hits)
         self.assertNotIn("MOVE", match_news_assets("markets move higher", aliases, {"MOVE"}))
+
+    def test_news_aliases_do_not_match_ordinary_english_prose(self):
+        universe = [
+            {"market": "ACX-EUR"},
+            {"market": "MMT-EUR"},
+            {"market": "GNS-EUR"},
+            {"market": "VSN-EUR"},
+        ]
+        assets = [
+            {"symbol": "ACX", "name": "Across Protocol"},
+            {"symbol": "MMT", "name": "Momentum"},
+            {"symbol": "GNS", "name": "Gains Network"},
+            {"symbol": "VSN", "name": "Vision"},
+        ]
+        aliases = build_asset_aliases(universe, assets, supplemental_aliases={})
+        self.assertNotIn("Across", aliases["ACX"])
+        self.assertNotIn("Gains", aliases["GNS"])
+        prose = "Bearish momentum returns as trading expands across Europe and gains fade from view"
+        self.assertEqual(match_news_assets(prose, aliases), [])
+        self.assertEqual(match_news_assets("Across Protocol launches new bridge", aliases), ["ACX"])
+        self.assertEqual(match_news_assets("Momentum announces a protocol upgrade", aliases), ["MMT"])
+
+    def test_news_event_direction_separates_listing_from_delisting(self):
+        listing = classify_news_event("Binance will list Hyperliquid (HYPE) for spot trading", source_kind="official_exchange")
+        delisting = classify_news_event("Exchange will delist TOKEN spot trading pairs", source_kind="official_exchange")
+        self.assertEqual(listing["direction"], "POSITIVE")
+        self.assertEqual(listing["event_type"], "LISTING")
+        self.assertEqual(delisting["direction"], "NEGATIVE")
+        self.assertEqual(delisting["event_type"], "DELISTING")
+
+    def test_fair_batch_eventually_visits_every_candidate(self):
+        items = [{"market": f"M{i:02d}-EUR"} for i in range(41)]
+        cursor = 0
+        seen = set()
+        for _ in range(3):
+            batch, cursor, meta = select_fair_batch(items, 20, cursor, key=lambda x: x["market"])
+            seen.update(x["market"] for x in batch)
+            self.assertEqual(meta["eligible"], 41)
+        self.assertEqual(len(seen), 41)
+
+    def test_dynamic_rotation_covers_non_whitelisted_markets(self):
+        rows = []
+        for i, symbol in enumerate(["X1", "X2", "X3", "X4", "X5", "X6", "X7", "X8"]):
+            rows.append({
+                "market": symbol + "-EUR",
+                "features": {"15m": {"return_4bar_pct": 1.0 + 0.1 * i, "return_16bar_pct": 3.0 + 0.2 * i}},
+            })
+        result = build_dynamic_rotation_context(rows)
+        self.assertEqual(set(result), {x["market"] for x in rows})
+        self.assertTrue(any(x.get("active_watch") for x in result.values()))
 
     def test_structured_provider_symbols_are_limited_to_bitvavo_universe(self):
         hits = structured_news_symbols("HYPE|BTC|NOTLISTED", {"HYPE", "BTC", "ETH"})
