@@ -17,7 +17,7 @@ from typing import Any
 from research.common import finite
 
 FROZEN_V2_COMMIT = "34b042121bb8425b0e4b46e3d1a694d4b1f4ec75"
-V3_ARCHITECTURE_VERSION = "v3.2-architecture-hardening-20260924"
+V3_ARCHITECTURE_VERSION = "v3.3-measurement-hardening-20260924"
 REFERENCE_STAKE_EUR = 100.0
 REFERENCE_CAPITAL_EUR = 2400.0
 MAX_SHADOW_POSITIONS = 3
@@ -621,10 +621,11 @@ def evaluate_candles_strict(
     stop_eur: float | None = None,
     round_trip_cost_pct: float = ROUND_TRIP_COST_PCT,
 ) -> dict[str, Any] | None:
-    """Chronological evaluator with strict start/end coverage.
+    """Chronological evaluator with strict coverage and path-aware stop accounting.
 
-    It rejects incomplete horizons rather than declaring them complete from a
-    trailing candle. The decision-containing bar is excluded.
+    MFE/MAE remain diagnostic over the full horizon. A separate stop-or-horizon
+    policy estimate prevents post-stop price action from being credited to a
+    position that would already have been closed.
     """
     if baseline <= 0 or decision_ts <= 0:
         return None
@@ -664,6 +665,29 @@ def evaluate_candles_strict(
     mfe = (high / baseline - 1.0) * 100.0
     mae = (low / baseline - 1.0) * 100.0
     close_ret = (close / baseline - 1.0) * 100.0
+
+    first_stop_row = None
+    if stop_eur is not None and stop_eur > 0:
+        first_stop_row = next((x for x in rows if x[2] <= stop_eur), None)
+    first_stop_ts = None if first_stop_row is None else first_stop_row[0] / 1000
+    rows_before_stop = rows
+    if first_stop_row is not None:
+        stop_index = rows.index(first_stop_row)
+        rows_before_stop = rows[: stop_index + 1]
+    pre_stop_high = max(x[1] for x in rows_before_stop)
+    pre_stop_low = min(x[2] for x in rows_before_stop)
+    mfe_before_stop = (pre_stop_high / baseline - 1.0) * 100.0
+    mae_before_stop = (pre_stop_low / baseline - 1.0) * 100.0
+
+    if first_stop_row is not None and stop_eur is not None:
+        policy_gross = (stop_eur / baseline - 1.0) * 100.0
+        policy_exit = stop_eur
+        policy_reason = "STOP_TOUCH_ASSUMED_FILLED_AT_STOP"
+    else:
+        policy_gross = close_ret
+        policy_exit = close
+        policy_reason = "HORIZON_CLOSE"
+
     result = {
         "horizon_hours": horizon_hours,
         "complete_horizon": complete,
@@ -671,13 +695,32 @@ def evaluate_candles_strict(
         "bars_expected": int(expected_count),
         "mfe_pct": round(mfe, 4),
         "mae_pct": round(mae, 4),
+        "mfe_before_stop_pct": round(mfe_before_stop, 4),
+        "mae_before_stop_pct": round(mae_before_stop, 4),
         "close_return_pct": round(close_ret, 4),
         "net_close_return_pct_est": round(close_ret - round_trip_cost_pct, 4),
-        "stop_hit": bool(stop_eur and low <= stop_eur),
-        "method": "strict_chronological_complete_intervals",
+        "stop_hit": first_stop_row is not None,
+        "first_stop_ts": first_stop_ts,
+        "policy_exit_eur": round(policy_exit, 12),
+        "policy_exit_reason": policy_reason,
+        "stop_or_horizon_return_pct": round(policy_gross, 4),
+        "net_stop_or_horizon_return_pct_est": round(policy_gross - round_trip_cost_pct, 4),
+        "post_stop_mfe_is_diagnostic_only": first_stop_row is not None,
+        "method": "strict_chronological_complete_intervals_path_aware",
     }
     for target in (10, 20, 50, 100):
-        result[f"mfe_ge_{target}pct"] = mfe >= target
         first = next((t for t, h, _, _ in rows if h >= baseline * (1 + target / 100)), None)
+        result[f"mfe_ge_{target}pct"] = mfe >= target
         result[f"first_plus_{target}_ts"] = None if first is None else first / 1000
+        if first_stop_ts is None:
+            relation = "TARGET_ONLY" if first is not None else "NEITHER"
+        elif first is None:
+            relation = "STOP_ONLY"
+        elif first / 1000 < first_stop_ts:
+            relation = "TARGET_BEFORE_STOP"
+        elif first / 1000 > first_stop_ts:
+            relation = "STOP_BEFORE_TARGET"
+        else:
+            relation = "SAME_BAR_AMBIGUOUS"
+        result[f"plus_{target}_vs_stop_order"] = relation
     return result
