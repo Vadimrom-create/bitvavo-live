@@ -446,6 +446,9 @@ def main() -> int:
             "thesis_last_execution": candidate.get("thesis_last_execution"),
             "thesis_reentry_hypothesis": thesis_reentry,
             "persistent_thesis": candidate.get("persistent_thesis"),
+            "near_miss_opportunity": candidate.get("near_miss_opportunity"),
+            "credible_opportunity": candidate.get("credible_opportunity"),
+            "opportunity_recovery": candidate.get("opportunity_recovery"),
             "news_positive_score": candidate.get("news_positive_score"),
             "news_negative_score": candidate.get("news_negative_score"),
             "external_score": candidate.get("external_score"),
@@ -550,6 +553,66 @@ def main() -> int:
             row["decision_id"] = previous.get("attempt_id")
 
         if row.get("selectable"):
+            upstream_recovery = row.get("opportunity_recovery") or {}
+            first_credible_ts = finite(upstream_recovery.get("first_credible_ts"))
+            first_credible_price = finite(upstream_recovery.get("first_credible_price_eur"))
+            selectable_key = None if first_credible_ts is None else round(first_credible_ts, 6)
+            if selectable_key is not None and ms.get("first_selectable_credible_ts") != selectable_key:
+                selectable_ts = now
+                selectable_entry = finite(plan.get("entry_eur"))
+                movement_to_selectable = None
+                if (
+                    selectable_entry is not None
+                    and first_credible_price is not None
+                    and first_credible_price > 0
+                ):
+                    movement_to_selectable = (
+                        selectable_entry / first_credible_price - 1.0
+                    ) * 100.0
+                first_executable_ts = finite(upstream_recovery.get("first_executable_ts"))
+                funnel = {
+                    **upstream_recovery,
+                    "first_selectable_ts": selectable_ts,
+                    "first_selectable_at_utc": utc(selectable_ts),
+                    "first_selectable_entry_eur": selectable_entry,
+                    "first_selectable_score": row.get("economic_score"),
+                    "first_selectable_path": row.get("entry_path") or "RAW",
+                    "credible_to_selectable_delay_seconds": selectable_ts - first_credible_ts,
+                    "movement_consumed_to_selectable_pct": movement_to_selectable,
+                    "executable_to_selectable_delay_seconds": (
+                        None if first_executable_ts is None
+                        else selectable_ts - first_executable_ts
+                    ),
+                }
+                recovery_event = {
+                    "event_type": "OPPORTUNITY_RECOVERY_SELECTABLE",
+                    "market": market,
+                    "episode": ms["episode"],
+                    "attempt_id": (
+                        f"{market}|{ms['episode']}|FIRST_SELECTABLE|"
+                        f"{selectable_key}|{V31_ARCHITECTURE_VERSION}"
+                    ),
+                    "decision_id": row.get("decision_id"),
+                    "decision_ts": selectable_ts,
+                    "decision_at_utc": utc(selectable_ts),
+                    "price_eur": row.get("price_eur"),
+                    "entry_eur": selectable_entry,
+                    "stop_eur": finite(plan.get("stop_eur")),
+                    "tp1_eur": finite(plan.get("tp1_eur")),
+                    "stake_eur": finite((row.get("sizing") or {}).get("stake_eur")),
+                    "economic_score": row.get("economic_score"),
+                    "entry_path": row.get("entry_path") or "RAW",
+                    "funnel": funnel,
+                    "upstream_v3_architecture_version": upstream_v3_architecture_version,
+                    "observation_only": True,
+                    "left_censored_at_v31_t0": initial_cycle,
+                    "evaluations": {},
+                }
+                if _append_event(journal, recovery_event):
+                    ms["first_selectable_credible_ts"] = selectable_key
+                    ms["first_selectable_at_utc"] = utc(selectable_ts)
+                    ms["first_selectable_entry_eur"] = selectable_entry
+
             qualified_for_portfolio.append({
                 **row,
                 "entry_eur": finite(plan.get("entry_eur")),
