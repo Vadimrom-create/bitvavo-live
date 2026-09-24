@@ -17,6 +17,7 @@ from __future__ import annotations
 
 import concurrent.futures
 import email.utils
+import html as html_lib
 import json
 import math
 import os
@@ -91,6 +92,11 @@ TIMING_PERSIST_MAX_DRIFT_PCT = 3.0
 TIMING_PULLBACK_MIN_PCT = -2.0
 TIMING_RECLAIM_MIN_PCT = 1.0
 TIMING_RECLAIM_MAX_DRIFT_PCT = 3.0
+
+OFFICIAL_ANNOUNCEMENT_PAGES = (
+    ("bybit_official", "https://announcements.bybit.com/en/", "https://announcements.bybit.com"),
+    ("okx_official", "https://www.okx.com/help/category/announcements", "https://www.okx.com"),
+)
 
 NEWS_FEEDS = (
     ("coindesk", "https://www.coindesk.com/arc/outboundfeeds/rss/", "media"),
@@ -306,6 +312,55 @@ def _fetch_binance_official_news(
     except Exception as exc:
         errors.append({"source": "binance_official", "reason": type(exc).__name__})
     return items, errors
+
+
+def fetch_official_page_deltas(
+    now: float,
+    asset_aliases: dict[str, tuple[str, ...]],
+    seen: dict[str, float] | None,
+    *,
+    initialized: bool,
+) -> tuple[list[dict[str, Any]], dict[str, float], list[dict[str, str]]]:
+    """Poll official announcement pages without pretending old page items are fresh.
+
+    The first successful observation seeds the registry and emits nothing.  On
+    later cycles, only newly observed announcement titles enter the news stream.
+    """
+    seen = dict(seen or {})
+    items: list[dict[str, Any]] = []
+    errors: list[dict[str, str]] = []
+    for source, url, base_url in OFFICIAL_ANNOUNCEMENT_PAGES:
+        try:
+            page = _text_url(url)
+            for href, raw_title in re.findall(r'<a[^>]+href=["\\\']([^"\\\']+)["\\\'][^>]*>(.*?)</a>', page, flags=re.I | re.S):
+                title = html_lib.unescape(re.sub(r"<[^>]+>", " ", raw_title))
+                title = re.sub(r"\\s+", " ", title).strip()
+                if not (12 <= len(title) <= 260):
+                    continue
+                symbols = _news_asset_symbols(title, asset_aliases)
+                if not symbols:
+                    continue
+                fingerprint = source + "|" + title.lower()
+                first_seen = seen.get(fingerprint)
+                if first_seen is None:
+                    seen[fingerprint] = now
+                    if initialized:
+                        first_seen = now
+                    else:
+                        continue
+                if now - first_seen > MAX_CONTEXT_AGE:
+                    continue
+                link = href if href.startswith("http") else base_url.rstrip("/") + "/" + href.lstrip("/")
+                items.append(_decorate_news_item(
+                    source=source, source_kind="official_exchange", published=first_seen,
+                    title=title, url=link, symbols=symbols,
+                ))
+        except Exception as exc:
+            errors.append({"source": source, "reason": type(exc).__name__})
+    # Bound persistent state while keeping the full context window plus margin.
+    keep_after = now - MAX_CONTEXT_AGE * 2
+    seen = {k: v for k, v in seen.items() if finite(v, 0) >= keep_after}
+    return items, seen, errors
 
 
 def fetch_news(
@@ -922,6 +977,20 @@ def main() -> int:
     source_errors.extend(alias_errors)
     news, news_errors = fetch_news(now, asset_aliases)
     source_errors.extend(news_errors)
+    page_news, official_page_seen, official_page_errors = fetch_official_page_deltas(
+        now,
+        asset_aliases,
+        state.get("official_page_seen") or {},
+        initialized=bool(state.get("official_page_seen_initialized")),
+    )
+    state["official_page_seen"] = official_page_seen
+    state["official_page_seen_initialized"] = True
+    source_errors.extend(official_page_errors)
+    if page_news:
+        keyed = {(x.get("source"), x.get("title"), x.get("published_at_utc")): x for x in news}
+        for item in page_news:
+            keyed[(item.get("source"), item.get("title"), item.get("published_at_utc"))] = item
+        news = sorted(keyed.values(), key=lambda x: x["published_ts"], reverse=True)
 
     allowed_symbols = {base_symbol(x.get("market")) for x in rows if x.get("market")}
     external_snapshot, external_batch_errors = fetch_external_price_snapshot(allowed_symbols)
