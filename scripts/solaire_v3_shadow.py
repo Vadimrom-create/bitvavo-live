@@ -1071,6 +1071,8 @@ def main() -> int:
     initial_v3_cycle = not bool(state.get("initialized"))
     state.setdefault("schema", "solaire_v3_state_v1")
     prior_architecture_version = state.get("architecture_version")
+    architecture_rollover = prior_architecture_version != V3_ARCHITECTURE_VERSION
+    prospective_censor = bool(initial_v3_cycle or architecture_rollover)
     state["architecture_version"] = V3_ARCHITECTURE_VERSION
     if prior_architecture_version != V3_ARCHITECTURE_VERSION:
         state["architecture_migrated_at_utc"] = utc(now)
@@ -1455,7 +1457,7 @@ def main() -> int:
                     "external": obs.get("external"),
                 },
                 "v2_state_at_event": obs.get("v2_state"),
-                "left_censored_at_v3_t0": initial_v3_cycle,
+                "left_censored_at_v3_t0": prospective_censor,
                 "evaluations": {},
             })
 
@@ -1656,7 +1658,7 @@ def main() -> int:
                 },
                 "early_quant": row.get("early_quant"),
                 "v2_state_at_event": row.get("v2_state"),
-                "left_censored_at_v3_t0": initial_v3_cycle,
+                "left_censored_at_v3_t0": prospective_censor,
                 "evaluations": {},
             }
             if _append_event(journal, event):
@@ -1693,7 +1695,7 @@ def main() -> int:
                     "positive_context": row.get("positive_context"),
                     "v2_state_at_event": row.get("v2_state"),
                     "observation_only": True,
-                    "left_censored_at_v3_t0": initial_v3_cycle,
+                    "left_censored_at_v3_t0": prospective_censor,
                     "evaluations": {},
                 }
                 _append_event(journal, credible_event)
@@ -1728,7 +1730,7 @@ def main() -> int:
                     "recovery": dict(recovery),
                     "observation_only": True,
                     "evaluation_excluded": True,
-                    "left_censored_at_v3_t0": initial_v3_cycle,
+                    "left_censored_at_v3_t0": prospective_censor,
                     "evaluations": {},
                 })
 
@@ -1756,7 +1758,7 @@ def main() -> int:
                     "plan": diagnostic_check.get("plan"),
                     "observation_only": True,
                     "evaluation_excluded": True,
-                    "left_censored_at_v3_t0": initial_v3_cycle,
+                    "left_censored_at_v3_t0": prospective_censor,
                 })
                 ms["last_near_miss_execution_signature"] = diagnostic_signature
 
@@ -1799,7 +1801,7 @@ def main() -> int:
                     "recovery": dict(recovery),
                     "execution": diagnostic_check,
                     "observation_only": True,
-                    "left_censored_at_v3_t0": initial_v3_cycle,
+                    "left_censored_at_v3_t0": prospective_censor,
                     "evaluations": {},
                 })
 
@@ -1838,7 +1840,7 @@ def main() -> int:
                         "net_rr_tp1": finite((check.get("plan") or {}).get("net_rr_tp1")),
                     },
                     "evaluation_excluded": True,
-                    "left_censored_at_v3_t0": initial_v3_cycle,
+                    "left_censored_at_v3_t0": prospective_censor,
                 }
                 _append_event(journal, gate_event)
                 ms["last_execution_gate_signature"] = gate_signature
@@ -1879,7 +1881,7 @@ def main() -> int:
                     "execution_source": "ENTRY_HYPOTHESIS_EXECUTION",
                     "recovery": dict(recovery),
                     "execution": check,
-                    "left_censored_at_v3_t0": initial_v3_cycle,
+                    "left_censored_at_v3_t0": prospective_censor,
                     "evaluations": {},
                 }
                 _append_event(journal, recovery_event)
@@ -1949,7 +1951,7 @@ def main() -> int:
                             },
                             "execution": check,
                             "v2_state_at_event": row.get("v2_state"),
-                            "left_censored_at_v3_t0": initial_v3_cycle,
+                            "left_censored_at_v3_t0": prospective_censor,
                             "evaluations": {},
                         }
                         if _append_event(journal, event):
@@ -1988,7 +1990,7 @@ def main() -> int:
                             },
                             "execution": check,
                             "v2_state_at_event": row.get("v2_state"),
-                            "left_censored_at_v3_t0": initial_v3_cycle,
+                            "left_censored_at_v3_t0": prospective_censor,
                             "evaluations": {},
                         }
                         if _append_event(journal, event):
@@ -2036,7 +2038,7 @@ def main() -> int:
                     },
                     "early_quant": row.get("early_quant"),
                     "v2_state_at_event": row.get("v2_state"),
-                    "left_censored_at_v3_t0": initial_v3_cycle,
+                    "left_censored_at_v3_t0": prospective_censor,
                     "evaluations": {},
                 }
                 if _append_event(journal, event):
