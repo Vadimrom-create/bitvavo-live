@@ -30,6 +30,22 @@ MAX_RISK_EUR = 12.0
 ROUND_TRIP_COST_PCT = 0.70
 
 
+def select_execution_path(candidate: dict[str, Any]) -> tuple[dict[str, Any] | None, str]:
+    """Choose the freshest executable path without dropping thesis re-entries."""
+    raw_execution = candidate.get("execution")
+    thesis_execution = candidate.get("thesis_execution")
+    thesis_reentry = bool(candidate.get("thesis_reentry_hypothesis"))
+    if thesis_reentry and (thesis_execution or {}).get("ready"):
+        return thesis_execution, "THESIS_REENTRY"
+    if (raw_execution or {}).get("ready"):
+        return raw_execution, "RAW"
+    if thesis_reentry and thesis_execution is not None:
+        return thesis_execution, "THESIS_REENTRY_WAIT"
+    if thesis_reentry and raw_execution is None:
+        return None, "THESIS_REENTRY_PENDING_CHECK"
+    return raw_execution, "RAW"
+
+
 def _n(value: Any, default: float = 0.0) -> float:
     result = finite(value)
     return default if result is None else result
