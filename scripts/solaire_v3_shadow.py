@@ -1200,6 +1200,20 @@ def main() -> int:
             candidate_by_market[market]["long_trend"] = long_trend
             candidate_by_market[market]["persistent_thesis"] = thesis or {}
             candidate_by_market[market]["thesis_reentry_hypothesis"] = obs["thesis_reentry_hypothesis"]
+            candidate_by_market[market]["thesis_execution"] = (thesis or {}).get("last_execution")
+        elif obs["thesis_reentry_hypothesis"]:
+            # A persistent thesis re-entry must rejoin the main candidate stream
+            # even when the original short-lived trigger/news has disappeared.
+            promoted = {
+                **obs,
+                "persistent_thesis": thesis or {},
+                "thesis_reentry_hypothesis": True,
+                "thesis_execution": (thesis or {}).get("last_execution"),
+                "entry_hypothesis": False,
+                "candidate_source": "PERSISTENT_THESIS_REENTRY",
+            }
+            candidates.append(promoted)
+            candidate_by_market[market] = promoted
 
         opened = bool(thesis.get("active")) and not prior_active
         if opened:
@@ -1245,6 +1259,8 @@ def main() -> int:
                 "left_censored_at_v3_t0": False,
                 "evaluations": {},
             })
+
+    candidates.sort(key=lambda x: finite(x.get("opportunity_score"), 0), reverse=True)
 
     # Expensive diagnostics use a fair queue: bounded work is acceptable,
     # permanent starvation is not.
@@ -1313,6 +1329,7 @@ def main() -> int:
             continue
         thesis["last_execution_state"] = check.get("reason")
         thesis["last_execution_checked_at_utc"] = utc(now)
+        thesis["last_execution"] = check
         if market in candidate_by_market:
             candidate_by_market[market]["thesis_execution"] = check
             candidate_by_market[market]["thesis_reentry_hypothesis"] = True
