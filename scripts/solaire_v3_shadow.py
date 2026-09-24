@@ -734,13 +734,18 @@ def main() -> int:
 
     base_candidates = []
     for row in rows:
-        if not (row.get("data_quality") or {}).get("ok", False):
-            continue
         market = row.get("market")
         if not market:
             continue
+        quality_ok = bool((row.get("data_quality") or {}).get("ok", False))
         symbol = base_symbol(market)
-        early = early_quant_evidence(row)
+        early = early_quant_evidence(row) if quality_ok else {
+            "ready": False,
+            "score_0_10": 0.0,
+            "evidence_count": 0,
+            "flags": {},
+            "reason": "MARKET_DATA_NOT_STRATEGY_GRADE",
+        }
         hits, news_score = news_for_symbol(symbol, news, now)
         sector_names = narratives_for_market(market)
         active_rotations = [
@@ -757,9 +762,10 @@ def main() -> int:
             + narrative_score
             + (3.0 if v2row.get("signal_state") == "CONFIRMED_ACCELERATION" else 1.5 if v2row else 0.0)
         )
-        if news_score > 0 or active_rotations or early.get("ready") or v2row:
+        if news_score > 0 or (quality_ok and (active_rotations or early.get("ready") or v2row)):
             base_candidates.append({
                 **row,
+                "market_data_quality_ok": quality_ok,
                 "symbol": symbol,
                 "early_quant": early,
                 "news_items": hits,
@@ -1289,6 +1295,7 @@ def main() -> int:
             "context_watch": row.get("context_watch"),
             "entry_hypothesis": row.get("entry_hypothesis"),
             "early_quant": row.get("early_quant"),
+            "market_data_quality_ok": row.get("market_data_quality_ok"),
             "news_score": row.get("news_score"),
             "news_items": row.get("news_items"),
             "active_narratives": row.get("active_narratives"),
