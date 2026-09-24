@@ -18,7 +18,7 @@ from typing import Any
 from research.common import finite
 
 FROZEN_V3_COMMIT = "2b0a5b25173e8ac5dd67625f80755f26acbedabf"
-V31_ARCHITECTURE_VERSION = "v3.1.2-measurement-hardening-20260924"
+V31_ARCHITECTURE_VERSION = "v3.1.3-near-miss-funnel-20260924"
 V3_TIMING_LAB_COMMIT = "0c05e0fbf55b0ff99dae3f10bcfc3411bbee0cc6"
 REFERENCE_CAPITAL_EUR = 2400.0
 MAX_SHADOW_POSITIONS = 3
