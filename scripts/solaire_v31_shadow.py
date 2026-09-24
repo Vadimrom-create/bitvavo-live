@@ -335,6 +335,8 @@ def main() -> int:
     initial_timing_cycle = not bool(state.get("timing_lab_initialized"))
     state.setdefault("schema", "solaire_v31_state_v1")
     prior_architecture_version = state.get("architecture_version")
+    architecture_rollover = prior_architecture_version != V31_ARCHITECTURE_VERSION
+    prospective_censor = bool(initial_cycle or architecture_rollover)
     state["architecture_version"] = V31_ARCHITECTURE_VERSION
     if prior_architecture_version != V31_ARCHITECTURE_VERSION:
         state["architecture_migrated_at_utc"] = utc(now)
@@ -513,7 +515,7 @@ def main() -> int:
             "upstream_v3_architecture_version": upstream_v3_architecture_version,
             "legacy_v2_score_unused": row.get("v2_score"),
             "legacy_v3_opportunity_score_unused": row.get("v3_opportunity_score"),
-            "left_censored_at_v31_t0": initial_cycle,
+            "left_censored_at_v31_t0": prospective_censor,
             "evaluations": {},
         }
         decision_key = row.get("entry_path") or "RAW"
@@ -605,7 +607,7 @@ def main() -> int:
                     "funnel": funnel,
                     "upstream_v3_architecture_version": upstream_v3_architecture_version,
                     "observation_only": True,
-                    "left_censored_at_v31_t0": initial_cycle,
+                    "left_censored_at_v31_t0": prospective_censor,
                     "evaluations": {},
                 }
                 if _append_event(journal, recovery_event):
