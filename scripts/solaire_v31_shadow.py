@@ -284,6 +284,8 @@ def main() -> int:
     portfolio = read_json(PORTFOLIO, {}) or {}
     portfolio_persist = read_json(PORTFOLIO_PERSIST, {}) or {}
     portfolio_reclaim = read_json(PORTFOLIO_RECLAIM, {}) or {}
+    portfolio_raw = read_json(PORTFOLIO_RAW, {}) or {}
+    portfolio_reentry = read_json(PORTFOLIO_REENTRY, {}) or {}
 
     v3_candidates = v3_doc.get("candidates") or []
     news_mapping = v3_doc.get("news_mapping") or {}
@@ -341,6 +343,7 @@ def main() -> int:
         thesis_execution = candidate.get("thesis_execution")
         thesis_reentry = bool(candidate.get("thesis_reentry_hypothesis"))
         selected_execution, entry_path = select_execution_path(candidate)
+        selected_execution = execution_freshness(selected_execution, now)
         final = final_economic_score(preliminary, selected_execution)
         sizing = None
         if final.get("selectable"):
@@ -351,6 +354,19 @@ def main() -> int:
             )
             if not sizing.get("valid"):
                 final = {**final, "selectable": False, "reason": sizing.get("reason")}
+            else:
+                # V3 validates the same causal order-book snapshot. Reprice that
+                # snapshot at the exact V3.1 notional before portfolio use.
+                selected_execution = reprice_execution_for_stake(
+                    selected_execution or {}, finite(sizing.get("stake_eur"), 0.0)
+                )
+                final = final_economic_score(preliminary, selected_execution)
+                if not final.get("selectable"):
+                    sizing = None
+                else:
+                    actual_risk = finite((selected_execution.get("plan") or {}).get("theoretical_loss_eur"))
+                    if actual_risk is not None:
+                        sizing = {**sizing, "theoretical_risk_eur": round(actual_risk, 2)}
         ranked.append({
             "market": market,
             "price_eur": finite(row.get("price_eur")),
@@ -369,6 +385,7 @@ def main() -> int:
             "persistent_thesis": candidate.get("persistent_thesis"),
             "news_positive_score": candidate.get("news_positive_score"),
             "news_negative_score": candidate.get("news_negative_score"),
+            "external_score": candidate.get("external_score"),
             "sizing": sizing,
             "v2_state": candidate.get("v2_state"),
             "v2_score": candidate.get("v2_score"),
@@ -395,6 +412,7 @@ def main() -> int:
             ms["started_at_utc"] = utc(now)
             ms.pop("decision_recorded_episode", None)
             ms.pop("decision_recorded_paths", None)
+            ms.pop("decision_state_by_path", None)
             ms.pop("timing_decisions", None)
 
         ms["last_seen_ts"] = now
@@ -432,10 +450,41 @@ def main() -> int:
             "left_censored_at_v31_t0": initial_cycle,
             "evaluations": {},
         }
-        decision_paths = ms.setdefault("decision_recorded_paths", {})
         decision_key = row.get("entry_path") or "RAW"
-        if decision_paths.get(decision_key) != ms["episode"] and _append_event(journal, event):
-            decision_paths[decision_key] = ms["episode"]
+        execution_reason = (execution or {}).get("reason") or "NOT_CHECKED"
+        signature = "|".join([
+            event_type,
+            str(row.get("selection_reason") or ""),
+            str(execution_reason),
+        ])
+        decision_states = ms.setdefault("decision_state_by_path", {})
+        previous = decision_states.get(decision_key) or {}
+        if previous.get("signature") != signature:
+            ms["decision_sequence"] = int(ms.get("decision_sequence", 0)) + 1
+            attempt_id = (
+                f"{market}|{ms['episode']}|{decision_key}|"
+                f"{ms['decision_sequence']}|{V31_ARCHITECTURE_VERSION}"
+            )
+            event["attempt_id"] = attempt_id
+            event["decision_id"] = attempt_id
+            event["transition_from"] = previous.get("event_type")
+            event["transition_from_reason"] = previous.get("selection_reason")
+            event["execution_reason"] = execution_reason
+            event["execution"] = execution
+            event["plan_available_ts"] = finite((execution or {}).get("available_ts"))
+            event["plan_available_at_utc"] = (execution or {}).get("available_at_utc")
+            event["execution_age_seconds"] = finite((execution or {}).get("execution_age_seconds"))
+            if _append_event(journal, event):
+                decision_states[decision_key] = {
+                    "signature": signature,
+                    "event_type": event_type,
+                    "selection_reason": row.get("selection_reason"),
+                    "execution_reason": execution_reason,
+                    "attempt_id": attempt_id,
+                }
+                row["decision_id"] = attempt_id
+        else:
+            row["decision_id"] = previous.get("attempt_id")
 
         if row.get("selectable"):
             qualified_for_portfolio.append({
@@ -475,9 +524,30 @@ def main() -> int:
             ms["ended_at_utc"] = utc(now)
 
     current_scores = {x["market"]: x["economic_score"] for x in ranked}
-    portfolio = update_portfolio(portfolio, qualified_for_portfolio, universe_by_market, current_scores, now)
-    portfolio_persist = update_portfolio(portfolio_persist, qualified_persist, universe_by_market, current_scores, now)
-    portfolio_reclaim = update_portfolio(portfolio_reclaim, qualified_reclaim, universe_by_market, current_scores, now)
+    portfolio_client = None
+    try:
+        portfolio_client = PublicClient(timeout=8, retries=1, requests_per_second=10)
+        portfolio_client.get("/time", cache=False)
+    except Exception:
+        portfolio_client = None
+
+    portfolio = update_portfolio(
+        portfolio, qualified_for_portfolio, universe_by_market, current_scores, now, client=portfolio_client
+    )
+    portfolio_persist = update_portfolio(
+        portfolio_persist, qualified_persist, universe_by_market, current_scores, now, client=portfolio_client
+    )
+    portfolio_reclaim = update_portfolio(
+        portfolio_reclaim, qualified_reclaim, universe_by_market, current_scores, now, client=portfolio_client
+    )
+    qualified_raw = [x for x in qualified_for_portfolio if (x.get("entry_path") or "RAW") == "RAW"]
+    qualified_reentry = [x for x in qualified_for_portfolio if x.get("entry_path") == "THESIS_REENTRY"]
+    portfolio_raw = update_portfolio(
+        portfolio_raw, qualified_raw, universe_by_market, current_scores, now, client=portfolio_client
+    )
+    portfolio_reentry = update_portfolio(
+        portfolio_reentry, qualified_reentry, universe_by_market, current_scores, now, client=portfolio_client
+    )
 
     unchecked = [x for x in ranked if not (x.get("execution") or {}).get("ready") and (x.get("execution") is None)]
     candidate_doc = {
@@ -528,6 +598,10 @@ def main() -> int:
         "persist30_portfolio_marked_value_eur": portfolio_persist.get("marked_value_eur"),
         "pullback_reclaim_portfolio_positions": len(portfolio_reclaim.get("positions", [])),
         "pullback_reclaim_portfolio_marked_value_eur": portfolio_reclaim.get("marked_value_eur"),
+        "raw_portfolio_positions": len(portfolio_raw.get("positions", [])),
+        "raw_portfolio_marked_value_eur": portfolio_raw.get("marked_value_eur"),
+        "reentry_portfolio_positions": len(portfolio_reentry.get("positions", [])),
+        "reentry_portfolio_marked_value_eur": portfolio_reentry.get("marked_value_eur"),
         "affects_v3": False,
         "affects_v2": False,
         "affects_email": False,
@@ -553,6 +627,8 @@ def main() -> int:
     atomic_json(PORTFOLIO, portfolio)
     atomic_json(PORTFOLIO_PERSIST, portfolio_persist)
     atomic_json(PORTFOLIO_RECLAIM, portfolio_reclaim)
+    atomic_json(PORTFOLIO_RAW, portfolio_raw)
+    atomic_json(PORTFOLIO_REENTRY, portfolio_reentry)
     atomic_json(STATUS, status)
     print("SOLAIRE_V31 " + json.dumps(status, ensure_ascii=False))
     return 0
