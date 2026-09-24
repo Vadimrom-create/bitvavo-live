@@ -959,7 +959,8 @@ def update_rotation(
     candidates_by_market: dict[str, dict[str, Any]],
     now: float,
 ) -> dict[str, Any]:
-    rotation.setdefault("schema", "solaire_v3_rotation_shadow_v1")
+    """Legacy V3 rotation shadow with plan-consistent nominal accounting."""
+    rotation.setdefault("schema", "solaire_v3_rotation_shadow_v2")
     rotation.setdefault("reference_capital_eur", REFERENCE_CAPITAL_EUR)
     rotation.setdefault("reference_stake_eur", REFERENCE_STAKE_EUR)
     rotation.setdefault("cash_eur", REFERENCE_CAPITAL_EUR)
@@ -968,6 +969,20 @@ def update_rotation(
     rotation.setdefault("actions", [])
     rotation.setdefault("consumed_episodes", [])
     consumed = set(rotation["consumed_episodes"])
+
+    def close_position(position: dict[str, Any], current: float, reason: str) -> None:
+        stake = finite(position.get("stake_eur"), REFERENCE_STAKE_EUR)
+        position["closed_ts"] = now
+        position["closed_at_utc"] = utc(now)
+        position["exit_eur"] = current
+        position["close_reason"] = reason
+        rotation["cash_eur"] += stake * (current / position["entry_eur"]) * (1 - 0.0035)
+        rotation["closed"].append(position)
+        rotation["positions"].remove(position)
+        rotation["actions"].append({
+            "at_utc": utc(now), "action": "CLOSE", "market": position["market"],
+            "reason": reason, "stake_eur": stake, "exit_eur": current,
+        })
 
     for position in list(rotation["positions"]):
         current = finite((universe_by_market.get(position["market"]) or {}).get("price_eur"))
@@ -979,14 +994,7 @@ def update_rotation(
             position["opportunity_score"] = score
         stop = finite(position.get("stop_eur"))
         if current is not None and stop is not None and current <= stop:
-            position["closed_ts"] = now
-            position["closed_at_utc"] = utc(now)
-            position["exit_eur"] = current
-            position["close_reason"] = "STOP_OBSERVED_AT_V3_CYCLE"
-            rotation["cash_eur"] += REFERENCE_STAKE_EUR * (current / position["entry_eur"]) * (1 - 0.0035)
-            rotation["closed"].append(position)
-            rotation["positions"].remove(position)
-            rotation["actions"].append({"at_utc": utc(now), "action": "CLOSE", "market": position["market"], "reason": position["close_reason"]})
+            close_position(position, current, "STOP_OBSERVED_AT_V3_CYCLE")
 
     for event in sorted(entry_events, key=lambda x: finite(x.get("opportunity_score"), 0), reverse=True):
         market = event["market"]
@@ -1003,23 +1011,18 @@ def update_rotation(
             current = finite((universe_by_market.get(weakest["market"]) or {}).get("price_eur"))
             if current is None:
                 continue
-            weakest["closed_ts"] = now
-            weakest["closed_at_utc"] = utc(now)
-            weakest["exit_eur"] = current
-            weakest["close_reason"] = "ROTATE_TO_HIGHER_FORWARD_SCORE"
-            rotation["cash_eur"] += REFERENCE_STAKE_EUR * (current / weakest["entry_eur"]) * (1 - 0.0035)
-            rotation["closed"].append(weakest)
-            rotation["positions"].remove(weakest)
-            rotation["actions"].append({
-                "at_utc": utc(now), "action": "ROTATE_OUT", "market": weakest["market"],
-                "to_market": market, "score_delta": round(score - finite(weakest.get("opportunity_score"), 0), 3),
-            })
-        if rotation["cash_eur"] < REFERENCE_STAKE_EUR * 1.0035:
-            continue
+            close_position(weakest, current, "ROTATE_TO_HIGHER_FORWARD_SCORE")
+            rotation["actions"][-1]["to_market"] = market
+            rotation["actions"][-1]["score_delta"] = round(score - finite(weakest.get("opportunity_score"), 0), 3)
+
         entry = finite(event.get("entry_eur"))
-        if entry is None or entry <= 0:
+        stake = finite(event.get("stake_eur"), REFERENCE_STAKE_EUR)
+        if entry is None or entry <= 0 or stake <= 0:
             continue
-        rotation["cash_eur"] -= REFERENCE_STAKE_EUR * 1.0035
+        total_debit = stake * 1.0035
+        if rotation["cash_eur"] < total_debit:
+            continue
+        rotation["cash_eur"] -= total_debit
         rotation["positions"].append({
             "market": market,
             "episode": event.get("episode"),
@@ -1027,24 +1030,30 @@ def update_rotation(
             "opened_at_utc": utc(now),
             "entry_eur": entry,
             "stop_eur": finite(event.get("stop_eur")),
-            "stake_eur": REFERENCE_STAKE_EUR,
+            "stake_eur": stake,
+            "theoretical_risk_eur": finite((event.get("execution") or {}).get("plan", {}).get("theoretical_loss_eur")),
             "opportunity_score": score,
             "horizon_class": event.get("horizon_class"),
         })
-        rotation["actions"].append({"at_utc": utc(now), "action": "OPEN_SHADOW", "market": market, "score": score})
+        rotation["actions"].append({
+            "at_utc": utc(now), "action": "OPEN_SHADOW", "market": market,
+            "score": score, "stake_eur": stake,
+        })
         consumed.add(episode_key)
 
     rotation["consumed_episodes"] = sorted(consumed)[-5000:]
     marked = rotation["cash_eur"]
     for p in rotation["positions"]:
         mark = finite(p.get("mark_eur"), p.get("entry_eur"))
-        if mark and p.get("entry_eur"):
-            marked += REFERENCE_STAKE_EUR * (mark / p["entry_eur"])
+        entry = finite(p.get("entry_eur"))
+        stake = finite(p.get("stake_eur"), REFERENCE_STAKE_EUR)
+        if mark and entry:
+            marked += stake * (mark / entry)
     rotation["marked_value_eur"] = round(marked, 2)
     rotation["updated_at_utc"] = utc(now)
     rotation["research_only"] = True
+    rotation["nominal_accounting"] = "PLAN_STAKE_EUR"
     return rotation
-
 
 def main() -> int:
     now = time.time()
@@ -1560,7 +1569,7 @@ def main() -> int:
                 "entry_eur": finite(plan.get("entry_eur")),
                 "stop_eur": finite(plan.get("stop_eur")),
                 "tp1_eur": finite(plan.get("tp1_eur")),
-                "stake_eur": REFERENCE_STAKE_EUR,
+                "stake_eur": finite(plan.get("stake_eur"), REFERENCE_STAKE_EUR),
                 "opportunity_score": obs.get("opportunity_score"),
                 "horizon_class": obs.get("horizon_class"),
                 "entry_source": "V3_PERSISTENT_THESIS_REENTRY",
@@ -1590,6 +1599,7 @@ def main() -> int:
             ms.pop("prewatch_recorded_episode", None)
             ms.pop("entry_recorded_episode", None)
             ms["timing"] = {"episode": ms["episode"]}
+            ms["opportunity_recovery"] = {"episode": ms["episode"]}
         ms["last_seen_ts"] = now
         ms["last_seen_at_utc"] = utc(now)
         ms["last_opportunity_score"] = row["opportunity_score"]
@@ -1623,7 +1633,86 @@ def main() -> int:
         check = checks.get(market)
         if row.get("entry_hypothesis") and check is not None:
             ms["execution_state"] = check.get("reason")
-            ms["execution_checked_at_utc"] = utc(now)
+            ms["execution_checked_at_utc"] = check.get("available_at_utc") or utc(now)
+
+            recovery = ms.setdefault("opportunity_recovery", {"episode": ms["episode"]})
+            if recovery.get("episode") != ms["episode"]:
+                recovery.clear()
+                recovery["episode"] = ms["episode"]
+            if recovery.get("first_opportunity_ts") is None:
+                recovery["first_opportunity_ts"] = now
+                recovery["first_opportunity_at_utc"] = utc(now)
+                recovery["first_opportunity_price_eur"] = finite(row.get("price_eur"))
+                recovery["first_opportunity_definition"] = "FIRST_V3_ENTRY_HYPOTHESIS"
+
+            gate_signature = "|".join([
+                "READY" if check.get("ready") else "REJECTED",
+                str(check.get("reason") or ""),
+            ])
+            if ms.get("last_execution_gate_signature") != gate_signature:
+                ms["execution_gate_sequence"] = int(ms.get("execution_gate_sequence", 0)) + 1
+                gate_ts = finite(check.get("available_ts"), now)
+                gate_event = {
+                    "event_type": "EXECUTION_GATE_OBSERVATION",
+                    "market": market,
+                    "episode": ms["episode"],
+                    "attempt_id": f"{market}|{ms['episode']}|GATE|{ms['execution_gate_sequence']}",
+                    "decision_ts": gate_ts,
+                    "decision_at_utc": utc(gate_ts),
+                    "price_eur": finite(row.get("price_eur")),
+                    "ready": bool(check.get("ready")),
+                    "gate_reason": check.get("reason"),
+                    "execution": check,
+                    "plan": check.get("plan"),
+                    "gate_vector": {
+                        "spread_pct": check.get("spread_pct"),
+                        "depth": check.get("depth"),
+                        "stop_distance_pct": finite((check.get("plan") or {}).get("stop_distance_pct")),
+                        "net_rr_tp1": finite((check.get("plan") or {}).get("net_rr_tp1")),
+                    },
+                    "evaluation_excluded": True,
+                    "left_censored_at_v3_t0": initial_v3_cycle,
+                }
+                _append_event(journal, gate_event)
+                ms["last_execution_gate_signature"] = gate_signature
+
+            if check.get("ready") and recovery.get("first_executable_ts") is None:
+                plan = check.get("plan") or {}
+                executable_ts = finite(check.get("available_ts"), now)
+                executable_entry = finite(plan.get("entry_eur"))
+                first_price = finite(recovery.get("first_opportunity_price_eur"))
+                movement = None
+                if executable_entry is not None and first_price is not None and first_price > 0:
+                    movement = (executable_entry / first_price - 1.0) * 100.0
+                residual_to_tp1 = None
+                tp1 = finite(plan.get("tp1_eur"))
+                if executable_entry is not None and executable_entry > 0 and tp1 is not None:
+                    residual_to_tp1 = (tp1 / executable_entry - 1.0) * 100.0
+                recovery.update({
+                    "first_executable_ts": executable_ts,
+                    "first_executable_at_utc": utc(executable_ts),
+                    "first_executable_entry_eur": executable_entry,
+                    "delay_seconds": executable_ts - finite(recovery.get("first_opportunity_ts"), executable_ts),
+                    "movement_consumed_pct": movement,
+                    "structural_residual_to_tp1_pct": residual_to_tp1,
+                })
+                recovery_event = {
+                    "event_type": "OPPORTUNITY_RECOVERY_EXECUTABLE",
+                    "market": market,
+                    "episode": ms["episode"],
+                    "decision_ts": executable_ts,
+                    "decision_at_utc": utc(executable_ts),
+                    "price_eur": finite(row.get("price_eur")),
+                    "entry_eur": executable_entry,
+                    "stop_eur": finite(plan.get("stop_eur")),
+                    "tp1_eur": tp1,
+                    "stake_eur": finite(plan.get("stake_eur"), REFERENCE_STAKE_EUR),
+                    "recovery": dict(recovery),
+                    "execution": check,
+                    "left_censored_at_v3_t0": initial_v3_cycle,
+                    "evaluations": {},
+                }
+                _append_event(journal, recovery_event)
 
             # Fifth V3 research axis: entry timing.  These timing variants are
             # measured prospectively in parallel and never affect V2, email,
@@ -1677,7 +1766,7 @@ def main() -> int:
                             "entry_eur": current_entry,
                             "stop_eur": finite(plan.get("stop_eur")),
                             "tp1_eur": finite(plan.get("tp1_eur")),
-                            "stake_eur": REFERENCE_STAKE_EUR,
+                            "stake_eur": finite(plan.get("stake_eur"), REFERENCE_STAKE_EUR),
                             "opportunity_score": row["opportunity_score"],
                             "horizon_class": row["horizon_class"],
                             "entry_source": "V3_TIMING_PERSIST_30M",
@@ -1715,7 +1804,7 @@ def main() -> int:
                             "entry_eur": current_entry,
                             "stop_eur": finite(plan.get("stop_eur")),
                             "tp1_eur": finite(plan.get("tp1_eur")),
-                            "stake_eur": REFERENCE_STAKE_EUR,
+                            "stake_eur": finite(plan.get("stake_eur"), REFERENCE_STAKE_EUR),
                             "opportunity_score": row["opportunity_score"],
                             "horizon_class": row["horizon_class"],
                             "entry_source": "V3_TIMING_PULLBACK_RECLAIM",
@@ -1740,6 +1829,8 @@ def main() -> int:
                     "episode": ms["episode"],
                     "entry_eur": finite(plan.get("entry_eur")),
                     "stop_eur": finite(plan.get("stop_eur")),
+                    "stake_eur": finite(plan.get("stake_eur"), REFERENCE_STAKE_EUR),
+                    "execution": check,
                     "opportunity_score": row["opportunity_score"],
                     "horizon_class": row["horizon_class"],
                 })
@@ -1760,7 +1851,7 @@ def main() -> int:
                     "entry_eur": finite(plan.get("entry_eur")),
                     "stop_eur": finite(plan.get("stop_eur")),
                     "tp1_eur": finite(plan.get("tp1_eur")),
-                    "stake_eur": REFERENCE_STAKE_EUR,
+                    "stake_eur": finite(plan.get("stake_eur"), REFERENCE_STAKE_EUR),
                     "opportunity_score": row["opportunity_score"],
                     "horizon_class": row["horizon_class"],
                     "entry_source": source,
@@ -1824,6 +1915,7 @@ def main() -> int:
             "dynamic_rotation": row.get("dynamic_rotation"),
             "external_spark": row.get("external_spark"),
             "external": row.get("external"),
+            "external_score": finite((row.get("external") or {}).get("external_score_0_10")),
             "strong_negative_news": row.get("strong_negative_news"),
             "thesis_seed": row.get("thesis_seed"),
             "persistent_thesis": row.get("persistent_thesis"),
