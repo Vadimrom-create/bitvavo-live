@@ -28,6 +28,8 @@ on:
       - 'research/solaire_v3.py'
       - 'scripts/solaire_v31_shadow.py'
       - 'scripts/update_solaire_v31_evaluation.py'
+      - 'scripts/solaire_memory_entry_challenger.py'
+      - 'scripts/update_solaire_memory_entry_challenger_evaluation.py'
       - 'scripts/solaire_policy_challengers.py'
       - 'scripts/update_solaire_policy_challengers_evaluation.py'
       - 'research/solaire_v31.py'
@@ -118,6 +120,18 @@ jobs:
         continue-on-error: true
         run: python scripts/update_solaire_v31_evaluation.py
 
+      - name: Run near-miss memory-entry challenger
+        id: solaire_memory_entry_challenger
+        if: always()
+        continue-on-error: true
+        run: python scripts/solaire_memory_entry_challenger.py
+
+      - name: Update near-miss memory-entry challenger evaluation
+        id: solaire_memory_entry_challenger_evaluation
+        if: always()
+        continue-on-error: true
+        run: python scripts/update_solaire_memory_entry_challenger_evaluation.py
+
       - name: Run Solaire policy challenger shadows
         id: solaire_policy_challengers
         if: always()
@@ -195,7 +209,7 @@ jobs:
         run: |
           git config user.name 'bitvavo-live-bot'
           git config user.email 'actions@users.noreply.github.com'
-          for file in             production_alert_state.json             production_alert_status.json             production_decision_journal.json             production_evaluation_status.json             production_persistent_building_state.json             production_persistent_building_journal.json             production_persistent_building_status.json             production_early_building_shadow_state.json             production_early_building_shadow_journal.json             production_early_building_shadow_status.json             production_v21_range5_shadow_state.json             production_v21_range5_shadow_journal.json             production_v21_range5_shadow_status.json             production_rejection_shadow_state.json             production_rejection_shadow_journal.json             production_rejection_shadow_status.json             production_all_actionable_shadow_journal.json             production_all_actionable_shadow_status.json             production_breakout_risk_shadow_state.json             production_breakout_risk_shadow_journal.json             production_breakout_risk_shadow_status.json             production_emerging_liquidity_shadow_state.json             production_emerging_liquidity_shadow_journal.json             production_emerging_liquidity_shadow_status.json             production_exit_policy_shadow_state.json             production_exit_policy_shadow_journal.json             production_exit_policy_shadow_status.json             solaire_v3_state.json             solaire_v3_journal.json             solaire_v3_status.json             solaire_v3_candidates.json             solaire_v3_theses.json             solaire_v3_rotation_state.json             solaire_v2_frozen_benchmark_journal.json             solaire_v2_reference_outcomes.json             solaire_v3_evaluation_status.json             solaire_v3_comparison.json             solaire_v31_state.json             solaire_v31_journal.json             solaire_v31_status.json             solaire_v31_candidates.json             solaire_v31_portfolio.json             solaire_v31_portfolio_persist30.json             solaire_v31_portfolio_pullback_reclaim.json             solaire_v31_portfolio_raw.json             solaire_v31_portfolio_reentry.json             solaire_policy_challengers_journal.json             solaire_policy_challengers_portfolios.json             solaire_policy_challengers_status.json             solaire_policy_challengers_comparison.json             solaire_policy_challengers_evaluation_status.json             solaire_v31_evaluation_status.json             solaire_v31_comparison.json             production_health.json; do
+          for file in             production_alert_state.json             production_alert_status.json             production_decision_journal.json             production_evaluation_status.json             production_persistent_building_state.json             production_persistent_building_journal.json             production_persistent_building_status.json             production_early_building_shadow_state.json             production_early_building_shadow_journal.json             production_early_building_shadow_status.json             production_v21_range5_shadow_state.json             production_v21_range5_shadow_journal.json             production_v21_range5_shadow_status.json             production_rejection_shadow_state.json             production_rejection_shadow_journal.json             production_rejection_shadow_status.json             production_all_actionable_shadow_journal.json             production_all_actionable_shadow_status.json             production_breakout_risk_shadow_state.json             production_breakout_risk_shadow_journal.json             production_breakout_risk_shadow_status.json             production_emerging_liquidity_shadow_state.json             production_emerging_liquidity_shadow_journal.json             production_emerging_liquidity_shadow_status.json             production_exit_policy_shadow_state.json             production_exit_policy_shadow_journal.json             production_exit_policy_shadow_status.json             solaire_v3_state.json             solaire_v3_journal.json             solaire_v3_status.json             solaire_v3_candidates.json             solaire_v3_theses.json             solaire_v3_rotation_state.json             solaire_v2_frozen_benchmark_journal.json             solaire_v2_reference_outcomes.json             solaire_v3_evaluation_status.json             solaire_v3_comparison.json             solaire_v31_state.json             solaire_v31_journal.json             solaire_v31_status.json             solaire_v31_candidates.json             solaire_v31_portfolio.json             solaire_v31_portfolio_persist30.json             solaire_v31_portfolio_pullback_reclaim.json             solaire_v31_portfolio_raw.json             solaire_v31_portfolio_reentry.json             solaire_policy_challengers_journal.json             solaire_policy_challengers_portfolios.json             solaire_policy_challengers_status.json             solaire_policy_challengers_comparison.json             solaire_policy_challengers_evaluation_status.json             solaire_v31_evaluation_status.json             solaire_v31_comparison.json             solaire_memory_entry_challenger_state.json             solaire_memory_entry_challenger_journal.json             solaire_memory_entry_challenger_candidates.json             solaire_memory_entry_challenger_portfolio.json             solaire_memory_entry_challenger_status.json             solaire_memory_entry_challenger_comparison.json             solaire_memory_entry_challenger_evaluation_status.json             production_health.json; do
             if [ -e "$file" ]; then git add "$file"; fi
           done
           if git diff --cached --quiet; then exit 0; fi
