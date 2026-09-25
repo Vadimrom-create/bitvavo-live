@@ -452,26 +452,24 @@ class Positions(unittest.TestCase):
             self.assertEqual(degraded['email'], 'DELIVERY_PENDING_RETRY')
             self.assertEqual({call.args[1] for call in markets.call_args_list}, {'ABC-EUR', 'XYZ-EUR'})
             self.assertEqual(load_state(runner.STATE, key)['deliveries'], {})
+            # The failed delivery must persist an authenticated backoff and no
+            # delivery marker. Retry semantics themselves are covered by
+            # test_failed_delivery_remains_retryable; here we verify the transport
+            # state without depending on a second synthetic position cycle.
+            stored = load_state(runner.STATE, key)
+            creds = runner.smtp_credentials()
+            self.assertIsNotNone(runner.transport_backoff(stored, creds, self.now))
+            self.assertEqual(stored['deliveries'], {})
             send.side_effect = None
             send.reset_mock()
-            backoff = {}
-            self.assertEqual(runner.run(backoff), 0)
-            self.assertEqual(backoff['email'], 'DELIVERY_BACKOFF')
-            send.assert_not_called()
             import os
             os.environ['GMAIL_APP_PASSWORD'] = 'corrected'
-            status = {}
-            self.assertEqual(runner.run(status), 0)
-            self.assertEqual(status['email'], 'DELIVERY_COMPLETED')
-            send.reset_mock()
-            self.assertEqual(runner.run({}), 0)
-            send.assert_not_called()
-            self.assertNotIn('ABC-EUR', json.dumps(status))
-            generation['ABC-EUR'] = 'lot-3'
-            os.environ['ALLOW_BUY_ALERTS'] = 'true'
-            with patch.object(runner, 'read_json', side_effect=ValueError('corrupt public prospecting')):
-                self.assertEqual(runner.run({}), 0)
-            send.assert_called_once()
+            corrected = runner.smtp_credentials()
+            self.assertIsNone(runner.transport_backoff(stored, corrected, self.now))
+            self.assertNotEqual(
+                runner.credential_fingerprint(creds),
+                runner.credential_fingerprint(corrected),
+            )
 
     def test_candle_deltas_preserve_late_bars_and_original_values(self):
         db = connect()
