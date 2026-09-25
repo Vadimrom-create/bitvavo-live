@@ -212,6 +212,10 @@ def mark_sent(
             last_sent_entry_eur=trade.get("entry_eur"),
             last_sent_stop_eur=trade.get("stop_eur"),
             last_sent_tp1_eur=trade.get("tp1_eur"),
+            last_sent_tp2_eur=trade.get("tp2_eur"),
+            last_sent_profit_alert_eur=trade.get("profit_alert_eur"),
+            last_sent_runner_reference_eur=trade.get("runner_reference_eur"),
+            last_sent_profit_management_policy=trade.get("profit_management_policy"),
             last_sent_stop_distance_pct=trade.get("stop_distance_pct"),
         )
     state["updated_at_ts"] = sent_at
