@@ -15,8 +15,9 @@ from research.common import finite, freshness
 SELL = 'VENDS'
 PARTIAL = 'PRENDS PARTIELLEMENT TES PROFITS'
 TRAIL = 'RELÈVE LE STOP'
+PLAN = 'PLAN REQUIS'
 BUY = 'ACHÈTE'
-PRIORITY = {SELL: 0, PARTIAL: 1, TRAIL: 2, BUY: 3}
+PRIORITY = {SELL: 0, PARTIAL: 1, TRAIL: 2, PLAN: 3, BUY: 4}
 
 
 def rounded(value, step):
@@ -147,9 +148,20 @@ def mark_delivered(state, events, now):
 def message(events):
     lines = ['BITVAVO — ACTIONS À VALIDER', '']
     for e in events:
-        lines += [f"{e['action']} — {e['market']}", e['reason'],
-                  f"Quantité : {e['amount']:.10g} | prix observé : {e['price_eur']:.10g} €",
-                  f"Stop : {e.get('new_stop_eur', e.get('stop_eur')):.10g} €"]
+        lines += [f"{e['action']} — {e['market']}", e['reason']]
+        if e['action'] == PLAN:
+            lines += [
+                f"Quantité détectée : {e['amount']:.10g}",
+                "Aucun plan de gestion vérifié n'est associé à cette position.",
+                "Ajoute un POSITION_PLANS_JSON vérifié avant que Solaire puisse proposer stop, prise partielle ou runner.",
+                f"Observation UTC : {e['observed_at_utc']}",
+                "",
+            ]
+            continue
+        lines += [
+            f"Quantité : {e['amount']:.10g} | prix observé : {e['price_eur']:.10g} €",
+            f"Stop : {e.get('new_stop_eur', e.get('stop_eur')):.10g} €",
+        ]
         if e.get('target_eur'):
             lines.append(f"Objectif : {e['target_eur']:.10g} €")
         if e.get('open_orders_known') is False:
