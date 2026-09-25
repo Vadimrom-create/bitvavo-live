@@ -414,6 +414,21 @@ class Positions(unittest.TestCase):
         generation = {'ABC-EUR': 'lot-1', 'XYZ-EUR': 'lot-2'}
         def auto_plan(market, *args, **kwargs):
             return {**self.plan, 'position_id': generation[market], 'auto_generated': True, 'plan_source': 'TEST'}
+        def manage(balance, plan, quote, features, meta, orders, now):
+            market = balance['symbol'] + '-EUR'
+            if market == 'ABC-EUR':
+                return ({
+                    'action': SELL,
+                    'market': market,
+                    'position_id': plan['position_id'],
+                    'trigger_key': 'stop_breach',
+                    'price_eur': quote['bid'],
+                    'amount': balance['amount'],
+                    'stop_eur': plan['stop_eur'],
+                    'observed_at_utc': quote['retrieved_at_utc'],
+                    'reason': 'test stop breach',
+                }, 'ACTION')
+            return None, 'NO_JUSTIFIED_ACTION'
         key = Fernet.generate_key().decode()
         env = {'BITVAVO_READ_API_KEY': 'fake', 'BITVAVO_READ_API_SECRET': 'fake', 'POSITION_STATE_KEY': key,
                'ALLOW_BUY_ALERTS': 'false', 'ALERT_GMAIL_USER': 'unit-test', 'ALERT_EMAIL_TO': 'bellonirom@gmail.com',
@@ -424,6 +439,7 @@ class Positions(unittest.TestCase):
                 patch.object(runner, 'ReadOnlyAccount') as private, patch.object(runner, 'PublicClient', Public), \
                 patch.object(runner, 'market_inputs', side_effect=inputs) as markets, \
                 patch.object(runner, 'automatic_plan', side_effect=auto_plan), \
+                patch.object(runner, 'management_event', side_effect=manage), \
                 patch.object(runner.time, 'time', return_value=self.now), \
                 patch.object(runner.email_alert, 'send_email') as send:
             private.return_value.snapshot.return_value = account
