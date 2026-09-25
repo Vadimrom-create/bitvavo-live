@@ -25,6 +25,9 @@ def _validated(market, score=8.0):
             "stop_eur": 0.95,
             "tp1_eur": 1.13,
             "tp2_eur": 1.19,
+            "profit_alert_eur": 1.13,
+            "runner_reference_eur": 1.19,
+            "profit_management_policy": "ALERT_PARTIAL_THEN_RUNNER",
             "stake_eur": 100.0,
             "theoretical_loss_eur": 6.0,
             "stop_distance_pct": 5.94,
@@ -44,6 +47,8 @@ def test_multi_candidate_email_is_single_consolidated_action():
     assert "Marché : AAA-EUR" in body
     assert "Marché : BBB-EUR" in body
     assert "2 signaux Solaire validés" in body
+    assert "alerte/réévaluation" in body
+    assert "ne pas liquider 100 %" in body
 
 def test_journal_records_every_delivery_in_consolidated_email():
     payload={
