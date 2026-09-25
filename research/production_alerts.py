@@ -149,13 +149,17 @@ def select_events(payload: dict[str, Any], state: dict[str, Any], now: float, li
         if episode != handled_episode:
             events.append(_event_row(row, previous, generated))
 
-    # Earlier entry opportunity outranks a spectacular but already extended move.
-    # This changes ordering only; it never suppresses a detected candidate.
+    # Signal quality leads the cross-sectional ordering. Extension remains a
+    # risk/timing tiebreaker instead of outranking acceleration strength.
+    # This avoids systematically demoting continuation moves simply because
+    # they have already advanced while still preferring the cleaner entry when
+    # signal quality is comparable.
     events.sort(
         key=lambda row: (
+            -_n(row.get("signal_score")),
+            -_n((row.get("acceleration") or {}).get("evidence_count")),
             max(0.0, _n(row.get("episode_extension_pct"))),
             _n(row.get("episode_age_seconds")),
-            -_n(row.get("signal_score")),
             -_n(row.get("quote_volume_24h_eur")),
         )
     )
