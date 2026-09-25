@@ -69,11 +69,18 @@ def structural_plan(row, features, meta, *, max_position_eur=250.0, max_trade_ri
     return {
         'valid': True, 'market': row['market'], 'side': 'buy', 'order_type': 'limit',
         'amount': format(amount, 'f'), 'entry_eur': entry, 'stop_eur': stop,
-        'tp1_eur': tp1, 'tp2_eur': tp2, 'stake_eur': stake,
+        'tp1_eur': tp1, 'tp2_eur': tp2,
+        'profit_alert_eur': tp1, 'runner_reference_eur': tp2,
+        'profit_management_policy': 'ALERT_PARTIAL_THEN_RUNNER',
+        'stake_eur': stake,
         'theoretical_loss_eur': float(amount) * risk_per_unit,
         'net_rr_tp1': rr, 'stop_distance_pct': unit_risk / entry * 100,
         'scenario': 'Solaire structural execution validation',
-        'target_note': '2R/3R scenarios, not forecasts',
+        'target_note': (
+            '2R/3R are management references, not forecasts or instructions '
+            'to liquidate 100%; at 2R reassess/consider a partial, then keep a '
+            'runner while structure remains valid'
+        ),
         'main_risk': 'Failed breakout, spread widening or gap through stop',
         'cost_assumptions': {
             'fee_rate_each_side': fee_rate,
@@ -126,11 +133,15 @@ def plan(row, features, meta, config=None, reserved=None):
         return {'valid': False, 'reason': 'BELOW_EXCHANGE_MINIMUM'}
     return {'valid': True, 'market': row['market'], 'side': 'buy', 'order_type': 'limit',
             'amount': format(amount, 'f'), 'entry_eur': entry, 'stop_eur': stop,
-            'tp1_eur': tp1, 'tp2_eur': tp2, 'stake_eur': stake,
+            'tp1_eur': tp1, 'tp2_eur': tp2,
+            'profit_alert_eur': tp1, 'runner_reference_eur': tp2,
+            'profit_management_policy': 'ALERT_PARTIAL_THEN_RUNNER',
+            'stake_eur': stake,
             'theoretical_loss_eur': float(amount) * risk_per_unit, 'net_rr_tp1': rr,
             'stop_distance_pct': unit_risk / entry * 100,
             'scenario': 'Validated market setup; invalidation below recent support and ATR buffer',
-            'target_note': '2R/3R scenarios, not forecasts; achievable reward not calibrated',
+            'target_note': ('2R/3R are management references, not forecasts or automatic full exits; '
+                            'at 2R reassess/consider a partial, then keep a runner while structure holds'),
             'main_risk': 'Failed breakout, spread widening or gap through stop',
             'cost_assumptions': {'fee_rate_each_side': cfg['fee_rate'], 'slippage_rate_each_side': cfg['slippage_rate']},
             'portfolio_state': cfg['portfolio_state'], 'dry_run': True, 'requires_human_approval': True}
