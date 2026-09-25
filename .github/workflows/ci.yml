@@ -28,7 +28,7 @@ jobs:
       - name: Validate direct Solaire production sources
         run: |
           python -m py_compile research/production_gate.py research/production_acceleration.py research/production_alerts.py research/production_context.py research/solaire_v3.py research/solaire_v31.py research/solaire_funnel_audit.py research/features.py research/risk.py
-          python -m py_compile scripts/production_scan.py scripts/send_production_buy_alert.py scripts/solaire_v3_shadow.py scripts/update_solaire_v3_evaluation.py scripts/solaire_v31_shadow.py scripts/update_solaire_v31_evaluation.py scripts/solaire_funnel_audit.py scripts/update_early_building_shadow.py scripts/update_v21_range5_shadow.py scripts/update_rejection_shadow.py scripts/check_production_health.py
+          python -m py_compile scripts/production_scan.py scripts/send_production_buy_alert.py scripts/solaire_v3_shadow.py scripts/update_solaire_v3_evaluation.py scripts/solaire_v31_shadow.py scripts/update_solaire_v31_evaluation.py scripts/solaire_funnel_audit.py scripts/solaire_memory_entry_challenger.py scripts/update_early_building_shadow.py scripts/update_v21_range5_shadow.py scripts/update_rejection_shadow.py scripts/check_production_health.py
           python - <<'PY'
           import pathlib
           text = pathlib.Path('scripts/production_scan.py').read_text()
@@ -136,9 +136,13 @@ jobs:
           assert status['affects_v31'] is False, status
           assert status['affects_email'] is False, status
           assert status['orders_submitted'] is False, status
+          assert status['status'] == 'OK', status
           report = json.load(open('solaire_funnel_audit_report.json'))
+          assert report['inputs_ok'] is True, report
           assert 'stage_counts' in report, report
           assert 'loss_family_counts' in report, report
+          assert 'path_counts' in report, report
+          assert report['architecture_version'].startswith('full-funnel-audit-v2-'), report
           PY
 
       - name: Research live scan, no email or real order

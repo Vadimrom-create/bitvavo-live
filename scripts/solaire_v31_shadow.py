@@ -95,6 +95,79 @@ def _close_position(portfolio: dict[str, Any], position: dict[str, Any], current
     })
 
 
+def _append_allocation_action_once(
+    portfolio: dict[str, Any],
+    row: dict[str, Any],
+    now: float,
+    reason: str,
+) -> None:
+    """Record allocation/capacity outcomes without changing portfolio policy."""
+    decision_id = row.get("decision_id")
+    key = "|".join([
+        str(decision_id or ""),
+        str(row.get("market") or ""),
+        str(row.get("entry_path") or "RAW"),
+        reason,
+    ])
+    for action in reversed(portfolio.get("actions", [])[-500:]):
+        if action.get("allocation_audit_key") == key:
+            return
+    portfolio.setdefault("actions", []).append({
+        "at_utc": utc(now),
+        "action": "ALLOCATION_REJECTED",
+        "reason": reason,
+        "market": row.get("market"),
+        "economic_score": finite(row.get("economic_score")),
+        "entry_path": row.get("entry_path") or "RAW",
+        "decision_id": decision_id,
+        "allocation_audit_key": key,
+        "measurement_only": True,
+    })
+
+
+def _trade_stop_observation(
+    client: PublicClient,
+    market: str,
+    start_ts: float,
+    end_ts: float,
+    stop_eur: float,
+) -> dict[str, Any] | None:
+    if end_ts <= start_ts:
+        return None
+    raw = client.get(
+        "/" + market + "/trades",
+        {
+            "start": max(0, int(start_ts * 1000)),
+            "end": int(end_ts * 1000),
+            "limit": 1000,
+        },
+        cache=False,
+    )
+    trades = []
+    for row in raw or []:
+        if not isinstance(row, dict):
+            continue
+        ts_ms = finite(row.get("timestamp"))
+        price = finite(row.get("price"))
+        if ts_ms is None or price is None:
+            continue
+        ts = ts_ms / 1000.0
+        if start_ts <= ts <= end_ts:
+            trades.append((ts, price))
+    trades.sort(key=lambda x: x[0])
+    for ts, price in trades:
+        if price <= stop_eur:
+            return {
+                "observed_ts": ts,
+                "observed_at_utc": utc(ts),
+                "trade_price_eur": price,
+                "exit_eur": min(stop_eur, price),
+                "gap_through_stop": price < stop_eur,
+                "coverage": "EXACT_PUBLIC_TRADES_PARTIAL_MINUTE",
+            }
+    return None
+
+
 def _first_stop_observation(
     client: PublicClient | None,
     market: str,
@@ -102,53 +175,85 @@ def _first_stop_observation(
     now: float,
     stop_eur: float,
 ) -> dict[str, Any] | None:
-    """Return the first completed 5m bar that proves a stop breach.
+    """Detect stop touches between checks, including partial opening/final minutes.
 
-    The opening partial bar is excluded because its low may predate the position.
-    A gap through the stop is approximated by that completed bar's opening price.
+    Exact public trades cover the partial minutes containing the prior/current
+    check.  Completed 1m bars cover the interval between them.  This avoids the
+    old blind spot where a stop could be touched and recover before the next
+    completed 5m candle.
     """
-    if client is None or stop_eur <= 0:
+    if client is None or stop_eur <= 0 or now <= since_ts:
         return None
     try:
-        interval = 300.0
+        interval = 60.0
         first_full_start = math.ceil(since_ts / interval) * interval
-        raw = client.get(
-            "/" + market + "/candles",
-            {
-                "interval": "5m",
-                "start": max(0, int((first_full_start - interval) * 1000)),
-                "end": int(now * 1000),
-                "limit": 100,
-            },
-            cache=False,
-        )
-        bars = []
-        for row in raw or []:
-            if not isinstance(row, list) or len(row) < 4:
-                continue
-            ts_ms = finite(row[0])
-            open_eur = finite(row[1])
-            low_eur = finite(row[3])
-            if ts_ms is None or open_eur is None or low_eur is None:
-                continue
-            start_ts = ts_ms / 1000.0
-            if start_ts < first_full_start or start_ts + interval > now:
-                continue
-            bars.append((start_ts, open_eur, low_eur))
-        bars.sort(key=lambda x: x[0])
-        for start_ts, open_eur, low_eur in bars:
-            if low_eur <= stop_eur:
-                exit_eur = min(stop_eur, open_eur)
-                return {
-                    "bar_start_ts": start_ts,
-                    "bar_start_at_utc": utc(start_ts),
-                    "open_eur": open_eur,
-                    "low_eur": low_eur,
-                    "exit_eur": exit_eur,
-                    "gap_through_stop": open_eur < stop_eur,
-                    "coverage": "COMPLETED_5M_BARS_AFTER_PRIOR_CHECK",
-                }
-        return None
+        final_minute_start = math.floor(now / interval) * interval
+        observations: list[dict[str, Any]] = []
+
+        # Opening partial minute: only trades after the position/check timestamp
+        # are causal; the candle low could predate the position.
+        opening_end = min(now, first_full_start)
+        if opening_end > since_ts:
+            hit = _trade_stop_observation(
+                client, market, since_ts, opening_end, stop_eur
+            )
+            if hit is not None:
+                observations.append(hit)
+
+        # Completed one-minute bars between the partial endpoints.
+        if first_full_start < final_minute_start:
+            raw = client.get(
+                "/" + market + "/candles",
+                {
+                    "interval": "1m",
+                    "start": int(first_full_start * 1000),
+                    "end": int(final_minute_start * 1000),
+                    "limit": 1440,
+                },
+                cache=False,
+            )
+            bars = []
+            for row in raw or []:
+                if not isinstance(row, list) or len(row) < 4:
+                    continue
+                ts_ms = finite(row[0])
+                open_eur = finite(row[1])
+                low_eur = finite(row[3])
+                if ts_ms is None or open_eur is None or low_eur is None:
+                    continue
+                start_ts = ts_ms / 1000.0
+                if start_ts < first_full_start or start_ts + interval > now:
+                    continue
+                bars.append((start_ts, open_eur, low_eur))
+            bars.sort(key=lambda x: x[0])
+            for start_ts, open_eur, low_eur in bars:
+                if low_eur <= stop_eur:
+                    observations.append({
+                        "observed_ts": start_ts,
+                        "observed_at_utc": utc(start_ts),
+                        "bar_start_ts": start_ts,
+                        "bar_start_at_utc": utc(start_ts),
+                        "open_eur": open_eur,
+                        "low_eur": low_eur,
+                        "exit_eur": min(stop_eur, open_eur),
+                        "gap_through_stop": open_eur < stop_eur,
+                        "coverage": "COMPLETED_1M_BARS_BETWEEN_CHECKS",
+                    })
+                    break
+
+        # Final partial minute can also touch and recover before the next scan.
+        partial_start = max(since_ts, final_minute_start)
+        if now > partial_start:
+            hit = _trade_stop_observation(
+                client, market, partial_start, now, stop_eur
+            )
+            if hit is not None:
+                observations.append(hit)
+
+        if not observations:
+            return None
+        observations.sort(key=lambda x: finite(x.get("observed_ts"), now))
+        return observations[0]
     except Exception:
         return None
 
@@ -206,20 +311,25 @@ def update_portfolio(
         market = row["market"]
         episode_key = market + "|" + str(row.get("episode") or "") + "|" + str(row.get("entry_path") or "RAW")
         if episode_key in consumed:
+            _append_allocation_action_once(portfolio, row, now, "EPISODE_ALREADY_CONSUMED")
             continue
         if any(p.get("market") == market for p in portfolio["positions"]):
+            _append_allocation_action_once(portfolio, row, now, "MARKET_ALREADY_HELD")
             continue
 
         score = finite(row.get("economic_score"), 0)
         if len(portfolio["positions"]) >= MAX_SHADOW_POSITIONS:
             if not allow_score_rotation:
+                _append_allocation_action_once(portfolio, row, now, "CAPACITY_FULL_ROTATION_DISABLED")
                 continue
             weakest = min(portfolio["positions"], key=lambda p: finite(p.get("economic_score"), 0))
             weakest_score = finite(weakest.get("economic_score"), 0)
             if score < weakest_score + ROTATION_SCORE_DELTA:
+                _append_allocation_action_once(portfolio, row, now, "CAPACITY_ROTATION_SCORE_DELTA_NOT_MET")
                 continue
             current = finite((universe_by_market.get(weakest["market"]) or {}).get("price_eur"))
             if current is None:
+                _append_allocation_action_once(portfolio, row, now, "CAPACITY_WEAKEST_MARK_MISSING")
                 continue
             _close_position(portfolio, weakest, current, now, "ROTATE_TO_HIGHER_ECONOMIC_SCORE")
 
@@ -227,9 +337,11 @@ def update_portfolio(
         stake = finite(sizing.get("stake_eur"))
         entry = finite(row.get("entry_eur"))
         if stake is None or entry is None or stake <= 0 or entry <= 0:
+            _append_allocation_action_once(portfolio, row, now, "INVALID_SIZING_OR_ENTRY")
             continue
         total_debit = stake * (1 + ENTRY_FEE_EST)
         if portfolio["cash_eur"] < total_debit:
+            _append_allocation_action_once(portfolio, row, now, "INSUFFICIENT_SHADOW_CASH")
             continue
 
         portfolio["cash_eur"] -= total_debit
@@ -270,7 +382,7 @@ def update_portfolio(
     portfolio["marked_value_eur"] = round(marked, 2)
     portfolio["updated_at_utc"] = utc(now)
     portfolio["research_only"] = True
-    portfolio["stop_detection"] = "COMPLETED_5M_BARS_BETWEEN_CYCLES_WITH_BAR_OPEN_GAP_FALLBACK"
+    portfolio["stop_detection"] = "PARTIAL_MINUTE_PUBLIC_TRADES_PLUS_COMPLETED_1M_BARS"
     portfolio["score_rotation_enabled"] = allow_score_rotation
     return portfolio
 

@@ -1,5 +1,6 @@
 import unittest
 
+from scripts.solaire_v31_shadow import _first_stop_observation
 from research.solaire_v31 import (
     final_economic_score,
     preliminary_economic_score,
@@ -155,6 +156,54 @@ class SolaireV31Tests(unittest.TestCase):
         paths = timing_variants(candidate_row)
         self.assertFalse(paths["PERSIST_30M"])
         self.assertFalse(paths["PULLBACK_RECLAIM"])
+
+
+class FakeStopClient:
+    def __init__(self, *, trades=None, candles=None):
+        self.trades = trades or []
+        self.candles = candles or []
+
+    def get(self, path, params=None, cache=False):
+        if path.endswith("/trades"):
+            return list(self.trades)
+        if path.endswith("/candles"):
+            return list(self.candles)
+        raise AssertionError(path)
+
+
+class SolaireStopCoverageTests(unittest.TestCase):
+    def test_stop_touch_inside_opening_partial_minute_is_not_missed(self):
+        client = FakeStopClient(trades=[
+            {"timestamp": 1005_000, "price": "94.0", "amount": "1", "side": "sell"},
+        ])
+        hit = _first_stop_observation(
+            client,
+            "TEST-EUR",
+            since_ts=1000.5,
+            now=1010.0,
+            stop_eur=95.0,
+        )
+        self.assertIsNotNone(hit)
+        self.assertEqual(hit["coverage"], "EXACT_PUBLIC_TRADES_PARTIAL_MINUTE")
+        self.assertEqual(hit["exit_eur"], 94.0)
+
+    def test_stop_touch_in_completed_one_minute_bar_is_detected(self):
+        client = FakeStopClient(
+            trades=[],
+            candles=[
+                [1020_000, "100", "101", "94", "96", "10"],
+            ],
+        )
+        hit = _first_stop_observation(
+            client,
+            "TEST-EUR",
+            since_ts=1000.0,
+            now=1130.0,
+            stop_eur=95.0,
+        )
+        self.assertIsNotNone(hit)
+        self.assertEqual(hit["coverage"], "COMPLETED_1M_BARS_BETWEEN_CHECKS")
+        self.assertEqual(hit["exit_eur"], 95.0)
 
 
 if __name__ == "__main__":
