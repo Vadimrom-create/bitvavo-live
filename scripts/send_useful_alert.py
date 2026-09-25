@@ -18,6 +18,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 import email_alert
 from email_alert_v4 import select_events
 from monitoring.account import ReadOnlyAccount
+from monitoring.autoplan import automatic_plan, reconstruct_positions, update_transaction_ledger
 from monitoring.positions import BUY, PLAN, management_event, mark_delivered, message, select_actions
 from monitoring.state import load_state, save_state
 from research.common import atomic_json, finite, freshness, read_json, utc
@@ -253,16 +254,18 @@ def run(status):
                       account_aware_buy_alerts='BLOCKED_ACCOUNT_UNKNOWN')
         return run_public_buy_fallback(status)
     state = load_state(STATE, state_key)
-    plans = json.loads(os.getenv('POSITION_PLANS_JSON', '{}'))
-    if not isinstance(plans, dict):
-        raise ValueError('INVALID_POSITION_PLANS')
-    account = ReadOnlyAccount(key, secret).snapshot()
-    if (account.get('access_mode') != 'VIEW_ONLY_BALANCE' or
+    account_client = ReadOnlyAccount(key, secret)
+    account = account_client.snapshot()
+    if (account.get('access_mode') != 'VIEW_ONLY_BALANCE_AND_TRANSACTIONS' or
             account.get('open_orders_visibility') != 'UNAVAILABLE_VIEW_ONLY'):
         raise ValueError('STRICT_VIEW_ONLY_ACCOUNT_CONTRACT_REQUIRED')
-    status.update(account_access='VIEW_ONLY_BALANCE',
+    transactions = update_transaction_ledger(account_client, state, time.time())
+    inventories = reconstruct_positions(transactions)
+    plans = state.setdefault('management_plans', {})
+    solaire_alert_state = read_json('production_alert_state.json', {'markets': {}})
+    status.update(account_access='VIEW_ONLY_BALANCE_AND_TRANSACTIONS',
                   open_orders='UNAVAILABLE_VIEW_ONLY',
-                  position_actions='VIEW_ONLY_BALANCE_MANUAL_ORDER_CHECK')
+                  position_actions='AUTO_MANAGED_FROM_ACCOUNT_HISTORY')
     if not freshness(now=time.time(), retrieved=account['retrieved_at_utc'], max_retrieval_age=120)['ok']:
         status.update(status='STALE', reason='ACCOUNT_SNAPSHOT_STALE', buy_alerts='BLOCKED')
         return 0
@@ -279,58 +282,93 @@ def run(status):
     events, inputs, issues = [], {}, []
     exposure, portfolio_risk = 0., 0.
     for market, balance in held.items():
-        p = plans.get(market, {})
         old = observed.get(market, {})
-        plan_ready = (
-            isinstance(p, dict)
-            and bool(p.get('position_id'))
-            and p.get('verified') is True
-        )
         prior_plan_episode = int(old.get('plan_required_episode', 0) or 0)
-
-        if not plan_ready:
-            is_new_missing_plan_episode = (
-                not old
-                or old.get('closed_observed') is True
-                or old.get('assessment') != 'VERIFIED_PLAN_MISSING'
-            )
-            plan_episode = prior_plan_episode + (1 if is_new_missing_plan_episode else 0)
-            observed[market] = {
-                'position_id': None,
-                'amount': balance['amount'],
-                'observed_at_utc': account['retrieved_at_utc'],
-                'closed_observed': False,
-                'assessment': 'VERIFIED_PLAN_MISSING',
-                'plan_required_episode': max(plan_episode, 1),
-            }
-            events.append({
-                'action': PLAN,
-                'market': market,
-                'position_id': 'plan-required:' + market,
-                'trigger_key': str(max(plan_episode, 1)),
-                'amount': balance['amount'],
-                'observed_at_utc': account['retrieved_at_utc'],
-                'reason': 'Nouvelle position détenue sans plan de gestion vérifié.',
-            })
-            issues.append('VERIFIED_PLAN_MISSING')
-            continue
-
-        if old.get('closed_observed') and old.get('position_id') == p.get('position_id'):
-            issues.append('REOPENED_POSITION_REQUIRES_NEW_PLAN')
-            continue
-        observed[market] = {
-            'position_id': p.get('position_id'),
-            'amount': balance['amount'],
-            'observed_at_utc': account['retrieved_at_utc'],
-            'closed_observed': False,
-            'plan_required_episode': prior_plan_episode,
-        }
         if market not in metadata:
             issues.append('HELD_MARKET_UNAVAILABLE')
             continue
         try:
             quote, features, candles = market_inputs(client, market, time.time())
             inputs[market] = (quote, features, candles)
+
+            asset = market[:-4] if market.endswith('-EUR') else market
+            inventory = inventories.get(asset)
+            current_plan = plans.get(market)
+            rebuilt = automatic_plan(
+                market,
+                balance,
+                inventory,
+                quote,
+                features,
+                metadata[market],
+                solaire_alert_state,
+            )
+
+            if rebuilt is not None:
+                if (
+                    not isinstance(current_plan, dict)
+                    or current_plan.get('position_id') != rebuilt.get('position_id')
+                    or finite(balance.get('amount'), 0) > finite(old.get('amount'), 0) + 1e-12
+                ):
+                    plans[market] = rebuilt
+                    current_plan = rebuilt
+                else:
+                    # Refresh actual cost basis / partial state from authenticated
+                    # account history while preserving the original structural
+                    # stop/targets for this position cycle.
+                    current_plan['cost_basis_eur'] = rebuilt['cost_basis_eur']
+                    current_plan['tp1_done'] = rebuilt['tp1_done']
+                    current_plan['initial_amount'] = max(
+                        finite(current_plan.get('initial_amount'), 0) or 0,
+                        rebuilt['initial_amount'],
+                    )
+            p = current_plan or {}
+
+            plan_ready = (
+                isinstance(p, dict)
+                and bool(p.get('position_id'))
+                and p.get('verified') is True
+            )
+            if not plan_ready:
+                is_new_missing_plan_episode = (
+                    not old
+                    or old.get('closed_observed') is True
+                    or old.get('assessment') != 'VERIFIED_PLAN_MISSING'
+                )
+                plan_episode = prior_plan_episode + (1 if is_new_missing_plan_episode else 0)
+                observed[market] = {
+                    'position_id': None,
+                    'amount': balance['amount'],
+                    'observed_at_utc': account['retrieved_at_utc'],
+                    'closed_observed': False,
+                    'assessment': 'VERIFIED_PLAN_MISSING',
+                    'plan_required_episode': max(plan_episode, 1),
+                }
+                events.append({
+                    'action': PLAN,
+                    'market': market,
+                    'position_id': 'plan-required:' + market,
+                    'trigger_key': str(max(plan_episode, 1)),
+                    'amount': balance['amount'],
+                    'observed_at_utc': account['retrieved_at_utc'],
+                    'reason': 'Plan automatique impossible à reconstruire depuis l historique et la structure courante.',
+                })
+                issues.append('VERIFIED_PLAN_MISSING')
+                continue
+
+            if old.get('closed_observed') and old.get('position_id') == p.get('position_id'):
+                issues.append('REOPENED_POSITION_REQUIRES_NEW_PLAN')
+                continue
+
+            observed[market] = {
+                'position_id': p.get('position_id'),
+                'amount': balance['amount'],
+                'observed_at_utc': account['retrieved_at_utc'],
+                'closed_observed': False,
+                'plan_required_episode': prior_plan_episode,
+                'assessment': 'AUTO_PLAN_READY',
+            }
+
             # Open-order details are intentionally unavailable: reading them would
             # require a Bitvavo trading permission. Management stays conservative.
             event, reason = management_event(balance, p, quote, features, metadata[market], None, time.time())
@@ -411,6 +449,7 @@ def run(status):
     if not freshness(now=time.time(), retrieved=account['retrieved_at_utc'], max_retrieval_age=120)['ok']:
         selected = []
         issues.append('ACCOUNT_SNAPSHOT_STALE')
+    state['management_plans'] = plans
     save_state(STATE, state_key, state)
     buy_status = ('BLOCKED' if issues else
                   ('REQUIRES_FRESH_VALID_SIGNAL_AND_ACCOUNT_LIMITS' if buy_guard_ok else buy_guard_status))
