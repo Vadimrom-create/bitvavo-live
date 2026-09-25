@@ -18,7 +18,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 import email_alert
 from email_alert_v4 import select_events
 from monitoring.account import ReadOnlyAccount
-from monitoring.positions import BUY, management_event, mark_delivered, message, select_actions
+from monitoring.positions import BUY, PLAN, management_event, mark_delivered, message, select_actions
 from monitoring.state import load_state, save_state
 from research.common import atomic_json, finite, freshness, read_json, utc
 from research.features import closed_candles, describe
@@ -281,11 +281,50 @@ def run(status):
     for market, balance in held.items():
         p = plans.get(market, {})
         old = observed.get(market, {})
+        plan_ready = (
+            isinstance(p, dict)
+            and bool(p.get('position_id'))
+            and p.get('verified') is True
+        )
+        prior_plan_episode = int(old.get('plan_required_episode', 0) or 0)
+
+        if not plan_ready:
+            is_new_missing_plan_episode = (
+                not old
+                or old.get('closed_observed') is True
+                or old.get('assessment') != 'VERIFIED_PLAN_MISSING'
+            )
+            plan_episode = prior_plan_episode + (1 if is_new_missing_plan_episode else 0)
+            observed[market] = {
+                'position_id': None,
+                'amount': balance['amount'],
+                'observed_at_utc': account['retrieved_at_utc'],
+                'closed_observed': False,
+                'assessment': 'VERIFIED_PLAN_MISSING',
+                'plan_required_episode': max(plan_episode, 1),
+            }
+            events.append({
+                'action': PLAN,
+                'market': market,
+                'position_id': 'plan-required:' + market,
+                'trigger_key': str(max(plan_episode, 1)),
+                'amount': balance['amount'],
+                'observed_at_utc': account['retrieved_at_utc'],
+                'reason': 'Nouvelle position détenue sans plan de gestion vérifié.',
+            })
+            issues.append('VERIFIED_PLAN_MISSING')
+            continue
+
         if old.get('closed_observed') and old.get('position_id') == p.get('position_id'):
             issues.append('REOPENED_POSITION_REQUIRES_NEW_PLAN')
             continue
-        observed[market] = {'position_id': p.get('position_id'), 'amount': balance['amount'],
-                            'observed_at_utc': account['retrieved_at_utc'], 'closed_observed': False}
+        observed[market] = {
+            'position_id': p.get('position_id'),
+            'amount': balance['amount'],
+            'observed_at_utc': account['retrieved_at_utc'],
+            'closed_observed': False,
+            'plan_required_episode': prior_plan_episode,
+        }
         if market not in metadata:
             issues.append('HELD_MARKET_UNAVAILABLE')
             continue
@@ -299,7 +338,8 @@ def run(status):
             if event:
                 events.append(event)
             if reason not in {'ACTION', 'NO_JUSTIFIED_ACTION', 'BELOW_ORDER_MINIMUM',
-                              'EQUIVALENT_EXIT_ORDER_ALREADY_OPEN', 'EQUIVALENT_PROFIT_ORDER_ALREADY_OPEN'}:
+                              'EQUIVALENT_EXIT_ORDER_ALREADY_OPEN', 'EQUIVALENT_PROFIT_ORDER_ALREADY_OPEN',
+                              'TRAIL_DEFERRED_UNTIL_PARTIAL'}:
                 issues.append(reason)
             bid = finite(quote['bid'])
             if bid is None:
