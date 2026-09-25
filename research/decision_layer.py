@@ -97,6 +97,9 @@ def classify(obs: dict[str, Any]) -> dict[str, Any]:
     state = baseline.get("action_status") or baseline.get("raw_action_status") or ""
     category = str(obs.get("category") or "")
     flags = set(baseline.get("risk_flags") or []) | set(obs.get("exclusions") or [])
+    timing_flags: list[str] = []
+    if category == "TOO LATE":
+        timing_flags.append("HIGH_EXTENSION_OR_CHASE")
 
     result = {
         "market": obs.get("market"),
@@ -108,6 +111,7 @@ def classify(obs: dict[str, Any]) -> dict[str, Any]:
         "bucket": None,
         "action": "WATCH",
         "structural_vetoes": vetoes,
+        "timing_flags": timing_flags,
         "reason": "",
     }
     if not baseline:
@@ -125,15 +129,19 @@ def classify(obs: dict[str, Any]) -> dict[str, Any]:
         or _n(obs.get("change_24h_pct")) < 0
     )
 
-    if baseline.get("buy_ready") and entry >= IMMEDIATE_ENTRY_MIN and category != "TOO LATE":
-        result.update(bucket=BUCKET_IMMEDIATE, action="ACHETE_MAINTENANT",
-                      reason="V4 buy-ready with acceptable current entry; no structural veto.")
+    if baseline.get("buy_ready") and entry >= IMMEDIATE_ENTRY_MIN:
+        reason = "V4 buy-ready with acceptable current entry; no structural veto."
+        if timing_flags:
+            reason += " High extension/chase is retained as risk context, not an automatic veto."
+        result.update(bucket=BUCKET_IMMEDIATE, action="ACHETE_MAINTENANT", reason=reason)
     elif strong_structure and pullback_like and trend >= REENTRY_TREND_MIN:
         result.update(bucket=BUCKET_REENTRY, action="ATTENDS_REPRISE_OU_REENTREE",
                       reason="Strong trend/opportunity retained through pullback; timing does not erase setup.")
-    elif strong_structure and PASSIVE_LIMIT_ENTRY_MIN <= entry < IMMEDIATE_ENTRY_MIN and category != "TOO LATE":
-        result.update(bucket=BUCKET_LIMIT, action="PLACE_LIMITE_PASSIVE",
-                      reason="Strong structure but imperfect current entry; prefer passive execution.")
+    elif strong_structure and PASSIVE_LIMIT_ENTRY_MIN <= entry < IMMEDIATE_ENTRY_MIN:
+        reason = "Strong structure but imperfect current entry; prefer passive execution."
+        if timing_flags:
+            reason += " High extension/chase reduces rank but does not erase the setup."
+        result.update(bucket=BUCKET_LIMIT, action="PLACE_LIMITE_PASSIVE", reason=reason)
     elif strong_structure and entry < PASSIVE_LIMIT_ENTRY_MIN:
         # IOST-like case: a weak instantaneous entry score is not a veto when
         # opportunity + trend are already coherent.
@@ -169,6 +177,7 @@ def decide(observations: list[dict[str, Any]], top_n: int = 3) -> dict[str, Any]
         "frozen_scanner_policy": "V4_FROZEN_20260908",
         "principles": {
             "entry_is_timing_not_veto": True,
+            "too_late_is_risk_context_not_veto": True,
             "only_structural_vetoes_block": True,
             "cross_sectional_ranking": True,
             "mandatory_buckets": list(BUCKETS),
