@@ -28,6 +28,7 @@ from research.risk import DEFAULTS, correlation, plan as make_plan
 
 STATE = 'position_alert_state.enc.json'
 STATUS = 'position_monitor_status.json'
+WALLET_SUMMARY = 'wallet_private_summary.json'
 BUY_INPUT = 'alert_candidates.json'
 BUY_STATE = 'alert_state_v4.json'
 MAX_BUY_PRICE_DRIFT = .005
@@ -275,6 +276,23 @@ def run(status):
         raise ValueError('CLOCK_SKEW')
     metadata = {m['market']: m for m in client.get('/markets') if m.get('quote') == 'EUR' and m.get('status') == 'trading'}
     held = {b['symbol'] + '-EUR': b for b in account['balances'] if b['symbol'] != 'EUR' and b['amount'] > 0}
+
+    wallet_rows = []
+    for market, balance in sorted(held.items()):
+        asset = market[:-4] if market.endswith('-EUR') else market
+        inventory = inventories.get(asset) or {}
+        wallet_rows.append({
+            'symbol': asset,
+            'market': market,
+            'quantity': balance['amount'],
+            'pru_eur': finite(inventory.get('avg_cost_eur')),
+        })
+    atomic_json(WALLET_SUMMARY, {
+        'generated_at_utc': account['retrieved_at_utc'],
+        'source': 'BITVAVO_VIEW_ONLY_BALANCE_AND_TRANSACTION_HISTORY',
+        'positions': wallet_rows,
+    })
+
     observed = state.setdefault('positions', {})
     for market, old in observed.items():
         if market not in held:
