@@ -152,10 +152,7 @@ def classify_path_snapshots(
     v2_state = candidate.get("v2_state") or v31.get("v2_state")
     v2_score = finite(candidate.get("v2_score"), finite(v31.get("v2_score")))
 
-    if (
-        v2_state in {"BUILDING_ACCELERATION", "CONFIRMED_ACCELERATION"}
-        or early.get("ready")
-    ):
+    if v2_state in {"BUILDING_ACCELERATION", "CONFIRMED_ACCELERATION"}:
         confirmed = v2_state == "CONFIRMED_ACCELERATION"
         out.append({
             "path": "V2_REAL",
