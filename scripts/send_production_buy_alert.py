@@ -155,6 +155,20 @@ def prior_buy_thesis_active(
     """Suppress repeat BUYs while the previous alerted trade thesis still holds."""
     market = validated["row"]["market"]
     previous = (state.get("markets") or {}).get(market) or {}
+
+    # A fresh acceleration episode is new information, not a duplicate of an
+    # older emailed thesis. Do not let an unfilled/unconfirmed prior user trade
+    # suppress a later re-acceleration merely because the old stop was never
+    # breached.
+    current_episode = finite((validated.get("row") or {}).get("episode"))
+    sent_episode = finite(previous.get("sent_episode"))
+    if (
+        current_episode is not None
+        and sent_episode is not None
+        and int(current_episode) > int(sent_episode)
+    ):
+        return False, "NEW_ACCELERATION_EPISODE"
+
     sent_at = finite(previous.get("last_sent_ts"))
     stop = finite(previous.get("last_sent_stop_eur"))
     if sent_at is None or stop is None or stop <= 0:
