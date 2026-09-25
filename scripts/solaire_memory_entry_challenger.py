@@ -58,7 +58,7 @@ CANDIDATES = "solaire_memory_entry_challenger_candidates.json"
 PORTFOLIO = "solaire_memory_entry_challenger_portfolio.json"
 STATUS = "solaire_memory_entry_challenger_status.json"
 
-CHALLENGER_VERSION = "memory-entry-challenger-v2-decoupled-20260924"
+CHALLENGER_VERSION = "memory-entry-challenger-v3-comparator-hardening-20260925"
 MAX_PROFILE_MARKETS = 24
 MAX_EXECUTION_MARKETS = 20
 
@@ -513,9 +513,13 @@ def main() -> int:
 
     baseline_qualified = _baseline_qualified_rows(v31_candidates)
     combined = baseline_qualified + qualified_extra
+    # Comparator hygiene: refresh every current V3.1 market score exactly as the
+    # baseline portfolio does.  Restricting this map to currently qualified rows
+    # leaves stale high scores on challenger positions and changes rotation policy
+    # independently of the memory treatment.
     scores = {
         row.get("market"): finite(row.get("economic_score"), 0.0)
-        for row in baseline_qualified
+        for row in v31_candidates
         if row.get("market")
     }
     for row in qualified_extra:
@@ -538,7 +542,8 @@ def main() -> int:
     portfolio["challenger_version"] = CHALLENGER_VERSION
     portfolio["treatment"] = (
         "BASELINE_PLUS_NEAR_MISS_MAY_SEED_PERSISTENT_THESIS;"
-        "UNCHANGED_EXECUTION_AND_V31_SELECTION"
+        "UNCHANGED_EXECUTION_AND_V31_SELECTION;"
+        "CURRENT_SCORE_REFRESH_IDENTICAL_TO_BASELINE"
     )
 
     ranked_extra.sort(key=lambda x: finite(x.get("economic_score"), 0.0), reverse=True)
