@@ -55,6 +55,38 @@ class DecisionLayerTests(unittest.TestCase):
         row = classify(obs("BBB-EUR", 8.0, 6.2, 7.5, action="WATCH", change24=2.0))
         self.assertEqual(row["bucket"], BUCKET_LIMIT)
 
+    def test_too_late_category_is_risk_context_not_immediate_veto(self):
+        row = classify(
+            obs(
+                "PHA-EUR",
+                8.4,
+                7.2,
+                8.1,
+                buy=True,
+                action="BUY_READY",
+                change24=18.0,
+                category="TOO LATE",
+            )
+        )
+        self.assertEqual(row["bucket"], BUCKET_IMMEDIATE)
+        self.assertEqual(row["action"], "ACHETE_MAINTENANT")
+        self.assertIn("HIGH_EXTENSION_OR_CHASE", row["timing_flags"])
+
+    def test_too_late_category_can_still_use_passive_limit(self):
+        row = classify(
+            obs(
+                "CONT-EUR",
+                8.0,
+                6.2,
+                7.8,
+                action="WATCH",
+                change24=22.0,
+                category="TOO LATE",
+            )
+        )
+        self.assertEqual(row["bucket"], BUCKET_LIMIT)
+        self.assertIn("HIGH_EXTENSION_OR_CHASE", row["timing_flags"])
+
     def test_pullback_is_retained_for_reentry(self):
         row = classify(obs("CCC-EUR", 8.1, 6.1, 8.2, action="ENTRY_WINDOW", change24=-4.0))
         self.assertEqual(row["bucket"], BUCKET_REENTRY)
