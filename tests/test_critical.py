@@ -144,6 +144,9 @@ class RiskTests(unittest.TestCase):
         self.assertLessEqual(p['theoretical_loss_eur'], 12)
         self.assertGreater(p['tp2_eur'], p['tp1_eur'])
         self.assertGreater(p['tp1_eur'], p['entry_eur'])
+        self.assertEqual(p['profit_alert_eur'], p['tp1_eur'])
+        self.assertEqual(p['runner_reference_eur'], p['tp2_eur'])
+        self.assertEqual(p['profit_management_policy'], 'ALERT_PARTIAL_THEN_RUNNER')
 
     def test_cumulative_portfolio_caps(self):
         p = plan(self.row, self.features, self.meta, reserved={'exposure': 699, 'risk': 0, 'positions': 1})
