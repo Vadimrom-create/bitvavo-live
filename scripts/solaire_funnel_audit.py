@@ -102,9 +102,18 @@ def _latest_near_miss_checks(v3_journal: dict[str, Any]) -> dict[str, dict[str, 
     return latest
 
 
-def _portfolio_actions(portfolio: dict[str, Any]) -> tuple[dict[str, dict[str, Any]], dict[str, dict[str, Any]]]:
+def _portfolio_actions(
+    portfolio: dict[str, Any],
+) -> tuple[
+    dict[str, dict[str, Any]],
+    dict[str, dict[str, Any]],
+    dict[str, dict[str, Any]],
+    dict[str, dict[str, Any]],
+]:
     opened: dict[str, dict[str, Any]] = {}
     rejected: dict[str, dict[str, Any]] = {}
+    open_positions: dict[str, dict[str, Any]] = {}
+    closed_positions: dict[str, dict[str, Any]] = {}
     for action in portfolio.get("actions", []) or []:
         decision_id = action.get("decision_id")
         if not decision_id:
@@ -114,7 +123,15 @@ def _portfolio_actions(portfolio: dict[str, Any]) -> tuple[dict[str, dict[str, A
             opened[str(decision_id)] = action
         elif kind.startswith("ALLOCATION_"):
             rejected[str(decision_id)] = action
-    return opened, rejected
+    for position in portfolio.get("positions", []) or []:
+        decision_id = position.get("decision_id")
+        if decision_id:
+            open_positions[str(decision_id)] = position
+    for position in portfolio.get("closed", []) or []:
+        decision_id = position.get("decision_id")
+        if decision_id:
+            closed_positions[str(decision_id)] = position
+    return opened, rejected, open_positions, closed_positions
 
 
 def _alert_records(prod_journal: dict[str, Any], alert_status: dict[str, Any]) -> dict[str, list[dict[str, Any]]]:
@@ -152,7 +169,14 @@ def _alert_records(prod_journal: dict[str, Any], alert_status: dict[str, Any]) -
     return rows
 
 
-def _record_allocation(memory: dict[str, Any], snapshot: dict[str, Any], opened: dict[str, dict[str, Any]], rejected: dict[str, dict[str, Any]]) -> None:
+def _record_allocation(
+    memory: dict[str, Any],
+    snapshot: dict[str, Any],
+    opened: dict[str, dict[str, Any]],
+    rejected: dict[str, dict[str, Any]],
+    open_positions: dict[str, dict[str, Any]],
+    closed_positions: dict[str, dict[str, Any]],
+) -> None:
     decision_id = snapshot.get("decision_id")
     if not decision_id:
         if snapshot.get("selectable"):
@@ -168,6 +192,34 @@ def _record_allocation(memory: dict[str, Any], snapshot: dict[str, Any], opened:
             memory["first_allocated_plan_id"] = snapshot.get("plan_id")
         memory["current_allocation_status"] = "ALLOCATED_SHADOW"
         memory["current_allocation_reason"] = None
+        closed = closed_positions.get(str(decision_id))
+        opened_position = open_positions.get(str(decision_id))
+        if closed is not None:
+            entry = finite(closed.get("entry_eur"))
+            exit_eur = finite(closed.get("exit_eur"))
+            gross = None
+            if entry is not None and entry > 0 and exit_eur is not None:
+                gross = (exit_eur / entry - 1.0) * 100.0
+            memory["shadow_simulation_result"] = {
+                "status": "CLOSED",
+                "closed_ts": finite(closed.get("closed_ts")),
+                "closed_at_utc": closed.get("closed_at_utc"),
+                "entry_eur": entry,
+                "exit_eur": exit_eur,
+                "gross_return_pct": gross,
+                "close_reason": closed.get("close_reason"),
+                "stop_eur": finite(closed.get("stop_eur")),
+                "fees_are_accounted_at_portfolio_cash_level": True,
+            }
+        elif opened_position is not None:
+            memory["shadow_simulation_result"] = {
+                "status": "OPEN",
+                "opened_ts": finite(opened_position.get("opened_ts")),
+                "opened_at_utc": opened_position.get("opened_at_utc"),
+                "entry_eur": finite(opened_position.get("entry_eur")),
+                "stop_eur": finite(opened_position.get("stop_eur")),
+                "mark_eur": finite(opened_position.get("mark_eur")),
+            }
         return
     skip = rejected.get(str(decision_id))
     if skip is not None:
@@ -198,6 +250,12 @@ def _record_alert(memory: dict[str, Any], alerts: list[dict[str, Any]]) -> None:
         memory["first_alert_tp1_eur"] = finite(first.get("tp1_eur"))
         memory["first_alert_stake_eur"] = finite(first.get("stake_eur"))
     memory["current_alert_status"] = "BUY_SENT"
+    evaluations = first.get("evaluations") or {}
+    if evaluations:
+        memory["production_alert_evaluations"] = evaluations
+        four_hour = evaluations.get("4")
+        if isinstance(four_hour, dict):
+            memory["production_alert_4h_result"] = four_hour
 
 
 def _snapshot_event(
@@ -313,7 +371,7 @@ def main() -> int:
             event_keys.add(key)
 
     near_checks = _latest_near_miss_checks(v3_journal)
-    opened_actions, rejected_actions = _portfolio_actions(v31_portfolio)
+    opened_actions, rejected_actions, open_positions, closed_positions = _portfolio_actions(v31_portfolio)
     alerts_by_market = _alert_records(prod_journal, alert_status)
 
     # First, continue every already-open episode with the full-universe price,
@@ -391,7 +449,14 @@ def main() -> int:
                     episode["active"] = True
                     state["episodes"][episode_id] = episode
 
-                _record_allocation(episode, snapshot, opened_actions, rejected_actions)
+                _record_allocation(
+                    episode,
+                    snapshot,
+                    opened_actions,
+                    rejected_actions,
+                    open_positions,
+                    closed_positions,
+                )
                 if path == "V2_REAL":
                     _record_alert(episode, alerts_by_market.get(market, []))
 
