@@ -121,6 +121,15 @@ jobs:
           ALERT_EMAIL_TO: bellonirom@gmail.com
           GMAIL_APP_PASSWORD: ${{ secrets.GMAIL_APP_PASSWORD }}
         run: python scripts/send_useful_alert.py
+      - name: Upload private wallet summary
+        if: always() && steps.tests.outcome == 'success' && steps.positions.outcome == 'success'
+        uses: actions/upload-artifact@v4
+        with:
+          name: private-wallet-summary-${{ github.run_id }}-${{ github.run_attempt }}
+          retention-days: 1
+          if-no-files-found: error
+          path: /tmp/bitvavo-monitor/wallet_private_summary.json
+
       - name: Persist encrypted anti-spam state and monitoring availability
         if: always() && steps.tests.outcome == 'success'
         working-directory: /tmp/bitvavo-monitor
