@@ -1,5 +1,6 @@
 import unittest
 
+from scripts.solaire_funnel_audit import _portfolio_actions, _record_alert
 from research.solaire_funnel_audit import (
     FIXED_HORIZON_SECONDS,
     advance_funnel_memory,
@@ -166,6 +167,37 @@ class SolaireFunnelAuditTests(unittest.TestCase):
         self.assertAlmostEqual(state["mfe_since_origin_pct"], 8.0)
         self.assertAlmostEqual(state["mae_since_origin_pct"], -6.0)
         self.assertAlmostEqual(state["current_return_from_origin_pct"], -6.0)
+
+    def test_alert_stage_reuses_production_four_hour_evaluation(self):
+        memory = {"opened_ts": 1000.0, "horizon_end_ts": 15400.0}
+        alerts = [{
+            "alert_ts": 1200.0,
+            "entry_eur": 101.0,
+            "stop_eur": 96.0,
+            "evaluations": {
+                "4": {"result": "TP1", "mfe_pct": 12.0, "mae_pct": -1.0}
+            },
+        }]
+        _record_alert(memory, alerts)
+        self.assertEqual(memory["current_alert_status"], "BUY_SENT")
+        self.assertEqual(memory["first_alert_entry_eur"], 101.0)
+        self.assertEqual(memory["production_alert_4h_result"]["result"], "TP1")
+
+    def test_portfolio_index_keeps_exact_decision_id_for_closed_result(self):
+        portfolio = {
+            "actions": [
+                {"action": "OPEN_V31_SHADOW", "decision_id": "d1", "market": "AAA-EUR"},
+                {"action": "ALLOCATION_REJECTED", "decision_id": "d2", "reason": "CAPACITY"},
+            ],
+            "positions": [{"decision_id": "d3", "market": "BBB-EUR"}],
+            "closed": [{"decision_id": "d1", "market": "AAA-EUR", "exit_eur": 110.0}],
+        }
+        opened, rejected, open_positions, closed_positions = _portfolio_actions(portfolio)
+        self.assertIn("d1", opened)
+        self.assertIn("d2", rejected)
+        self.assertIn("d3", open_positions)
+        self.assertEqual(closed_positions["d1"]["exit_eur"], 110.0)
+
 
 
 if __name__ == "__main__":
