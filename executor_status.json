@@ -1,23 +1,23 @@
 {
-  "generated_at_utc": "2026-09-25T13:45:36.760858+00:00",
+  "generated_at_utc": "2026-09-25T13:45:39.264223+00:00",
   "online": true,
   "dry_run": true,
   "operator_id": 26090701,
   "security_freeze": true,
   "auto_cancel_unknown_orders": false,
   "last_security_event": {
-    "event_id": "04ba40df-fb05-44ba-b359-149e18580a7f",
-    "detected_at_utc": "2026-09-25T13:45:35.410748+00:00",
+    "event_id": "19c57280-920e-42f8-90b9-923cafafb81c",
+    "detected_at_utc": "2026-09-25T13:45:38.104470+00:00",
     "severity": "CRITICAL",
     "reason": "UNKNOWN_OR_UNAUTHORIZED_BITVAVO_ACTIVITY",
     "market": "GRASS-EUR",
-    "event": "fill",
+    "event": "order",
     "orderId": "00000000-0000-049f-0100-000ad5749815",
     "clientOrderId": null,
     "operatorId": 1,
     "side": "sell",
-    "orderType": null,
-    "status": null,
+    "orderType": "market",
+    "status": "partiallyFilled",
     "action_taken": [
       "SECURITY_FREEZE"
     ]
