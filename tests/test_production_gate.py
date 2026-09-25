@@ -303,6 +303,24 @@ class ProductionPriorThesisTests(unittest.TestCase):
         self.assertTrue(active)
         self.assertEqual(reason, "PRIOR_BUY_THESIS_STILL_ACTIVE")
 
+    def test_new_acceleration_episode_is_not_suppressed_by_old_thesis(self):
+        state = self.state()
+        state["markets"]["A-EUR"]["sent_episode"] = 1
+        selected = self.selected(low=0.97)
+        selected["row"]["episode"] = 2
+        active, reason = prior_buy_thesis_active(state, selected, self.NOW)
+        self.assertFalse(active)
+        self.assertEqual(reason, "NEW_ACCELERATION_EPISODE")
+
+    def test_same_acceleration_episode_remains_deduplicated(self):
+        state = self.state()
+        state["markets"]["A-EUR"]["sent_episode"] = 2
+        selected = self.selected(low=0.97)
+        selected["row"]["episode"] = 2
+        active, reason = prior_buy_thesis_active(state, selected, self.NOW)
+        self.assertTrue(active)
+        self.assertEqual(reason, "PRIOR_BUY_THESIS_STILL_ACTIVE")
+
     def test_stop_breach_reopens_market_for_new_buy_thesis(self):
         active, reason = prior_buy_thesis_active(
             self.state(),
@@ -403,7 +421,7 @@ class ProductionPriorThesisTests(unittest.TestCase):
         self.assertFalse(events)
         self.assertEqual(state["markets"]["A-EUR"]["episode"], 1)
 
-    def test_less_extended_confirmation_is_prioritized_over_higher_score(self):
+    def test_stronger_confirmation_is_prioritized_over_less_extended_weaker_signal(self):
         state = {
             "markets": {
                 "A-EUR": {
@@ -438,7 +456,7 @@ class ProductionPriorThesisTests(unittest.TestCase):
             ],
         }
         events, _ = select_events(payload, state, self.NOW)
-        self.assertEqual([e["market"] for e in events], ["A-EUR", "B-EUR"])
+        self.assertEqual([e["market"] for e in events], ["B-EUR", "A-EUR"])
 
 
 if __name__ == "__main__":
