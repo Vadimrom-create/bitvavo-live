@@ -185,6 +185,26 @@ def _score_execution(
     }
 
 
+def _current_score_map(
+    v31_candidates: list[dict[str, Any]],
+    qualified_extra: list[dict[str, Any]],
+) -> dict[str, float]:
+    """Refresh the challenger with the same complete current score surface as baseline."""
+    scores = {
+        row.get("market"): finite(row.get("economic_score"), 0.0)
+        for row in v31_candidates
+        if row.get("market")
+    }
+    for row in qualified_extra:
+        market = row.get("market")
+        if market:
+            scores[market] = max(
+                scores.get(market, 0.0),
+                finite(row.get("economic_score"), 0.0),
+            )
+    return scores
+
+
 def _baseline_qualified_rows(v31_candidates: list[dict[str, Any]]) -> list[dict[str, Any]]:
     rows = []
     for row in v31_candidates:
@@ -514,21 +534,9 @@ def main() -> int:
     baseline_qualified = _baseline_qualified_rows(v31_candidates)
     combined = baseline_qualified + qualified_extra
     # Comparator hygiene: refresh every current V3.1 market score exactly as the
-    # baseline portfolio does.  Restricting this map to currently qualified rows
-    # leaves stale high scores on challenger positions and changes rotation policy
-    # independently of the memory treatment.
-    scores = {
-        row.get("market"): finite(row.get("economic_score"), 0.0)
-        for row in v31_candidates
-        if row.get("market")
-    }
-    for row in qualified_extra:
-        market = row.get("market")
-        if market:
-            scores[market] = max(
-                scores.get(market, 0.0),
-                finite(row.get("economic_score"), 0.0),
-            )
+    # baseline portfolio does.  This prevents stale scores from changing rotation
+    # behavior independently of the memory treatment.
+    scores = _current_score_map(v31_candidates, qualified_extra)
 
     portfolio = update_portfolio(
         portfolio,
