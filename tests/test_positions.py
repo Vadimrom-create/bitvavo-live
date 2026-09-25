@@ -344,7 +344,7 @@ class Positions(unittest.TestCase):
                 self.balance,
                 {'symbol': 'EUR', 'amount': 100., 'available': 100., 'in_order': 0.},
             ],
-            'access_mode': 'VIEW_ONLY_BALANCE',
+            'access_mode': 'VIEW_ONLY_BALANCE_AND_TRANSACTIONS',
             'open_orders_visibility': 'UNAVAILABLE_VIEW_ONLY',
         }
         metadata = [dict(self.meta, market='ABC-EUR', quote='EUR', status='trading')]
@@ -366,11 +366,13 @@ class Positions(unittest.TestCase):
             'ALERT_EMAIL_TO': 'bellonirom@gmail.com',
             'GMAIL_APP_PASSWORD': 'fake',
         }
+        auto = {**self.plan, 'auto_generated': True, 'plan_source': 'TEST'}
         with tempfile.TemporaryDirectory() as directory, patch.dict('os.environ', env, clear=True), \
                 patch.object(runner, 'STATE', str(Path(directory) / 'state.json')), \
                 patch.object(runner, 'BUY_STATE', str(Path(directory) / 'buy_state.json')), \
                 patch.object(runner, 'ReadOnlyAccount') as private, patch.object(runner, 'PublicClient', Public), \
                 patch.object(runner, 'market_inputs', return_value=(self.quote, self.features, [])), \
+                patch.object(runner, 'automatic_plan', return_value=auto), \
                 patch.object(runner, 'management_event', return_value=(None, 'TRAIL_DEFERRED_UNTIL_PARTIAL')), \
                 patch.object(runner.time, 'time', return_value=self.now), \
                 patch.object(runner.email_alert, 'send_email') as send:
@@ -409,6 +411,9 @@ class Positions(unittest.TestCase):
             def get(self, path):
                 return metadata if path == '/markets' else {'time': 1800000000000}
         inputs = lambda client, market, now: ({**self.quote, 'bid': 8.9 if market == 'ABC-EUR' else 12}, self.features, [])
+        generation = {'ABC-EUR': 'lot-1', 'XYZ-EUR': 'lot-2'}
+        def auto_plan(market, *args, **kwargs):
+            return {**self.plan, 'position_id': generation[market], 'auto_generated': True, 'plan_source': 'TEST'}
         key = Fernet.generate_key().decode()
         env = {'BITVAVO_READ_API_KEY': 'fake', 'BITVAVO_READ_API_SECRET': 'fake', 'POSITION_STATE_KEY': key,
                'ALLOW_BUY_ALERTS': 'false', 'ALERT_GMAIL_USER': 'unit-test', 'ALERT_EMAIL_TO': 'bellonirom@gmail.com',
@@ -418,6 +423,7 @@ class Positions(unittest.TestCase):
                 patch.object(runner, 'BUY_STATE', str(Path(directory) / 'buy_state.json')), \
                 patch.object(runner, 'ReadOnlyAccount') as private, patch.object(runner, 'PublicClient', Public), \
                 patch.object(runner, 'market_inputs', side_effect=inputs) as markets, \
+                patch.object(runner, 'automatic_plan', side_effect=auto_plan), \
                 patch.object(runner.time, 'time', return_value=self.now), \
                 patch.object(runner.email_alert, 'send_email') as send:
             private.return_value.snapshot.return_value = account
@@ -428,7 +434,7 @@ class Positions(unittest.TestCase):
             self.assertEqual(degraded['alert_transport'], 'DEGRADED')
             self.assertEqual(degraded['alert_transport_reason'], 'SMTPAuthenticationError')
             self.assertEqual(degraded['email'], 'DELIVERY_PENDING_RETRY')
-            self.assertEqual({c.args[1] for c in markets.call_args_list}, {'ABC-EUR', 'XYZ-EUR'})
+            self.assertEqual({call.args[1] for call in markets.call_args_list}, {'ABC-EUR', 'XYZ-EUR'})
             self.assertEqual(load_state(runner.STATE, key)['deliveries'], {})
             send.side_effect = None
             send.reset_mock()
@@ -436,8 +442,6 @@ class Positions(unittest.TestCase):
             self.assertEqual(runner.run(backoff), 0)
             self.assertEqual(backoff['email'], 'DELIVERY_BACKOFF')
             send.assert_not_called()
-            # Changing the rejected credential fingerprint cancels the backoff
-            # immediately, so a corrected GitHub secret is tested next cycle.
             import os
             os.environ['GMAIL_APP_PASSWORD'] = 'corrected'
             status = {}
@@ -447,8 +451,7 @@ class Positions(unittest.TestCase):
             self.assertEqual(runner.run({}), 0)
             send.assert_not_called()
             self.assertNotIn('ABC-EUR', json.dumps(status))
-            # Re-arm a genuinely different position while prospecting is broken.
-            import os
+            generation['ABC-EUR'] = 'lot-3'
             os.environ['ALLOW_BUY_ALERTS'] = 'true'
             with patch.object(runner, 'read_json', side_effect=ValueError('corrupt public prospecting')):
                 self.assertEqual(runner.run({}), 0)
