@@ -219,7 +219,10 @@ def body(validated: dict) -> str:
             f"Amplitude structurelle 15 min (2 h) : {validated['structural_range_15m_pct']:.2f} %",
             f"Stop structurel : {trade['stop_eur']:.8g} €",
             f"Distance stop : {trade['stop_distance_pct']:.2f} %",
-            f"TP1 théorique : {trade['tp1_eur']:.8g} €",
+            f"Seuil gestion bénéfices (2R, alerte/réévaluation) : {trade['profit_alert_eur']:.8g} €",
+            f"Référence runner (3R) : {trade['runner_reference_eur']:.8g} €",
+            "Sortie : ne pas liquider 100 % mécaniquement au seuil 2R ; "
+            "privilégier prise partielle + runner si la structure reste valide.",
             f"Montant guide : {trade['stake_eur']:.2f} €",
             f"Risque théorique : {trade['theoretical_loss_eur']:.2f} €",
             "",
@@ -284,6 +287,9 @@ def delivery_record(validated: dict) -> dict:
         "stop_eur": trade.get("stop_eur"),
         "tp1_eur": trade.get("tp1_eur"),
         "tp2_eur": trade.get("tp2_eur"),
+        "profit_alert_eur": trade.get("profit_alert_eur"),
+        "runner_reference_eur": trade.get("runner_reference_eur"),
+        "profit_management_policy": trade.get("profit_management_policy"),
         "stake_eur": trade.get("stake_eur"),
         "market_context": row.get("context") or {},
     }
