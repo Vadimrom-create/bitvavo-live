@@ -10,7 +10,7 @@ from unittest.mock import patch
 from cryptography.fernet import Fernet, InvalidToken
 
 from monitoring.account import ReadOnlyAccount
-from monitoring.positions import BUY, PARTIAL, SELL, TRAIL, management_event, mark_delivered, select_actions
+from monitoring.positions import BUY, PARTIAL, PLAN, SELL, TRAIL, management_event, mark_delivered, select_actions
 from monitoring.state import load_state, save_state
 from research.common import utc
 from research.history import connect, ingest, new_candles
@@ -223,6 +223,105 @@ class Positions(unittest.TestCase):
         delivered = writes[-1][1]
         self.assertNotIn('last_sent_ts', delivered['markets']['FIRST-EUR'])
         self.assertEqual(delivered['markets']['SECOND-EUR']['last_sent_ts'], self.now)
+
+    def test_missing_position_plan_emits_plan_required_once_per_holding_episode(self):
+        account = {
+            'retrieved_at_utc': utc(self.now),
+            'balances': [
+                self.balance,
+                {'symbol': 'EUR', 'amount': 100., 'available': 100., 'in_order': 0.},
+            ],
+            'access_mode': 'VIEW_ONLY_BALANCE',
+            'open_orders_visibility': 'UNAVAILABLE_VIEW_ONLY',
+        }
+        metadata = [dict(self.meta, market='ABC-EUR', quote='EUR', status='trading')]
+
+        class Public:
+            server_offset = 0
+            def __init__(self, **kwargs):
+                pass
+            def get(self, path):
+                return metadata if path == '/markets' else {'time': 1800000000000}
+
+        key = Fernet.generate_key().decode()
+        env = {
+            'BITVAVO_READ_API_KEY': 'fake',
+            'BITVAVO_READ_API_SECRET': 'fake',
+            'POSITION_STATE_KEY': key,
+            'POSITION_PLANS_JSON': '{}',
+            'ALLOW_BUY_ALERTS': 'false',
+            'ALERT_GMAIL_USER': 'unit-test',
+            'ALERT_EMAIL_TO': 'bellonirom@gmail.com',
+            'GMAIL_APP_PASSWORD': 'fake',
+        }
+        with tempfile.TemporaryDirectory() as directory, patch.dict('os.environ', env, clear=True), \
+                patch.object(runner, 'STATE', str(Path(directory) / 'state.json')), \
+                patch.object(runner, 'BUY_STATE', str(Path(directory) / 'buy_state.json')), \
+                patch.object(runner, 'ReadOnlyAccount') as private, patch.object(runner, 'PublicClient', Public), \
+                patch.object(runner.time, 'time', return_value=self.now), \
+                patch.object(runner.email_alert, 'send_email') as send:
+            private.return_value.snapshot.return_value = account
+            first = {}
+            self.assertEqual(runner.run(first), 0)
+            self.assertEqual(first['status'], 'PARTIAL')
+            self.assertEqual(first['email'], 'DELIVERY_COMPLETED')
+            send.assert_called_once()
+            self.assertIn(PLAN, send.call_args.args[3])
+            self.assertIn('ABC-EUR', send.call_args.args[4])
+            self.assertIn('Aucun plan de gestion vérifié', send.call_args.args[4])
+
+            send.reset_mock()
+            second = {}
+            self.assertEqual(runner.run(second), 0)
+            self.assertEqual(second['email'], 'NONE')
+            send.assert_not_called()
+
+    def test_deferred_trailing_is_normal_monitor_state_not_partial_failure(self):
+        account = {
+            'retrieved_at_utc': utc(self.now),
+            'balances': [
+                self.balance,
+                {'symbol': 'EUR', 'amount': 100., 'available': 100., 'in_order': 0.},
+            ],
+            'access_mode': 'VIEW_ONLY_BALANCE',
+            'open_orders_visibility': 'UNAVAILABLE_VIEW_ONLY',
+        }
+        metadata = [dict(self.meta, market='ABC-EUR', quote='EUR', status='trading')]
+
+        class Public:
+            server_offset = 0
+            def __init__(self, **kwargs):
+                pass
+            def get(self, path):
+                return metadata if path == '/markets' else {'time': 1800000000000}
+
+        key = Fernet.generate_key().decode()
+        env = {
+            'BITVAVO_READ_API_KEY': 'fake',
+            'BITVAVO_READ_API_SECRET': 'fake',
+            'POSITION_STATE_KEY': key,
+            'POSITION_PLANS_JSON': json.dumps({'ABC-EUR': self.plan}),
+            'ALLOW_BUY_ALERTS': 'false',
+            'ALERT_GMAIL_USER': 'unit-test',
+            'ALERT_EMAIL_TO': 'bellonirom@gmail.com',
+            'GMAIL_APP_PASSWORD': 'fake',
+        }
+        with tempfile.TemporaryDirectory() as directory, patch.dict('os.environ', env, clear=True), \
+                patch.object(runner, 'STATE', str(Path(directory) / 'state.json')), \
+                patch.object(runner, 'BUY_STATE', str(Path(directory) / 'buy_state.json')), \
+                patch.object(runner, 'ReadOnlyAccount') as private, patch.object(runner, 'PublicClient', Public), \
+                patch.object(runner, 'market_inputs', return_value=(self.quote, self.features, [])), \
+                patch.object(runner, 'management_event', return_value=(None, 'TRAIL_DEFERRED_UNTIL_PARTIAL')), \
+                patch.object(runner.time, 'time', return_value=self.now), \
+                patch.object(runner.email_alert, 'send_email') as send:
+            private.return_value.snapshot.return_value = account
+            status = {}
+            self.assertEqual(runner.run(status), 0)
+
+        self.assertEqual(status['status'], 'OK')
+        self.assertEqual(status['reason'], 'CYCLE_COMPLETE')
+        self.assertEqual(status['email'], 'NONE')
+        send.assert_not_called()
 
     def test_book_still_available_when_candles_fail(self):
         class Client:
