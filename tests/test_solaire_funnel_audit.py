@@ -25,6 +25,17 @@ class SolaireFunnelAuditTests(unittest.TestCase):
         self.assertEqual(v2["stage"], "V2_BUILDING")
         self.assertEqual(v2["loss_family"], "PRE_CONFIRMATION")
 
+
+    def test_early_quant_without_v2_state_does_not_create_fake_v2_real_path(self):
+        v3 = {
+            "early_quant": {"ready": True, "score_0_10": 8.0, "evidence_count": 5},
+            "near_miss_opportunity": True,
+            "credible_opportunity": True,
+        }
+        rows = classify_path_snapshots(v3, {})
+        self.assertFalse(any(x["path"] == "V2_REAL" for x in rows))
+        self.assertTrue(any(x["path"] == "NEAR_MISS_DIAGNOSTIC" for x in rows))
+
     def test_thesis_reentry_is_not_misclassified_as_early_control(self):
         v3 = {
             "thesis_reentry_hypothesis": True,
