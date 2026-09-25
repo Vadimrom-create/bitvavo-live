@@ -62,9 +62,14 @@ class Positions(unittest.TestCase):
         self.quote.update(bid=15.1, ask=15.11)
         self.assertIsNone(self.assess()[0])
 
-    def test_verified_trailing_stop_never_lowered(self):
+    def test_trailing_stop_waits_for_partial_then_never_lowers(self):
         self.features.update(support_eur=12)
         self.quote.update(bid=14, ask=14.01)
+        event, reason = self.assess()
+        self.assertIsNone(event)
+        self.assertEqual(reason, 'TRAIL_DEFERRED_UNTIL_PARTIAL')
+
+        self.plan['tp1_done'] = True
         event, _ = self.assess()
         self.assertEqual((event['action'], event['new_stop_eur']), (TRAIL, 11.5))
         self.plan['stop_eur'] = 12

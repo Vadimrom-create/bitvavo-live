@@ -91,9 +91,20 @@ def management_event(balance, plan, quote, features, meta, orders, now):
     atr, support = finite(features.get('atr14_eur')), finite(features.get('support_eur'))
     if atr and atr > 0 and support and features.get('last_closed_start_ms') is not None:
         candidate = rounded(min(support - .5 * atr, bid - 1.5 * atr), tick)
-        if candidate - stop >= max(.5 * atr, 2 * tick) and candidate > cost * (1 + friction) / (1 - friction):
+        trail_is_material = (
+            candidate - stop >= max(.5 * atr, 2 * tick)
+            and candidate > cost * (1 + friction) / (1 - friction)
+        )
+        if trail_is_material and not realized:
+            # Do not convert an early unrealized gain into a tight stop. The
+            # initial structural invalidation remains in force until a partial
+            # profit has actually been observed. This deliberately trades some
+            # give-back risk for a lower probability of being shaken out before
+            # a continuation move.
+            return None, 'TRAIL_DEFERRED_UNTIL_PARTIAL'
+        if trail_is_material:
             return {**event, 'action': TRAIL, 'new_stop_eur': candidate,
-                    'reason': 'Support confirmé sur bougies closes ; nouveau stop au-dessus du seuil net de rentabilité.',
+                    'reason': 'Prise partielle déjà constatée ; relève le stop du runner sous le support confirmé.',
                     'review_open_orders_first': (not orders_known) or bool(active), 'trigger_key': 'trail'}, 'ACTION'
     return None, 'NO_JUSTIFIED_ACTION'
 
