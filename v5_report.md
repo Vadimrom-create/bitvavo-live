@@ -1,47 +1,49 @@
 # Bitvavo — V4 mesurée / infrastructure V5
 
-Scan UTC : 2026-09-26T22:55:15.213262+00:00
-État : OK | marchés EUR : 427 | V4 : 388 | données valides : 427
-Récupération : 2026-09-26T22:54:44.838456+00:00 | âge ticker : 152.4 s | durée : 153.2 s
+Scan UTC : 2026-09-26T23:12:57.807113+00:00
+État : OK | marchés EUR : 427 | V4 : 387 | données valides : 427
+Récupération : 2026-09-26T23:12:27.398950+00:00 | âge ticker : 150.6 s | durée : 151.7 s
 
 ## ACHÈTE — signal V4 et plan théorique
 
+AUCUN ACHAT VALIDÉ — cette absence ne valide pas les marchés aux données insuffisantes.
 Bougies utilisables : 5 min 427/427 ; 15 min 427/427.
 Les intervalles sans transaction sont représentés explicitement à volume 0 ; aucune transaction n’est inventée.
 
 Achats bruts V4 bloqués avant alerte :
+- AERO-EUR : CHASE_RISK, BASELINE_BUY_CHASE_CONTRADICTION
 - ALGO-EUR : INSUFFICIENT_NET_RISK_REWARD
-- CC-EUR : INSUFFICIENT_NET_RISK_REWARD
+- CC-EUR : STABILITY_HOLD, INSUFFICIENT_NET_RISK_REWARD
+- DOT-EUR : INSUFFICIENT_NET_RISK_REWARD
 - LINK-EUR : WICK_SETUP, INSUFFICIENT_NET_RISK_REWARD
 - LTC-EUR : WICK_SETUP, INSUFFICIENT_NET_RISK_REWARD
 - POL-EUR : INSUFFICIENT_NET_RISK_REWARD
-- NEAR-EUR : 4.3421 € | IGNITION | score 78.31/100 | entrée 7.45/10
-  Entrée 4.3457 € ; stop 4.1458 € ; TP1 4.7454 € ; TP2 4.9453 € ; montant 227.11 € ; risque théorique 12.00 € ; R/R net 1.60.
-  Chase risk : 2.122/10 (diagnostic non calibré). Probabilités +10/+20/+30/+40 % : indisponibles.
+- RENDER-EUR : WICK_SETUP, INSUFFICIENT_NET_RISK_REWARD
+- SHIB-EUR : INSUFFICIENT_NET_RISK_REWARD
 
 ## SURVEILLE
 
-- CC-EUR : 0.11952 € ; score 94.52/100 ; SURVEILLE ; INSUFFICIENT_NET_RISK_REWARD
-- POL-EUR : 0.104796 € ; score 91.54/100 ; SURVEILLE ; INSUFFICIENT_NET_RISK_REWARD
-- C-EUR : 0.080177 € ; score 90.73/100 ; SURVEILLE ; seuil achat non atteint
-- KSM-EUR : 4.1934 € ; score 89.05/100 ; SURVEILLE ; SPREAD_RISK, SELLER_HEAVY_BOOK, STABILITY_HOLD
-- FARTCOIN-EUR : 0.16816 € ; score 88.18/100 ; SURVEILLE ; seuil achat non atteint
+- ALGO-EUR : 0.104108 € ; score 94.32/100 ; SURVEILLE ; INSUFFICIENT_NET_RISK_REWARD
+- AVNT-EUR : 0.11435 € ; score 94.32/100 ; SURVEILLE ; seuil achat non atteint
+- ATOM-EUR : 1.633 € ; score 90.10/100 ; SURVEILLE ; seuil achat non atteint
+- SHIB-EUR : 5.2158e-06 € ; score 88.98/100 ; SURVEILLE ; INSUFFICIENT_NET_RISK_REWARD
+- ROSE-EUR : 0.007722 € ; score 88.81/100 ; SURVEILLE ; VERY_SELLER_HEAVY_BOOK
 
 ## Contrôle des hausses
 
 | Marché | Prix € | 24 h | Détection | Couche d’échec | Actionnabilité |
 |---|---:|---:|---|---|---|
-| POND-EUR | 0.0016 | +95.65 % | DETECTED_EARLY | NONE | ENTRY_TIMING_OR_EXECUTION |
-| AMP-EUR | 0.0006652 | +49.95 % | DETECTED_TOO_LATE | NONE | ENTRY_TIMING_OR_EXECUTION |
-| EDGE-EUR | 0.129002 | +48.21 % | DETECTED_EARLY | NONE | ENTRY_TIMING_OR_EXECUTION |
-| QNT-EUR | 125.56 | +46.45 % | DETECTED_EARLY | NONE | ENTRY_TIMING_OR_EXECUTION |
-| RARE-EUR | 0.019326 | +37.70 % | DETECTED_EARLY | NONE | ENTRY_TIMING_OR_EXECUTION |
-| 2Z-EUR | 0.063526 | +24.06 % | NOT_DETECTED | SCANNER_SCORING | NOT_APPLICABLE |
-| KMNO-EUR | 0.044324 | +21.65 % | DETECTED_EARLY | NONE | ENTRY_TIMING_OR_EXECUTION |
-| AGI-EUR | 0.005964 | +15.09 % | DETECTED_EARLY | NONE | INTERPRETATION |
-| RUNE-EUR | 0.65993 | +14.57 % | NO_CONFIRMED_SHORT_TERM_EVENT | NOT_APPLICABLE | NOT_APPLICABLE |
-| GRASS-EUR | 0.52648 | +14.45 % | DETECTED_EARLY | NONE | ENTRY_TIMING_OR_EXECUTION |
+| POND-EUR | 0.001545 | +88.92 % | DETECTED_EARLY | NONE | ENTRY_TIMING_OR_EXECUTION |
+| AMP-EUR | 0.0006791 | +53.09 % | DETECTED_TOO_LATE | NONE | ENTRY_TIMING_OR_EXECUTION |
+| QNT-EUR | 127.928 | +47.22 % | DETECTED_EARLY | NONE | ENTRY_TIMING_OR_EXECUTION |
+| EDGE-EUR | 0.124479 | +42.74 % | DETECTED_EARLY | NONE | ENTRY_TIMING_OR_EXECUTION |
+| RARE-EUR | 0.018927 | +36.73 % | DETECTED_EARLY | NONE | ENTRY_TIMING_OR_EXECUTION |
+| KMNO-EUR | 0.045311 | +24.39 % | DETECTED_EARLY | NONE | ENTRY_TIMING_OR_EXECUTION |
+| 2Z-EUR | 0.063566 | +24.14 % | NOT_DETECTED | SCANNER_SCORING | NOT_APPLICABLE |
+| SOON-EUR | 0.2081 | +17.04 % | DETECTED_EARLY | NONE | ENTRY_TIMING_OR_EXECUTION |
+| RUNE-EUR | 0.6696 | +16.66 % | NO_CONFIRMED_SHORT_TERM_EVENT | NOT_APPLICABLE | NOT_APPLICABLE |
+| KITE-EUR | 0.13397 | +14.90 % | DETECTED_EARLY | NONE | ENTRY_TIMING_OR_EXECUTION |
 
-Historique : 1569 scans ; 671331 observations ; 1052 épisodes d’achat évaluables.
+Historique : 1570 scans ; 671758 observations ; 1053 épisodes d’achat évaluables.
 V5 optimisée : aucune. Supériorité sur V4 : non démontrée. Probabilités : non calibrées.
 Le cash et le portefeuille du plan sont hypothétiques. Aucun ordre réel n’est envoyé.
