@@ -1,45 +1,50 @@
 # Bitvavo — V4 mesurée / infrastructure V5
 
-Scan UTC : 2026-09-27T17:12:17.529541+00:00
-État : OK | marchés EUR : 427 | V4 : 382 | données valides : 427
-Récupération : 2026-09-27T17:11:22.905562+00:00 | âge ticker : 180.3 s | durée : 181.4 s
+Scan UTC : 2026-09-27T17:27:08.977620+00:00
+État : OK | marchés EUR : 427 | V4 : 383 | données valides : 427
+Récupération : 2026-09-27T17:26:38.419692+00:00 | âge ticker : 148.4 s | durée : 149.7 s
 
 ## ACHÈTE — signal V4 et plan théorique
 
-AUCUN ACHAT VALIDÉ — cette absence ne valide pas les marchés aux données insuffisantes.
 Bougies utilisables : 5 min 427/427 ; 15 min 427/427.
 Les intervalles sans transaction sont représentés explicitement à volume 0 ; aucune transaction n’est inventée.
 
 Achats bruts V4 bloqués avant alerte :
-- DOT-EUR : INSUFFICIENT_NET_RISK_REWARD
-- KAS-EUR : STABILITY_HOLD, INSUFFICIENT_NET_RISK_REWARD
+- DOT-EUR : STABILITY_HOLD, INSUFFICIENT_NET_RISK_REWARD
+- FIL-EUR : WICK_SETUP, INSUFFICIENT_NET_RISK_REWARD
+- KAS-EUR : WICK_SETUP, INSUFFICIENT_NET_RISK_REWARD
 - ORCA-EUR : INSUFFICIENT_NET_RISK_REWARD
-- SEI-EUR : INSUFFICIENT_NET_RISK_REWARD
-- SUI-EUR : CHASE_RISK, BASELINE_BUY_CHASE_CONTRADICTION
+- SEI-EUR : WICK_SETUP, STABILITY_HOLD, INSUFFICIENT_NET_RISK_REWARD
+- ENA-EUR : 0.24525 € | IGNITION | score 86.00/100 | entrée 7.50/10
+  Entrée 0.24479 € ; stop 0.23423 € ; TP1 0.26591 € ; TP2 0.27647 € ; montant 240.06 € ; risque théorique 12.00 € ; R/R net 1.58.
+  Chase risk : 3.856/10 (diagnostic non calibré). Probabilités +10/+20/+30/+40 % : indisponibles.
+- GRAM-EUR : 1.4709 € | IGNITION | score 82.67/100 | entrée 7.20/10
+  Entrée 1.4746 € ; stop 1.3983 € ; TP1 1.6271 € ; TP2 1.7034 € ; montant 204.91 € ; risque théorique 12.00 € ; R/R net 1.64.
+  Chase risk : 5.582/10 (diagnostic non calibré). Probabilités +10/+20/+30/+40 % : indisponibles.
 
 ## SURVEILLE
 
-- EIGEN-EUR : 0.23865 € ; score 93.70/100 ; SURVEILLE ; WICK_SETUP
-- ORCA-EUR : 1.52198 € ; score 93.64/100 ; SURVEILLE ; INSUFFICIENT_NET_RISK_REWARD
-- AXL-EUR : 0.048891 € ; score 93.44/100 ; SURVEILLE ; VERY_SELLER_HEAVY_BOOK, WICK_SETUP
-- FLUID-EUR : 1.3088 € ; score 90.08/100 ; SURVEILLE ; LOW_LIQUIDITY, SELLER_HEAVY_BOOK
-- XAI-EUR : 0.0084808 € ; score 90.08/100 ; SURVEILLE ; WICK_SETUP
+- DRIFT-EUR : 0.017545 € ; score 92.00/100 ; SURVEILLE ; seuil achat non atteint
+- ACU-EUR : 0.12063 € ; score 91.01/100 ; SURVEILLE ; SELLER_HEAVY_BOOK
+- BEL-EUR : 0.116609 € ; score 89.39/100 ; SURVEILLE ; SPREAD_RISK, WICK_SETUP
+- DOT-EUR : 1.0977 € ; score 86.62/100 ; SURVEILLE ; STABILITY_HOLD, INSUFFICIENT_NET_RISK_REWARD
+- BIGTIME-EUR : 0.008433 € ; score 86.57/100 ; SURVEILLE ; seuil achat non atteint
 
 ## Contrôle des hausses
 
 | Marché | Prix € | 24 h | Détection | Couche d’échec | Actionnabilité |
 |---|---:|---:|---|---|---|
-| QNT-EUR | 162.62 | +51.63 % | DETECTED_EARLY | NONE | ENTRY_TIMING_OR_EXECUTION |
-| SOON-EUR | 0.28478 | +49.35 % | DETECTED_EARLY | NONE | ENTRY_TIMING_OR_EXECUTION |
-| TREAD-EUR | 0.96953 | +33.64 % | DETECTED_EARLY | NONE | INTERPRETATION |
-| AUDIO-EUR | 0.01657 | +30.35 % | NOT_DETECTED | SCANNER_SCORING | NOT_APPLICABLE |
-| ARX-EUR | 0.25325 | +25.52 % | DETECTED_EARLY | NONE | ENTRY_TIMING_OR_EXECUTION |
-| INX-EUR | 0.00642 | +22.40 % | DETECTED_EARLY | NONE | INTERPRETATION |
-| GRASS-EUR | 0.55716 | +20.63 % | DETECTED_EARLY | NONE | ENTRY_TIMING_OR_EXECUTION |
-| W-EUR | 0.013671 | +18.63 % | DETECTED_EARLY | NONE | NONE |
-| GLMR-EUR | 0.007136 | +17.62 % | NOT_DETECTED | SCANNER_SCORING | NOT_APPLICABLE |
-| PYTH-EUR | 0.074891 | +11.22 % | DETECTED_EARLY | NONE | ENTRY_TIMING_OR_EXECUTION |
+| QNT-EUR | 163.854 | +51.95 % | DETECTED_EARLY | NONE | ENTRY_TIMING_OR_EXECUTION |
+| SOON-EUR | 0.28012 | +46.40 % | DETECTED_EARLY | NONE | ENTRY_TIMING_OR_EXECUTION |
+| TREAD-EUR | 1.01651 | +39.50 % | DETECTED_EARLY | NONE | INTERPRETATION |
+| AUDIO-EUR | 0.016364 | +28.73 % | NOT_DETECTED | SCANNER_SCORING | NOT_APPLICABLE |
+| GRASS-EUR | 0.5652 | +24.16 % | DETECTED_EARLY | NONE | ENTRY_TIMING_OR_EXECUTION |
+| ARX-EUR | 0.25134 | +24.06 % | DETECTED_EARLY | NONE | ENTRY_TIMING_OR_EXECUTION |
+| INX-EUR | 0.006389 | +22.09 % | DETECTED_EARLY | NONE | INTERPRETATION |
+| W-EUR | 0.013662 | +19.38 % | DETECTED_EARLY | NONE | NONE |
+| GLMR-EUR | 0.007161 | +17.45 % | NOT_DETECTED | SCANNER_SCORING | NOT_APPLICABLE |
+| AGI-EUR | 0.0069 | +15.81 % | DETECTED_EARLY | NONE | INTERPRETATION |
 
-Historique : 1632 scans ; 698232 observations ; 1161 épisodes d’achat évaluables.
+Historique : 1633 scans ; 698659 observations ; 1161 épisodes d’achat évaluables.
 V5 optimisée : aucune. Supériorité sur V4 : non démontrée. Probabilités : non calibrées.
 Le cash et le portefeuille du plan sont hypothétiques. Aucun ordre réel n’est envoyé.
