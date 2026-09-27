@@ -170,7 +170,14 @@ def decide(observations: list[dict[str, Any]], top_n: int = 3) -> dict[str, Any]
         if bucket in winners and winners[bucket] is None:
             winners[bucket] = row
 
-    actionable = [r for r in ranked if r.get("bucket")][:top_n]
+    # Keep the historical top-N preview for compatibility, but expose the
+    # complete actionable surface explicitly. Consumers must never infer that
+    # top_actionable is exhaustive: it mixes buckets and intentionally truncates.
+    all_actionable = [r for r in ranked if r.get("bucket")]
+    immediate_actionable = [
+        r for r in ranked if r.get("action") == "ACHETE_MAINTENANT"
+    ]
+    actionable = all_actionable[:top_n]
     return {
         "schema_version": 1,
         "policy": "DECISION_LAYER_V1_SHADOW",
@@ -183,6 +190,8 @@ def decide(observations: list[dict[str, Any]], top_n: int = 3) -> dict[str, Any]
             "mandatory_buckets": list(BUCKETS),
             "probabilities_calibrated": False,
             "production_orders_enabled": False,
+            "top_actionable_is_preview_only": True,
+            "immediate_actionable_is_exhaustive": True,
         },
         "thresholds": {
             "latent_opportunity_min": LATENT_OPPORTUNITY_MIN,
@@ -193,5 +202,7 @@ def decide(observations: list[dict[str, Any]], top_n: int = 3) -> dict[str, Any]
         },
         "bucket_winners": winners,
         "top_actionable": actionable,
+        "all_actionable": all_actionable,
+        "immediate_actionable": immediate_actionable,
         "ranked": ranked,
     }

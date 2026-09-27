@@ -138,10 +138,16 @@ def evaluate_bars(
     if decision_ts is None or baseline is None or baseline <= 0:
         return None
 
-    # Use only complete bars that start after the decision-containing 5m bar.
+    # Evaluate only a complete, chronological sequence of fully closed 5m bars.
+    # Bitvavo may return candles newest-first and may omit intervals without
+    # transactions; neither condition may silently change close/path outcomes.
     first_full_start = ((int(decision_ts * 1000) // 300_000) + 1) * 300_000
     end_ms = int((decision_ts + horizon_hours * 3600) * 1000)
-    bars = []
+    last_full_start = ((end_ms - 300_000) // 300_000) * 300_000
+    if last_full_start < first_full_start:
+        return None
+
+    parsed: dict[int, tuple[int, float, float, float]] = {}
     for row in raw_bars:
         if not isinstance(row, list) or len(row) < 6:
             continue
@@ -151,8 +157,20 @@ def evaluate_bars(
         close = finite(row[4])
         if None in (t, high, low, close):
             continue
-        if first_full_start <= t < end_ms:
-            bars.append((int(t), high, low, close))
+        start_ms = int(t)
+        if start_ms % 300_000:
+            continue
+        if first_full_start <= start_ms <= last_full_start:
+            parsed[start_ms] = (start_ms, high, low, close)
+
+    expected_starts = list(range(first_full_start, last_full_start + 1, 300_000))
+    missing_starts = [start for start in expected_starts if start not in parsed]
+    if missing_starts:
+        # Do not invent flat candles for no-trade intervals or evaluate a
+        # partial horizon as though it were complete.
+        return None
+
+    bars = [parsed[start] for start in expected_starts]
     if not bars:
         return None
 
@@ -164,20 +182,24 @@ def evaluate_bars(
     close_return = (close / baseline - 1) * 100
 
     result = "OBSERVED"
+    path_event_ts = None
     if entry.get("decision_type") == "BUY_SENT":
         stop = finite(entry.get("stop_eur"))
         tp1 = finite(entry.get("tp1_eur"))
         if stop is not None and tp1 is not None:
             result = "OPEN"
-            for _, bar_high, bar_low, _ in bars:
+            for bar_ts, bar_high, bar_low, _ in bars:
                 if bar_low <= stop and bar_high >= tp1:
                     result = "STOP_SAME_BAR_CONSERVATIVE"
+                    path_event_ts = bar_ts
                     break
                 if bar_low <= stop:
                     result = "STOP"
+                    path_event_ts = bar_ts
                     break
                 if bar_high >= tp1:
                     result = "TP1"
+                    path_event_ts = bar_ts
                     break
     elif entry.get("decision_type") == "REJECTED":
         result = "MISSED_UPSIDE_GE5" if mfe >= 5.0 else "NO_5PCT_MFE"
@@ -189,5 +211,10 @@ def evaluate_bars(
         "mae_pct": round(mae, 4),
         "close_return_pct": round(close_return, 4),
         "bars_used": len(bars),
-        "method": "closed_5m_bars_after_decision_bar",
+        "expected_bars": len(expected_starts),
+        "coverage_ratio": 1.0,
+        "first_bar_start_ms": bars[0][0],
+        "last_bar_start_ms": bars[-1][0],
+        "path_event_start_ms": path_event_ts,
+        "method": "chronological_continuous_closed_5m_bars_after_decision_bar",
     }

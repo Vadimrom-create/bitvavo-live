@@ -99,6 +99,18 @@ class DecisionLayerTests(unittest.TestCase):
         )
         self.assertFalse(result["principles"]["production_orders_enabled"])
 
+    def test_immediate_actionable_is_exhaustive_even_when_top_preview_is_truncated(self):
+        rows = [
+            obs(f"BUY{i}-EUR", 8.4, 7.2, 8.1, buy=True, action="BUY_READY")
+            for i in range(5)
+        ]
+        result = decide(rows, top_n=3)
+        self.assertEqual(len(result["top_actionable"]), 3)
+        self.assertEqual(len(result["immediate_actionable"]), 5)
+        self.assertEqual(len(result["all_actionable"]), 5)
+        self.assertTrue(result["principles"]["top_actionable_is_preview_only"])
+        self.assertTrue(result["principles"]["immediate_actionable_is_exhaustive"])
+
 
 if __name__ == "__main__":
     unittest.main()
