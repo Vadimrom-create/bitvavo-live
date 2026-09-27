@@ -105,6 +105,15 @@ def select_events(payload: dict[str, Any], state: dict[str, Any], now: float, li
             if previous.get("active"):
                 previous["active"] = False
                 previous["episode_ended_ts"] = generated
+                # A candidate disappearing from the newest scan does not
+                # invalidate an already delivered thesis. It means the thesis
+                # must be explicitly revalidated before a fresh recommendation.
+                if previous.get("alert_lifecycle_state") in {"SENT", "PRESENTED"}:
+                    previous.update(
+                        alert_lifecycle_state="REVALIDATION_REQUIRED",
+                        alert_lifecycle_reason="CANDIDATE_NO_LONGER_IN_LATEST_SCAN",
+                        alert_lifecycle_updated_ts=generated,
+                    )
             continue
 
         was_active = bool(previous.get("active", False))
@@ -200,6 +209,12 @@ def mark_sent(
         handled_episode=episode,
         sent_episode=episode,
         last_sent_ts=sent_at,
+        alert_id=f"{market}:{episode}:{int(sent_at * 1000)}",
+        alert_lifecycle_state="SENT",
+        alert_lifecycle_reason="DELIVERY_CONFIRMED",
+        alert_lifecycle_updated_ts=sent_at,
+        presentation_state="UNKNOWN",
+        order_state="UNKNOWN",
         signal_score=row.get("signal_score"),
         price=row.get("last"),
         status=row.get("action_status"),
@@ -217,6 +232,7 @@ def mark_sent(
             last_sent_runner_reference_eur=trade.get("runner_reference_eur"),
             last_sent_profit_management_policy=trade.get("profit_management_policy"),
             last_sent_stop_distance_pct=trade.get("stop_distance_pct"),
+            last_sent_plan_id=trade.get("plan_id"),
         )
     state["updated_at_ts"] = sent_at
     return state
