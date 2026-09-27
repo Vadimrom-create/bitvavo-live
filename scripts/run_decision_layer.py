@@ -54,7 +54,23 @@ def render(payload: dict) -> str:
             f"trend {row['trend_score']:.3f} | rang {row['rank_score']:.3f}"
         )
         lines.append(f"  - {row['reason']}")
-    lines += ["", "## Top cross-sectionnel", ""]
+    lines += ["", "## Tous les achats immédiats", ""]
+    immediate = payload.get("immediate_actionable") or []
+    if not immediate:
+        lines.append("Aucun ACHETE_MAINTENANT dans le classement complet.")
+    else:
+        for idx, row in enumerate(immediate, 1):
+            lines.append(
+                f"{idx}. {row['market']} — {row['action']} — rank {row['rank_score']:.3f} — "
+                f"opportunité {row['opportunity_score']:.3f} — entrée {row['entry_score']:.3f} — "
+                f"trend {row['trend_score']:.3f}"
+            )
+    lines += [
+        "",
+        "## Top cross-sectionnel — aperçu non exhaustif",
+        "",
+        "Ce top est une vue courte multi-buckets. Il ne doit jamais être utilisé comme liste exhaustive des achats immédiats.",
+    ]
     if not payload["top_actionable"]:
         lines.append("Aucun candidat ne remplit actuellement un bucket décisionnel.")
     else:
@@ -157,6 +173,7 @@ def main() -> int:
         "decision_layer": payload["policy"],
         "scan_id": payload["scan_id"],
         "top": [r["market"] for r in payload["top_actionable"]],
+        "immediate_actionable": [r["market"] for r in payload.get("immediate_actionable", [])],
         "production_orders_enabled": payload["principles"]["production_orders_enabled"],
     }, ensure_ascii=False))
     return 0
