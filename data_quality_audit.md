@@ -1,6 +1,6 @@
 # Audit qualité des données Bitvavo
 
-Scan : 2026-09-27T05:25:12.697632+00:00 (20260927T052343Z-3c8451af)
+Scan : 2026-09-27T05:42:15.807178+00:00 (20260927T054053Z-fb833cc1)
 Univers : 427 | strategy-grade : 427 | rejetés : 0
 5m valides : 427 | 15m valides : 427 | deux intervalles valides : 427
 
