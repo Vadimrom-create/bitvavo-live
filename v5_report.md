@@ -1,8 +1,8 @@
 # Bitvavo — V4 mesurée / infrastructure V5
 
-Scan UTC : 2026-09-27T13:20:50.339163+00:00
-État : OK | marchés EUR : 427 | V4 : 381 | données valides : 427
-Récupération : 2026-09-27T13:20:20.368282+00:00 | âge ticker : 153.1 s | durée : 154.4 s
+Scan UTC : 2026-09-27T13:36:27.730298+00:00
+État : OK | marchés EUR : 427 | V4 : 382 | données valides : 427
+Récupération : 2026-09-27T13:35:57.172035+00:00 | âge ticker : 145.2 s | durée : 146.1 s
 
 ## ACHÈTE — signal V4 et plan théorique
 
@@ -11,33 +11,33 @@ Bougies utilisables : 5 min 427/427 ; 15 min 427/427.
 Les intervalles sans transaction sont représentés explicitement à volume 0 ; aucune transaction n’est inventée.
 
 Achats bruts V4 bloqués avant alerte :
-- ADA-EUR : STABILITY_HOLD, INSUFFICIENT_NET_RISK_REWARD
-- EIGEN-EUR : STABILITY_HOLD, INSUFFICIENT_NET_RISK_REWARD
-- PUMP-EUR : STABILITY_HOLD, INSUFFICIENT_NET_RISK_REWARD
+- ADA-EUR : WICK_SETUP, STABILITY_HOLD, INSUFFICIENT_NET_RISK_REWARD
+- ONDO-EUR : INSUFFICIENT_NET_RISK_REWARD
+- PYTH-EUR : WICK_SETUP, CHASE_RISK, BASELINE_BUY_CHASE_CONTRADICTION
 
 ## SURVEILLE
 
-- OP-EUR : 0.1245 € ; score 93.12/100 ; SURVEILLE ; STABILITY_HOLD
-- ROSE-EUR : 0.007689 € ; score 93.08/100 ; SURVEILLE ; VERY_SELLER_HEAVY_BOOK
-- EGLD-EUR : 4 € ; score 91.71/100 ; SURVEILLE ; seuil achat non atteint
-- APT-EUR : 0.7376 € ; score 89.97/100 ; SURVEILLE ; seuil achat non atteint
-- CFG-EUR : 0.145893 € ; score 88.00/100 ; SURVEILLE ; seuil achat non atteint
+- ENJ-EUR : 0.027048 € ; score 92.79/100 ; SURVEILLE ; SPREAD_RISK, WICK_SETUP
+- ONDO-EUR : 0.48452 € ; score 92.59/100 ; SURVEILLE ; INSUFFICIENT_NET_RISK_REWARD
+- TNSR-EUR : 0.035866 € ; score 91.69/100 ; SURVEILLE ; seuil achat non atteint
+- LTC-EUR : 62.517 € ; score 89.41/100 ; SURVEILLE ; STABILITY_HOLD
+- CFG-EUR : 0.146774 € ; score 88.72/100 ; SURVEILLE ; WICK_SETUP
 
 ## Contrôle des hausses
 
 | Marché | Prix € | 24 h | Détection | Couche d’échec | Actionnabilité |
 |---|---:|---:|---|---|---|
-| TREAD-EUR | 1.09878 | +51.73 % | DETECTED_EARLY | NONE | INTERPRETATION |
-| QNT-EUR | 138.596 | +50.66 % | DETECTED_EARLY | NONE | ENTRY_TIMING_OR_EXECUTION |
-| GLMR-EUR | 0.008591 | +45.66 % | NOT_DETECTED | SCANNER_SCORING | NOT_APPLICABLE |
-| AUDIO-EUR | 0.018 | +41.12 % | NOT_DETECTED | SCANNER_SCORING | NOT_APPLICABLE |
-| SOON-EUR | 0.24465 | +28.01 % | DETECTED_EARLY | NONE | ENTRY_TIMING_OR_EXECUTION |
-| EDGE-EUR | 0.12587 | +23.98 % | DETECTED_EARLY | NONE | ENTRY_TIMING_OR_EXECUTION |
-| GRASS-EUR | 0.54316 | +19.12 % | DETECTED_EARLY | NONE | ENTRY_TIMING_OR_EXECUTION |
-| AGI-EUR | 0.006245 | +17.81 % | DETECTED_EARLY | NONE | INTERPRETATION |
-| HFT-EUR | 0.0064 | +17.17 % | NOT_DETECTED | SCANNER_COVERAGE | NOT_APPLICABLE |
-| WLD-EUR | 0.4996 | +16.93 % | DETECTED_EARLY | NONE | ENTRY_TIMING_OR_EXECUTION |
+| QNT-EUR | 142.729 | +54.50 % | DETECTED_EARLY | NONE | ENTRY_TIMING_OR_EXECUTION |
+| TREAD-EUR | 1.12302 | +54.00 % | DETECTED_EARLY | NONE | INTERPRETATION |
+| GLMR-EUR | 0.008636 | +46.42 % | NOT_DETECTED | SCANNER_SCORING | NOT_APPLICABLE |
+| AUDIO-EUR | 0.0177 | +38.77 % | NOT_DETECTED | SCANNER_SCORING | NOT_APPLICABLE |
+| SOON-EUR | 0.25501 | +33.43 % | DETECTED_EARLY | NONE | ENTRY_TIMING_OR_EXECUTION |
+| GRASS-EUR | 0.5495 | +21.68 % | DETECTED_EARLY | NONE | ENTRY_TIMING_OR_EXECUTION |
+| W-EUR | 0.01315 | +18.29 % | DETECTED_EARLY | NONE | NONE |
+| WLD-EUR | 0.50717 | +17.92 % | DETECTED_EARLY | NONE | ENTRY_TIMING_OR_EXECUTION |
+| INX-EUR | 0.006142 | +17.84 % | DETECTED_EARLY | NONE | INTERPRETATION |
+| ARX-EUR | 0.23987 | +17.67 % | DETECTED_EARLY | NONE | ENTRY_TIMING_OR_EXECUTION |
 
-Historique : 1618 scans ; 692254 observations ; 1142 épisodes d’achat évaluables.
+Historique : 1619 scans ; 692681 observations ; 1142 épisodes d’achat évaluables.
 V5 optimisée : aucune. Supériorité sur V4 : non démontrée. Probabilités : non calibrées.
 Le cash et le portefeuille du plan sont hypothétiques. Aucun ordre réel n’est envoyé.
