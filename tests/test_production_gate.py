@@ -211,6 +211,25 @@ class ProductionAlertPolicyTests(unittest.TestCase):
         self.assertTrue(select_events(self.payload(), state, self.NOW + 60)[0])
 
 
+    def test_disappearing_candidate_requires_revalidation_not_invalidation(self):
+        events, state = select_events(self.payload(), {}, self.NOW)
+        state = mark_sent(state, events[0], self.NOW)
+        self.assertEqual(state["markets"]["A-EUR"]["alert_lifecycle_state"], "SENT")
+        _, state = select_events(
+            {"generated_at_utc": utc(self.NOW + 60), "watch": []},
+            state,
+            self.NOW + 60,
+        )
+        market = state["markets"]["A-EUR"]
+        self.assertEqual(market["alert_lifecycle_state"], "REVALIDATION_REQUIRED")
+        self.assertEqual(
+            market["alert_lifecycle_reason"],
+            "CANDIDATE_NO_LONGER_IN_LATEST_SCAN",
+        )
+        self.assertEqual(market["presentation_state"], "UNKNOWN")
+        self.assertEqual(market["order_state"], "UNKNOWN")
+
+
     def test_suppressed_episode_is_handled_without_claiming_delivery(self):
         events, state = select_events(self.payload(), {}, self.NOW)
         state = mark_suppressed(
