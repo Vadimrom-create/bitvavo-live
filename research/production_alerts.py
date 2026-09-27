@@ -100,6 +100,20 @@ def select_events(payload: dict[str, Any], state: dict[str, Any], now: float, li
     events = []
     for market in sorted(set(state["markets"]) | set(tracked)):
         previous = state["markets"].setdefault(market, {})
+        # Backfill lifecycle semantics for alert state written before C0. A
+        # historical last_sent_ts proves delivery, but never presentation or
+        # order execution.
+        if (
+            previous.get("alert_lifecycle_state") is None
+            and previous.get("last_sent_ts") is not None
+        ):
+            previous.update(
+                alert_lifecycle_state="SENT",
+                alert_lifecycle_reason="LEGACY_DELIVERY_STATE_IMPORTED",
+                alert_lifecycle_updated_ts=previous.get("last_sent_ts"),
+                presentation_state=previous.get("presentation_state", "UNKNOWN"),
+                order_state=previous.get("order_state", "UNKNOWN"),
+            )
         tracked_row = tracked.get(market)
         if tracked_row is None:
             if previous.get("active"):
