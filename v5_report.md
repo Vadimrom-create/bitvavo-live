@@ -1,8 +1,8 @@
 # Bitvavo — V4 mesurée / infrastructure V5
 
-Scan UTC : 2026-09-27T22:58:50.318547+00:00
+Scan UTC : 2026-09-27T23:16:00.869233+00:00
 État : OK | marchés EUR : 427 | V4 : 383 | données valides : 427
-Récupération : 2026-09-27T22:58:15.400085+00:00 | âge ticker : 157.6 s | durée : 158.5 s
+Récupération : 2026-09-27T23:15:24.429252+00:00 | âge ticker : 161.8 s | durée : 162.6 s
 
 ## ACHÈTE — signal V4 et plan théorique
 
@@ -10,29 +10,33 @@ AUCUN ACHAT VALIDÉ — cette absence ne valide pas les marchés aux données in
 Bougies utilisables : 5 min 427/427 ; 15 min 427/427.
 Les intervalles sans transaction sont représentés explicitement à volume 0 ; aucune transaction n’est inventée.
 
+Achats bruts V4 bloqués avant alerte :
+- AAVE-EUR : INSUFFICIENT_NET_RISK_REWARD
+- GRAM-EUR : INSUFFICIENT_NET_RISK_REWARD
+
 ## SURVEILLE
 
-- EUL-EUR : 1.3197 € ; score 89.12/100 ; SURVEILLE ; SELLER_HEAVY_BOOK, WICK_SETUP
-- GALA-EUR : 0.0020194 € ; score 88.69/100 ; SURVEILLE ; seuil achat non atteint
-- AAVE-EUR : 135.52 € ; score 86.20/100 ; SURVEILLE ; seuil achat non atteint
-- RED-EUR : 0.1492 € ; score 86.10/100 ; SURVEILLE ; LOW_LIQUIDITY, SELLER_HEAVY_BOOK
-- ROSE-EUR : 0.007892 € ; score 85.21/100 ; SURVEILLE ; VERY_SELLER_HEAVY_BOOK
+- ACE-EUR : 0.17081 € ; score 87.52/100 ; SURVEILLE ; seuil achat non atteint
+- FLR-EUR : 0.0062826 € ; score 87.25/100 ; SURVEILLE ; seuil achat non atteint
+- AIXBT-EUR : 0.022714 € ; score 85.93/100 ; SURVEILLE ; SELLER_HEAVY_BOOK
+- SNX-EUR : 0.2377 € ; score 85.77/100 ; SURVEILLE ; SPREAD_RISK, SELLER_HEAVY_BOOK, WICK_SETUP
+- MOVR-EUR : 0.9477 € ; score 85.07/100 ; SURVEILLE ; SELLER_HEAVY_BOOK
 
 ## Contrôle des hausses
 
 | Marché | Prix € | 24 h | Détection | Couche d’échec | Actionnabilité |
 |---|---:|---:|---|---|---|
-| QNT-EUR | 287.817 | +125.76 % | NOT_DETECTED | SCANNER_SCORING | NOT_APPLICABLE |
-| SOON-EUR | 0.29045 | +42.66 % | DETECTED_EARLY | NONE | ENTRY_TIMING_OR_EXECUTION |
-| INX-EUR | 0.006847 | +33.42 % | DETECTED_EARLY | NONE | INTERPRETATION |
-| GRT-EUR | 0.030605 | +25.98 % | DETECTED_EARLY | NONE | ENTRY_TIMING_OR_EXECUTION |
-| TREAD-EUR | 0.9229 | +21.45 % | DETECTED_EARLY | NONE | INTERPRETATION |
-| W-EUR | 0.013629 | +19.73 % | DETECTED_EARLY | NONE | NONE |
-| PUMP-EUR | 0.0044654 | +16.31 % | DETECTED_EARLY | NONE | ENTRY_TIMING_OR_EXECUTION |
-| AGI-EUR | 0.006839 | +15.31 % | NOT_DETECTED | SCANNER_SCORING | NOT_APPLICABLE |
-| AUDIO-EUR | 0.015013 | +14.29 % | DETECTED_EARLY | NONE | ENTRY_TIMING_OR_EXECUTION |
-| IMX-EUR | 0.16467 | +14.27 % | NO_CONFIRMED_SHORT_TERM_EVENT | NOT_APPLICABLE | NOT_APPLICABLE |
+| QNT-EUR | 265.28 | +104.30 % | NOT_DETECTED | SCANNER_SCORING | NOT_APPLICABLE |
+| SOON-EUR | 0.29482 | +43.81 % | DETECTED_EARLY | NONE | ENTRY_TIMING_OR_EXECUTION |
+| INX-EUR | 0.00677 | +31.79 % | DETECTED_EARLY | NONE | INTERPRETATION |
+| GRT-EUR | 0.0309 | +27.19 % | DETECTED_EARLY | NONE | ENTRY_TIMING_OR_EXECUTION |
+| TREAD-EUR | 0.92491 | +22.65 % | DETECTED_EARLY | NONE | INTERPRETATION |
+| W-EUR | 0.013612 | +18.46 % | DETECTED_EARLY | NONE | NONE |
+| PUMP-EUR | 0.004486 | +16.84 % | DETECTED_EARLY | NONE | ENTRY_TIMING_OR_EXECUTION |
+| IMX-EUR | 0.16399 | +13.80 % | DETECTED_EARLY | NONE | ENTRY_TIMING_OR_EXECUTION |
+| AUDIO-EUR | 0.014928 | +13.01 % | DETECTED_EARLY | NONE | ENTRY_TIMING_OR_EXECUTION |
+| AGI-EUR | 0.006839 | +12.91 % | NOT_DETECTED | SCANNER_SCORING | NOT_APPLICABLE |
 
-Historique : 1654 scans ; 707626 observations ; 1193 épisodes d’achat évaluables.
+Historique : 1655 scans ; 708053 observations ; 1202 épisodes d’achat évaluables.
 V5 optimisée : aucune. Supériorité sur V4 : non démontrée. Probabilités : non calibrées.
 Le cash et le portefeuille du plan sont hypothétiques. Aucun ordre réel n’est envoyé.
