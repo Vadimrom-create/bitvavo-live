@@ -125,11 +125,15 @@ class ProductionJournalTests(unittest.TestCase):
         }
         self.assertEqual(due_horizons(entry, 1_000_000.0 + 5 * 3600), [4])
         start = ((int(entry["decision_ts"] * 1000) // 300_000) + 1) * 300_000
+        end_ms = int((entry["decision_ts"] + 4 * 3600) * 1000)
+        last = ((end_ms - 300_000) // 300_000) * 300_000
         bars = [
-            [start, 1.0, 1.06, 0.98, 1.04, 10],
-            [start + 300_000, 1.04, 1.07, 1.01, 1.05, 12],
+            [ts, 1.0, 1.01, 0.99, 1.0, 10]
+            for ts in range(start, last + 1, 300_000)
         ]
-        outcome = evaluate_bars(entry, bars, 4)
+        bars[0] = [start, 1.0, 1.06, 0.98, 1.04, 10]
+        bars[1] = [start + 300_000, 1.04, 1.07, 1.01, 1.05, 12]
+        outcome = evaluate_bars(entry, list(reversed(bars)), 4)
         self.assertEqual(outcome["result"], "MISSED_UPSIDE_GE5")
         self.assertGreaterEqual(outcome["mfe_pct"], 5.0)
 
@@ -143,8 +147,14 @@ class ProductionJournalTests(unittest.TestCase):
             "evaluations": {},
         }
         start = ((int(entry["decision_ts"] * 1000) // 300_000) + 1) * 300_000
-        bars = [[start, 1.0, 1.06, 0.94, 1.0, 10]]
-        outcome = evaluate_bars(entry, bars, 4)
+        end_ms = int((entry["decision_ts"] + 4 * 3600) * 1000)
+        last = ((end_ms - 300_000) // 300_000) * 300_000
+        bars = [
+            [ts, 1.0, 1.01, 0.99, 1.0, 10]
+            for ts in range(start, last + 1, 300_000)
+        ]
+        bars[0] = [start, 1.0, 1.06, 0.94, 1.0, 10]
+        outcome = evaluate_bars(entry, list(reversed(bars)), 4)
         self.assertEqual(outcome["result"], "STOP_SAME_BAR_CONSERVATIVE")
 
 
