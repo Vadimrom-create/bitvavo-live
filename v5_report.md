@@ -1,8 +1,8 @@
 # Bitvavo — V4 mesurée / infrastructure V5
 
-Scan UTC : 2026-09-27T18:18:28.228739+00:00
-État : OK | marchés EUR : 427 | V4 : 382 | données valides : 427
-Récupération : 2026-09-27T18:17:56.590309+00:00 | âge ticker : 149.7 s | durée : 150.5 s
+Scan UTC : 2026-09-27T18:38:36.652237+00:00
+État : OK | marchés EUR : 427 | V4 : 381 | données valides : 427
+Récupération : 2026-09-27T18:38:05.785878+00:00 | âge ticker : 155.4 s | durée : 156.2 s
 
 ## ACHÈTE — signal V4 et plan théorique
 
@@ -12,51 +12,51 @@ Les intervalles sans transaction sont représentés explicitement à volume 0 ; 
 Achats bruts V4 bloqués avant alerte :
 - AAVE-EUR : INSUFFICIENT_NET_RISK_REWARD
 - ADA-EUR : INSUFFICIENT_NET_RISK_REWARD
-- DOT-EUR : WICK_SETUP, INSUFFICIENT_NET_RISK_REWARD
+- ALGO-EUR : INSUFFICIENT_NET_RISK_REWARD
+- BABY-EUR : INSUFFICIENT_NET_RISK_REWARD
+- EIGEN-EUR : WICK_SETUP, INSUFFICIENT_NET_RISK_REWARD
 - FET-EUR : CHASE_RISK, BASELINE_BUY_CHASE_CONTRADICTION
-- FIL-EUR : WICK_SETUP, INSUFFICIENT_NET_RISK_REWARD
-- HBAR-EUR : WICK_SETUP, INSUFFICIENT_NET_RISK_REWARD
 - JUP-EUR : INSUFFICIENT_NET_RISK_REWARD
 - KAS-EUR : WICK_SETUP, INSUFFICIENT_NET_RISK_REWARD
 - LINK-EUR : INSUFFICIENT_NET_RISK_REWARD
+- NEAR-EUR : CHASE_RISK, BASELINE_BUY_CHASE_CONTRADICTION
 - ONDO-EUR : INSUFFICIENT_NET_RISK_REWARD
-- ORCA-EUR : SPREAD_RISK, STABILITY_HOLD, INSUFFICIENT_NET_RISK_REWARD
-- RENDER-EUR : WICK_SETUP, INSUFFICIENT_NET_RISK_REWARD
-- SEI-EUR : WICK_SETUP, CHASE_RISK, BASELINE_BUY_CHASE_CONTRADICTION
+- SEI-EUR : CHASE_RISK, BASELINE_BUY_CHASE_CONTRADICTION
+- SOL-EUR : INSUFFICIENT_NET_RISK_REWARD
+- SYRUP-EUR : WICK_SETUP, INSUFFICIENT_NET_RISK_REWARD
 - TAO-EUR : WICK_SETUP, INSUFFICIENT_NET_RISK_REWARD
-- CC-EUR : 0.1206 € | IGNITION | score 85.82/100 | entrée 7.05/10
-  Entrée 0.12069 € ; stop 0.11587 € ; TP1 0.13033 € ; TP2 0.13515 € ; montant 250.00 € ; risque théorique 11.70 € ; R/R net 1.55.
-  Chase risk : 3.133/10 (diagnostic non calibré). Probabilités +10/+20/+30/+40 % : indisponibles.
-- NEAR-EUR : 4.6717 € | IGNITION | score 83.17/100 | entrée 7.75/10
-  Entrée 4.6737 € ; stop 4.4971 € ; TP1 5.0269 € ; TP2 5.2035 € ; montant 250.00 € ; risque théorique 11.16 € ; R/R net 1.53.
-  Chase risk : 2.835/10 (diagnostic non calibré). Probabilités +10/+20/+30/+40 % : indisponibles.
-- ENA-EUR : 0.24799 € | IGNITION | score 81.62/100 | entrée 7.25/10
-  Entrée 0.2482 € ; stop 0.23878 € ; TP1 0.26704 € ; TP2 0.27646 € ; montant 25.37 € ; risque théorique 1.14 € ; R/R net 1.53.
-  Chase risk : 4.899/10 (diagnostic non calibré). Probabilités +10/+20/+30/+40 % : indisponibles.
+- VET-EUR : SELLER_HEAVY_BOOK, WICK_SETUP, INSUFFICIENT_NET_RISK_REWARD
+- XLM-EUR : WICK_SETUP, INSUFFICIENT_NET_RISK_REWARD
+- ENA-EUR : 0.24901 € | IGNITION | score 93.19/100 | entrée 7.90/10
+  Entrée 0.24807 € ; stop 0.23876 € ; TP1 0.26669 € ; TP2 0.276 € ; montant 250.00 € ; risque théorique 11.10 € ; R/R net 1.53.
+  Chase risk : 5.035/10 (diagnostic non calibré). Probabilités +10/+20/+30/+40 % : indisponibles.
+- CC-EUR : 0.12149 € | IGNITION | score 84.60/100 | entrée 6.80/10
+  Entrée 0.12156 € ; stop 0.11677 € ; TP1 0.13114 € ; TP2 0.13593 € ; montant 250.00 € ; risque théorique 11.57 € ; R/R net 1.55.
+  Chase risk : 4.256/10 (diagnostic non calibré). Probabilités +10/+20/+30/+40 % : indisponibles.
 
 ## SURVEILLE
 
-- APT-EUR : 0.75 € ; score 92.75/100 ; SURVEILLE ; seuil achat non atteint
-- FIDA-EUR : 0.02 € ; score 90.89/100 ; SURVEILLE ; SPREAD_RISK, SELLER_HEAVY_BOOK
-- ONDO-EUR : 0.48703 € ; score 90.07/100 ; SURVEILLE ; INSUFFICIENT_NET_RISK_REWARD
-- PEAQ-EUR : 0.038034 € ; score 89.87/100 ; SURVEILLE ; STABILITY_HOLD
-- DOT-EUR : 1.1046 € ; score 88.84/100 ; SURVEILLE ; WICK_SETUP, INSUFFICIENT_NET_RISK_REWARD
+- KAS-EUR : 0.04283 € ; score 94.57/100 ; SURVEILLE ; WICK_SETUP, INSUFFICIENT_NET_RISK_REWARD
+- TAO-EUR : 287.21 € ; score 93.73/100 ; SURVEILLE ; WICK_SETUP, INSUFFICIENT_NET_RISK_REWARD
+- ZK-EUR : 0.0118 € ; score 93.57/100 ; SURVEILLE ; VERY_SELLER_HEAVY_BOOK
+- CRO-EUR : 0.059278 € ; score 92.79/100 ; SURVEILLE ; SPREAD_RISK
+- ALGO-EUR : 0.104901 € ; score 92.55/100 ; SURVEILLE ; INSUFFICIENT_NET_RISK_REWARD
 
 ## Contrôle des hausses
 
 | Marché | Prix € | 24 h | Détection | Couche d’échec | Actionnabilité |
 |---|---:|---:|---|---|---|
-| SOON-EUR | 0.28928 | +50.21 % | DETECTED_EARLY | NONE | ENTRY_TIMING_OR_EXECUTION |
-| QNT-EUR | 162.61 | +49.17 % | NOT_DETECTED | SCANNER_SCORING | NOT_APPLICABLE |
-| TREAD-EUR | 1.03999 | +40.42 % | DETECTED_EARLY | NONE | INTERPRETATION |
-| AUDIO-EUR | 0.016039 | +26.17 % | NOT_DETECTED | SCANNER_SCORING | NOT_APPLICABLE |
-| INX-EUR | 0.006521 | +25.16 % | DETECTED_EARLY | NONE | INTERPRETATION |
-| ARX-EUR | 0.24813 | +21.81 % | DETECTED_EARLY | NONE | ENTRY_TIMING_OR_EXECUTION |
-| AGI-EUR | 0.007102 | +18.98 % | DETECTED_EARLY | NONE | INTERPRETATION |
-| GLMR-EUR | 0.007026 | +17.30 % | NOT_DETECTED | SCANNER_SCORING | NOT_APPLICABLE |
-| W-EUR | 0.013365 | +16.24 % | DETECTED_EARLY | NONE | NONE |
-| PUMP-EUR | 0.004462 | +13.97 % | DETECTED_EARLY | NONE | ENTRY_TIMING_OR_EXECUTION |
+| QNT-EUR | 164.547 | +55.38 % | NOT_DETECTED | SCANNER_SCORING | NOT_APPLICABLE |
+| SOON-EUR | 0.28564 | +47.16 % | DETECTED_EARLY | NONE | ENTRY_TIMING_OR_EXECUTION |
+| TREAD-EUR | 1.02109 | +37.86 % | DETECTED_EARLY | NONE | INTERPRETATION |
+| AUDIO-EUR | 0.016211 | +27.53 % | NOT_DETECTED | SCANNER_SCORING | NOT_APPLICABLE |
+| INX-EUR | 0.006537 | +26.42 % | DETECTED_EARLY | NONE | INTERPRETATION |
+| ARX-EUR | 0.24412 | +19.84 % | DETECTED_EARLY | NONE | ENTRY_TIMING_OR_EXECUTION |
+| GLMR-EUR | 0.00712 | +18.73 % | NOT_DETECTED | SCANNER_SCORING | NOT_APPLICABLE |
+| W-EUR | 0.013498 | +17.20 % | DETECTED_EARLY | NONE | NONE |
+| AGI-EUR | 0.006984 | +16.63 % | DETECTED_EARLY | NONE | INTERPRETATION |
+| AZTEC-EUR | 0.017499 | +15.23 % | DETECTED_EARLY | NONE | INTERPRETATION |
 
-Historique : 1636 scans ; 699940 observations ; 1164 épisodes d’achat évaluables.
+Historique : 1637 scans ; 700367 observations ; 1164 épisodes d’achat évaluables.
 V5 optimisée : aucune. Supériorité sur V4 : non démontrée. Probabilités : non calibrées.
 Le cash et le portefeuille du plan sont hypothétiques. Aucun ordre réel n’est envoyé.
