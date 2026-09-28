@@ -15,6 +15,26 @@ BUCKET_LATENT = "MEILLEUR_LATENT_ACCELERATOR"
 BUCKET_REENTRY = "MEILLEUR_PULLBACK_REENTRY"
 BUCKETS = (BUCKET_IMMEDIATE, BUCKET_LIMIT, BUCKET_LATENT, BUCKET_REENTRY)
 
+POSITION_MANAGEMENT_POLICY = {
+    "policy": "STAGED_10_20_RUNNER_V1",
+    "actions": [
+        "CONSERVER",
+        "PRENDS PARTIELLEMENT TES PROFITS",
+        "RELÈVE LE STOP",
+        "SORS ET RECYCLE LE CAPITAL",
+    ],
+    "first_partial_gain_pct": 10.0,
+    "first_partial_fraction": 0.35,
+    "second_partial_gain_pct": 20.0,
+    "second_partial_fraction": 0.35,
+    "runner_fraction": 0.30,
+    "opportunity_cost_review_hours": 72.0,
+    "recycle_only_before_first_partial": True,
+    "recycle_max_gain_pct": 2.0,
+    "recycle_requires_weak_closed_candle_momentum": True,
+    "static_tight_stop_after_small_gain": False,
+}
+
 # Only hard execution/data failures can veto a candidate outright. Timing and
 # chase diagnostics remain inputs to the action/bucket instead of automatic
 # rejection rules.
@@ -192,7 +212,9 @@ def decide(observations: list[dict[str, Any]], top_n: int = 3) -> dict[str, Any]
             "production_orders_enabled": False,
             "top_actionable_is_preview_only": True,
             "immediate_actionable_is_exhaustive": True,
+            "position_management_is_downstream": True,
         },
+        "position_management_policy": POSITION_MANAGEMENT_POLICY,
         "thresholds": {
             "latent_opportunity_min": LATENT_OPPORTUNITY_MIN,
             "latent_trend_min": LATENT_TREND_MIN,
