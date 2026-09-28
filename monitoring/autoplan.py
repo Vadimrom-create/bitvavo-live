@@ -191,6 +191,10 @@ def automatic_plan(
         held,
         finite(inventory.get("peak_quantity"), held) or held,
     )
+    # Exit-management policy is intentionally separate from the frozen signal
+    # thresholds. The structural Solaire targets remain recorded as references,
+    # while realized-profit management uses staged percentage thresholds:
+    # 35% near +10%, 35% near +20%, then a ~30% runner.
     return {
         "position_id": position_id,
         "verified": True,
@@ -199,12 +203,18 @@ def automatic_plan(
         "initial_amount": initial,
         "cost_basis_eur": avg_cost,
         "stop_eur": stop,
-        "tp1_eur": tp1,
-        "tp2_eur": tp2,
-        "tp1_fraction": 0.5,
+        "tp1_eur": avg_cost * 1.10,
+        "tp2_eur": avg_cost * 1.20,
+        "structural_tp1_eur": tp1,
+        "structural_tp2_eur": tp2,
+        "tp1_fraction": 0.35,
+        "tp2_fraction": 0.35,
         "tp1_done": bool(inventory.get("sold_in_cycle")),
         "fee_rate": 0.0025,
         "slippage_rate": 0.001,
         "cycle_started_ts": cycle,
         "latest_buy_ts": finite(inventory.get("latest_buy_ts")),
+        "max_hold_hours": 72.0,
+        "recycle_max_gain_fraction": 0.02,
+        "exit_policy": "STAGED_10_20_RUNNER_V1",
     }
