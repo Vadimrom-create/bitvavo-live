@@ -1,8 +1,8 @@
 # Bitvavo — V4 mesurée / infrastructure V5
 
-Scan UTC : 2026-09-28T12:26:52.547421+00:00
+Scan UTC : 2026-09-28T12:52:58.846770+00:00
 État : OK | marchés EUR : 427 | V4 : 399 | données valides : 427
-Récupération : 2026-09-28T12:26:21.286567+00:00 | âge ticker : 146.2 s | durée : 149.1 s
+Récupération : 2026-09-28T12:52:01.729558+00:00 | âge ticker : 181.1 s | durée : 182.2 s
 
 ## ACHÈTE — signal V4 et plan théorique
 
@@ -10,39 +10,46 @@ Bougies utilisables : 5 min 427/427 ; 15 min 427/427.
 Les intervalles sans transaction sont représentés explicitement à volume 0 ; aucune transaction n’est inventée.
 
 Achats bruts V4 bloqués avant alerte :
-- BCH-EUR : INSUFFICIENT_NET_RISK_REWARD
+- ADA-EUR : INSUFFICIENT_NET_RISK_REWARD
+- BCH-EUR : STABILITY_HOLD, INSUFFICIENT_NET_RISK_REWARD
+- FET-EUR : INSUFFICIENT_NET_RISK_REWARD
 - KAS-EUR : INSUFFICIENT_NET_RISK_REWARD
-- SEI-EUR : CHASE_RISK, BASELINE_BUY_CHASE_CONTRADICTION
-- ADA-EUR : 0.22211 € | IGNITION | score 89.02/100 | entrée 7.35/10
-  Entrée 0.22202 € ; stop 0.21339 € ; TP1 0.23928 € ; TP2 0.24791 € ; montant 250.00 € ; risque théorique 11.43 € ; R/R net 1.54.
-  Chase risk : 3.216/10 (diagnostic non calibré). Probabilités +10/+20/+30/+40 % : indisponibles.
-- POL-EUR : 0.104177 € | IGNITION | score 83.41/100 | entrée 6.90/10
-  Entrée 0.103892 € ; stop 0.09914 € ; TP1 0.113395 € ; TP2 0.118147 € ; montant 228.22 € ; risque théorique 12.00 € ; R/R net 1.60.
-  Chase risk : 3.371/10 (diagnostic non calibré). Probabilités +10/+20/+30/+40 % : indisponibles.
+- SEI-EUR : STABILITY_HOLD, INSUFFICIENT_NET_RISK_REWARD
+- W-EUR : INSUFFICIENT_NET_RISK_REWARD
+- XDC-EUR : PORTFOLIO_LIMIT
+- ONDO-EUR : 0.4675 € | IGNITION | score 91.27/100 | entrée 7.55/10
+  Entrée 0.46749 € ; stop 0.4505 € ; TP1 0.50147 € ; TP2 0.51846 € ; montant 250.00 € ; risque théorique 10.80 € ; R/R net 1.51.
+  Chase risk : 3.564/10 (diagnostic non calibré). Probabilités +10/+20/+30/+40 % : indisponibles.
+- LINK-EUR : 12.8524 € | IGNITION | score 87.76/100 | entrée 6.85/10
+  Entrée 12.8455 € ; stop 12.1173 € ; TP1 14.3018 € ; TP2 15.03 € ; montant 189.00 € ; risque théorique 12.00 € ; R/R net 1.67.
+  Chase risk : 7.305/10 (diagnostic non calibré). Probabilités +10/+20/+30/+40 % : indisponibles.
+- POL-EUR : 0.104032 € | IGNITION | score 84.60/100 | entrée 6.65/10
+  Entrée 0.10385 € ; stop 0.099454 € ; TP1 0.112641 € ; TP2 0.117037 € ; montant 24.32 € ; risque théorique 1.20 € ; R/R net 1.57.
+  Chase risk : 7.279/10 (diagnostic non calibré). Probabilités +10/+20/+30/+40 % : indisponibles.
 
 ## SURVEILLE
 
-- EIGEN-EUR : 0.23007 € ; score 89.04/100 ; SURVEILLE ; WICK_SETUP
-- JUP-EUR : 0.305 € ; score 88.85/100 ; SURVEILLE ; WICK_SETUP
-- WOO-EUR : 0.011802 € ; score 88.61/100 ; SURVEILLE ; SELLER_HEAVY_BOOK
-- BONK-EUR : 3.1034e-06 € ; score 88.44/100 ; SURVEILLE ; seuil achat non atteint
-- ZK-EUR : 0.011105 € ; score 88.42/100 ; SURVEILLE ; VERY_SELLER_HEAVY_BOOK
+- WLD-EUR : 0.4544 € ; score 93.99/100 ; SURVEILLE ; WICK_SETUP
+- W-EUR : 0.012722 € ; score 93.02/100 ; SURVEILLE ; INSUFFICIENT_NET_RISK_REWARD
+- VIRTUAL-EUR : 0.72919 € ; score 90.83/100 ; SURVEILLE ; WICK_SETUP
+- FET-EUR : 0.2059 € ; score 90.60/100 ; SURVEILLE ; INSUFFICIENT_NET_RISK_REWARD
+- ZK-EUR : 0.011114 € ; score 90.26/100 ; SURVEILLE ; VERY_SELLER_HEAVY_BOOK
 
 ## Contrôle des hausses
 
 | Marché | Prix € | 24 h | Détection | Couche d’échec | Actionnabilité |
 |---|---:|---:|---|---|---|
-| QNT-EUR | 208.695 | +44.86 % | DETECTED_EARLY | NONE | INTERPRETATION |
-| HBAR-EUR | 0.10879 | +30.08 % | DETECTED_EARLY | NONE | NONE |
-| GRT-EUR | 0.028991 | +16.83 % | DETECTED_EARLY | NONE | ENTRY_TIMING_OR_EXECUTION |
-| NMR-EUR | 9.7223 | +14.89 % | DETECTED_EARLY | NONE | ENTRY_TIMING_OR_EXECUTION |
-| PUMP-EUR | 0.0044757 | +13.29 % | DETECTED_EARLY | NONE | ENTRY_TIMING_OR_EXECUTION |
-| ALGO-EUR | 0.116575 | +12.46 % | DETECTED_EARLY | NONE | NONE |
-| MON-EUR | 0.025862 | +10.63 % | DETECTED_EARLY | NONE | INTERPRETATION |
-| MIOTA-EUR | 0.048471 | +9.55 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
-| IKA-EUR | 0.00181 | +8.98 % | DETECTED_TOO_LATE | NONE | INTERPRETATION |
-| SEI-EUR | 0.071324 | +8.96 % | DETECTED_EARLY | NONE | ENTRY_TIMING_OR_EXECUTION |
+| QNT-EUR | 202.961 | +44.97 % | DETECTED_TOO_LATE | NONE | ENTRY_TIMING_OR_EXECUTION |
+| HBAR-EUR | 0.106271 | +26.53 % | DETECTED_EARLY | NONE | NONE |
+| PUMP-EUR | 0.0046557 | +16.66 % | DETECTED_EARLY | NONE | ENTRY_TIMING_OR_EXECUTION |
+| GRT-EUR | 0.028575 | +16.56 % | DETECTED_EARLY | NONE | ENTRY_TIMING_OR_EXECUTION |
+| NMR-EUR | 9.489 | +12.13 % | DETECTED_EARLY | NONE | ENTRY_TIMING_OR_EXECUTION |
+| TREAD-EUR | 1.11651 | +10.74 % | DETECTED_EARLY | NONE | INTERPRETATION |
+| IKA-EUR | 0.0018212 | +10.59 % | DETECTED_TOO_LATE | NONE | INTERPRETATION |
+| ALGO-EUR | 0.114898 | +10.56 % | DETECTED_EARLY | NONE | NONE |
+| AZTEC-EUR | 0.016409 | +10.05 % | DETECTED_EARLY | NONE | INTERPRETATION |
+| MON-EUR | 0.02556 | +10.03 % | DETECTED_EARLY | NONE | INTERPRETATION |
 
-Historique : 1694 scans ; 724706 observations ; 1245 épisodes d’achat évaluables.
+Historique : 1695 scans ; 725133 observations ; 1245 épisodes d’achat évaluables.
 V5 optimisée : aucune. Supériorité sur V4 : non démontrée. Probabilités : non calibrées.
 Le cash et le portefeuille du plan sont hypothétiques. Aucun ordre réel n’est envoyé.
