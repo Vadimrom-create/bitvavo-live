@@ -1,8 +1,8 @@
 # Bitvavo — V4 mesurée / infrastructure V5
 
-Scan UTC : 2026-09-28T01:30:16.881557+00:00
-État : OK | marchés EUR : 427 | V4 : 387 | données valides : 427
-Récupération : 2026-09-28T01:29:44.915062+00:00 | âge ticker : 147.9 s | durée : 148.7 s
+Scan UTC : 2026-09-28T01:48:08.055800+00:00
+État : OK | marchés EUR : 427 | V4 : 388 | données valides : 427
+Récupération : 2026-09-28T01:47:10.408346+00:00 | âge ticker : 181.0 s | durée : 181.8 s
 
 ## ACHÈTE — signal V4 et plan théorique
 
@@ -11,39 +11,35 @@ Les intervalles sans transaction sont représentés explicitement à volume 0 ; 
 
 Achats bruts V4 bloqués avant alerte :
 - ALGO-EUR : INSUFFICIENT_NET_RISK_REWARD
-- EIGEN-EUR : STABILITY_HOLD, INSUFFICIENT_NET_RISK_REWARD
+- CC-EUR : STABILITY_HOLD, INSUFFICIENT_NET_RISK_REWARD
 - HBAR-EUR : INSUFFICIENT_NET_RISK_REWARD
-- LINK-EUR : WICK_SETUP, STABILITY_HOLD, INSUFFICIENT_NET_RISK_REWARD
-- PYTH-EUR : STABILITY_HOLD, INSUFFICIENT_NET_RISK_REWARD
-- RENDER-EUR : STABILITY_HOLD, INSUFFICIENT_NET_RISK_REWARD
-- TRX-EUR : STABILITY_HOLD, INSUFFICIENT_NET_RISK_REWARD
-- CC-EUR : 0.12305 € | IGNITION | score 90.92/100 | entrée 6.80/10
-  Entrée 0.12314 € ; stop 0.1186 € ; TP1 0.13222 € ; TP2 0.13676 € ; montant 250.00 € ; risque théorique 10.93 € ; R/R net 1.52.
-  Chase risk : 2.955/10 (diagnostic non calibré). Probabilités +10/+20/+30/+40 % : indisponibles.
+- ONDO-EUR : 0.50329 € | IGNITION | score 81.72/100 | entrée 7.00/10
+  Entrée 0.50325 € ; stop 0.48375 € ; TP1 0.54224 € ; TP2 0.56174 € ; montant 250.00 € ; risque théorique 11.40 € ; R/R net 1.54.
+  Chase risk : 2.485/10 (diagnostic non calibré). Probabilités +10/+20/+30/+40 % : indisponibles.
 
 ## SURVEILLE
 
-- EGLD-EUR : 4.0931 € ; score 92.32/100 ; SURVEILLE ; SELLER_HEAVY_BOOK
-- BABY-EUR : 0.012237 € ; score 92.26/100 ; SURVEILLE ; WICK_SETUP, STABILITY_HOLD
-- ELSA-EUR : 0.055872 € ; score 91.92/100 ; SURVEILLE ; SPREAD_RISK
-- HBAR-EUR : 0.085459 € ; score 89.58/100 ; SURVEILLE ; INSUFFICIENT_NET_RISK_REWARD
-- BONK-EUR : 3.2808e-06 € ; score 87.38/100 ; SURVEILLE ; SELLER_HEAVY_BOOK
+- HBAR-EUR : 0.085251 € ; score 88.82/100 ; SURVEILLE ; INSUFFICIENT_NET_RISK_REWARD
+- ALGO-EUR : 0.105612 € ; score 87.82/100 ; SURVEILLE ; INSUFFICIENT_NET_RISK_REWARD
+- CC-EUR : 0.12342 € ; score 86.02/100 ; SURVEILLE ; STABILITY_HOLD, INSUFFICIENT_NET_RISK_REWARD
+- AVNT-EUR : 0.11322 € ; score 85.69/100 ; SURVEILLE ; WICK_SETUP
+- EGLD-EUR : 4.0931 € ; score 84.82/100 ; SURVEILLE ; seuil achat non atteint
 
 ## Contrôle des hausses
 
 | Marché | Prix € | 24 h | Détection | Couche d’échec | Actionnabilité |
 |---|---:|---:|---|---|---|
-| QNT-EUR | 230.27 | +40.65 % | DETECTED_EARLY | NONE | INTERPRETATION |
-| SOON-EUR | 0.28015 | +32.64 % | DETECTED_EARLY | NONE | INTERPRETATION |
-| INX-EUR | 0.006591 | +27.66 % | DETECTED_EARLY | NONE | INTERPRETATION |
-| GRT-EUR | 0.030554 | +27.24 % | DETECTED_EARLY | NONE | ENTRY_TIMING_OR_EXECUTION |
-| TREAD-EUR | 1.035 | +25.47 % | DETECTED_EARLY | NONE | INTERPRETATION |
-| SEI-EUR | 0.074758 | +18.92 % | DETECTED_EARLY | NONE | ENTRY_TIMING_OR_EXECUTION |
-| IRYS-EUR | 0.017214 | +17.77 % | NOT_DETECTED | SCANNER_COVERAGE | NOT_APPLICABLE |
-| PUMP-EUR | 0.0045337 | +17.76 % | DETECTED_EARLY | NONE | ENTRY_TIMING_OR_EXECUTION |
-| IMX-EUR | 0.16704 | +15.39 % | DETECTED_EARLY | NONE | ENTRY_TIMING_OR_EXECUTION |
-| TRUST-EUR | 0.06111 | +14.12 % | NOT_DETECTED | SCANNER_SCORING | NOT_APPLICABLE |
+| QNT-EUR | 232.072 | +48.63 % | DETECTED_EARLY | NONE | INTERPRETATION |
+| SOON-EUR | 0.27393 | +32.37 % | DETECTED_EARLY | NONE | INTERPRETATION |
+| GRT-EUR | 0.030643 | +27.62 % | DETECTED_EARLY | NONE | ENTRY_TIMING_OR_EXECUTION |
+| TREAD-EUR | 1.04919 | +26.57 % | DETECTED_EARLY | NONE | INTERPRETATION |
+| IRYS-EUR | 0.017438 | +19.30 % | NOT_DETECTED | SCANNER_COVERAGE | NOT_APPLICABLE |
+| INX-EUR | 0.006166 | +18.21 % | DETECTED_EARLY | NONE | INTERPRETATION |
+| SEI-EUR | 0.074563 | +17.98 % | DETECTED_EARLY | NONE | ENTRY_TIMING_OR_EXECUTION |
+| PUMP-EUR | 0.0045211 | +17.03 % | DETECTED_EARLY | NONE | ENTRY_TIMING_OR_EXECUTION |
+| W-EUR | 0.013308 | +13.84 % | DETECTED_EARLY | NONE | NONE |
+| TRUST-EUR | 0.060799 | +13.54 % | NOT_DETECTED | SCANNER_SCORING | NOT_APPLICABLE |
 
-Historique : 1662 scans ; 711042 observations ; 1213 épisodes d’achat évaluables.
+Historique : 1663 scans ; 711469 observations ; 1215 épisodes d’achat évaluables.
 V5 optimisée : aucune. Supériorité sur V4 : non démontrée. Probabilités : non calibrées.
 Le cash et le portefeuille du plan sont hypothétiques. Aucun ordre réel n’est envoyé.
