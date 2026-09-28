@@ -91,11 +91,10 @@ class Positions(unittest.TestCase):
         self.assertIsNone(event)
         self.assertEqual(reason, 'TRAIL_DEFERRED_UNTIL_PARTIAL')
 
-        self.plan['tp1_done'] = True
-        event, _ = self.assess()
+        event, _ = self.assess(balance={**self.balance, 'amount': 6.5})
         self.assertEqual((event['action'], event['new_stop_eur']), (TRAIL, 11.5))
         self.plan['stop_eur'] = 12
-        self.assertIsNone(self.assess()[0])
+        self.assertIsNone(self.assess(balance={**self.balance, 'amount': 6.5})[0])
 
     def test_stale_closed_structure_blocks_trailing(self):
         self.features.update(support_eur=12, last_closed_start_ms=int(self.now - 3600) * 1000)
