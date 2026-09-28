@@ -1,14 +1,13 @@
 # Audit qualité des données Bitvavo
 
-Scan : 2026-09-28T19:03:47.817472+00:00 (20260928T190147Z-fa3c66bc)
-Univers : 428 | strategy-grade : 427 | rejetés : 1
-5m valides : 428 | 15m valides : 427 | deux intervalles valides : 427
+Scan : 2026-09-28T19:23:31.026601+00:00 (20260928T192155Z-f6644fdb)
+Univers : 428 | strategy-grade : 428 | rejetés : 0
+5m valides : 428 | 15m valides : 428 | deux intervalles valides : 428
 
 ## Causes de rejet globales
 
 | Cause | Marchés |
 |---|---:|
-| INVALID_15M | 1 |
 
 ## Causes intrinsèques 5m
 
@@ -19,13 +18,11 @@ Univers : 428 | strategy-grade : 427 | rejetés : 1
 
 | Cause | Marchés |
 |---|---:|
-| INSUFFICIENT_CLOSED_CANDLES | 1 |
 
 ## Marchés rejetés les plus liquides
 
 | Marché | Vol. 24h € | 24h | Causes | 5m bars/gaps manquants | 15m bars/gaps manquants |
 |---|---:|---:|---|---:|---:|
-| XDP-EUR | 2715190 | -31.67% | INVALID_15M | 71/0 | 24/0 |
 
 Lecture : bars/gaps manquants = nombre de bougies closes reçues / nombre d’intervalles sans bougie à l’intérieur des 25 dernières bougies observées.
 Ce fichier est purement diagnostique : aucune règle de trading n’est modifiée.
