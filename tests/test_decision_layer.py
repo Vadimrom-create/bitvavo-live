@@ -98,6 +98,12 @@ class DecisionLayerTests(unittest.TestCase):
             {BUCKET_IMMEDIATE, BUCKET_LIMIT, BUCKET_LATENT, BUCKET_REENTRY},
         )
         self.assertFalse(result["principles"]["production_orders_enabled"])
+        policy = result["position_management_policy"]
+        self.assertEqual(policy["policy"], "STAGED_10_20_RUNNER_V1")
+        self.assertEqual(policy["first_partial_fraction"], .35)
+        self.assertEqual(policy["second_partial_fraction"], .35)
+        self.assertEqual(policy["runner_fraction"], .30)
+        self.assertTrue(policy["recycle_requires_weak_closed_candle_momentum"])
 
     def test_immediate_actionable_is_exhaustive_even_when_top_preview_is_truncated(self):
         rows = [

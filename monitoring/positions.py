@@ -13,11 +13,13 @@ from decimal import Decimal, ROUND_DOWN
 from research.common import finite, freshness
 
 SELL = 'VENDS'
+RECYCLE = 'SORS ET RECYCLE LE CAPITAL'
 PARTIAL = 'PRENDS PARTIELLEMENT TES PROFITS'
 TRAIL = 'RELÈVE LE STOP'
+HOLD = 'CONSERVER'
 PLAN = 'PLAN REQUIS'
 BUY = 'ACHÈTE'
-PRIORITY = {SELL: 0, PARTIAL: 1, TRAIL: 2, PLAN: 3, BUY: 4}
+PRIORITY = {SELL: 0, RECYCLE: 1, PARTIAL: 2, TRAIL: 3, PLAN: 4, BUY: 5}
 
 
 def rounded(value, step):
@@ -70,24 +72,90 @@ def management_event(balance, plan, quote, features, meta, orders, now):
         return None, 'VERIFIED_COST_BASIS_MISSING'
     fee = finite(plan.get('fee_rate', .0025))
     slip = finite(plan.get('slippage_rate', .001))
-    fraction = finite(plan.get('tp1_fraction', .5))
-    if fee is None or slip is None or not 0 <= fee <= .05 or not 0 <= slip <= .05 or fraction is None or not 0 < fraction < 1:
+    fraction1 = finite(plan.get('tp1_fraction', .35))
+    fraction2 = finite(plan.get('tp2_fraction', .35))
+    if (
+        fee is None or slip is None or not 0 <= fee <= .05 or not 0 <= slip <= .05
+        or fraction1 is None or fraction2 is None
+        or not 0 < fraction1 < 1 or not 0 <= fraction2 < 1
+        or fraction1 + fraction2 >= 1
+    ):
         return None, 'INVALID_MANAGEMENT_CONFIG'
     friction = fee + slip
     tp1 = finite(plan.get('tp1_eur'))
-    realized = plan.get('tp1_done') is True or total <= initial * (1 - fraction) + precision
-    if tp1 and bid >= tp1 and not realized and bid * (1 - friction) > cost * (1 + friction):
-        quantity = rounded(min(total, initial * fraction), precision)
+    tp2 = finite(plan.get('tp2_eur'))
+    target_remaining_after_tp1 = initial * (1 - fraction1)
+    target_remaining_after_tp2 = initial * (1 - fraction1 - fraction2)
+    realized1 = total <= target_remaining_after_tp1 + precision
+    realized2 = total <= target_remaining_after_tp2 + precision
+
+    # Opportunity-cost exit: never a blind timer. It only activates before the
+    # first profit take, after a full holding window, when the position is still
+    # near/below cost AND fresh closed-candle momentum has weakened.
+    cycle_started = finite(plan.get('cycle_started_ts'))
+    max_hold_hours = finite(plan.get('max_hold_hours'), 72.0)
+    recycle_max_gain = finite(plan.get('recycle_max_gain_fraction'), .02)
+    structure_fresh = (
+        features.get('valid')
+        and freshness(
+            now=now,
+            retrieved=quote['retrieved_at_utc'],
+            candle_start_ms=features.get('last_closed_start_ms'),
+            interval='15m',
+        )['ok']
+    )
+    age_hours = (now - cycle_started) / 3600 if cycle_started is not None and cycle_started > 0 else None
+    weak_momentum = (
+        structure_fresh
+        and finite(features.get('return_4bar_pct'), 0) <= 0
+        and finite(features.get('momentum_acceleration_pp'), 0) <= 0
+        and finite(features.get('extension_ma20_pct'), 0) <= 0
+    )
+    if (
+        not realized1
+        and age_hours is not None
+        and max_hold_hours is not None
+        and max_hold_hours > 0
+        and age_hours >= max_hold_hours
+        and recycle_max_gain is not None
+        and bid / cost - 1 <= recycle_max_gain
+        and weak_momentum
+    ):
+        return {
+            **event,
+            'action': RECYCLE,
+            'amount': total,
+            'age_hours': round(age_hours, 2),
+            'return_vs_pru_pct': round((bid / cost - 1) * 100, 3),
+            'reason': (
+                'Position ancienne sans prise de profit, encore proche/sous le PRU et momentum 15 min affaibli ; '
+                'sortie proposée pour recycler le capital vers une meilleure opportunité.'
+            ),
+            'review_open_orders_first': (not orders_known) or bool(active),
+            'trigger_key': 'opportunity_cost_recycle',
+        }, 'ACTION'
+
+    if tp1 and bid >= tp1 and not realized1 and bid * (1 - friction) > cost * (1 + friction):
+        quantity = rounded(min(total, max(0.0, round(total - target_remaining_after_tp1, 12))), precision)
         pending_tp = any(o.get('orderType') == 'limit' and finite(o.get('price'), float('inf')) <= bid
                          and finite(o.get('amountRemaining'), 0) >= quantity - precision for o in active)
         if pending_tp:
             return None, 'EQUIVALENT_PROFIT_ORDER_ALREADY_OPEN'
         if quantity * bid >= minimum and quantity >= finite(meta.get('minOrderInBaseAsset'), 0) and (ask / bid - 1) <= .01:
             return {**event, 'action': PARTIAL, 'amount': quantity, 'target_eur': tp1,
-                    'reason': 'TP1 vérifié atteint, gain estimé positif après frais et glissement.',
+                    'reason': 'Premier seuil de sécurisation atteint ; prends environ 35 % des profits et conserve le reste.',
                     'review_open_orders_first': (not orders_known) or bool(active), 'trigger_key': 'tp1'}, 'ACTION'
-    if not features.get('valid') or not freshness(now=now, retrieved=quote['retrieved_at_utc'],
-            candle_start_ms=features.get('last_closed_start_ms'), interval='15m')['ok']:
+    if tp2 and bid >= tp2 and realized1 and not realized2 and bid * (1 - friction) > cost * (1 + friction):
+        quantity = rounded(min(total, max(0.0, round(total - target_remaining_after_tp2, 12))), precision)
+        pending_tp = any(o.get('orderType') == 'limit' and finite(o.get('price'), float('inf')) <= bid
+                         and finite(o.get('amountRemaining'), 0) >= quantity - precision for o in active)
+        if pending_tp:
+            return None, 'EQUIVALENT_PROFIT_ORDER_ALREADY_OPEN'
+        if quantity * bid >= minimum and quantity >= finite(meta.get('minOrderInBaseAsset'), 0) and (ask / bid - 1) <= .01:
+            return {**event, 'action': PARTIAL, 'amount': quantity, 'target_eur': tp2,
+                    'reason': 'Deuxième seuil de sécurisation atteint ; prends encore environ 35 % et garde le runner.',
+                    'review_open_orders_first': (not orders_known) or bool(active), 'trigger_key': 'tp2'}, 'ACTION'
+    if not structure_fresh:
         return None, 'TRAILING_STRUCTURE_UNAVAILABLE'
     atr, support = finite(features.get('atr14_eur')), finite(features.get('support_eur'))
     if atr and atr > 0 and support and features.get('last_closed_start_ms') is not None:
@@ -96,7 +164,7 @@ def management_event(balance, plan, quote, features, meta, orders, now):
             candidate - stop >= max(.5 * atr, 2 * tick)
             and candidate > cost * (1 + friction) / (1 - friction)
         )
-        if trail_is_material and not realized:
+        if trail_is_material and not realized1:
             # Do not convert an early unrealized gain into a tight stop. The
             # initial structural invalidation remains in force until a partial
             # profit has actually been observed. This deliberately trades some

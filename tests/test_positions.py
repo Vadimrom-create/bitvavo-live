@@ -11,7 +11,7 @@ from cryptography.fernet import Fernet, InvalidToken
 
 from monitoring.account import ReadOnlyAccount
 from monitoring.autoplan import automatic_plan, reconstruct_positions
-from monitoring.positions import BUY, PARTIAL, PLAN, SELL, TRAIL, management_event, mark_delivered, select_actions
+from monitoring.positions import BUY, PARTIAL, PLAN, RECYCLE, SELL, TRAIL, management_event, mark_delivered, select_actions
 from monitoring.state import load_state, save_state
 from research.common import utc
 from research.history import connect, ingest, new_candles
@@ -55,8 +55,29 @@ class Positions(unittest.TestCase):
     def test_partial_target_and_completed_reduction(self):
         self.quote.update(bid=15.1, ask=15.11)
         event, _ = self.assess()
-        self.assertEqual((event['action'], event['amount']), (PARTIAL, 5))
-        self.assertIsNone(self.assess(balance={**self.balance, 'amount': 5})[0])
+        self.assertEqual((event['action'], event['amount']), (PARTIAL, 3.5))
+        self.assertIsNone(self.assess(balance={**self.balance, 'amount': 6.5})[0])
+
+    def test_second_partial_keeps_runner(self):
+        plan = {**self.plan, 'tp1_eur': 11.0, 'tp2_eur': 12.0,
+                'tp1_fraction': .35, 'tp2_fraction': .35}
+        self.quote.update(bid=12.1, ask=12.11)
+        event, _ = self.assess(plan=plan, balance={**self.balance, 'amount': 6.5})
+        self.assertEqual((event['action'], event['amount'], event['trigger_key']), (PARTIAL, 3.5, 'tp2'))
+
+    def test_recycle_requires_age_small_gain_and_weak_momentum(self):
+        plan = {**self.plan, 'cycle_started_ts': self.now - 73 * 3600,
+                'max_hold_hours': 72., 'recycle_max_gain_fraction': .02}
+        weak = {**self.features, 'return_4bar_pct': -1., 'momentum_acceleration_pp': -.5,
+                'extension_ma20_pct': -.2}
+        self.quote.update(bid=10.1, ask=10.11)
+        event, _ = self.assess(plan=plan, features=weak)
+        self.assertEqual(event['action'], RECYCLE)
+
+        healthy = {**weak, 'return_4bar_pct': 1.}
+        event, reason = self.assess(plan=plan, features=healthy)
+        self.assertIsNone(event)
+        self.assertEqual(reason, 'NO_JUSTIFIED_ACTION')
 
     def test_partial_profit_must_be_net_positive(self):
         self.plan.update(cost_basis_eur=15.1)
@@ -70,11 +91,10 @@ class Positions(unittest.TestCase):
         self.assertIsNone(event)
         self.assertEqual(reason, 'TRAIL_DEFERRED_UNTIL_PARTIAL')
 
-        self.plan['tp1_done'] = True
-        event, _ = self.assess()
+        event, _ = self.assess(balance={**self.balance, 'amount': 6.5})
         self.assertEqual((event['action'], event['new_stop_eur']), (TRAIL, 11.5))
         self.plan['stop_eur'] = 12
-        self.assertIsNone(self.assess()[0])
+        self.assertIsNone(self.assess(balance={**self.balance, 'amount': 6.5})[0])
 
     def test_stale_closed_structure_blocks_trailing(self):
         self.features.update(support_eur=12, last_closed_start_ms=int(self.now - 3600) * 1000)
@@ -182,7 +202,13 @@ class Positions(unittest.TestCase):
         self.assertTrue(p['auto_generated'])
         self.assertEqual(p['plan_source'], 'ACCOUNT_HISTORY+SOLAIRE_ALERT')
         self.assertEqual(p['stop_eur'], 9.0)
-        self.assertEqual(p['tp1_eur'], 12.0)
+        self.assertEqual(p['tp1_eur'], 11.0)
+        self.assertEqual(p['tp2_eur'], 12.0)
+        self.assertEqual(p['structural_tp1_eur'], 12.0)
+        self.assertEqual(p['structural_tp2_eur'], 13.0)
+        self.assertEqual(p['tp1_fraction'], .35)
+        self.assertEqual(p['tp2_fraction'], .35)
+        self.assertEqual(p['exit_policy'], 'STAGED_10_20_RUNNER_V1')
 
     def test_view_only_snapshot_reads_balance_only(self):
         client = ReadOnlyAccount('unit-test-key', 'unit-test-secret')
