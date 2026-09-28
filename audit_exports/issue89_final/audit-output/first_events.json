@@ -1,0 +1,2711 @@
+{
+  "KMNO-EUR": {
+    "first_production_buy": {
+      "available_ts": 1789984228.328058,
+      "at_utc": "2026-09-21T09:50:28.328058+00:00",
+      "event": {
+        "cycle_id": "2026-09-21T09:49:12.531575+00:00",
+        "decision_ts": 1789984228.328058,
+        "market": "KMNO-EUR",
+        "decision_type": "BUY_SENT",
+        "reason": "DELIVERED",
+        "signal_price_eur": 0.030912,
+        "signal_score": 7.196,
+        "signal_phase": null,
+        "episode_extension_pct": null,
+        "context": {
+          "mode": "SHADOW_NON_VETO",
+          "regime": "BROAD_RISK_ON",
+          "market_return_1h_pct": 1.8405,
+          "market_return_4h_pct": 4.4633,
+          "relative_strength_1h_pp": 0.5945,
+          "relative_strength_4h_pp": 1.8298,
+          "breadth_positive_1h_pct": 89.67,
+          "breadth_positive_4h_pct": 92.25,
+          "benchmarks": {
+            "BTC-EUR": {
+              "return_1h_pct": 1.8382,
+              "return_4h_pct": 4.1537
+            },
+            "ETH-EUR": {
+              "return_1h_pct": 1.5497,
+              "return_4h_pct": 2.7532
+            },
+            "SOL-EUR": {
+              "return_1h_pct": 0.6085,
+              "return_4h_pct": 3.8637
+            }
+          },
+          "affects_buy_gate": false
+        },
+        "entry_eur": 0.030916,
+        "stop_eur": 0.028836,
+        "tp1_eur": 0.035075,
+        "tp2_eur": 0.037155,
+        "stake_eur": 162.06666981192646,
+        "structural_range_15m_pct": 7.33179250128402,
+        "stop_distance_pct": 6.727907879415184
+      }
+    },
+    "first_v3_ready": {
+      "available_ts": 1790214972.4922593,
+      "at_utc": "2026-09-24T01:56:12.492259+00:00",
+      "event": {
+        "event_type": "ENTRY_READY_SHADOW",
+        "market": "KMNO-EUR",
+        "episode": 1,
+        "decision_ts": 1790214972.4922593,
+        "decision_at_utc": "2026-09-24T01:56:12.492259+00:00",
+        "price_eur": 0.032154,
+        "entry_eur": 0.032219,
+        "stop_eur": 0.030688,
+        "tp1_eur": 0.03528,
+        "stake_eur": 100.0,
+        "opportunity_score": 4.579,
+        "horizon_class": "TACTICAL",
+        "entry_source": "V3_CONTEXT_PLUS_EARLY_QUANT",
+        "execution": {
+          "ready": true,
+          "reason": "ENTRY_READY_SHADOW",
+          "spread_pct": 0.0808,
+          "depth": {
+            "valid": true,
+            "target_eur": 100.0,
+            "vwap_eur": 0.03221932893581692,
+            "best_ask_eur": 0.032216,
+            "depth_slippage_pct": 0.01033317549330448,
+            "levels_used": 3
+          },
+          "plan": {
+            "valid": true,
+            "market": "KMNO-EUR",
+            "side": "buy",
+            "order_type": "limit",
+            "amount": "3103.75865172",
+            "entry_eur": 0.032219,
+            "stop_eur": 0.030688,
+            "tp1_eur": 0.03528,
+            "tp2_eur": 0.036811,
+            "stake_eur": 99.99999999976669,
+            "theoretical_loss_eur": 5.435223005046438,
+            "net_rr_tp1": 1.6130622619276436,
+            "stop_distance_pct": 4.7518544957944,
+            "scenario": "Solaire structural execution validation",
+            "target_note": "2R/3R scenarios, not forecasts",
+            "main_risk": "Failed breakout, spread widening or gap through stop",
+            "cost_assumptions": {
+              "fee_rate_each_side": 0.0025,
+              "slippage_rate_each_side": 0.001
+            },
+            "portfolio_state": "NOT_USED_AS_SIGNAL_VETO",
+            "dry_run": true,
+            "requires_human_approval": true
+          },
+          "structural_range_15m_pct": 3.0559843735231995
+        },
+        "context": {
+          "news_score": 0.0,
+          "news_items": [],
+          "active_narratives": [],
+          "narrative_score": 0.0,
+          "external": {
+            "market": "KMNO-EUR",
+            "venues_available": 3,
+            "venues": [
+              {
+                "venue": "coinbase",
+                "r20": 1.1068068622025473,
+                "r60": 3.8953653682115563
+              },
+              {
+                "venue": "kraken",
+                "r20": 2.090883746863681,
+                "r60": 4.152445961319695
+              },
+              {
+                "venue": "okx",
+                "r20": 1.8363939899832982,
+                "r60": 3.918228279386704
+              }
+            ],
+            "median_return_20m_pct": 1.8364,
+            "median_return_60m_pct": 3.9182,
+            "breadth_positive_20m_pct": 100.0,
+            "lead_vs_bitvavo_20m_pp": 0.5346,
+            "external_score_0_10": 7.115,
+            "errors": [
+              {
+                "venue": "_bybit_spot",
+                "reason": "HTTPError"
+              },
+              {
+                "venue": "_binance",
+                "reason": "HTTPError"
+              }
+            ]
+          },
+          "derivatives": {
+            "available": false,
+            "error": "HTTPError"
+          }
+        },
+        "early_quant": {
+          "ready": true,
+          "score_0_10": 8.0,
+          "evidence_count": 4,
+          "flags": {
+            "positive_20m": true,
+            "momentum_acceleration": false,
+            "volume_expansion": true,
+            "relative_strength_1h": true,
+            "near_or_above_breakout": true
+          }
+        },
+        "v2_state_at_event": null,
+        "left_censored_at_v3_t0": false,
+        "architecture_version": "legacy-pre-v3.2-unversioned",
+        "runtime_commit": null
+      }
+    },
+    "first_v31_selectable": {
+      "available_ts": 1790214982.0830877,
+      "at_utc": "2026-09-24T01:56:22.083088+00:00",
+      "event": {
+        "event_type": "V31_QUALIFIED_ENTRY",
+        "market": "KMNO-EUR",
+        "episode": 1,
+        "decision_ts": 1790214982.0830877,
+        "decision_at_utc": "2026-09-24T01:56:22.083088+00:00",
+        "price_eur": 0.032154,
+        "entry_eur": 0.032219,
+        "stop_eur": 0.030688,
+        "tp1_eur": 0.03528,
+        "stake_eur": 150.7,
+        "economic_score": 6.216,
+        "selection_reason": "SELECTABLE",
+        "preliminary": {
+          "preliminary_score": 5.757,
+          "components": {
+            "persistence": 5.053,
+            "relative_strength": 4.86,
+            "participation": 8.429,
+            "entry_geometry": 9.238,
+            "context": 0.0
+          },
+          "contradiction_penalty": 0,
+          "penalties": {},
+          "diagnostics": {
+            "return_20m_pct": 1.3018,
+            "return_1h_pct": 3.1456,
+            "return_4h_pct": 2.8582,
+            "relative_strength_1h_pp": 3.1456,
+            "relative_strength_4h_pp": 2.7543,
+            "change_24h_pct": 8.4671,
+            "extension_ma20_pct": 2.6104,
+            "legacy_v2_score_unused": null,
+            "legacy_v3_opportunity_score_unused": 4.579
+          }
+        },
+        "execution_quality": {
+          "available": true,
+          "ready": true,
+          "score": 7.396,
+          "reason": "EXECUTION_READY",
+          "components": {
+            "spread": 9.981,
+            "depth_slippage": 10.0,
+            "stop_geometry": 7.504,
+            "net_rr": 0.754
+          }
+        },
+        "sizing": {
+          "valid": true,
+          "stake_eur": 150.7,
+          "target_risk_eur": 8.22,
+          "theoretical_risk_eur": 8.22,
+          "effective_risk_pct": 5.4519,
+          "raw_stop_distance_pct": 4.7519,
+          "liquidity_cap_eur": 250.0,
+          "method": "score_aware_risk_budget_with_notional_and_liquidity_caps"
+        },
+        "legacy_v2_score_unused": null,
+        "legacy_v3_opportunity_score_unused": 4.579,
+        "left_censored_at_v31_t0": false,
+        "architecture_version": "legacy-pre-v3.1.1-unversioned",
+        "upstream_v3_architecture_version": null
+      }
+    },
+    "first_shadow_actionable": {
+      "available_ts": 1790217269.012994,
+      "at_utc": "2026-09-24T02:34:29.012994+00:00",
+      "event": {
+        "rank": 1,
+        "market": "KMNO-EUR",
+        "signal_score": 7.896,
+        "signal_state": "CONFIRMED_ACCELERATION",
+        "episode": 12,
+        "episode_extension_pct": 0.0,
+        "episode_age_seconds": 0.0,
+        "passed_execution_gate": true,
+        "execution_rejection_reason": null,
+        "prior_thesis_active": false,
+        "prior_thesis_status": "PRIOR_BUY_THESIS_EXPIRED",
+        "actionable_after_prior_thesis": true,
+        "entry_eur": 0.033009,
+        "stop_eur": 0.030626,
+        "tp1_eur": 0.037774,
+        "spread_pct": 0.10614423485169056,
+        "structural_range_15m_pct": 7.163980928239496,
+        "stop_distance_pct": 7.219243236693012
+      }
+    }
+  },
+  "TREAD-EUR": {
+    "first_production_buy": {
+      "available_ts": 1789985099.447374,
+      "at_utc": "2026-09-21T10:04:59.447374+00:00",
+      "event": {
+        "cycle_id": "2026-09-21T10:03:45.703325+00:00",
+        "decision_ts": 1789985099.447374,
+        "market": "TREAD-EUR",
+        "decision_type": "BUY_SENT",
+        "reason": "DELIVERED",
+        "signal_price_eur": 0.38501,
+        "signal_score": 7.175,
+        "signal_phase": null,
+        "episode_extension_pct": null,
+        "context": {
+          "mode": "SHADOW_NON_VETO",
+          "regime": "BROAD_RISK_ON",
+          "market_return_1h_pct": -0.9977,
+          "market_return_4h_pct": -7.5606,
+          "relative_strength_1h_pp": -1.2778,
+          "relative_strength_4h_pp": -9.7415,
+          "breadth_positive_1h_pct": 59.62,
+          "breadth_positive_4h_pct": 91.78,
+          "benchmarks": {
+            "BTC-EUR": {
+              "return_1h_pct": 1.0595,
+              "return_4h_pct": 3.7457
+            },
+            "ETH-EUR": {
+              "return_1h_pct": 0.8894,
+              "return_4h_pct": 2.0223
+            },
+            "SOL-EUR": {
+              "return_1h_pct": 0.5176,
+              "return_4h_pct": 3.6468
+            }
+          },
+          "affects_buy_gate": false
+        },
+        "entry_eur": 0.38501,
+        "stop_eur": 0.36549,
+        "tp1_eur": 0.42405,
+        "tp2_eur": 0.44357,
+        "stake_eur": 208.61390310220003,
+        "structural_range_15m_pct": 10.646476714890529,
+        "stop_distance_pct": 5.069998181865416
+      }
+    },
+    "first_v3_ready": {
+      "available_ts": 1790296036.2655602,
+      "at_utc": "2026-09-25T00:27:16.265560+00:00",
+      "event": {
+        "event_type": "ENTRY_THESIS_REENTRY_SHADOW",
+        "market": "TREAD-EUR",
+        "thesis_id": 1,
+        "decision_ts": 1790295977.973975,
+        "decision_at_utc": "2026-09-25T00:26:17.973975+00:00",
+        "price_eur": 0.61229,
+        "entry_eur": 0.61439,
+        "stop_eur": 0.56926,
+        "tp1_eur": 0.70465,
+        "stake_eur": 74.8149399851,
+        "opportunity_score": 7.37,
+        "horizon_class": "SWING",
+        "entry_source": "V3_PERSISTENT_THESIS_REENTRY",
+        "execution": {
+          "spread_pct": 0.3413,
+          "depth": {
+            "valid": true,
+            "target_eur": 74.8149399851,
+            "vwap_eur": 0.61439,
+            "best_ask_eur": 0.61439,
+            "depth_slippage_pct": 0.0,
+            "levels_used": 1
+          },
+          "depth_benchmark_100_eur": {
+            "valid": true,
+            "target_eur": 100.0,
+            "vwap_eur": 0.61439,
+            "best_ask_eur": 0.61439,
+            "depth_slippage_pct": 0.0,
+            "levels_used": 1
+          },
+          "plan": {
+            "valid": true,
+            "market": "TREAD-EUR",
+            "side": "buy",
+            "order_type": "limit",
+            "amount": "121.77109",
+            "entry_eur": 0.61439,
+            "stop_eur": 0.56926,
+            "tp1_eur": 0.70465,
+            "tp2_eur": 0.74978,
+            "stake_eur": 74.8149399851,
+            "theoretical_loss_eur": 5.999999519074742,
+            "net_rr_tp1": 1.7381476890635887,
+            "stop_distance_pct": 7.345497159784502,
+            "scenario": "Solaire structural execution validation",
+            "target_note": "2R/3R scenarios, not forecasts",
+            "main_risk": "Failed breakout, spread widening or gap through stop",
+            "cost_assumptions": {
+              "fee_rate_each_side": 0.0025,
+              "slippage_rate_each_side": 0.001
+            },
+            "portfolio_state": "NOT_USED_AS_SIGNAL_VETO",
+            "dry_run": true,
+            "requires_human_approval": true
+          },
+          "structural_range_15m_pct": 6.946859903381636,
+          "structural_features": {
+            "atr14_eur": 0.01719642857142858,
+            "support_eur": 0.57786,
+            "consolidation_range_pct": 6.946859903381636
+          },
+          "ready": true,
+          "reason": "ENTRY_READY_SHADOW",
+          "check_started_ts": 1790296035.605932,
+          "check_started_at_utc": "2026-09-25T00:27:15.605932+00:00",
+          "book_observed_ts": 1790296036.0080512,
+          "book_observed_at_utc": "2026-09-25T00:27:16.008051+00:00",
+          "structure_observed_ts": 1790296036.2645817,
+          "structure_observed_at_utc": "2026-09-25T00:27:16.264582+00:00",
+          "available_ts": 1790296036.2655602,
+          "available_at_utc": "2026-09-25T00:27:16.265560+00:00",
+          "latency_ms": 659.63,
+          "book_snapshot": {
+            "best_bid_eur": 0.6123,
+            "best_ask_eur": 0.61439,
+            "asks": [
+              [
+                "0.61439",
+                "193.36286"
+              ],
+              [
+                "0.6144",
+                "847.12674"
+              ],
+              [
+                "0.61441",
+                "35.8186"
+              ],
+              [
+                "0.61502",
+                "71.63722"
+              ],
+              [
+                "0.61564",
+                "71.63721"
+              ],
+              [
+                "0.61656",
+                "107.45582"
+              ],
+              [
+                "0.61778",
+                "143.27443"
+              ],
+              [
+                "0.61901",
+                "143.27443"
+              ],
+              [
+                "0.621",
+                "1467.50536"
+              ],
+              [
+                "0.62126",
+                "497.42977"
+              ],
+              [
+                "0.62146",
+                "286.54886"
+              ],
+              [
+                "0.62515",
+                "429.82329"
+              ],
+              [
+                "0.62575",
+                "815.01691"
+              ],
+              [
+                "0.62587",
+                "81.56618"
+              ],
+              [
+                "0.63",
+                "297.31"
+              ],
+              [
+                "0.63128",
+                "716.37215"
+              ],
+              [
+                "0.63145",
+                "95.16528"
+              ],
+              [
+                "0.64",
+                "1498.94615"
+              ],
+              [
+                "0.648",
+                "132.77163"
+              ],
+              [
+                "0.6494",
+                "76.99415"
+              ],
+              [
+                "0.65",
+                "8650.10848"
+              ],
+              [
+                "0.65334",
+                "20"
+              ],
+              [
+                "0.655",
+                "156.07221"
+              ],
+              [
+                "0.659",
+                "75.87253"
+              ],
+              [
+                "0.66176",
+                "6394.10297"
+              ]
+            ],
+            "depth_levels": 25
+          }
+        },
+        "long_trend": {
+          "return_24h_pct": 46.14116524228884,
+          "return_72h_pct": 59.29919137466308,
+          "return_7d_pct": 51.51460633728382,
+          "relative_72h_vs_btc_pp": 60.9654,
+          "relative_7d_vs_btc_pp": 40.2607,
+          "flags": {
+            "positive_72h": true,
+            "positive_7d": true,
+            "relative_72h_vs_btc": true,
+            "relative_7d_vs_btc": true
+          },
+          "evidence_count": 4,
+          "support": true,
+          "method": "closed_4h_candles_point_in_time"
+        },
+        "thesis": {
+          "thesis_id": 1,
+          "active": true,
+          "state": "REENTRY_READY_THESIS",
+          "opened_ts": 1790266636.7054574,
+          "opened_price_eur": 0.51082,
+          "last_seen_ts": 1790295977.973975,
+          "last_price_eur": 0.61229,
+          "peak_eur": 0.6708,
+          "low_eur": 0.51082,
+          "pullback_seen": true,
+          "pullback_low_eur": 0.53294,
+          "start_opportunity_score": 5.44,
+          "best_opportunity_score": 7.37,
+          "start_horizon_class": "TACTICAL",
+          "last_horizon_class": "SWING",
+          "last_long_trend": {
+            "return_24h_pct": 46.14116524228884,
+            "return_72h_pct": 59.29919137466308,
+            "return_7d_pct": 51.51460633728382,
+            "relative_72h_vs_btc_pp": 60.9654,
+            "relative_7d_vs_btc_pp": 40.2607,
+            "flags": {
+              "positive_72h": true,
+              "positive_7d": true,
+              "relative_72h_vs_btc": true,
+              "relative_7d_vs_btc": true
+            },
+            "evidence_count": 4,
+            "support": true,
+            "method": "closed_4h_candles_point_in_time"
+          },
+          "last_support": true,
+          "fresh_trigger_count": 14,
+          "return_from_open_pct": 19.8641,
+          "drawdown_from_peak_pct": -8.7224,
+          "age_hours": 8.15,
+          "reclaim_from_pullback_low_pct": 14.8891,
+          "last_execution_state": "ENTRY_READY_SHADOW",
+          "last_execution_checked_at_utc": "2026-09-25T00:26:17.973975+00:00",
+          "last_execution": {
+            "spread_pct": 0.3413,
+            "depth": {
+              "valid": true,
+              "target_eur": 74.8149399851,
+              "vwap_eur": 0.61439,
+              "best_ask_eur": 0.61439,
+              "depth_slippage_pct": 0.0,
+              "levels_used": 1
+            },
+            "depth_benchmark_100_eur": {
+              "valid": true,
+              "target_eur": 100.0,
+              "vwap_eur": 0.61439,
+              "best_ask_eur": 0.61439,
+              "depth_slippage_pct": 0.0,
+              "levels_used": 1
+            },
+            "plan": {
+              "valid": true,
+              "market": "TREAD-EUR",
+              "side": "buy",
+              "order_type": "limit",
+              "amount": "121.77109",
+              "entry_eur": 0.61439,
+              "stop_eur": 0.56926,
+              "tp1_eur": 0.70465,
+              "tp2_eur": 0.74978,
+              "stake_eur": 74.8149399851,
+              "theoretical_loss_eur": 5.999999519074742,
+              "net_rr_tp1": 1.7381476890635887,
+              "stop_distance_pct": 7.345497159784502,
+              "scenario": "Solaire structural execution validation",
+              "target_note": "2R/3R scenarios, not forecasts",
+              "main_risk": "Failed breakout, spread widening or gap through stop",
+              "cost_assumptions": {
+                "fee_rate_each_side": 0.0025,
+                "slippage_rate_each_side": 0.001
+              },
+              "portfolio_state": "NOT_USED_AS_SIGNAL_VETO",
+              "dry_run": true,
+              "requires_human_approval": true
+            },
+            "structural_range_15m_pct": 6.946859903381636,
+            "structural_features": {
+              "atr14_eur": 0.01719642857142858,
+              "support_eur": 0.57786,
+              "consolidation_range_pct": 6.946859903381636
+            },
+            "ready": true,
+            "reason": "ENTRY_READY_SHADOW",
+            "check_started_ts": 1790296035.605932,
+            "check_started_at_utc": "2026-09-25T00:27:15.605932+00:00",
+            "book_observed_ts": 1790296036.0080512,
+            "book_observed_at_utc": "2026-09-25T00:27:16.008051+00:00",
+            "structure_observed_ts": 1790296036.2645817,
+            "structure_observed_at_utc": "2026-09-25T00:27:16.264582+00:00",
+            "available_ts": 1790296036.2655602,
+            "available_at_utc": "2026-09-25T00:27:16.265560+00:00",
+            "latency_ms": 659.63,
+            "book_snapshot": {
+              "best_bid_eur": 0.6123,
+              "best_ask_eur": 0.61439,
+              "asks": [
+                [
+                  "0.61439",
+                  "193.36286"
+                ],
+                [
+                  "0.6144",
+                  "847.12674"
+                ],
+                [
+                  "0.61441",
+                  "35.8186"
+                ],
+                [
+                  "0.61502",
+                  "71.63722"
+                ],
+                [
+                  "0.61564",
+                  "71.63721"
+                ],
+                [
+                  "0.61656",
+                  "107.45582"
+                ],
+                [
+                  "0.61778",
+                  "143.27443"
+                ],
+                [
+                  "0.61901",
+                  "143.27443"
+                ],
+                [
+                  "0.621",
+                  "1467.50536"
+                ],
+                [
+                  "0.62126",
+                  "497.42977"
+                ],
+                [
+                  "0.62146",
+                  "286.54886"
+                ],
+                [
+                  "0.62515",
+                  "429.82329"
+                ],
+                [
+                  "0.62575",
+                  "815.01691"
+                ],
+                [
+                  "0.62587",
+                  "81.56618"
+                ],
+                [
+                  "0.63",
+                  "297.31"
+                ],
+                [
+                  "0.63128",
+                  "716.37215"
+                ],
+                [
+                  "0.63145",
+                  "95.16528"
+                ],
+                [
+                  "0.64",
+                  "1498.94615"
+                ],
+                [
+                  "0.648",
+                  "132.77163"
+                ],
+                [
+                  "0.6494",
+                  "76.99415"
+                ],
+                [
+                  "0.65",
+                  "8650.10848"
+                ],
+                [
+                  "0.65334",
+                  "20"
+                ],
+                [
+                  "0.655",
+                  "156.07221"
+                ],
+                [
+                  "0.659",
+                  "75.87253"
+                ],
+                [
+                  "0.66176",
+                  "6394.10297"
+                ]
+              ],
+              "depth_levels": 25
+            }
+          },
+          "entry_recorded_thesis_id": 1
+        },
+        "v2_state_at_event": null,
+        "left_censored_at_v3_t0": false,
+        "architecture_version": "v3.5-near-miss-memory-only-20260924",
+        "runtime_commit": "67efe2f82ba17d23b45788c19cb0802ec2f4887c"
+      }
+    },
+    "first_v31_selectable": {
+      "available_ts": 1790300345.678443,
+      "at_utc": "2026-09-25T01:39:05.678443+00:00",
+      "event": {
+        "event_type": "V31_QUALIFIED_ENTRY",
+        "market": "TREAD-EUR",
+        "episode": 1,
+        "decision_ts": 1790300345.678443,
+        "decision_at_utc": "2026-09-25T01:39:05.678443+00:00",
+        "price_eur": 0.62063,
+        "entry_eur": 0.62099,
+        "stop_eur": 0.58443,
+        "tp1_eur": 0.69411,
+        "stake_eur": 127.02,
+        "economic_score": 6.367,
+        "selection_reason": "SELECTABLE",
+        "preliminary": {
+          "preliminary_score": 5.693,
+          "components": {
+            "persistence": 7.339,
+            "relative_strength": 7.169,
+            "participation": 2.134,
+            "entry_geometry": 2.952,
+            "context": 6.08
+          },
+          "contradiction_penalty": 0,
+          "penalties": {},
+          "diagnostics": {
+            "return_20m_pct": 2.0622,
+            "return_1h_pct": 1.5403,
+            "return_4h_pct": 9.9681,
+            "relative_strength_1h_pp": 1.5403,
+            "relative_strength_4h_pp": 10.0135,
+            "change_24h_pct": 26.6592,
+            "extension_ma20_pct": 4.5818,
+            "legacy_v2_score_unused": null,
+            "legacy_v3_opportunity_score_unused": 6.029
+          }
+        },
+        "execution_quality": {
+          "available": true,
+          "ready": true,
+          "score": 8.099,
+          "reason": "EXECUTION_READY",
+          "components": {
+            "spread": 9.755,
+            "depth_slippage": 10.0,
+            "stop_geometry": 9.775,
+            "net_rr": 1.201
+          }
+        },
+        "sizing": {
+          "valid": true,
+          "stake_eur": 127.02,
+          "target_risk_eur": 8.37,
+          "theoretical_risk_eur": 8.34,
+          "effective_risk_pct": 6.5874,
+          "raw_stop_distance_pct": 5.8874,
+          "liquidity_cap_eur": 250.0,
+          "method": "score_aware_risk_budget_with_notional_and_liquidity_caps",
+          "final_stake_repriced": true
+        },
+        "entry_path": "THESIS_REENTRY",
+        "upstream_v3_architecture_version": "v3.5-near-miss-memory-only-20260924",
+        "legacy_v2_score_unused": null,
+        "legacy_v3_opportunity_score_unused": 6.029,
+        "left_censored_at_v31_t0": false,
+        "attempt_id": "TREAD-EUR|1|THESIS_REENTRY|2|v3.1.4-memory-only-baseline-20260924",
+        "decision_id": "TREAD-EUR|1|THESIS_REENTRY|2|v3.1.4-memory-only-baseline-20260924",
+        "transition_from": "V31_REJECTED_READY",
+        "transition_from_reason": "ECONOMIC_SCORE_BELOW_THRESHOLD",
+        "execution_reason": "ENTRY_READY_SHADOW",
+        "execution": {
+          "spread_pct": 0.0903,
+          "depth": {
+            "valid": true,
+            "target_eur": 127.02,
+            "vwap_eur": 0.62099,
+            "best_ask_eur": 0.62099,
+            "depth_slippage_pct": 0.0,
+            "levels_used": 1
+          },
+          "depth_benchmark_100_eur": {
+            "valid": true,
+            "target_eur": 100.0,
+            "vwap_eur": 0.62099,
+            "best_ask_eur": 0.62099,
+            "depth_slippage_pct": 0.0,
+            "levels_used": 1
+          },
+          "plan": {
+            "valid": true,
+            "market": "TREAD-EUR",
+            "side": "buy",
+            "order_type": "limit",
+            "amount": "147.13466",
+            "entry_eur": 0.62099,
+            "stop_eur": 0.58443,
+            "tp1_eur": 0.69411,
+            "tp2_eur": 0.73067,
+            "stake_eur": 127.02,
+            "theoretical_loss_eur": 8.341108181130148,
+            "net_rr_tp1": 1.6802079601323863,
+            "stop_distance_pct": 5.8873733876552015,
+            "scenario": "Solaire structural execution validation",
+            "target_note": "2R/3R scenarios, not forecasts",
+            "main_risk": "Failed breakout, spread widening or gap through stop",
+            "cost_assumptions": {
+              "fee_rate_each_side": 0.0025,
+              "slippage_rate_each_side": 0.001
+            },
+            "portfolio_state": "NOT_USED_AS_SIGNAL_VETO",
+            "dry_run": true,
+            "requires_human_approval": true,
+            "final_notional_repriced": true
+          },
+          "structural_range_15m_pct": 4.7375964186218775,
+          "structural_features": {
+            "atr14_eur": 0.014281428571428572,
+            "support_eur": 0.59158,
+            "consolidation_range_pct": 4.7375964186218775
+          },
+          "ready": true,
+          "reason": "ENTRY_READY_SHADOW",
+          "check_started_ts": 1790300264.5572517,
+          "check_started_at_utc": "2026-09-25T01:37:44.557252+00:00",
+          "book_observed_ts": 1790300264.794146,
+          "book_observed_at_utc": "2026-09-25T01:37:44.794146+00:00",
+          "structure_observed_ts": 1790300264.823122,
+          "structure_observed_at_utc": "2026-09-25T01:37:44.823122+00:00",
+          "available_ts": 1790300264.823947,
+          "available_at_utc": "2026-09-25T01:37:44.823947+00:00",
+          "latency_ms": 266.7,
+          "book_snapshot": {
+            "best_bid_eur": 0.62043,
+            "best_ask_eur": 0.62099,
+            "asks": [
+              [
+                "0.62099",
+                "314.95392"
+              ],
+              [
+                "0.621",
+                "1467.50536"
+              ],
+              [
+                "0.6223",
+                "35.36457"
+              ],
+              [
+                "0.62292",
+                "70.72915"
+              ],
+              [
+                "0.62354",
+                "70.72914"
+              ],
+              [
+                "0.62447",
+                "106.09373"
+              ],
+              [
+                "0.62574",
+                "128"
+              ],
+              [
+                "0.62587",
+                "81.56618"
+              ],
+              [
+                "0.62592",
+                "141.41197"
+              ],
+              [
+                "0.62716",
+                "141.41197"
+              ],
+              [
+                "0.62965",
+                "282.82394"
+              ],
+              [
+                "0.63",
+                "297.31"
+              ],
+              [
+                "0.63145",
+                "95.16528"
+              ],
+              [
+                "0.63338",
+                "424.23591"
+              ],
+              [
+                "0.63378",
+                "804.68379"
+              ],
+              [
+                "0.63959",
+                "707.05985"
+              ],
+              [
+                "0.64",
+                "1498.94615"
+              ],
+              [
+                "0.64004",
+                "150.70351"
+              ],
+              [
+                "0.648",
+                "132.77163"
+              ],
+              [
+                "0.6494",
+                "76.99415"
+              ],
+              [
+                "0.65",
+                "8650.10848"
+              ],
+              [
+                "0.65334",
+                "20"
+              ],
+              [
+                "0.655",
+                "156.07221"
+              ],
+              [
+                "0.659",
+                "75.87253"
+              ],
+              [
+                "0.66176",
+                "6394.10297"
+              ]
+            ],
+            "depth_levels": 25
+          },
+          "execution_age_seconds": 80.854,
+          "final_stake_eur": 127.02,
+          "repriced_from_causal_book": true
+        },
+        "plan_available_ts": 1790300264.823947,
+        "plan_available_at_utc": "2026-09-25T01:37:44.823947+00:00",
+        "execution_age_seconds": 80.854,
+        "architecture_version": "v3.1.4-memory-only-baseline-20260924"
+      }
+    },
+    "first_shadow_actionable": {
+      "available_ts": 1790102858.441151,
+      "at_utc": "2026-09-22T18:47:38.441151+00:00",
+      "event": {
+        "rank": 3,
+        "market": "TREAD-EUR",
+        "signal_score": 6.875,
+        "signal_state": "CONFIRMED_ACCELERATION",
+        "episode": 17,
+        "episode_extension_pct": 0.0,
+        "episode_age_seconds": 0.0,
+        "passed_execution_gate": true,
+        "execution_rejection_reason": null,
+        "prior_thesis_active": false,
+        "prior_thesis_status": "PRIOR_BUY_THESIS_EXPIRED",
+        "actionable_after_prior_thesis": true,
+        "entry_eur": 0.47,
+        "stop_eur": 0.43311,
+        "tp1_eur": 0.54377,
+        "spread_pct": 0.002127704844778755,
+        "structural_range_15m_pct": 6.75531914893617,
+        "stop_distance_pct": 7.848936170212761
+      }
+    }
+  },
+  "QNT-EUR": {
+    "first_production_buy": {
+      "available_ts": 1790258364.097639,
+      "at_utc": "2026-09-24T13:59:24.097639+00:00",
+      "event": {
+        "cycle_id": "2026-09-24T13:58:05.394315+00:00",
+        "decision_ts": 1790258364.097639,
+        "market": "QNT-EUR",
+        "decision_type": "BUY_SENT",
+        "reason": "DELIVERED",
+        "signal_price_eur": 69.39,
+        "signal_score": 8.431,
+        "signal_phase": null,
+        "episode_extension_pct": null,
+        "context": {
+          "mode": "SHADOW_NON_VETO",
+          "regime": "BROAD_RISK_ON",
+          "short_term_phase": "EXPANSION_1H",
+          "regime_phase": "RISK_ON_CONTINUATION",
+          "market_return_1h_pct": 3.208,
+          "market_return_4h_pct": 8.7682,
+          "relative_strength_1h_pp": 1.7848,
+          "relative_strength_4h_pp": 6.7482,
+          "breadth_positive_1h_pct": 82.39,
+          "breadth_positive_4h_pct": 82.39,
+          "benchmarks": {
+            "BTC-EUR": {
+              "return_1h_pct": 0.5365,
+              "return_4h_pct": 0.9862
+            },
+            "ETH-EUR": {
+              "return_1h_pct": 0.7315,
+              "return_4h_pct": 0.909
+            },
+            "SOL-EUR": {
+              "return_1h_pct": 1.0167,
+              "return_4h_pct": 1.3742
+            }
+          },
+          "affects_buy_gate": false
+        },
+        "entry_eur": 69.091,
+        "stop_eur": 62.916,
+        "tp1_eur": 81.44,
+        "tp2_eur": 87.615,
+        "stake_eur": 124.91923083991999,
+        "structural_range_15m_pct": 9.527975916835965,
+        "stop_distance_pct": 8.937488240147049
+      }
+    },
+    "first_v3_ready": {
+      "available_ts": 1790252550.1507633,
+      "at_utc": "2026-09-24T12:22:30.150763+00:00",
+      "event": {
+        "event_type": "ENTRY_READY_SHADOW",
+        "market": "QNT-EUR",
+        "episode": 1,
+        "decision_ts": 1790252550.1507633,
+        "decision_at_utc": "2026-09-24T12:22:30.150763+00:00",
+        "price_eur": 64.798,
+        "entry_eur": 64.868,
+        "stop_eur": 62.073,
+        "tp1_eur": 70.457,
+        "stake_eur": 100.0,
+        "opportunity_score": 6.393,
+        "horizon_class": "SWING",
+        "entry_source": "V3_CONTEXT_PLUS_EARLY_QUANT",
+        "execution": {
+          "ready": true,
+          "reason": "ENTRY_READY_SHADOW",
+          "spread_pct": 0.0663,
+          "depth": {
+            "valid": true,
+            "target_eur": 100.0,
+            "vwap_eur": 64.868,
+            "best_ask_eur": 64.868,
+            "depth_slippage_pct": 0.0,
+            "levels_used": 1
+          },
+          "plan": {
+            "valid": true,
+            "market": "QNT-EUR",
+            "side": "buy",
+            "order_type": "limit",
+            "amount": "1.54159215",
+            "entry_eur": 64.868,
+            "stop_eur": 62.073,
+            "tp1_eur": 70.457,
+            "tp2_eur": 73.252,
+            "stake_eur": 99.99999958619999,
+            "theoretical_loss_eur": 4.993669431146029,
+            "net_rr_tp1": 1.5791599310158173,
+            "stop_distance_pct": 4.3087500770795994,
+            "scenario": "Solaire structural execution validation",
+            "target_note": "2R/3R scenarios, not forecasts",
+            "main_risk": "Failed breakout, spread widening or gap through stop",
+            "cost_assumptions": {
+              "fee_rate_each_side": 0.0025,
+              "slippage_rate_each_side": 0.001
+            },
+            "portfolio_state": "NOT_USED_AS_SIGNAL_VETO",
+            "dry_run": true,
+            "requires_human_approval": true
+          },
+          "structural_range_15m_pct": 3.7340732244164156
+        },
+        "context": {
+          "news_score": 0.0,
+          "news_items": [],
+          "active_narratives": [
+            "RWA_TOKENIZATION"
+          ],
+          "narrative_score": 10.0,
+          "external": {
+            "market": "QNT-EUR",
+            "venues_available": 2,
+            "venues": [
+              {
+                "venue": "coinbase",
+                "r20": 1.3056624518966276,
+                "r60": 1.8656716417910335
+              },
+              {
+                "venue": "kraken",
+                "r20": 1.1818056891576223,
+                "r60": 1.6848501588178522
+              }
+            ],
+            "median_return_20m_pct": 1.2437,
+            "median_return_60m_pct": 1.7753,
+            "breadth_positive_20m_pct": 100.0,
+            "lead_vs_bitvavo_20m_pp": -0.5423,
+            "external_score_0_10": 4.753,
+            "errors": [
+              {
+                "venue": "_bybit_spot",
+                "reason": "HTTPError"
+              },
+              {
+                "venue": "_binance",
+                "reason": "HTTPError"
+              }
+            ]
+          },
+          "derivatives": {
+            "available": false,
+            "error": "HTTPError"
+          }
+        },
+        "early_quant": {
+          "ready": true,
+          "score_0_10": 9.156,
+          "evidence_count": 5,
+          "flags": {
+            "positive_20m": true,
+            "momentum_acceleration": true,
+            "volume_expansion": true,
+            "relative_strength_1h": true,
+            "near_or_above_breakout": true
+          }
+        },
+        "v2_state_at_event": "BUILDING_ACCELERATION",
+        "left_censored_at_v3_t0": false,
+        "architecture_version": "legacy-pre-v3.2-unversioned",
+        "runtime_commit": null
+      }
+    },
+    "first_v31_selectable": {
+      "available_ts": 1790254950.6695836,
+      "at_utc": "2026-09-24T13:02:30.669584+00:00",
+      "event": {
+        "event_type": "V31_PERSIST_30M_QUALIFIED_ENTRY",
+        "market": "QNT-EUR",
+        "episode": 1,
+        "decision_ts": 1790254950.6695836,
+        "decision_at_utc": "2026-09-24T13:02:30.669584+00:00",
+        "price_eur": 65.935,
+        "entry_eur": 66.098,
+        "stop_eur": 62.964,
+        "tp1_eur": 72.366,
+        "stake_eur": 161.15,
+        "economic_score": 6.769,
+        "selection_reason": "SELECTABLE",
+        "preliminary": {
+          "preliminary_score": 6.525,
+          "components": {
+            "persistence": 6.033,
+            "relative_strength": 6.858,
+            "participation": 7.524,
+            "entry_geometry": 7.884,
+            "context": 3.0
+          },
+          "contradiction_penalty": 0,
+          "penalties": {},
+          "diagnostics": {
+            "return_20m_pct": 1.056,
+            "return_1h_pct": 3.572,
+            "return_4h_pct": 5.8789,
+            "relative_strength_1h_pp": 3.4547,
+            "relative_strength_4h_pp": 6.244,
+            "change_24h_pct": 2.2993,
+            "extension_ma20_pct": 4.2255,
+            "legacy_v2_score_unused": null,
+            "legacy_v3_opportunity_score_unused": 6.076
+          }
+        },
+        "execution_quality": {
+          "available": true,
+          "ready": true,
+          "score": 7.395,
+          "reason": "EXECUTION_READY",
+          "components": {
+            "spread": 10.0,
+            "depth_slippage": 10.0,
+            "stop_geometry": 7.483,
+            "net_rr": 0.753
+          }
+        },
+        "sizing": {
+          "valid": true,
+          "stake_eur": 161.15,
+          "target_risk_eur": 8.77,
+          "theoretical_risk_eur": 8.77,
+          "effective_risk_pct": 5.4414,
+          "raw_stop_distance_pct": 4.7414,
+          "liquidity_cap_eur": 250.0,
+          "method": "score_aware_risk_budget_with_notional_and_liquidity_caps"
+        },
+        "timing_path": "PERSIST_30M",
+        "timing_state": {
+          "episode": 1,
+          "raw_ready_ts": 1790252550.1507633,
+          "raw_ready_at_utc": "2026-09-24T12:22:30.150763+00:00",
+          "raw_entry_eur": 64.868,
+          "low_since_raw_ready_eur": 64.868,
+          "current_drift_pct": 1.8962,
+          "max_pullback_pct": 0.0,
+          "reclaim_from_low_pct": 1.8962,
+          "persist30_recorded_episode": 1
+        },
+        "upstream_v3_timing_lab_commit": "0c05e0fbf55b0ff99dae3f10bcfc3411bbee0cc6",
+        "legacy_v2_score_unused": null,
+        "legacy_v3_opportunity_score_unused": 6.076,
+        "left_censored_at_v31_timing_t0": false,
+        "architecture_version": "legacy-pre-v3.1.1-unversioned",
+        "upstream_v3_architecture_version": null
+      }
+    },
+    "first_shadow_actionable": {
+      "available_ts": 1790258362.509463,
+      "at_utc": "2026-09-24T13:59:22.509463+00:00",
+      "event": {
+        "rank": 1,
+        "market": "QNT-EUR",
+        "signal_score": 8.431,
+        "signal_state": "CONFIRMED_ACCELERATION",
+        "episode": 5,
+        "episode_extension_pct": 0.0,
+        "episode_age_seconds": 0.0,
+        "passed_execution_gate": true,
+        "execution_rejection_reason": null,
+        "prior_thesis_active": false,
+        "prior_thesis_status": "NO_TRACKED_PRIOR_BUY_THESIS",
+        "actionable_after_prior_thesis": true,
+        "entry_eur": 69.113,
+        "stop_eur": 62.916,
+        "tp1_eur": 81.507,
+        "spread_pct": 0.02605108908024789,
+        "structural_range_15m_pct": 9.527975916835965,
+        "stop_distance_pct": 8.966475192800202
+      }
+    }
+  },
+  "RARE-EUR": {
+    "first_production_buy": {
+      "available_ts": 1790371968.048104,
+      "at_utc": "2026-09-25T21:32:48.048104+00:00",
+      "event": {
+        "cycle_id": "2026-09-25T21:31:30.874672+00:00",
+        "decision_ts": 1790371968.048104,
+        "market": "RARE-EUR",
+        "decision_type": "BUY_SENT",
+        "reason": "DELIVERED",
+        "signal_price_eur": 0.014487,
+        "signal_score": 6.719,
+        "signal_phase": null,
+        "episode_extension_pct": null,
+        "context": {
+          "mode": "SHADOW_NON_VETO",
+          "regime": "MIXED",
+          "short_term_phase": "PULLBACK_1H",
+          "regime_phase": "MIXED_TRANSITION",
+          "market_return_1h_pct": 4.0848,
+          "market_return_4h_pct": 3.7135,
+          "relative_strength_1h_pp": 4.6138,
+          "relative_strength_4h_pp": 3.5707,
+          "breadth_positive_1h_pct": 17.33,
+          "breadth_positive_4h_pct": 55.5,
+          "benchmarks": {
+            "BTC-EUR": {
+              "return_1h_pct": -0.3225,
+              "return_4h_pct": 0.1157
+            },
+            "ETH-EUR": {
+              "return_1h_pct": -0.4656,
+              "return_4h_pct": 0.0408
+            },
+            "SOL-EUR": {
+              "return_1h_pct": -0.9893,
+              "return_4h_pct": 0.5772
+            }
+          },
+          "affects_buy_gate": false
+        },
+        "entry_eur": 0.014528,
+        "stop_eur": 0.013373,
+        "tp1_eur": 0.016838,
+        "tp2_eur": 0.017993,
+        "stake_eur": 139.17336278536192,
+        "structural_range_15m_pct": 9.494268374915722,
+        "stop_distance_pct": 7.950165198237884
+      }
+    },
+    "first_v3_ready": {
+      "available_ts": 1790358443.6980987,
+      "at_utc": "2026-09-25T17:47:23.698099+00:00",
+      "event": {
+        "event_type": "EXECUTION_GATE_OBSERVATION",
+        "market": "RARE-EUR",
+        "episode": 1,
+        "attempt_id": "RARE-EUR|1|GATE|4",
+        "decision_ts": 1790358443.6980987,
+        "decision_at_utc": "2026-09-25T17:47:23.698099+00:00",
+        "price_eur": 0.014615,
+        "ready": true,
+        "gate_reason": "ENTRY_READY_SHADOW",
+        "execution": {
+          "spread_pct": 0.2757,
+          "depth": {
+            "valid": true,
+            "target_eur": 57.62067183186444,
+            "vwap_eur": 0.014548,
+            "best_ask_eur": 0.014548,
+            "depth_slippage_pct": 0.0,
+            "levels_used": 1
+          },
+          "depth_benchmark_100_eur": {
+            "valid": true,
+            "target_eur": 100.0,
+            "vwap_eur": 0.014548,
+            "best_ask_eur": 0.014548,
+            "depth_slippage_pct": 0.0,
+            "levels_used": 1
+          },
+          "plan": {
+            "valid": true,
+            "market": "RARE-EUR",
+            "side": "buy",
+            "order_type": "limit",
+            "amount": "3960.72806103",
+            "entry_eur": 0.014548,
+            "stop_eur": 0.01313,
+            "tp1_eur": 0.017384,
+            "tp2_eur": 0.018802,
+            "stake_eur": 57.62067183186444,
+            "theoretical_loss_eur": 5.999999999996699,
+            "net_rr_tp1": 1.798327648588365,
+            "stop_distance_pct": 9.747044267253237,
+            "scenario": "Solaire structural execution validation",
+            "target_note": "2R/3R scenarios, not forecasts",
+            "main_risk": "Failed breakout, spread widening or gap through stop",
+            "cost_assumptions": {
+              "fee_rate_each_side": 0.0025,
+              "slippage_rate_each_side": 0.001
+            },
+            "portfolio_state": "NOT_USED_AS_SIGNAL_VETO",
+            "dry_run": true,
+            "requires_human_approval": true
+          },
+          "structural_range_15m_pct": 18.17747440273038,
+          "structural_features": {
+            "atr14_eur": 0.0008717857142857144,
+            "support_eur": 0.013566,
+            "consolidation_range_pct": 18.17747440273038
+          },
+          "ready": true,
+          "reason": "ENTRY_READY_SHADOW",
+          "check_started_ts": 1790358443.1803043,
+          "check_started_at_utc": "2026-09-25T17:47:23.180304+00:00",
+          "book_observed_ts": 1790358443.449094,
+          "book_observed_at_utc": "2026-09-25T17:47:23.449094+00:00",
+          "structure_observed_ts": 1790358443.6950948,
+          "structure_observed_at_utc": "2026-09-25T17:47:23.695095+00:00",
+          "available_ts": 1790358443.6980987,
+          "available_at_utc": "2026-09-25T17:47:23.698099+00:00",
+          "latency_ms": 517.79,
+          "book_snapshot": {
+            "best_bid_eur": 0.014508,
+            "best_ask_eur": 0.014548,
+            "asks": [
+              [
+                "0.014548",
+                "52336.90221083"
+              ],
+              [
+                "0.01455",
+                "562.75915499"
+              ],
+              [
+                "0.014559",
+                "630.35675882"
+              ],
+              [
+                "0.01456",
+                "52336.90221083"
+              ],
+              [
+                "0.014572",
+                "14987.17216578"
+              ],
+              [
+                "0.014573",
+                "52336.90221083"
+              ],
+              [
+                "0.014582",
+                "52336.90221083"
+              ],
+              [
+                "0.014588",
+                "17137.37318343"
+              ],
+              [
+                "0.01459",
+                "52336.90221083"
+              ],
+              [
+                "0.014602",
+                "52336.90221083"
+              ],
+              [
+                "0.014618",
+                "34078.59770421"
+              ],
+              [
+                "0.014619",
+                "102606.19741432"
+              ],
+              [
+                "0.014692",
+                "170160.63163626"
+              ],
+              [
+                "0.014747",
+                "4082.18620736"
+              ],
+              [
+                "0.01476",
+                "1837"
+              ],
+              [
+                "0.014817",
+                "452608.844176"
+              ],
+              [
+                "0.014818",
+                "337427.45309758"
+              ],
+              [
+                "0.01487",
+                "453972.045284"
+              ],
+              [
+                "0.015",
+                "53394.62670491"
+              ],
+              [
+                "0.015071",
+                "453972.045284"
+              ],
+              [
+                "0.015072",
+                "497611.46496815"
+              ],
+              [
+                "0.015115",
+                "661.5944426"
+              ],
+              [
+                "0.015617",
+                "511.385056"
+              ],
+              [
+                "0.015811",
+                "623.631616"
+              ],
+              [
+                "0.015812",
+                "852.452224"
+              ]
+            ],
+            "depth_levels": 25
+          }
+        },
+        "plan": {
+          "valid": true,
+          "market": "RARE-EUR",
+          "side": "buy",
+          "order_type": "limit",
+          "amount": "3960.72806103",
+          "entry_eur": 0.014548,
+          "stop_eur": 0.01313,
+          "tp1_eur": 0.017384,
+          "tp2_eur": 0.018802,
+          "stake_eur": 57.62067183186444,
+          "theoretical_loss_eur": 5.999999999996699,
+          "net_rr_tp1": 1.798327648588365,
+          "stop_distance_pct": 9.747044267253237,
+          "scenario": "Solaire structural execution validation",
+          "target_note": "2R/3R scenarios, not forecasts",
+          "main_risk": "Failed breakout, spread widening or gap through stop",
+          "cost_assumptions": {
+            "fee_rate_each_side": 0.0025,
+            "slippage_rate_each_side": 0.001
+          },
+          "portfolio_state": "NOT_USED_AS_SIGNAL_VETO",
+          "dry_run": true,
+          "requires_human_approval": true
+        },
+        "gate_vector": {
+          "spread_pct": 0.2757,
+          "depth": {
+            "valid": true,
+            "target_eur": 57.62067183186444,
+            "vwap_eur": 0.014548,
+            "best_ask_eur": 0.014548,
+            "depth_slippage_pct": 0.0,
+            "levels_used": 1
+          },
+          "stop_distance_pct": 9.747044267253237,
+          "net_rr_tp1": 1.798327648588365
+        },
+        "left_censored_at_v3_t0": false,
+        "architecture_version": "v3.5-near-miss-memory-only-20260924",
+        "runtime_commit": "ede5589bea76dbeb5e6d958c89d705a72c25fe4a"
+      }
+    },
+    "first_shadow_actionable": {
+      "available_ts": 1790430481.472926,
+      "at_utc": "2026-09-26T13:48:01.472926+00:00",
+      "event": {
+        "rank": 2,
+        "market": "RARE-EUR",
+        "signal_score": 7.047,
+        "signal_state": "CONFIRMED_ACCELERATION",
+        "episode": 14,
+        "episode_extension_pct": 0.0,
+        "episode_age_seconds": 0.0,
+        "passed_execution_gate": true,
+        "execution_rejection_reason": null,
+        "prior_thesis_active": false,
+        "prior_thesis_status": "NEW_ACCELERATION_EPISODE",
+        "actionable_after_prior_thesis": true,
+        "entry_eur": 0.020686,
+        "stop_eur": 0.019318,
+        "tp1_eur": 0.023422,
+        "spread_pct": 0.25201124357856486,
+        "structural_range_15m_pct": 7.573787856902105,
+        "stop_distance_pct": 6.613168326404336
+      }
+    }
+  },
+  "2Z-EUR": {
+    "first_v3_ready": {
+      "available_ts": 1790260941.8933103,
+      "at_utc": "2026-09-24T14:42:21.893310+00:00",
+      "event": {
+        "event_type": "ENTRY_READY_SHADOW",
+        "market": "2Z-EUR",
+        "episode": 1,
+        "decision_ts": 1790260941.8933103,
+        "decision_at_utc": "2026-09-24T14:42:21.893310+00:00",
+        "price_eur": 0.04775,
+        "entry_eur": 0.04809,
+        "stop_eur": 0.045657,
+        "tp1_eur": 0.052955,
+        "stake_eur": 100.0,
+        "opportunity_score": 4.469,
+        "horizon_class": "TACTICAL",
+        "entry_source": "V2_CONFIRMED_REFERENCE_PATH",
+        "execution": {
+          "ready": true,
+          "reason": "ENTRY_READY_SHADOW",
+          "spread_pct": 0.127,
+          "depth": {
+            "valid": true,
+            "target_eur": 100.0,
+            "vwap_eur": 0.04809,
+            "best_ask_eur": 0.04809,
+            "depth_slippage_pct": 0.0,
+            "levels_used": 1
+          },
+          "plan": {
+            "valid": true,
+            "market": "2Z-EUR",
+            "side": "buy",
+            "order_type": "limit",
+            "amount": "2079.43439",
+            "entry_eur": 0.04809,
+            "stop_eur": 0.045657,
+            "tp1_eur": 0.052955,
+            "tp2_eur": 0.055388,
+            "stake_eur": 99.9999998151,
+            "theoretical_loss_eur": 5.741556446027644,
+            "net_rr_tp1": 1.633884614346855,
+            "stop_distance_pct": 5.059263880224574,
+            "scenario": "Solaire structural execution validation",
+            "target_note": "2R/3R scenarios, not forecasts",
+            "main_risk": "Failed breakout, spread widening or gap through stop",
+            "cost_assumptions": {
+              "fee_rate_each_side": 0.0025,
+              "slippage_rate_each_side": 0.001
+            },
+            "portfolio_state": "NOT_USED_AS_SIGNAL_VETO",
+            "dry_run": true,
+            "requires_human_approval": true
+          },
+          "structural_range_15m_pct": 5.950593413826453
+        },
+        "context": {
+          "news_score": 5.482,
+          "news_items": [
+            {
+              "source": "crypto.news",
+              "published_ts": 1790258400.0,
+              "published_at_utc": "2026-09-24T14:00:00+00:00",
+              "title": "DoubleZero launches Hyperliquid order book feeds on Edge",
+              "url": "https://crypto.news/doublezero-launches-hyperliquid-order-book-feeds-edge/",
+              "symbols": [
+                "2Z",
+                "HYPE"
+              ]
+            }
+          ],
+          "active_narratives": [],
+          "narrative_score": 0.0,
+          "external": {
+            "market": "2Z-EUR",
+            "venues_available": 3,
+            "venues": [
+              {
+                "venue": "coinbase",
+                "r20": 1.0820895522388074,
+                "r60": 2.1300659754948104
+              },
+              {
+                "venue": "kraken",
+                "r20": -0.706649755390476,
+                "r60": 4.024297646165542
+              },
+              {
+                "venue": "okx",
+                "r20": -0.39934652387002556,
+                "r60": 4.236322188449848
+              }
+            ],
+            "median_return_20m_pct": -0.3993,
+            "median_return_60m_pct": 4.0243,
+            "breadth_positive_20m_pct": 33.33,
+            "lead_vs_bitvavo_20m_pp": -3.0233,
+            "external_score_0_10": 2.012,
+            "errors": [
+              {
+                "venue": "_bybit_spot",
+                "reason": "HTTPError"
+              },
+              {
+                "venue": "_binance",
+                "reason": "HTTPError"
+              }
+            ]
+          },
+          "derivatives": null
+        },
+        "early_quant": {
+          "ready": true,
+          "score_0_10": 8.2,
+          "evidence_count": 4,
+          "flags": {
+            "positive_20m": true,
+            "momentum_acceleration": true,
+            "volume_expansion": true,
+            "relative_strength_1h": true,
+            "near_or_above_breakout": false
+          }
+        },
+        "v2_state_at_event": "CONFIRMED_ACCELERATION",
+        "left_censored_at_v3_t0": false,
+        "architecture_version": "legacy-pre-v3.2-unversioned",
+        "runtime_commit": null
+      }
+    },
+    "first_v31_selectable": {
+      "available_ts": 1790261015.159205,
+      "at_utc": "2026-09-24T14:43:35.159205+00:00",
+      "event": {
+        "event_type": "V31_QUALIFIED_ENTRY",
+        "market": "2Z-EUR",
+        "episode": 1,
+        "decision_ts": 1790261015.159205,
+        "decision_at_utc": "2026-09-24T14:43:35.159205+00:00",
+        "price_eur": 0.04775,
+        "entry_eur": 0.04809,
+        "stop_eur": 0.045657,
+        "tp1_eur": 0.052955,
+        "stake_eur": 100.0,
+        "economic_score": 6.665,
+        "selection_reason": "SELECTABLE",
+        "preliminary": {
+          "preliminary_score": 6.427,
+          "components": {
+            "persistence": 8.986,
+            "relative_strength": 6.286,
+            "participation": 5.544,
+            "entry_geometry": 4.599,
+            "context": 1.096
+          },
+          "contradiction_penalty": 0,
+          "penalties": {},
+          "diagnostics": {
+            "return_20m_pct": 2.6239,
+            "return_1h_pct": 6.1113,
+            "return_4h_pct": 7.574,
+            "relative_strength_1h_pp": 4.1437,
+            "relative_strength_4h_pp": 3.9738,
+            "change_24h_pct": 4.7953,
+            "extension_ma20_pct": 5.9538,
+            "legacy_v2_score_unused": 6.673,
+            "legacy_v3_opportunity_score_unused": 4.469
+          }
+        },
+        "execution_quality": {
+          "available": true,
+          "ready": true,
+          "score": 7.278,
+          "reason": "EXECUTION_READY",
+          "components": {
+            "spread": 8.881,
+            "depth_slippage": 10.0,
+            "stop_geometry": 8.119,
+            "net_rr": 0.893
+          }
+        },
+        "sizing": {
+          "valid": true,
+          "stake_eur": 100.0,
+          "target_risk_eur": 8.66,
+          "theoretical_risk_eur": 5.76,
+          "effective_risk_pct": 5.7593,
+          "raw_stop_distance_pct": 5.0593,
+          "liquidity_cap_eur": 100.0,
+          "method": "score_aware_risk_budget_with_notional_and_liquidity_caps"
+        },
+        "legacy_v2_score_unused": 6.673,
+        "legacy_v3_opportunity_score_unused": 4.469,
+        "left_censored_at_v31_t0": false,
+        "architecture_version": "legacy-pre-v3.1.1-unversioned",
+        "upstream_v3_architecture_version": null
+      }
+    }
+  },
+  "RUNE-EUR": {
+    "first_v3_ready": {
+      "available_ts": 1790414475.2841825,
+      "at_utc": "2026-09-26T09:21:15.284183+00:00",
+      "event": {
+        "event_type": "EXECUTION_GATE_OBSERVATION",
+        "market": "RUNE-EUR",
+        "episode": 1,
+        "attempt_id": "RUNE-EUR|1|GATE|2",
+        "decision_ts": 1790414475.2841825,
+        "decision_at_utc": "2026-09-26T09:21:15.284183+00:00",
+        "price_eur": 0.6136,
+        "ready": true,
+        "gate_reason": "ENTRY_READY_SHADOW",
+        "execution": {
+          "spread_pct": 0.1908,
+          "depth": {
+            "valid": true,
+            "target_eur": 99.99999999920699,
+            "vwap_eur": 0.61435,
+            "best_ask_eur": 0.61435,
+            "depth_slippage_pct": 0.0,
+            "levels_used": 1
+          },
+          "depth_benchmark_100_eur": {
+            "valid": true,
+            "target_eur": 100.0,
+            "vwap_eur": 0.61435,
+            "best_ask_eur": 0.61435,
+            "depth_slippage_pct": 0.0,
+            "levels_used": 1
+          },
+          "plan": {
+            "valid": true,
+            "market": "RUNE-EUR",
+            "side": "buy",
+            "order_type": "limit",
+            "amount": "162.77366321",
+            "entry_eur": 0.61435,
+            "stop_eur": 0.59179,
+            "tp1_eur": 0.65946,
+            "tp2_eur": 0.68202,
+            "profit_alert_eur": 0.65946,
+            "runner_reference_eur": 0.68202,
+            "profit_management_policy": "ALERT_PARTIAL_THEN_RUNNER",
+            "stake_eur": 99.99999999306348,
+            "theoretical_loss_eur": 4.359321233521976,
+            "net_rr_tp1": 1.5179015431927094,
+            "stop_distance_pct": 3.672173842272307,
+            "scenario": "Solaire structural execution validation",
+            "target_note": "2R/3R are management references, not forecasts or instructions to liquidate 100%; at 2R reassess/consider a partial, then keep a runner while structure remains valid",
+            "main_risk": "Failed breakout, spread widening or gap through stop",
+            "cost_assumptions": {
+              "fee_rate_each_side": 0.0025,
+              "slippage_rate_each_side": 0.001
+            },
+            "portfolio_state": "NOT_USED_AS_SIGNAL_VETO",
+            "dry_run": true,
+            "requires_human_approval": true
+          },
+          "structural_range_15m_pct": 3.6323323225406705,
+          "structural_features": {
+            "atr14_eur": 0.00384285714285714,
+            "support_eur": 0.59372,
+            "consolidation_range_pct": 3.6323323225406705
+          },
+          "ready": true,
+          "reason": "ENTRY_READY_SHADOW",
+          "check_started_ts": 1790414474.9193516,
+          "check_started_at_utc": "2026-09-26T09:21:14.919352+00:00",
+          "book_observed_ts": 1790414475.1514964,
+          "book_observed_at_utc": "2026-09-26T09:21:15.151496+00:00",
+          "structure_observed_ts": 1790414475.283309,
+          "structure_observed_at_utc": "2026-09-26T09:21:15.283309+00:00",
+          "available_ts": 1790414475.2841825,
+          "available_at_utc": "2026-09-26T09:21:15.284183+00:00",
+          "latency_ms": 364.83,
+          "book_snapshot": {
+            "best_bid_eur": 0.61318,
+            "best_ask_eur": 0.61435,
+            "asks": [
+              [
+                "0.61435",
+                "277.86683766"
+              ],
+              [
+                "0.61436",
+                "162.77101373"
+              ],
+              [
+                "0.61437",
+                "277.86683766"
+              ],
+              [
+                "0.61438",
+                "161.12756746"
+              ],
+              [
+                "0.6145",
+                "572.8398957"
+              ],
+              [
+                "0.61476",
+                "4147.96017958"
+              ],
+              [
+                "0.61537",
+                "591.55147157"
+              ],
+              [
+                "0.61577",
+                "357.39262326"
+              ],
+              [
+                "0.61633",
+                "2433.76113445"
+              ],
+              [
+                "0.61787",
+                "8592.598435"
+              ],
+              [
+                "0.61819",
+                "4044.06412268"
+              ],
+              [
+                "0.62",
+                "77.86676495"
+              ],
+              [
+                "0.62189",
+                "8040.0070752"
+              ],
+              [
+                "0.62693",
+                "11963.05807665"
+              ],
+              [
+                "0.63303",
+                "344.37546404"
+              ],
+              [
+                "0.637",
+                "174.1739"
+              ],
+              [
+                "0.63879",
+                "13.14986"
+              ],
+              [
+                "0.64",
+                "782.8125"
+              ],
+              [
+                "0.64204",
+                "168.21381845"
+              ],
+              [
+                "0.64433",
+                "15.51999751"
+              ],
+              [
+                "0.64592",
+                "38704.48352737"
+              ],
+              [
+                "0.65",
+                "411.26038462"
+              ],
+              [
+                "0.65521",
+                "28.6673192"
+              ],
+              [
+                "0.6574",
+                "39.9"
+              ],
+              [
+                "0.66",
+                "505.24866888"
+              ]
+            ],
+            "depth_levels": 25
+          }
+        },
+        "plan": {
+          "valid": true,
+          "market": "RUNE-EUR",
+          "side": "buy",
+          "order_type": "limit",
+          "amount": "162.77366321",
+          "entry_eur": 0.61435,
+          "stop_eur": 0.59179,
+          "tp1_eur": 0.65946,
+          "tp2_eur": 0.68202,
+          "profit_alert_eur": 0.65946,
+          "runner_reference_eur": 0.68202,
+          "profit_management_policy": "ALERT_PARTIAL_THEN_RUNNER",
+          "stake_eur": 99.99999999306348,
+          "theoretical_loss_eur": 4.359321233521976,
+          "net_rr_tp1": 1.5179015431927094,
+          "stop_distance_pct": 3.672173842272307,
+          "scenario": "Solaire structural execution validation",
+          "target_note": "2R/3R are management references, not forecasts or instructions to liquidate 100%; at 2R reassess/consider a partial, then keep a runner while structure remains valid",
+          "main_risk": "Failed breakout, spread widening or gap through stop",
+          "cost_assumptions": {
+            "fee_rate_each_side": 0.0025,
+            "slippage_rate_each_side": 0.001
+          },
+          "portfolio_state": "NOT_USED_AS_SIGNAL_VETO",
+          "dry_run": true,
+          "requires_human_approval": true
+        },
+        "gate_vector": {
+          "spread_pct": 0.1908,
+          "depth": {
+            "valid": true,
+            "target_eur": 99.99999999920699,
+            "vwap_eur": 0.61435,
+            "best_ask_eur": 0.61435,
+            "depth_slippage_pct": 0.0,
+            "levels_used": 1
+          },
+          "stop_distance_pct": 3.672173842272307,
+          "net_rr_tp1": 1.5179015431927094
+        },
+        "left_censored_at_v3_t0": false,
+        "architecture_version": "v3.5-near-miss-memory-only-20260924",
+        "runtime_commit": "e637ee40e4127b5e9e7f21c86301441ed7993138"
+      }
+    }
+  },
+  "AMP-EUR": {
+    "first_v3_ready": {
+      "available_ts": 1790449057.1136723,
+      "at_utc": "2026-09-26T18:57:37.113672+00:00",
+      "event": {
+        "event_type": "EXECUTION_GATE_OBSERVATION",
+        "market": "AMP-EUR",
+        "episode": 1,
+        "attempt_id": "AMP-EUR|1|GATE|3",
+        "decision_ts": 1790449057.1136723,
+        "decision_at_utc": "2026-09-26T18:57:37.113672+00:00",
+        "price_eur": 0.0006401,
+        "ready": true,
+        "gate_reason": "ENTRY_READY_SHADOW",
+        "execution": {
+          "spread_pct": 0.1568,
+          "depth": {
+            "valid": true,
+            "target_eur": 64.351047096,
+            "vwap_eur": 0.0006390638860685131,
+            "best_ask_eur": 0.0006388,
+            "depth_slippage_pct": 0.04130965380604312,
+            "levels_used": 2
+          },
+          "depth_benchmark_100_eur": {
+            "valid": true,
+            "target_eur": 100.0,
+            "vwap_eur": 0.0006390767598387833,
+            "best_ask_eur": 0.0006388,
+            "depth_slippage_pct": 0.04332495910821521,
+            "levels_used": 2
+          },
+          "plan": {
+            "valid": true,
+            "market": "AMP-EUR",
+            "side": "buy",
+            "order_type": "limit",
+            "amount": "100705.864",
+            "entry_eur": 0.000639,
+            "stop_eur": 0.0005837,
+            "tp1_eur": 0.0007496,
+            "tp2_eur": 0.0008049,
+            "profit_alert_eur": 0.0007496,
+            "runner_reference_eur": 0.0008049,
+            "profit_management_policy": "ALERT_PARTIAL_THEN_RUNNER",
+            "stake_eur": 64.351047096,
+            "theoretical_loss_eur": 5.999999988894797,
+            "net_rr_tp1": 1.7747713347471321,
+            "stop_distance_pct": 8.65414710485133,
+            "scenario": "Solaire structural execution validation",
+            "target_note": "2R/3R are management references, not forecasts or instructions to liquidate 100%; at 2R reassess/consider a partial, then keep a runner while structure remains valid",
+            "main_risk": "Failed breakout, spread widening or gap through stop",
+            "cost_assumptions": {
+              "fee_rate_each_side": 0.0025,
+              "slippage_rate_each_side": 0.001
+            },
+            "portfolio_state": "NOT_USED_AS_SIGNAL_VETO",
+            "dry_run": true,
+            "requires_human_approval": true
+          },
+          "structural_range_15m_pct": 12.612328551158775,
+          "structural_features": {
+            "atr14_eur": 3.25e-05,
+            "support_eur": 0.0006,
+            "consolidation_range_pct": 12.612328551158775
+          },
+          "ready": true,
+          "reason": "ENTRY_READY_SHADOW",
+          "check_started_ts": 1790449056.6392572,
+          "check_started_at_utc": "2026-09-26T18:57:36.639257+00:00",
+          "book_observed_ts": 1790449056.8648176,
+          "book_observed_at_utc": "2026-09-26T18:57:36.864818+00:00",
+          "structure_observed_ts": 1790449057.1129813,
+          "structure_observed_at_utc": "2026-09-26T18:57:37.112981+00:00",
+          "available_ts": 1790449057.1136723,
+          "available_at_utc": "2026-09-26T18:57:37.113672+00:00",
+          "latency_ms": 474.42,
+          "book_snapshot": {
+            "best_bid_eur": 0.0006378,
+            "best_ask_eur": 0.0006388,
+            "asks": [
+              [
+                "0.0006388",
+                "12121.737"
+              ],
+              [
+                "0.0006391",
+                "709408.937"
+              ],
+              [
+                "0.0006392",
+                "2503128.911"
+              ],
+              [
+                "0.0006409",
+                "2496489.311"
+              ],
+              [
+                "0.000642",
+                "82905"
+              ],
+              [
+                "0.0006439",
+                "607101.964"
+              ],
+              [
+                "0.000644",
+                "88339"
+              ],
+              [
+                "0.00065",
+                "77115.385"
+              ],
+              [
+                "0.0006599",
+                "77343.819"
+              ],
+              [
+                "0.00066",
+                "145334.067"
+              ],
+              [
+                "0.000664",
+                "226450"
+              ],
+              [
+                "0.0006643",
+                "8315.153"
+              ],
+              [
+                "0.000666",
+                "666036.645"
+              ],
+              [
+                "0.00067",
+                "244813.433"
+              ],
+              [
+                "0.0006716",
+                "36737.481"
+              ],
+              [
+                "0.0006779",
+                "37641.552"
+              ],
+              [
+                "0.0006799",
+                "4822966.361"
+              ],
+              [
+                "0.00068",
+                "42898643.608"
+              ],
+              [
+                "0.000685",
+                "59846.8"
+              ],
+              [
+                "0.000687",
+                "73143.525"
+              ],
+              [
+                "0.0006896",
+                "151710.884"
+              ],
+              [
+                "0.0006899",
+                "155391.95"
+              ],
+              [
+                "0.0006949",
+                "210395.44"
+              ],
+              [
+                "0.000695",
+                "58986"
+              ],
+              [
+                "0.0007",
+                "642302.263"
+              ]
+            ],
+            "depth_levels": 25
+          }
+        },
+        "plan": {
+          "valid": true,
+          "market": "AMP-EUR",
+          "side": "buy",
+          "order_type": "limit",
+          "amount": "100705.864",
+          "entry_eur": 0.000639,
+          "stop_eur": 0.0005837,
+          "tp1_eur": 0.0007496,
+          "tp2_eur": 0.0008049,
+          "profit_alert_eur": 0.0007496,
+          "runner_reference_eur": 0.0008049,
+          "profit_management_policy": "ALERT_PARTIAL_THEN_RUNNER",
+          "stake_eur": 64.351047096,
+          "theoretical_loss_eur": 5.999999988894797,
+          "net_rr_tp1": 1.7747713347471321,
+          "stop_distance_pct": 8.65414710485133,
+          "scenario": "Solaire structural execution validation",
+          "target_note": "2R/3R are management references, not forecasts or instructions to liquidate 100%; at 2R reassess/consider a partial, then keep a runner while structure remains valid",
+          "main_risk": "Failed breakout, spread widening or gap through stop",
+          "cost_assumptions": {
+            "fee_rate_each_side": 0.0025,
+            "slippage_rate_each_side": 0.001
+          },
+          "portfolio_state": "NOT_USED_AS_SIGNAL_VETO",
+          "dry_run": true,
+          "requires_human_approval": true
+        },
+        "gate_vector": {
+          "spread_pct": 0.1568,
+          "depth": {
+            "valid": true,
+            "target_eur": 64.351047096,
+            "vwap_eur": 0.0006390638860685131,
+            "best_ask_eur": 0.0006388,
+            "depth_slippage_pct": 0.04130965380604312,
+            "levels_used": 2
+          },
+          "stop_distance_pct": 8.65414710485133,
+          "net_rr_tp1": 1.7747713347471321
+        },
+        "left_censored_at_v3_t0": false,
+        "architecture_version": "v3.5-near-miss-memory-only-20260924",
+        "runtime_commit": "e40720582df943e3b1b1e99b51616937c28d24c3"
+      }
+    },
+    "first_v31_selectable": {
+      "available_ts": 1790449649.2383716,
+      "at_utc": "2026-09-26T19:07:29.238372+00:00",
+      "event": {
+        "event_type": "V31_QUALIFIED_ENTRY",
+        "market": "AMP-EUR",
+        "episode": 1,
+        "decision_ts": 1790449649.2383716,
+        "decision_at_utc": "2026-09-26T19:07:29.238372+00:00",
+        "price_eur": 0.0006401,
+        "entry_eur": 0.0006390745815574722,
+        "stop_eur": 0.0005837,
+        "tp1_eur": 0.0007498237446724166,
+        "stake_eur": 91.43,
+        "economic_score": 6.562,
+        "selection_reason": "SELECTABLE",
+        "preliminary": {
+          "preliminary_score": 6.696,
+          "components": {
+            "persistence": 8.536,
+            "relative_strength": 8.759,
+            "participation": 4.894,
+            "entry_geometry": 2.551,
+            "context": 3.0
+          },
+          "contradiction_penalty": 0,
+          "penalties": {},
+          "diagnostics": {
+            "return_20m_pct": 2.3193,
+            "return_1h_pct": 3.1214,
+            "return_4h_pct": 10.1598,
+            "relative_strength_1h_pp": 3.4832,
+            "relative_strength_4h_pp": 10.117,
+            "change_24h_pct": 44.2967,
+            "extension_ma20_pct": 4.9801,
+            "legacy_v2_score_unused": 5.081,
+            "legacy_v3_opportunity_score_unused": 4.87
+          }
+        },
+        "execution_quality": {
+          "available": true,
+          "ready": true,
+          "score": 6.219,
+          "reason": "EXECUTION_READY",
+          "components": {
+            "spread": 8.171,
+            "depth_slippage": 10.0,
+            "stop_geometry": 4.67,
+            "net_rr": 1.834
+          }
+        },
+        "sizing": {
+          "valid": true,
+          "stake_eur": 91.43,
+          "target_risk_eur": 8.56,
+          "theoretical_risk_eur": 8.53,
+          "effective_risk_pct": 9.3648,
+          "raw_stop_distance_pct": 8.6648,
+          "liquidity_cap_eur": 250.0,
+          "method": "score_aware_risk_budget_with_notional_and_liquidity_caps",
+          "final_stake_repriced": true
+        },
+        "entry_path": "RAW",
+        "upstream_v3_architecture_version": "v3.5-near-miss-memory-only-20260924",
+        "legacy_v2_score_unused": 5.081,
+        "legacy_v3_opportunity_score_unused": 4.87,
+        "left_censored_at_v31_t0": false,
+        "attempt_id": "AMP-EUR|1|RAW|1|v3.1.4-memory-only-baseline-20260924",
+        "decision_id": "AMP-EUR|1|RAW|1|v3.1.4-memory-only-baseline-20260924",
+        "transition_from": null,
+        "transition_from_reason": null,
+        "execution_reason": "ENTRY_READY_SHADOW",
+        "execution": {
+          "spread_pct": 0.1568,
+          "depth": {
+            "valid": true,
+            "target_eur": 91.43,
+            "vwap_eur": 0.0006390745815574722,
+            "best_ask_eur": 0.0006388,
+            "depth_slippage_pct": 0.042983963286191695,
+            "levels_used": 2
+          },
+          "depth_benchmark_100_eur": {
+            "valid": true,
+            "target_eur": 100.0,
+            "vwap_eur": 0.0006390767598387833,
+            "best_ask_eur": 0.0006388,
+            "depth_slippage_pct": 0.04332495910821521,
+            "levels_used": 2
+          },
+          "plan": {
+            "valid": true,
+            "market": "AMP-EUR",
+            "side": "buy",
+            "order_type": "limit",
+            "amount": "100705.864",
+            "entry_eur": 0.0006390745815574722,
+            "stop_eur": 0.0005837,
+            "tp1_eur": 0.0007498237446724166,
+            "tp2_eur": 0.0008051983262298887,
+            "profit_alert_eur": 0.0007496,
+            "runner_reference_eur": 0.0008049,
+            "profit_management_policy": "ALERT_PARTIAL_THEN_RUNNER",
+            "stake_eur": 91.43,
+            "theoretical_loss_eur": 8.534515577945081,
+            "net_rr_tp1": 1.7750276530091822,
+            "stop_distance_pct": 8.664807387976566,
+            "scenario": "Solaire structural execution validation",
+            "target_note": "2R/3R are management references, not forecasts or instructions to liquidate 100%; at 2R reassess/consider a partial, then keep a runner while structure remains valid",
+            "main_risk": "Failed breakout, spread widening or gap through stop",
+            "cost_assumptions": {
+              "fee_rate_each_side": 0.0025,
+              "slippage_rate_each_side": 0.001
+            },
+            "portfolio_state": "NOT_USED_AS_SIGNAL_VETO",
+            "dry_run": true,
+            "requires_human_approval": true,
+            "final_notional_repriced": true
+          },
+          "structural_range_15m_pct": 12.612328551158775,
+          "structural_features": {
+            "atr14_eur": 3.25e-05,
+            "support_eur": 0.0006,
+            "consolidation_range_pct": 12.612328551158775
+          },
+          "ready": true,
+          "reason": "ENTRY_READY_SHADOW",
+          "check_started_ts": 1790449056.6392572,
+          "check_started_at_utc": "2026-09-26T18:57:36.639257+00:00",
+          "book_observed_ts": 1790449056.8648176,
+          "book_observed_at_utc": "2026-09-26T18:57:36.864818+00:00",
+          "structure_observed_ts": 1790449057.1129813,
+          "structure_observed_at_utc": "2026-09-26T18:57:37.112981+00:00",
+          "available_ts": 1790449057.1136723,
+          "available_at_utc": "2026-09-26T18:57:37.113672+00:00",
+          "latency_ms": 474.42,
+          "book_snapshot": {
+            "best_bid_eur": 0.0006378,
+            "best_ask_eur": 0.0006388,
+            "asks": [
+              [
+                "0.0006388",
+                "12121.737"
+              ],
+              [
+                "0.0006391",
+                "709408.937"
+              ],
+              [
+                "0.0006392",
+                "2503128.911"
+              ],
+              [
+                "0.0006409",
+                "2496489.311"
+              ],
+              [
+                "0.000642",
+                "82905"
+              ],
+              [
+                "0.0006439",
+                "607101.964"
+              ],
+              [
+                "0.000644",
+                "88339"
+              ],
+              [
+                "0.00065",
+                "77115.385"
+              ],
+              [
+                "0.0006599",
+                "77343.819"
+              ],
+              [
+                "0.00066",
+                "145334.067"
+              ],
+              [
+                "0.000664",
+                "226450"
+              ],
+              [
+                "0.0006643",
+                "8315.153"
+              ],
+              [
+                "0.000666",
+                "666036.645"
+              ],
+              [
+                "0.00067",
+                "244813.433"
+              ],
+              [
+                "0.0006716",
+                "36737.481"
+              ],
+              [
+                "0.0006779",
+                "37641.552"
+              ],
+              [
+                "0.0006799",
+                "4822966.361"
+              ],
+              [
+                "0.00068",
+                "42898643.608"
+              ],
+              [
+                "0.000685",
+                "59846.8"
+              ],
+              [
+                "0.000687",
+                "73143.525"
+              ],
+              [
+                "0.0006896",
+                "151710.884"
+              ],
+              [
+                "0.0006899",
+                "155391.95"
+              ],
+              [
+                "0.0006949",
+                "210395.44"
+              ],
+              [
+                "0.000695",
+                "58986"
+              ],
+              [
+                "0.0007",
+                "642302.263"
+              ]
+            ],
+            "depth_levels": 25
+          },
+          "execution_age_seconds": 592.125,
+          "final_stake_eur": 91.43,
+          "repriced_from_causal_book": true
+        },
+        "plan_available_ts": 1790449057.1136723,
+        "plan_available_at_utc": "2026-09-26T18:57:37.113672+00:00",
+        "execution_age_seconds": 592.125,
+        "architecture_version": "v3.1.4-memory-only-baseline-20260924"
+      }
+    }
+  },
+  "AGI-EUR": {
+    "first_v3_ready": {
+      "available_ts": 1790462668.956561,
+      "at_utc": "2026-09-26T22:44:28.956561+00:00",
+      "event": {
+        "event_type": "NEAR_MISS_EXECUTION_OBSERVATION",
+        "market": "AGI-EUR",
+        "episode": 1,
+        "attempt_id": "AGI-EUR|1|NEAR_MISS_GATE|2",
+        "decision_ts": 1790462668.956561,
+        "decision_at_utc": "2026-09-26T22:44:28.956561+00:00",
+        "price_eur": 0.006,
+        "ready": true,
+        "gate_reason": "ENTRY_READY_SHADOW",
+        "execution": {
+          "spread_pct": 0.468,
+          "depth": {
+            "valid": true,
+            "target_eur": 99.99999999998847,
+            "vwap_eur": 0.006016320176407809,
+            "best_ask_eur": 0.006011,
+            "depth_slippage_pct": 0.0885073433340322,
+            "levels_used": 3
+          },
+          "depth_benchmark_100_eur": {
+            "valid": true,
+            "target_eur": 100.0,
+            "vwap_eur": 0.006016320176407811,
+            "best_ask_eur": 0.006011,
+            "depth_slippage_pct": 0.08850734333407662,
+            "levels_used": 3
+          },
+          "plan": {
+            "valid": true,
+            "market": "AGI-EUR",
+            "side": "buy",
+            "order_type": "limit",
+            "amount": "16622.34042552",
+            "entry_eur": 0.006016,
+            "stop_eur": 0.005777,
+            "tp1_eur": 0.006493,
+            "tp2_eur": 0.006732,
+            "profit_alert_eur": 0.006493,
+            "runner_reference_eur": 0.006732,
+            "profit_management_policy": "ALERT_PARTIAL_THEN_RUNNER",
+            "stake_eur": 99.99999999992832,
+            "theoretical_loss_eur": 4.658834773932826,
+            "net_rr_tp1": 1.545688081905126,
+            "stop_distance_pct": 3.972739361702122,
+            "scenario": "Solaire structural execution validation",
+            "target_note": "2R/3R are management references, not forecasts or instructions to liquidate 100%; at 2R reassess/consider a partial, then keep a runner while structure remains valid",
+            "main_risk": "Failed breakout, spread widening or gap through stop",
+            "cost_assumptions": {
+              "fee_rate_each_side": 0.0025,
+              "slippage_rate_each_side": 0.001
+            },
+            "portfolio_state": "NOT_USED_AS_SIGNAL_VETO",
+            "dry_run": true,
+            "requires_human_approval": true
+          },
+          "structural_range_15m_pct": 8.85311871227364,
+          "structural_features": {
+            "atr14_eur": 0.0001591428571428574,
+            "support_eur": 0.005901,
+            "consolidation_range_pct": 8.85311871227364
+          },
+          "ready": true,
+          "reason": "ENTRY_READY_SHADOW",
+          "check_started_ts": 1790462668.3964667,
+          "check_started_at_utc": "2026-09-26T22:44:28.396467+00:00",
+          "book_observed_ts": 1790462668.7528546,
+          "book_observed_at_utc": "2026-09-26T22:44:28.752855+00:00",
+          "structure_observed_ts": 1790462668.9555776,
+          "structure_observed_at_utc": "2026-09-26T22:44:28.955578+00:00",
+          "available_ts": 1790462668.956561,
+          "available_at_utc": "2026-09-26T22:44:28.956561+00:00",
+          "latency_ms": 560.09,
+          "book_snapshot": {
+            "best_bid_eur": 0.005983,
+            "best_ask_eur": 0.006011,
+            "asks": [
+              [
+                "0.006011",
+                "4444.83309876"
+              ],
+              [
+                "0.006012",
+                "8364"
+              ],
+              [
+                "0.006032",
+                "6440"
+              ],
+              [
+                "0.006033",
+                "20912.443098"
+              ],
+              [
+                "0.006039",
+                "42196.6133187"
+              ],
+              [
+                "0.00604",
+                "4524"
+              ],
+              [
+                "0.006049",
+                "23735.594991"
+              ],
+              [
+                "0.006129",
+                "85623.48994654"
+              ],
+              [
+                "0.006156",
+                "1624.43144899"
+              ],
+              [
+                "0.006157",
+                "1624.16761409"
+              ],
+              [
+                "0.006184",
+                "1617.076326"
+              ],
+              [
+                "0.006296",
+                "1588.31003811"
+              ],
+              [
+                "0.006297",
+                "1588.0578053"
+              ],
+              [
+                "0.006308",
+                "1585.28852251"
+              ],
+              [
+                "0.006431",
+                "8137"
+              ],
+              [
+                "0.006469",
+                "4553.12768"
+              ],
+              [
+                "0.0065",
+                "9227.1056596"
+              ],
+              [
+                "0.006592",
+                "1636.05051665"
+              ],
+              [
+                "0.007",
+                "18113.53557381"
+              ],
+              [
+                "0.007045",
+                "1196.65809769"
+              ],
+              [
+                "0.007084",
+                "27177.23577236"
+              ],
+              [
+                "0.007158",
+                "138491.32526007"
+              ],
+              [
+                "0.00725",
+                "1038.69577198"
+              ],
+              [
+                "0.007399",
+                "364711.779884"
+              ],
+              [
+                "0.0074",
+                "49605.10322499"
+              ]
+            ],
+            "depth_levels": 25
+          }
+        },
+        "plan": {
+          "valid": true,
+          "market": "AGI-EUR",
+          "side": "buy",
+          "order_type": "limit",
+          "amount": "16622.34042552",
+          "entry_eur": 0.006016,
+          "stop_eur": 0.005777,
+          "tp1_eur": 0.006493,
+          "tp2_eur": 0.006732,
+          "profit_alert_eur": 0.006493,
+          "runner_reference_eur": 0.006732,
+          "profit_management_policy": "ALERT_PARTIAL_THEN_RUNNER",
+          "stake_eur": 99.99999999992832,
+          "theoretical_loss_eur": 4.658834773932826,
+          "net_rr_tp1": 1.545688081905126,
+          "stop_distance_pct": 3.972739361702122,
+          "scenario": "Solaire structural execution validation",
+          "target_note": "2R/3R are management references, not forecasts or instructions to liquidate 100%; at 2R reassess/consider a partial, then keep a runner while structure remains valid",
+          "main_risk": "Failed breakout, spread widening or gap through stop",
+          "cost_assumptions": {
+            "fee_rate_each_side": 0.0025,
+            "slippage_rate_each_side": 0.001
+          },
+          "portfolio_state": "NOT_USED_AS_SIGNAL_VETO",
+          "dry_run": true,
+          "requires_human_approval": true
+        },
+        "observation_only": true,
+        "left_censored_at_v3_t0": false,
+        "architecture_version": "v3.5-near-miss-memory-only-20260924",
+        "runtime_commit": "9a9a3b52b419a66b0c29ebe49b794f4769f61c5c"
+      }
+    }
+  }
+}

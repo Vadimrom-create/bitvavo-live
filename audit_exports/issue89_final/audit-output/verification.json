@@ -1,0 +1,38 @@
+{
+  "decision_replay": [
+    {
+      "scan_id": "20260924T002537Z-260998c2",
+      "ranked_rows": 426,
+      "exact_match": true
+    },
+    {
+      "scan_id": "20260925T215951Z-a7116628",
+      "ranked_rows": 427,
+      "exact_match": true
+    },
+    {
+      "scan_id": "20260927T002351Z-865925ce",
+      "ranked_rows": 427,
+      "exact_match": true
+    }
+  ],
+  "production_evaluator_same_bars_ascending": {
+    "horizon_hours": 24,
+    "result": "TP1",
+    "mfe_pct": 33.8525,
+    "mae_pct": -1.0001,
+    "close_return_pct": 18.8925,
+    "bars_used": 288,
+    "method": "closed_5m_bars_after_decision_bar"
+  },
+  "production_evaluator_same_bars_descending": {
+    "horizon_hours": 24,
+    "result": "TP1",
+    "mfe_pct": 33.8525,
+    "mae_pct": -1.0001,
+    "close_return_pct": 1.4546,
+    "bars_used": 288,
+    "method": "closed_5m_bars_after_decision_bar"
+  },
+  "small_size_tests": "5 assertions passed"
+}

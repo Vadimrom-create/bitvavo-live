@@ -1,0 +1,4070 @@
+{
+  "counts": {
+    "scans": 543,
+    "immediate_occurrences": 2468,
+    "immediate_in_top3": 532,
+    "scans_with_immediate": 473,
+    "scans_with_immediate_but_none_top3": 142,
+    "QNT-EUR_immediate": 32,
+    "QNT-EUR_top3": 3,
+    "KMNO-EUR_immediate": 2,
+    "KMNO-EUR_top3": 1
+  },
+  "first": {
+    "HFT-EUR": {
+      "first_building_or_confirmed": {
+        "at_utc": "2026-09-21T00:27:35.662571+00:00",
+        "price": 0.0052,
+        "acceleration": {
+          "state": "BUILDING_ACCELERATION",
+          "score": 5.056,
+          "detected": true,
+          "components": {
+            "momentum_5m": 3.033536585365857,
+            "momentum_acceleration_5m": 4.907523528825497,
+            "volume_expansion": 10.0,
+            "breakout_pressure": 3.75,
+            "confirmation_15m": 3.5610040863981007
+          },
+          "evidence_count": 3,
+          "buyability": "DETECTED_BUT_TOO_LATE",
+          "alert_eligible": false,
+          "affects_baseline": false
+        },
+        "decision": {
+          "market": "HFT-EUR",
+          "price_eur": 0.0052,
+          "opportunity_score": 3.88,
+          "entry_score": 4.5,
+          "trend_score": 2.7,
+          "rank_score": 2.7468,
+          "bucket": null,
+          "action": "WATCH",
+          "structural_vetoes": [],
+          "reason": "Candidate retained as watch; no decision bucket threshold met."
+        },
+        "rank": 371,
+        "trade_plan": null
+      },
+      "first_confirmed": {
+        "at_utc": "2026-09-21T13:46:16.245676+00:00",
+        "price": 0.005314,
+        "acceleration": {
+          "state": "CONFIRMED_ACCELERATION",
+          "score": 7.367,
+          "detected": true,
+          "components": {
+            "momentum_5m": 8.74268149882905,
+            "momentum_acceleration_5m": 4.726078356363816,
+            "volume_expansion": 10.0,
+            "breakout_pressure": 3.75,
+            "confirmation_15m": 10.0
+          },
+          "evidence_count": 4,
+          "buyability": "DETECTED_BUT_TOO_LATE",
+          "alert_eligible": false,
+          "affects_baseline": false
+        },
+        "decision": {
+          "market": "HFT-EUR",
+          "price_eur": 0.005314,
+          "opportunity_score": 0.0,
+          "entry_score": 0.0,
+          "trend_score": 0.0,
+          "rank_score": -0.4896,
+          "bucket": null,
+          "action": "WATCH",
+          "structural_vetoes": [],
+          "reason": "No V4 structural candidate."
+        },
+        "rank": 422,
+        "trade_plan": null
+      }
+    },
+    "TREAD-EUR": {
+      "first_building_or_confirmed": {
+        "at_utc": "2026-09-21T01:02:59.123557+00:00",
+        "price": 0.43255,
+        "acceleration": {
+          "state": "CONFIRMED_ACCELERATION",
+          "score": 8.405,
+          "detected": true,
+          "components": {
+            "momentum_5m": 8.517323084665339,
+            "momentum_acceleration_5m": 10.0,
+            "volume_expansion": 10.0,
+            "breakout_pressure": 2.3349056603773755,
+            "confirmation_15m": 10.0
+          },
+          "evidence_count": 4,
+          "buyability": "REQUIRES_FINAL_EXECUTION_VALIDATION",
+          "alert_eligible": false,
+          "affects_baseline": false
+        },
+        "decision": {
+          "market": "TREAD-EUR",
+          "price_eur": 0.43255,
+          "opportunity_score": 7.912,
+          "entry_score": 6.1,
+          "trend_score": 5.0,
+          "rank_score": 5.9379,
+          "bucket": null,
+          "action": "WATCH",
+          "structural_vetoes": [],
+          "reason": "Candidate retained as watch; no decision bucket threshold met."
+        },
+        "rank": 169,
+        "trade_plan": null
+      },
+      "first_confirmed": {
+        "at_utc": "2026-09-21T01:02:59.123557+00:00",
+        "price": 0.43255,
+        "acceleration": {
+          "state": "CONFIRMED_ACCELERATION",
+          "score": 8.405,
+          "detected": true,
+          "components": {
+            "momentum_5m": 8.517323084665339,
+            "momentum_acceleration_5m": 10.0,
+            "volume_expansion": 10.0,
+            "breakout_pressure": 2.3349056603773755,
+            "confirmation_15m": 10.0
+          },
+          "evidence_count": 4,
+          "buyability": "REQUIRES_FINAL_EXECUTION_VALIDATION",
+          "alert_eligible": false,
+          "affects_baseline": false
+        },
+        "decision": {
+          "market": "TREAD-EUR",
+          "price_eur": 0.43255,
+          "opportunity_score": 7.912,
+          "entry_score": 6.1,
+          "trend_score": 5.0,
+          "rank_score": 5.9379,
+          "bucket": null,
+          "action": "WATCH",
+          "structural_vetoes": [],
+          "reason": "Candidate retained as watch; no decision bucket threshold met."
+        },
+        "rank": 169,
+        "trade_plan": null
+      }
+    },
+    "AMP-EUR": {
+      "first_building_or_confirmed": {
+        "at_utc": "2026-09-21T01:21:54.484517+00:00",
+        "price": 0.0004057,
+        "acceleration": {
+          "state": "BUILDING_ACCELERATION",
+          "score": 4.997,
+          "detected": true,
+          "components": {
+            "momentum_5m": 3.121253746253758,
+            "momentum_acceleration_5m": 4.19550449550451,
+            "volume_expansion": 10.0,
+            "breakout_pressure": 3.75,
+            "confirmation_15m": 4.49550449550451
+          },
+          "evidence_count": 3,
+          "buyability": "DETECTED_BUT_TOO_LATE",
+          "alert_eligible": false,
+          "affects_baseline": false
+        },
+        "decision": {
+          "market": "AMP-EUR",
+          "price_eur": 0.0004057,
+          "opportunity_score": 0.0,
+          "entry_score": 0.0,
+          "trend_score": 0.0,
+          "rank_score": -0.55,
+          "bucket": null,
+          "action": "WATCH",
+          "structural_vetoes": [],
+          "reason": "No V4 structural candidate."
+        },
+        "rank": 422,
+        "trade_plan": null
+      },
+      "first_confirmed": {
+        "at_utc": "2026-09-22T15:14:46.746802+00:00",
+        "price": 0.0004284,
+        "acceleration": {
+          "state": "CONFIRMED_ACCELERATION",
+          "score": 6.774,
+          "detected": true,
+          "components": {
+            "momentum_5m": 5.654904306220107,
+            "momentum_acceleration_5m": 8.308590769371161,
+            "volume_expansion": 10.0,
+            "breakout_pressure": 0.0,
+            "confirmation_15m": 10.0
+          },
+          "evidence_count": 4,
+          "buyability": "DETECTED_BUT_TOO_LATE",
+          "alert_eligible": false,
+          "affects_baseline": false
+        },
+        "decision": {
+          "market": "AMP-EUR",
+          "price_eur": 0.0004284,
+          "opportunity_score": 6.945,
+          "entry_score": 4.5,
+          "trend_score": 7.25,
+          "rank_score": 5.7947,
+          "bucket": null,
+          "action": "WATCH",
+          "structural_vetoes": [],
+          "reason": "Candidate retained as watch; no decision bucket threshold met."
+        },
+        "rank": 219,
+        "trade_plan": null
+      }
+    },
+    "KMNO-EUR": {
+      "first_building_or_confirmed": {
+        "at_utc": "2026-09-21T02:49:48.101486+00:00",
+        "price": 0.029702,
+        "acceleration": {
+          "state": "BUILDING_ACCELERATION",
+          "score": 5.164,
+          "detected": true,
+          "components": {
+            "momentum_5m": 4.64261927827557,
+            "momentum_acceleration_5m": 5.167598843309252,
+            "volume_expansion": 10.0,
+            "breakout_pressure": 0.0,
+            "confirmation_15m": 4.789207228887138
+          },
+          "evidence_count": 4,
+          "buyability": "DETECTED_BUT_TOO_LATE",
+          "alert_eligible": false,
+          "affects_baseline": false
+        },
+        "decision": {
+          "market": "KMNO-EUR",
+          "price_eur": 0.029702,
+          "opportunity_score": 7.891,
+          "entry_score": 5.2,
+          "trend_score": 8.55,
+          "rank_score": 6.5573,
+          "bucket": "MEILLEUR_PULLBACK_REENTRY",
+          "action": "ATTENDS_REPRISE_OU_REENTREE",
+          "structural_vetoes": [],
+          "reason": "Strong trend/opportunity retained through pullback; timing does not erase setup."
+        },
+        "rank": 72,
+        "trade_plan": null
+      },
+      "first_confirmed": {
+        "at_utc": "2026-09-21T08:44:35.947136+00:00",
+        "price": 0.030473,
+        "acceleration": {
+          "state": "CONFIRMED_ACCELERATION",
+          "score": 7.532,
+          "detected": true,
+          "components": {
+            "momentum_5m": 7.644806697522474,
+            "momentum_acceleration_5m": 7.412516365732136,
+            "volume_expansion": 10.0,
+            "breakout_pressure": 5.449519628954804,
+            "confirmation_15m": 5.683474787744025
+          },
+          "evidence_count": 5,
+          "buyability": "DETECTED_BUT_TOO_LATE",
+          "alert_eligible": false,
+          "affects_baseline": false
+        },
+        "decision": {
+          "market": "KMNO-EUR",
+          "price_eur": 0.030473,
+          "opportunity_score": 7.866,
+          "entry_score": 5.75,
+          "trend_score": 8.6,
+          "rank_score": 6.1573,
+          "bucket": "MEILLEUR_LATENT_ACCELERATOR",
+          "action": "LATENT_ACCELERATOR",
+          "structural_vetoes": [],
+          "reason": "Strong structural opportunity retained despite weak instantaneous entry."
+        },
+        "rank": 160,
+        "trade_plan": null
+      },
+      "first_dl_immediate": {
+        "at_utc": "2026-09-24T13:31:01.048568+00:00",
+        "price": 0.032316,
+        "acceleration": {
+          "state": "NO_ACCELERATION",
+          "score": 2.906,
+          "detected": false,
+          "components": {
+            "momentum_5m": 1.0729251043678367,
+            "momentum_acceleration_5m": 1.9429895772962062,
+            "volume_expansion": 10.0,
+            "breakout_pressure": 0.6538066946375176,
+            "confirmation_15m": 0.0
+          },
+          "evidence_count": 1,
+          "buyability": "NOT_APPLICABLE",
+          "alert_eligible": false,
+          "affects_baseline": false
+        },
+        "decision": {
+          "market": "KMNO-EUR",
+          "price_eur": 0.032316,
+          "opportunity_score": 9.302,
+          "entry_score": 7.5,
+          "trend_score": 8.55,
+          "rank_score": 8.4399,
+          "bucket": "MEILLEUR_ACHAT_IMMEDIAT",
+          "action": "ACHETE_MAINTENANT",
+          "structural_vetoes": [],
+          "reason": "V4 buy-ready with acceptable current entry; no structural veto."
+        },
+        "rank": 1,
+        "trade_plan": {
+          "suggested_stake_eur": 150.0,
+          "structural_stop_guide_pct": 7.0,
+          "risk_eur_at_guide": 10.5,
+          "tp1_pct": 7.0,
+          "runner_target_pct": 15.0,
+          "runner_keep_pct": 40.0,
+          "note": "Sizing guide only: stop must be placed on structural invalidation, not mechanically at this percentage."
+        }
+      }
+    },
+    "QNT-EUR": {
+      "first_dl_immediate": {
+        "at_utc": "2026-09-21T08:59:21.708216+00:00",
+        "price": 57.932,
+        "acceleration": {
+          "state": "NO_ACCELERATION",
+          "score": 2.213,
+          "detected": false,
+          "components": {
+            "momentum_5m": 0.43255894590847666,
+            "momentum_acceleration_5m": 0.0,
+            "volume_expansion": 6.64086259938993,
+            "breakout_pressure": 3.9417528978872873,
+            "confirmation_15m": 1.634081808851029
+          },
+          "evidence_count": 1,
+          "buyability": "NOT_APPLICABLE",
+          "alert_eligible": false,
+          "affects_baseline": false
+        },
+        "decision": {
+          "market": "QNT-EUR",
+          "price_eur": 57.932,
+          "opportunity_score": 8.118,
+          "entry_score": 7.3,
+          "trend_score": 4.8,
+          "rank_score": 6.4407,
+          "bucket": "MEILLEUR_ACHAT_IMMEDIAT",
+          "action": "ACHETE_MAINTENANT",
+          "structural_vetoes": [],
+          "reason": "V4 buy-ready with acceptable current entry; no structural veto."
+        },
+        "rank": 133,
+        "trade_plan": {
+          "suggested_stake_eur": 150.0,
+          "structural_stop_guide_pct": 4.97,
+          "risk_eur_at_guide": 7.45,
+          "tp1_pct": 7.0,
+          "runner_target_pct": 15.0,
+          "runner_keep_pct": 40.0,
+          "note": "Sizing guide only: stop must be placed on structural invalidation, not mechanically at this percentage."
+        }
+      },
+      "first_building_or_confirmed": {
+        "at_utc": "2026-09-22T10:21:29.533360+00:00",
+        "price": 59.75,
+        "acceleration": {
+          "state": "BUILDING_ACCELERATION",
+          "score": 5.068,
+          "detected": true,
+          "components": {
+            "momentum_5m": 3.271622643754344,
+            "momentum_acceleration_5m": 4.074793601198168,
+            "volume_expansion": 10.0,
+            "breakout_pressure": 4.242858579762645,
+            "confirmation_15m": 4.316097581352807
+          },
+          "evidence_count": 4,
+          "buyability": "REQUIRES_FINAL_EXECUTION_VALIDATION",
+          "alert_eligible": false,
+          "affects_baseline": false
+        },
+        "decision": {
+          "market": "QNT-EUR",
+          "price_eur": 59.75,
+          "opportunity_score": 8.554,
+          "entry_score": 7.55,
+          "trend_score": 5.45,
+          "rank_score": 6.7514,
+          "bucket": "MEILLEUR_ACHAT_IMMEDIAT",
+          "action": "ACHETE_MAINTENANT",
+          "structural_vetoes": [],
+          "reason": "V4 buy-ready with acceptable current entry; no structural veto."
+        },
+        "rank": 57,
+        "trade_plan": {
+          "suggested_stake_eur": 150.0,
+          "structural_stop_guide_pct": 4.94,
+          "risk_eur_at_guide": 7.41,
+          "tp1_pct": 7.0,
+          "runner_target_pct": 15.0,
+          "runner_keep_pct": 40.0,
+          "note": "Sizing guide only: stop must be placed on structural invalidation, not mechanically at this percentage."
+        }
+      },
+      "first_confirmed": {
+        "at_utc": "2026-09-24T13:50:02.989835+00:00",
+        "price": 67.948,
+        "acceleration": {
+          "state": "CONFIRMED_ACCELERATION",
+          "score": 8.209,
+          "detected": true,
+          "components": {
+            "momentum_5m": 9.75892030008961,
+            "momentum_acceleration_5m": 10.0,
+            "volume_expansion": 9.89261987902261,
+            "breakout_pressure": 0.0,
+            "confirmation_15m": 8.025211041428971
+          },
+          "evidence_count": 4,
+          "buyability": "DETECTED_BUT_TOO_LATE",
+          "alert_eligible": false,
+          "affects_baseline": false
+        },
+        "decision": {
+          "market": "QNT-EUR",
+          "price_eur": 67.948,
+          "opportunity_score": 7.839,
+          "entry_score": 5.85,
+          "trend_score": 8.05,
+          "rank_score": 6.982,
+          "bucket": "MEILLEUR_PULLBACK_REENTRY",
+          "action": "ATTENDS_REPRISE_OU_REENTREE",
+          "structural_vetoes": [],
+          "reason": "Strong trend/opportunity retained through pullback; timing does not erase setup."
+        },
+        "rank": 46,
+        "trade_plan": null
+      }
+    },
+    "AGI-EUR": {
+      "first_building_or_confirmed": {
+        "at_utc": "2026-09-21T09:42:37.705624+00:00",
+        "price": 0.005104,
+        "acceleration": {
+          "state": "BUILDING_ACCELERATION",
+          "score": 5.303,
+          "detected": true,
+          "components": {
+            "momentum_5m": 5.754344986939928,
+            "momentum_acceleration_5m": 7.3552139843279125,
+            "volume_expansion": 3.0645563608218263,
+            "breakout_pressure": 7.499256099980136,
+            "confirmation_15m": 0.0
+          },
+          "evidence_count": 3,
+          "buyability": "REQUIRES_FINAL_EXECUTION_VALIDATION",
+          "alert_eligible": false,
+          "affects_baseline": false
+        },
+        "decision": {
+          "market": "AGI-EUR",
+          "price_eur": 0.005104,
+          "opportunity_score": 6.252,
+          "entry_score": 4.5,
+          "trend_score": 7.15,
+          "rank_score": 5.9113,
+          "bucket": null,
+          "action": "WATCH",
+          "structural_vetoes": [],
+          "reason": "Candidate retained as watch; no decision bucket threshold met."
+        },
+        "rank": 183,
+        "trade_plan": null
+      },
+      "first_confirmed": {
+        "at_utc": "2026-09-22T12:47:11.344546+00:00",
+        "price": 0.005124,
+        "acceleration": {
+          "state": "CONFIRMED_ACCELERATION",
+          "score": 7.48,
+          "detected": true,
+          "components": {
+            "momentum_5m": 5.267928485817017,
+            "momentum_acceleration_5m": 6.77151418298042,
+            "volume_expansion": 10.0,
+            "breakout_pressure": 10.0,
+            "confirmation_15m": 7.071514182980421
+          },
+          "evidence_count": 5,
+          "buyability": "DETECTED_BUT_TOO_LATE",
+          "alert_eligible": false,
+          "affects_baseline": false
+        },
+        "decision": {
+          "market": "AGI-EUR",
+          "price_eur": 0.005124,
+          "opportunity_score": 7.642,
+          "entry_score": 5.6,
+          "trend_score": 7.45,
+          "rank_score": 6.3193,
+          "bucket": null,
+          "action": "VETO_STRUCTUREL",
+          "structural_vetoes": [
+            "ILLIQUID"
+          ],
+          "reason": "Hard data/execution veto: ILLIQUID"
+        },
+        "rank": 127,
+        "trade_plan": null
+      }
+    },
+    "2Z-EUR": {
+      "first_building_or_confirmed": {
+        "at_utc": "2026-09-21T12:53:24.606439+00:00",
+        "price": 0.04576,
+        "acceleration": {
+          "state": "BUILDING_ACCELERATION",
+          "score": 5.086,
+          "detected": true,
+          "components": {
+            "momentum_5m": 3.6424253200569168,
+            "momentum_acceleration_5m": 4.8209103840683,
+            "volume_expansion": 9.632868210918385,
+            "breakout_pressure": 2.243183448935695,
+            "confirmation_15m": 5.247599573257511
+          },
+          "evidence_count": 3,
+          "buyability": "REQUIRES_FINAL_EXECUTION_VALIDATION",
+          "alert_eligible": false,
+          "affects_baseline": false
+        },
+        "decision": {
+          "market": "2Z-EUR",
+          "price_eur": 0.04576,
+          "opportunity_score": 6.22,
+          "entry_score": 6.4,
+          "trend_score": 4.65,
+          "rank_score": 5.1274,
+          "bucket": null,
+          "action": "VETO_STRUCTUREL",
+          "structural_vetoes": [
+            "LOW_LIQUIDITY"
+          ],
+          "reason": "Hard data/execution veto: LOW_LIQUIDITY"
+        },
+        "rank": 290,
+        "trade_plan": null
+      },
+      "first_confirmed": {
+        "at_utc": "2026-09-24T14:25:02.985555+00:00",
+        "price": 0.047861,
+        "acceleration": {
+          "state": "CONFIRMED_ACCELERATION",
+          "score": 8.723,
+          "detected": true,
+          "components": {
+            "momentum_5m": 8.667598262219453,
+            "momentum_acceleration_5m": 10.0,
+            "volume_expansion": 10.0,
+            "breakout_pressure": 10.0,
+            "confirmation_15m": 1.2309841325272242
+          },
+          "evidence_count": 4,
+          "buyability": "REQUIRES_FINAL_EXECUTION_VALIDATION",
+          "alert_eligible": false,
+          "affects_baseline": false
+        },
+        "decision": {
+          "market": "2Z-EUR",
+          "price_eur": 0.047861,
+          "opportunity_score": 7.772,
+          "entry_score": 6.0,
+          "trend_score": 6.05,
+          "rank_score": 6.4762,
+          "bucket": null,
+          "action": "WATCH",
+          "structural_vetoes": [],
+          "reason": "Candidate retained as watch; no decision bucket threshold met."
+        },
+        "rank": 155,
+        "trade_plan": null
+      }
+    },
+    "RARE-EUR": {
+      "first_building_or_confirmed": {
+        "at_utc": "2026-09-21T18:22:06.634635+00:00",
+        "price": 0.011441,
+        "acceleration": {
+          "state": "BUILDING_ACCELERATION",
+          "score": 5.412,
+          "detected": true,
+          "components": {
+            "momentum_5m": 3.2358325197479476,
+            "momentum_acceleration_5m": 6.893717080719764,
+            "volume_expansion": 10.0,
+            "breakout_pressure": 3.4618407265106477,
+            "confirmation_15m": 1.9886726840967262
+          },
+          "evidence_count": 2,
+          "buyability": "REQUIRES_FINAL_EXECUTION_VALIDATION",
+          "alert_eligible": false,
+          "affects_baseline": false
+        },
+        "decision": {
+          "market": "RARE-EUR",
+          "price_eur": 0.011441,
+          "opportunity_score": 8.147,
+          "entry_score": 6.7,
+          "trend_score": 5.65,
+          "rank_score": 6.6456,
+          "bucket": null,
+          "action": "WATCH",
+          "structural_vetoes": [],
+          "reason": "Candidate retained as watch; no decision bucket threshold met."
+        },
+        "rank": 81,
+        "trade_plan": {
+          "suggested_stake_eur": 150.0,
+          "structural_stop_guide_pct": 5.68,
+          "risk_eur_at_guide": 8.53,
+          "tp1_pct": 7.0,
+          "runner_target_pct": 15.0,
+          "runner_keep_pct": 40.0,
+          "note": "Sizing guide only: stop must be placed on structural invalidation, not mechanically at this percentage."
+        }
+      },
+      "first_confirmed": {
+        "at_utc": "2026-09-23T02:41:28.890772+00:00",
+        "price": 0.012123,
+        "acceleration": {
+          "state": "CONFIRMED_ACCELERATION",
+          "score": 6.611,
+          "detected": true,
+          "components": {
+            "momentum_5m": 5.675211416490454,
+            "momentum_acceleration_5m": 8.774767793183557,
+            "volume_expansion": 10.0,
+            "breakout_pressure": 4.76804337030289,
+            "confirmation_15m": 0.0
+          },
+          "evidence_count": 4,
+          "buyability": "REQUIRES_FINAL_EXECUTION_VALIDATION",
+          "alert_eligible": false,
+          "affects_baseline": false
+        },
+        "decision": {
+          "market": "RARE-EUR",
+          "price_eur": 0.012123,
+          "opportunity_score": 8.893,
+          "entry_score": 6.4,
+          "trend_score": 7.1,
+          "rank_score": 7.6548,
+          "bucket": null,
+          "action": "WATCH",
+          "structural_vetoes": [],
+          "reason": "Candidate retained as watch; no decision bucket threshold met."
+        },
+        "rank": 13,
+        "trade_plan": {
+          "suggested_stake_eur": 150.0,
+          "structural_stop_guide_pct": 4.4,
+          "risk_eur_at_guide": 6.6,
+          "tp1_pct": 7.0,
+          "runner_target_pct": 15.0,
+          "runner_keep_pct": 40.0,
+          "note": "Sizing guide only: stop must be placed on structural invalidation, not mechanically at this percentage."
+        }
+      }
+    },
+    "RUNE-EUR": {
+      "first_building_or_confirmed": {
+        "at_utc": "2026-09-21T18:22:06.634635+00:00",
+        "price": 0.53895,
+        "acceleration": {
+          "state": "BUILDING_ACCELERATION",
+          "score": 5.049,
+          "detected": true,
+          "components": {
+            "momentum_5m": 2.9465633728390928,
+            "momentum_acceleration_5m": 6.595645377472536,
+            "volume_expansion": 10.0,
+            "breakout_pressure": 2.1399324511890327,
+            "confirmation_15m": 1.9535526071562725
+          },
+          "evidence_count": 2,
+          "buyability": "REQUIRES_FINAL_EXECUTION_VALIDATION",
+          "alert_eligible": false,
+          "affects_baseline": false
+        },
+        "decision": {
+          "market": "RUNE-EUR",
+          "price_eur": 0.53895,
+          "opportunity_score": 7.721,
+          "entry_score": 6.55,
+          "trend_score": 8.2,
+          "rank_score": 7.3843,
+          "bucket": "MEILLEUR_PULLBACK_REENTRY",
+          "action": "ATTENDS_REPRISE_OU_REENTREE",
+          "structural_vetoes": [],
+          "reason": "Strong trend/opportunity retained through pullback; timing does not erase setup."
+        },
+        "rank": 28,
+        "trade_plan": {
+          "suggested_stake_eur": 150.0,
+          "structural_stop_guide_pct": 5.95,
+          "risk_eur_at_guide": 8.92,
+          "tp1_pct": 7.0,
+          "runner_target_pct": 15.0,
+          "runner_keep_pct": 40.0,
+          "note": "Sizing guide only: stop must be placed on structural invalidation, not mechanically at this percentage."
+        }
+      },
+      "first_confirmed": {
+        "at_utc": "2026-09-22T13:19:12.433902+00:00",
+        "price": 0.57712,
+        "acceleration": {
+          "state": "CONFIRMED_ACCELERATION",
+          "score": 6.868,
+          "detected": true,
+          "components": {
+            "momentum_5m": 5.617673960146328,
+            "momentum_acceleration_5m": 7.1912087521755925,
+            "volume_expansion": 10.0,
+            "breakout_pressure": 5.091919763292987,
+            "confirmation_15m": 6.209561530967522
+          },
+          "evidence_count": 5,
+          "buyability": "DETECTED_BUT_TOO_LATE",
+          "alert_eligible": false,
+          "affects_baseline": false
+        },
+        "decision": {
+          "market": "RUNE-EUR",
+          "price_eur": 0.57712,
+          "opportunity_score": 9.281,
+          "entry_score": 7.15,
+          "trend_score": 8.6,
+          "rank_score": 8.1251,
+          "bucket": "MEILLEUR_PULLBACK_REENTRY",
+          "action": "ATTENDS_REPRISE_OU_REENTREE",
+          "structural_vetoes": [],
+          "reason": "Strong trend/opportunity retained through pullback; timing does not erase setup."
+        },
+        "rank": 2,
+        "trade_plan": {
+          "suggested_stake_eur": 150.0,
+          "structural_stop_guide_pct": 6.55,
+          "risk_eur_at_guide": 9.82,
+          "tp1_pct": 7.0,
+          "runner_target_pct": 15.0,
+          "runner_keep_pct": 40.0,
+          "note": "Sizing guide only: stop must be placed on structural invalidation, not mechanically at this percentage."
+        }
+      }
+    },
+    "COW-EUR": {
+      "first_building_or_confirmed": {
+        "at_utc": "2026-09-22T06:01:02.668430+00:00",
+        "price": 0.14018,
+        "acceleration": {
+          "state": "BUILDING_ACCELERATION",
+          "score": 5.67,
+          "detected": true,
+          "components": {
+            "momentum_5m": 6.209005130084309,
+            "momentum_acceleration_5m": 10.0,
+            "volume_expansion": 0.6562077763995919,
+            "breakout_pressure": 4.007032700271309,
+            "confirmation_15m": 5.751355196370667
+          },
+          "evidence_count": 4,
+          "buyability": "REQUIRES_FINAL_EXECUTION_VALIDATION",
+          "alert_eligible": false,
+          "affects_baseline": false
+        },
+        "decision": {
+          "market": "COW-EUR",
+          "price_eur": 0.14018,
+          "opportunity_score": 8.009,
+          "entry_score": 6.0,
+          "trend_score": 8.5,
+          "rank_score": 7.5323,
+          "bucket": "MEILLEURE_LIMITE_PASSIVE",
+          "action": "PLACE_LIMITE_PASSIVE",
+          "structural_vetoes": [],
+          "reason": "Strong structure but imperfect current entry; prefer passive execution."
+        },
+        "rank": 13,
+        "trade_plan": null
+      }
+    }
+  },
+  "scans": [
+    {
+      "scan_id": "20260920T235850Z-c61e42c7",
+      "scan_ts": 1789948826.0283933,
+      "source_commit": "bb0793baeea51ad74fde58a13248a9833a961577",
+      "markets": 426
+    },
+    {
+      "scan_id": "20260921T002543Z-3d979fd9",
+      "scan_ts": 1789950455.6625707,
+      "source_commit": "4a8ec16ad09b7df074d6d54d83de489267fa8ed2",
+      "markets": 426
+    },
+    {
+      "scan_id": "20260921T004817Z-a6cdddf7",
+      "scan_ts": 1789951784.5265598,
+      "source_commit": "f710dd4b4bdb13cc354dd1fb4d30bd168ef60577",
+      "markets": 426
+    },
+    {
+      "scan_id": "20260921T010135Z-2fd6eaac",
+      "scan_ts": 1789952579.1235569,
+      "source_commit": "9878e87b519a1bfe8bce0c305d45ed5d025e2dcd",
+      "markets": 426
+    },
+    {
+      "scan_id": "20260921T012027Z-0f29908b",
+      "scan_ts": 1789953714.4845166,
+      "source_commit": "11ba32494c800868bbb79e0c5a30d0390eeb7f70",
+      "markets": 426
+    },
+    {
+      "scan_id": "20260921T013732Z-4a0fcd21",
+      "scan_ts": 1789954742.6016421,
+      "source_commit": "4cbfc8e8af46ad7fd25515e2eeabd6f2513d0bfb",
+      "markets": 426
+    },
+    {
+      "scan_id": "20260921T015307Z-1b8105f0",
+      "scan_ts": 1789955676.2806168,
+      "source_commit": "b4c60cc382bc1ef0a05a44913f98e3c939b4cccd",
+      "markets": 426
+    },
+    {
+      "scan_id": "20260921T021119Z-c825def4",
+      "scan_ts": 1789956767.0579412,
+      "source_commit": "ccc7afe723f41ec8e5dafade5ad8c2417bcd8918",
+      "markets": 426
+    },
+    {
+      "scan_id": "20260921T023031Z-e3b6b630",
+      "scan_ts": 1789957946.5436294,
+      "source_commit": "3ad010e773fd6d6f6defcfe93ad2d72bfe683677",
+      "markets": 426
+    },
+    {
+      "scan_id": "20260921T024815Z-5cffaf83",
+      "scan_ts": 1789958988.1014857,
+      "source_commit": "574e299dfe60ce8e472c0ad88b6dee8f977e68c3",
+      "markets": 426
+    },
+    {
+      "scan_id": "20260921T030041Z-3a005cd9",
+      "scan_ts": 1789959736.5742166,
+      "source_commit": "0ed638826dacb14d1c1cc29eb48a7efd5503b29c",
+      "markets": 426
+    },
+    {
+      "scan_id": "20260921T032159Z-9136ae13",
+      "scan_ts": 1789961011.4552693,
+      "source_commit": "7512ab2a7413dd3f92a0331a78d923cda36cd312",
+      "markets": 426
+    },
+    {
+      "scan_id": "20260921T034131Z-c71cc534",
+      "scan_ts": 1789962177.7957885,
+      "source_commit": "8f26ae02c248cac702398fc773e8326633a2ae89",
+      "markets": 426
+    },
+    {
+      "scan_id": "20260921T035711Z-f877e09a",
+      "scan_ts": 1789963118.9715095,
+      "source_commit": "1ac8e00a7bb58fb430fb36855aafc5144de01726",
+      "markets": 426
+    },
+    {
+      "scan_id": "20260921T041900Z-e8a5dd8c",
+      "scan_ts": 1789964428.3119767,
+      "source_commit": "6293f85e04fdeb2af8cde3fd8188b89b2fed1621",
+      "markets": 426
+    },
+    {
+      "scan_id": "20260921T043759Z-d80d7519",
+      "scan_ts": 1789965589.1323621,
+      "source_commit": "4d9374f46d52d7e59b4974bd9535a5476aa4473f",
+      "markets": 426
+    },
+    {
+      "scan_id": "20260921T045416Z-089043b4",
+      "scan_ts": 1789966542.2198682,
+      "source_commit": "9b3940c05330e69ff084db738cd2d106f18475c7",
+      "markets": 426
+    },
+    {
+      "scan_id": "20260921T051328Z-61a59abd",
+      "scan_ts": 1789967692.7194183,
+      "source_commit": "6f3c36d6fd6228649a739f7c6832a6f3511111b1",
+      "markets": 426
+    },
+    {
+      "scan_id": "20260921T053147Z-c1153270",
+      "scan_ts": 1789968796.0708103,
+      "source_commit": "e91ea6a4f933b62198f4a709fb86d3b8578e53a7",
+      "markets": 426
+    },
+    {
+      "scan_id": "20260921T054801Z-a26edc8c",
+      "scan_ts": 1789969770.8118944,
+      "source_commit": "ebb4454697b300610604e7ecc17ebb21d6bf870d",
+      "markets": 426
+    },
+    {
+      "scan_id": "20260921T060045Z-85dc72f7",
+      "scan_ts": 1789970539.4684749,
+      "source_commit": "588a30b4563850036da877e87b5619695a43e6bd",
+      "markets": 426
+    },
+    {
+      "scan_id": "20260921T062839Z-cb3068c4",
+      "scan_ts": 1789972205.564047,
+      "source_commit": "258f5686f036fa0b16573557b94ff0c4c247ffea",
+      "markets": 426
+    },
+    {
+      "scan_id": "20260921T065206Z-2e5c4560",
+      "scan_ts": 1789973644.049438,
+      "source_commit": "8dcb662d648443dc85e24aec0bde94283aedc2b6",
+      "markets": 426
+    },
+    {
+      "scan_id": "20260921T071013Z-70c8805d",
+      "scan_ts": 1789974700.6106646,
+      "source_commit": "1d91870797f3ff83926cfe2e33de896a016d9993",
+      "markets": 426
+    },
+    {
+      "scan_id": "20260921T073058Z-c905cfb8",
+      "scan_ts": 1789975945.9879656,
+      "source_commit": "2f11aab606c3d87506299ce0618f6f8c9f4079ac",
+      "markets": 426
+    },
+    {
+      "scan_id": "20260921T074905Z-1afa9a1e",
+      "scan_ts": 1789977039.3779652,
+      "source_commit": "4430dfebcd8ffa78104d598a1efd4353a2d28904",
+      "markets": 426
+    },
+    {
+      "scan_id": "20260921T080310Z-790bec39",
+      "scan_ts": 1789977880.475341,
+      "source_commit": "72fbb075e83931a87a02bbce471755023384c96e",
+      "markets": 426
+    },
+    {
+      "scan_id": "20260921T081252Z-25cb7a65",
+      "scan_ts": 1789978459.0956655,
+      "source_commit": "2da9e591c1a4545c5224ec1768f74a22b8c645b3",
+      "markets": 426
+    },
+    {
+      "scan_id": "20260921T082445Z-63818529",
+      "scan_ts": 1789979172.6367962,
+      "source_commit": "9ac8a638275c301117f61267a443c6409ccd86d5",
+      "markets": 426
+    },
+    {
+      "scan_id": "20260921T084313Z-da48e1fb",
+      "scan_ts": 1789980275.9471357,
+      "source_commit": "df7a430dee3cf433d055f1f6ea223a75b7bb6ea5",
+      "markets": 426
+    },
+    {
+      "scan_id": "20260921T085733Z-e8656d1d",
+      "scan_ts": 1789981161.708216,
+      "source_commit": "d6ace149d463c5681f6871d01ea0cad65855defa",
+      "markets": 426
+    },
+    {
+      "scan_id": "20260921T092035Z-ff4d27bd",
+      "scan_ts": 1789982523.4922411,
+      "source_commit": "e12fad2b6f62099c65e588876767cdbba307e96d",
+      "markets": 426
+    },
+    {
+      "scan_id": "20260921T093450Z-85675975",
+      "scan_ts": 1789983376.5947473,
+      "source_commit": "27b97ce9cdbda11538aeb705bdd8e60c5c484d0e",
+      "markets": 426
+    },
+    {
+      "scan_id": "20260921T094115Z-20b84586",
+      "scan_ts": 1789983757.705624,
+      "source_commit": "2d9628f2faa2e80a05b2d9f5cd79fc62807ff1e1",
+      "markets": 426
+    },
+    {
+      "scan_id": "20260921T095314Z-36bb28d0",
+      "scan_ts": 1789984488.2653315,
+      "source_commit": "c8a2d46e0654029dcd8fe2622508757276caa336",
+      "markets": 426
+    },
+    {
+      "scan_id": "20260921T101125Z-bcb641c1",
+      "scan_ts": 1789985575.877752,
+      "source_commit": "77c5061e6d96dc21fa4509ba0607212770c1753a",
+      "markets": 426
+    },
+    {
+      "scan_id": "20260921T102944Z-f6fae54f",
+      "scan_ts": 1789986675.238297,
+      "source_commit": "798c4e846662b298f8b33e9542b144e8005b1c86",
+      "markets": 426
+    },
+    {
+      "scan_id": "20260921T104613Z-3b23030c",
+      "scan_ts": 1789987664.1180813,
+      "source_commit": "d9862f706eb0605db1dddea40183017455fcfdab",
+      "markets": 426
+    },
+    {
+      "scan_id": "20260921T105842Z-5bdee3e2",
+      "scan_ts": 1789988438.7353108,
+      "source_commit": "43f396d38e17e39e152e16c600d7886842d0d4e7",
+      "markets": 426
+    },
+    {
+      "scan_id": "20260921T111949Z-30c99aec",
+      "scan_ts": 1789989675.861449,
+      "source_commit": "2a7a1844f7d325d7db8de32d0f181f8f218d0d59",
+      "markets": 426
+    },
+    {
+      "scan_id": "20260921T113745Z-f4efc0ad",
+      "scan_ts": 1789990756.6377828,
+      "source_commit": "cd6c842ae495db37aaff5e033c331125cc659f2b",
+      "markets": 426
+    },
+    {
+      "scan_id": "20260921T115239Z-1e7fb3de",
+      "scan_ts": 1789991650.5614126,
+      "source_commit": "5ca46c92101ea24f0563081abec7b6f0d075b7ca",
+      "markets": 426
+    },
+    {
+      "scan_id": "20260921T120543Z-3e844a6a",
+      "scan_ts": 1789992437.176138,
+      "source_commit": "387ef8c73589b29c800f76b09ffa9cd0b9f47a29",
+      "markets": 426
+    },
+    {
+      "scan_id": "20260921T121215Z-3b024508",
+      "scan_ts": 1789992823.5425322,
+      "source_commit": "3ce3c484accef1811028029937a72bf6d394c044",
+      "markets": 426
+    },
+    {
+      "scan_id": "20260921T123419Z-c62bc05f",
+      "scan_ts": 1789994152.7879965,
+      "source_commit": "550de9ec8ab06af7335089f28de451336442fcd5",
+      "markets": 426
+    },
+    {
+      "scan_id": "20260921T125153Z-06fe828c",
+      "scan_ts": 1789995204.6064394,
+      "source_commit": "47f2b1e9f4ade1af127855df6e0dd5fffcd6a5c3",
+      "markets": 426
+    },
+    {
+      "scan_id": "20260921T130722Z-178a07d5",
+      "scan_ts": 1789996160.489356,
+      "source_commit": "e457da17dbce2119ca96d180aeb5505052441ef8",
+      "markets": 426
+    },
+    {
+      "scan_id": "20260921T132615Z-1bf98422",
+      "scan_ts": 1789997264.5316405,
+      "source_commit": "2f08ee1afdf0ada7718b3c978d7e6242b0cfcfa8",
+      "markets": 426
+    },
+    {
+      "scan_id": "20260921T134442Z-85c7ef36",
+      "scan_ts": 1789998376.2456763,
+      "source_commit": "5e503783a8ebab0dc6eb4a8b41f093555be4aab8",
+      "markets": 426
+    },
+    {
+      "scan_id": "20260921T135844Z-58361449",
+      "scan_ts": 1789999215.4232843,
+      "source_commit": "c1fa517980701821d5b5429ca190cd9e5981821c",
+      "markets": 426
+    },
+    {
+      "scan_id": "20260921T142040Z-c16ad25a",
+      "scan_ts": 1790000532.4074924,
+      "source_commit": "4b8e5276913e213f8427cfc4f34aeff543ac8415",
+      "markets": 426
+    },
+    {
+      "scan_id": "20260921T143842Z-63aa3d44",
+      "scan_ts": 1790001612.6838403,
+      "source_commit": "a0373ae92ae4c4ed89d23eb2c1b4600da2a369a6",
+      "markets": 426
+    },
+    {
+      "scan_id": "20260921T145508Z-f171164a",
+      "scan_ts": 1790002597.6417394,
+      "source_commit": "35000bb6e722ac7d0cd7e42a8da149948565d199",
+      "markets": 426
+    },
+    {
+      "scan_id": "20260921T151310Z-47fc9bb1",
+      "scan_ts": 1790003705.2095072,
+      "source_commit": "d0cc6f72f9b20dda4583c310412b27f543d9d8c4",
+      "markets": 426
+    },
+    {
+      "scan_id": "20260921T153018Z-dc91f919",
+      "scan_ts": 1790004710.4454305,
+      "source_commit": "f49fec4957edc647c706e86c5bfeaaed9fa744c1",
+      "markets": 426
+    },
+    {
+      "scan_id": "20260921T154629Z-ad41ab96",
+      "scan_ts": 1790005682.2145576,
+      "source_commit": "95e4c93c7f5cc64a26b3c1fc6f3b9d5d961efc73",
+      "markets": 426
+    },
+    {
+      "scan_id": "20260921T155945Z-c0ac00bb",
+      "scan_ts": 1790006483.740055,
+      "source_commit": "0e48bc59d69f65ddddf3374ac3e6c2726428b0cb",
+      "markets": 426
+    },
+    {
+      "scan_id": "20260921T162105Z-72e1f870",
+      "scan_ts": 1790007766.0425339,
+      "source_commit": "18e8d37ebf759878f4075c6d536cb5533944bd43",
+      "markets": 426
+    },
+    {
+      "scan_id": "20260921T163909Z-376c4eb2",
+      "scan_ts": 1790008845.317278,
+      "source_commit": "f9607b452aadc7e068268f8bf122d8947e5f3454",
+      "markets": 426
+    },
+    {
+      "scan_id": "20260921T165426Z-9aea81c7",
+      "scan_ts": 1790009762.2176487,
+      "source_commit": "d565bf94820aa78af1afd8ed777ce1f421099883",
+      "markets": 426
+    },
+    {
+      "scan_id": "20260921T171119Z-6066904b",
+      "scan_ts": 1790010778.3826563,
+      "source_commit": "f244ff036b162c4e601042293ed3ffd3a1b06c3a",
+      "markets": 426
+    },
+    {
+      "scan_id": "20260921T172709Z-3fe0ab6f",
+      "scan_ts": 1790011752.688511,
+      "source_commit": "e5c5f7a81009c00a47ed9607245c5dcf56250b68",
+      "markets": 426
+    },
+    {
+      "scan_id": "20260921T174337Z-295a6bdb",
+      "scan_ts": 1790012709.6130714,
+      "source_commit": "1b2d9010b5b35afc924523eb73283a59e8721d73",
+      "markets": 426
+    },
+    {
+      "scan_id": "20260921T175014Z-62e7db47",
+      "scan_ts": 1790013109.4442348,
+      "source_commit": "4ff2cbb295ee8e474ffee8815d50f875442fcf0c",
+      "markets": 426
+    },
+    {
+      "scan_id": "20260921T175659Z-dfb309d2",
+      "scan_ts": 1790013511.5506146,
+      "source_commit": "22cf9e6be91d5c6aab93151f3f242a64862c839b",
+      "markets": 426
+    },
+    {
+      "scan_id": "20260921T180434Z-8d3d54f9",
+      "scan_ts": 1790013970.1387038,
+      "source_commit": "6610432ff17a21b029ce5cfb1cd8b5ce3c00e3c0",
+      "markets": 426
+    },
+    {
+      "scan_id": "20260921T181134Z-6576e0a9",
+      "scan_ts": 1790014389.5371609,
+      "source_commit": "9293e73f4af20e310cde747ea347a1bdc167b2bb",
+      "markets": 426
+    },
+    {
+      "scan_id": "20260921T182033Z-7ad8184e",
+      "scan_ts": 1790014926.6346354,
+      "source_commit": "de9ea5d083279879ded38fec256be24d3f1d3da5",
+      "markets": 426
+    },
+    {
+      "scan_id": "20260921T184020Z-c1d7af3b",
+      "scan_ts": 1790016114.3220315,
+      "source_commit": "93b23a0c22854c0d25b055a8c7afb75c923496ff",
+      "markets": 426
+    },
+    {
+      "scan_id": "20260921T185110Z-d37aedd6",
+      "scan_ts": 1790016764.754378,
+      "source_commit": "d6f34b9788deaa808b6946689bb05d93d757460e",
+      "markets": 426
+    },
+    {
+      "scan_id": "20260921T185756Z-a0d4f5b3",
+      "scan_ts": 1790017164.8288805,
+      "source_commit": "eaa8869f4a270ce93fe8cd0e25c1257b8f707134",
+      "markets": 426
+    },
+    {
+      "scan_id": "20260921T190450Z-00c5292f",
+      "scan_ts": 1790017585.9414275,
+      "source_commit": "1cca80c405f114116a8f6b08112f2dc3dbae5321",
+      "markets": 426
+    },
+    {
+      "scan_id": "20260921T191145Z-5d406892",
+      "scan_ts": 1790018000.7847354,
+      "source_commit": "0b870090e6a9c052790e6c3358b23a315b027d53",
+      "markets": 426
+    },
+    {
+      "scan_id": "20260921T191846Z-f257e2ef",
+      "scan_ts": 1790018422.1106184,
+      "source_commit": "b369aded360fdb1b2a9507d74cdf5aff33d7e1ee",
+      "markets": 426
+    },
+    {
+      "scan_id": "20260921T193338Z-89639623",
+      "scan_ts": 1790019338.6073487,
+      "source_commit": "967d821691d24b396470f644c7ca7afc2f1f54be",
+      "markets": 426
+    },
+    {
+      "scan_id": "20260921T194646Z-fe922817",
+      "scan_ts": 1790020096.6194031,
+      "source_commit": "0e1ef52c878ad2e06e15465543d3f3aacc20d5e1",
+      "markets": 426
+    },
+    {
+      "scan_id": "20260921T195927Z-cb0dbbcd",
+      "scan_ts": 1790020857.5800986,
+      "source_commit": "8480b88b086a82704b852073b46c83a6fe627f5b",
+      "markets": 426
+    },
+    {
+      "scan_id": "20260921T201055Z-6e712304",
+      "scan_ts": 1790021541.5482633,
+      "source_commit": "a2f7c3e2074d497e3e56b217859d5140e548ebdf",
+      "markets": 426
+    },
+    {
+      "scan_id": "20260921T201640Z-9fe021d9",
+      "scan_ts": 1790021885.659637,
+      "source_commit": "4bcb0b0184455ad8c64d51a0114e6612008fcc50",
+      "markets": 426
+    },
+    {
+      "scan_id": "20260921T202342Z-09157690",
+      "scan_ts": 1790022313.88292,
+      "source_commit": "73a83c50bc46c71f9746da86c16a965e70e56823",
+      "markets": 426
+    },
+    {
+      "scan_id": "20260921T203011Z-9e78aabd",
+      "scan_ts": 1790022697.4531317,
+      "source_commit": "9816c0716aa2161255701f5577e6d0a9caaa9d20",
+      "markets": 426
+    },
+    {
+      "scan_id": "20260921T203807Z-c0fb4601",
+      "scan_ts": 1790023175.6852467,
+      "source_commit": "e9e21aace3a3545b60ba17cd6772cafab8f554e9",
+      "markets": 426
+    },
+    {
+      "scan_id": "20260921T204818Z-62260930",
+      "scan_ts": 1790023785.4375536,
+      "source_commit": "b4a7bc7056dbe6d9d617a4ee70357bffadde34e4",
+      "markets": 426
+    },
+    {
+      "scan_id": "20260921T205511Z-87604773",
+      "scan_ts": 1790024196.2371607,
+      "source_commit": "96d78b5861c416488b8179542b95fea5db9a7e88",
+      "markets": 426
+    },
+    {
+      "scan_id": "20260921T210309Z-24b35c5e",
+      "scan_ts": 1790024676.842945,
+      "source_commit": "73c96da23b6123efb439b5304e036875096f40b6",
+      "markets": 426
+    },
+    {
+      "scan_id": "20260921T212159Z-d477fea2",
+      "scan_ts": 1790025811.0281,
+      "source_commit": "d9acaf74f7d12963f8d12e7849e1de607105ba02",
+      "markets": 426
+    },
+    {
+      "scan_id": "20260921T212802Z-b3927ee2",
+      "scan_ts": 1790026175.9611206,
+      "source_commit": "ca40e5918354dbe29a38da023fcb8f7954dfa287",
+      "markets": 426
+    },
+    {
+      "scan_id": "20260921T213434Z-a97da99f",
+      "scan_ts": 1790026599.996837,
+      "source_commit": "5fe07f9711c237c446c68bf73e2dcd05a91bf225",
+      "markets": 426
+    },
+    {
+      "scan_id": "20260921T214128Z-322de5bc",
+      "scan_ts": 1790026978.443081,
+      "source_commit": "ff6eb61f41b85d8f89a7698eca72f5f3e16b4ce2",
+      "markets": 426
+    },
+    {
+      "scan_id": "20260921T214816Z-c51c7315",
+      "scan_ts": 1790027389.816736,
+      "source_commit": "8bd66836f96d69e58410c7154f697abe5ff229da",
+      "markets": 426
+    },
+    {
+      "scan_id": "20260921T215637Z-e9e9ede7",
+      "scan_ts": 1790027885.572295,
+      "source_commit": "87cb1b03cb26b39fd1e6316729d3c13d04219b71",
+      "markets": 426
+    },
+    {
+      "scan_id": "20260921T220827Z-a54f93f5",
+      "scan_ts": 1790028601.323581,
+      "source_commit": "9f0583f03701dd60487c09f56510631b987655e8",
+      "markets": 426
+    },
+    {
+      "scan_id": "20260921T221520Z-37d51e76",
+      "scan_ts": 1790029015.3837357,
+      "source_commit": "cf8231dfd0c398d4262e56b93b7a8716cb80d0da",
+      "markets": 426
+    },
+    {
+      "scan_id": "20260921T222249Z-94dab115",
+      "scan_ts": 1790029459.9985244,
+      "source_commit": "2e014294a8fdfbe58aa70febc4fae9ac3b6b10cf",
+      "markets": 426
+    },
+    {
+      "scan_id": "20260921T222926Z-292dc047",
+      "scan_ts": 1790029855.5483532,
+      "source_commit": "fe82a99d1cb8150c4658723af3dbad149991412f",
+      "markets": 426
+    },
+    {
+      "scan_id": "20260921T223602Z-90b6c423",
+      "scan_ts": 1790030253.6529396,
+      "source_commit": "853fbec0335a3f5cdbe1db6fe70aef5a5835ebfb",
+      "markets": 426
+    },
+    {
+      "scan_id": "20260921T224307Z-8c164c43",
+      "scan_ts": 1790030678.506281,
+      "source_commit": "88d27d31ea907ea554ab37f9d713923797f8d08b",
+      "markets": 426
+    },
+    {
+      "scan_id": "20260921T225555Z-f378c4a0",
+      "scan_ts": 1790031449.2258906,
+      "source_commit": "4f6581d3714340eba487def023b46024f27092f3",
+      "markets": 426
+    },
+    {
+      "scan_id": "20260921T231534Z-ec316aa1",
+      "scan_ts": 1790032623.8392348,
+      "source_commit": "9367d6af0e6b7efcbfcaf97a85a0f66eb270884c",
+      "markets": 426
+    },
+    {
+      "scan_id": "20260921T233227Z-81e89fe6",
+      "scan_ts": 1790033636.224849,
+      "source_commit": "c9a99c855e9830d5315027b191543b9d40d95058",
+      "markets": 426
+    },
+    {
+      "scan_id": "20260921T234623Z-9d190eb5",
+      "scan_ts": 1790034501.7771916,
+      "source_commit": "036c20c2a85649cbdf765f36c1fd2db301c46a49",
+      "markets": 426
+    },
+    {
+      "scan_id": "20260921T235916Z-55de7140",
+      "scan_ts": 1790035248.541417,
+      "source_commit": "8735bc8db59d685610b6093360aa1fc7080f9c95",
+      "markets": 426
+    },
+    {
+      "scan_id": "20260922T002614Z-48bfda2d",
+      "scan_ts": 1790036867.2031379,
+      "source_commit": "6e3c213397e25586e57aaed74d5b3e120a95520d",
+      "markets": 426
+    },
+    {
+      "scan_id": "20260922T004827Z-f07a59c1",
+      "scan_ts": 1790038194.8137393,
+      "source_commit": "4893bdfe76b6eb711bc63a4467b6fe883296a476",
+      "markets": 426
+    },
+    {
+      "scan_id": "20260922T010124Z-445bee83",
+      "scan_ts": 1790038973.6570446,
+      "source_commit": "99f01db21a5ad2f981858ca2971d287e3cfbdf34",
+      "markets": 426
+    },
+    {
+      "scan_id": "20260922T011913Z-a36781a4",
+      "scan_ts": 1790040044.86677,
+      "source_commit": "58e074199dd75e87d4ab7af3bab77b29449a04f4",
+      "markets": 426
+    },
+    {
+      "scan_id": "20260922T013512Z-6ff688b3",
+      "scan_ts": 1790041004.1255922,
+      "source_commit": "3e1240e96e3462f23e61609dc96db70635430c91",
+      "markets": 426
+    },
+    {
+      "scan_id": "20260922T014901Z-fb941728",
+      "scan_ts": 1790041856.0113554,
+      "source_commit": "c85e68fe8fd4c97c98d72c47327d5a15e0ec7f74",
+      "markets": 426
+    },
+    {
+      "scan_id": "20260922T020231Z-150d115e",
+      "scan_ts": 1790042638.9096537,
+      "source_commit": "4a59e4d56893c14f3bbc6996725f0a20acd4adb8",
+      "markets": 426
+    },
+    {
+      "scan_id": "20260922T022206Z-7e4f93d1",
+      "scan_ts": 1790043814.4556189,
+      "source_commit": "2c0368df718e72bd42ce073acb620f4060d0f258",
+      "markets": 426
+    },
+    {
+      "scan_id": "20260922T023941Z-5cf19fd3",
+      "scan_ts": 1790044872.5325732,
+      "source_commit": "6927d053bbd1f8a40e1d2b54c2b7a6523edf967b",
+      "markets": 426
+    },
+    {
+      "scan_id": "20260922T025426Z-f70cb4a2",
+      "scan_ts": 1790045756.7537138,
+      "source_commit": "e906f88bb18a177356930848911dff9700b371ac",
+      "markets": 426
+    },
+    {
+      "scan_id": "20260922T031403Z-7c00bbb1",
+      "scan_ts": 1790046937.2533329,
+      "source_commit": "c82ad3e9bf23e22363efb5a666d4a818d0938dfc",
+      "markets": 426
+    },
+    {
+      "scan_id": "20260922T033241Z-826a553f",
+      "scan_ts": 1790048051.2877579,
+      "source_commit": "3839616ca54e1a72efd1ca525f73902efb1b0f7d",
+      "markets": 426
+    },
+    {
+      "scan_id": "20260922T034831Z-f537a19d",
+      "scan_ts": 1790049004.2391057,
+      "source_commit": "717dfac7c260c26e1dcad8515470fe108b274071",
+      "markets": 426
+    },
+    {
+      "scan_id": "20260922T040149Z-2cbd52e1",
+      "scan_ts": 1790049825.1631055,
+      "source_commit": "c6d920ee2ec1e7f7cda3f182c851007b5ccabbe5",
+      "markets": 426
+    },
+    {
+      "scan_id": "20260922T042144Z-306a1f9f",
+      "scan_ts": 1790050991.933843,
+      "source_commit": "82a703d3dc4b53952b7dd7fa2fd20872a16c0462",
+      "markets": 426
+    },
+    {
+      "scan_id": "20260922T044002Z-6a26f7ea",
+      "scan_ts": 1790052087.4994967,
+      "source_commit": "54bf01945a6790ba187d086b1d035b59f1d436f8",
+      "markets": 426
+    },
+    {
+      "scan_id": "20260922T045413Z-41c29e45",
+      "scan_ts": 1790052944.2180872,
+      "source_commit": "802e51be05267e946d5299d409cbdb81788f1230",
+      "markets": 426
+    },
+    {
+      "scan_id": "20260922T051248Z-f1b0bf2b",
+      "scan_ts": 1790054057.1494744,
+      "source_commit": "bb63b885c15efef4f9362b611865b25fb2d6f899",
+      "markets": 426
+    },
+    {
+      "scan_id": "20260922T053050Z-c25c6b79",
+      "scan_ts": 1790055143.0912225,
+      "source_commit": "45bdc27cca82a068008cc076add16742bce3bae5",
+      "markets": 426
+    },
+    {
+      "scan_id": "20260922T054629Z-42874ec2",
+      "scan_ts": 1790056077.0974252,
+      "source_commit": "066e66f40915fe7bf6e7d2f54443a6a8c5ee3b7b",
+      "markets": 426
+    },
+    {
+      "scan_id": "20260922T055929Z-83b9659a",
+      "scan_ts": 1790056862.6684296,
+      "source_commit": "c987b53542164cae20698f776e561c857990634f",
+      "markets": 426
+    },
+    {
+      "scan_id": "20260922T062219Z-87864ada",
+      "scan_ts": 1790058256.5063434,
+      "source_commit": "c3208818943b8bd00d819ff83400ca55162bf7c8",
+      "markets": 426
+    },
+    {
+      "scan_id": "20260922T062900Z-3e641a24",
+      "scan_ts": 1790058630.7467422,
+      "source_commit": "a3c50382387893d881d02ba654990a7f02758b41",
+      "markets": 426
+    },
+    {
+      "scan_id": "20260922T063553Z-c2d7d48b",
+      "scan_ts": 1790059043.9599452,
+      "source_commit": "b2962c64073b84c5bc263c25308767111e1f77be",
+      "markets": 426
+    },
+    {
+      "scan_id": "20260922T064259Z-bf33291c",
+      "scan_ts": 1790059472.8654602,
+      "source_commit": "0c018ba7086a62d756935770fcae9800d760961f",
+      "markets": 426
+    },
+    {
+      "scan_id": "20260922T065145Z-8b1e1fd9",
+      "scan_ts": 1790059994.1784387,
+      "source_commit": "f9548417fb22c10b99de4d60533f2f321eb9131d",
+      "markets": 426
+    },
+    {
+      "scan_id": "20260922T070228Z-792de1d5",
+      "scan_ts": 1790060635.4030232,
+      "source_commit": "0e6d6538345235a063da85573c0c59e300dcfb71",
+      "markets": 426
+    },
+    {
+      "scan_id": "20260922T072226Z-1f9bfd6f",
+      "scan_ts": 1790061840.2316766,
+      "source_commit": "3e7512733f4e1e2e3ea4b78b51a4836ebb55ee2a",
+      "markets": 426
+    },
+    {
+      "scan_id": "20260922T074003Z-60e9ad1b",
+      "scan_ts": 1790062890.329907,
+      "source_commit": "f040bbb7468e11ab8edcd314ce2ba07257d7ec08",
+      "markets": 426
+    },
+    {
+      "scan_id": "20260922T074806Z-1f940039",
+      "scan_ts": 1790063377.9180124,
+      "source_commit": "7e2b663b2ea38433f599ad3f16d5857f980448f4",
+      "markets": 426
+    },
+    {
+      "scan_id": "20260922T075514Z-24e4d636",
+      "scan_ts": 1790063801.727676,
+      "source_commit": "26e9e4dc8f7a45c95e297fa380be165b5b47f763",
+      "markets": 426
+    },
+    {
+      "scan_id": "20260922T080210Z-94ca76e6",
+      "scan_ts": 1790064219.536435,
+      "source_commit": "de017eb7a810c8f394230d8cb99dbe86039d33ff",
+      "markets": 426
+    },
+    {
+      "scan_id": "20260922T081653Z-f69535e9",
+      "scan_ts": 1790065100.1142771,
+      "source_commit": "c47f81548ee95bcb16ec138ddcc159980c4b4ef2",
+      "markets": 426
+    },
+    {
+      "scan_id": "20260922T082831Z-1c89b457",
+      "scan_ts": 1790065828.3927362,
+      "source_commit": "0a6eb0b48f73420a132b028ab6f3182db8583546",
+      "markets": 426
+    },
+    {
+      "scan_id": "20260922T083521Z-6af53b23",
+      "scan_ts": 1790066206.247968,
+      "source_commit": "d14afa8a0c0a5e03fa5890a473228acae035edab",
+      "markets": 426
+    },
+    {
+      "scan_id": "20260922T085149Z-db262173",
+      "scan_ts": 1790067197.8395545,
+      "source_commit": "d248691dbc34610cf7cd6365314215f996b7ecce",
+      "markets": 426
+    },
+    {
+      "scan_id": "20260922T090835Z-5b37f5af",
+      "scan_ts": 1790068197.7776408,
+      "source_commit": "ac2048ac26019dc3d416cd02968d924561a992b6",
+      "markets": 426
+    },
+    {
+      "scan_id": "20260922T092640Z-4781f6ee",
+      "scan_ts": 1790069285.823984,
+      "source_commit": "5bac3d768c3a00bf6a1fdd0d1bc2809928e4a0ff",
+      "markets": 426
+    },
+    {
+      "scan_id": "20260922T094407Z-c4474ad9",
+      "scan_ts": 1790070338.4329386,
+      "source_commit": "aaea2df42e5c467f19e86967ab4390f5c69706dd",
+      "markets": 426
+    },
+    {
+      "scan_id": "20260922T095715Z-1f660a92",
+      "scan_ts": 1790071123.9975863,
+      "source_commit": "44cd3f04c6c400841dedc2d25efd50e05b72236b",
+      "markets": 426
+    },
+    {
+      "scan_id": "20260922T101955Z-0e67068c",
+      "scan_ts": 1790072489.5333605,
+      "source_commit": "ec4047b0516e9e85436eb6d89cc4e6bf984b2312",
+      "markets": 426
+    },
+    {
+      "scan_id": "20260922T103728Z-48a5d8e7",
+      "scan_ts": 1790073573.2573612,
+      "source_commit": "910b3a8865ecfe68674ac8c9057e703f40c9114d",
+      "markets": 426
+    },
+    {
+      "scan_id": "20260922T105248Z-f96aa8e5",
+      "scan_ts": 1790074461.3073692,
+      "source_commit": "9166fc6682662ab375d7f6190f29c0d9331e43c8",
+      "markets": 426
+    },
+    {
+      "scan_id": "20260922T111045Z-a59a2093",
+      "scan_ts": 1790075537.1416035,
+      "source_commit": "6b53ecba707510ca67f6e3a8b2e359f3de82ddb2",
+      "markets": 426
+    },
+    {
+      "scan_id": "20260922T112837Z-7c8b8524",
+      "scan_ts": 1790076609.7569742,
+      "source_commit": "6ba389b60f6c0e5f9ac974fc982c180d3cf7c0ef",
+      "markets": 426
+    },
+    {
+      "scan_id": "20260922T114500Z-c73ed3ca",
+      "scan_ts": 1790077593.3148832,
+      "source_commit": "392ac5d80385d026290f88926223405ba7240561",
+      "markets": 426
+    },
+    {
+      "scan_id": "20260922T115805Z-2d106dda",
+      "scan_ts": 1790078378.632796,
+      "source_commit": "2908baf5dba0856c23e8b52a3e0138860554f58a",
+      "markets": 426
+    },
+    {
+      "scan_id": "20260922T121550Z-cb4b890e",
+      "scan_ts": 1790079437.2073948,
+      "source_commit": "122826db0c98dcea574a64317a5a1eabc526ffd3",
+      "markets": 426
+    },
+    {
+      "scan_id": "20260922T122300Z-5870867d",
+      "scan_ts": 1790079869.476581,
+      "source_commit": "a0df7809b0ba19296be11e34332b024020ea7927",
+      "markets": 426
+    },
+    {
+      "scan_id": "20260922T123009Z-2eafbb39",
+      "scan_ts": 1790080297.3456378,
+      "source_commit": "7adafba9ad33b16ccbf0d5536a0a5d97a2dace83",
+      "markets": 426
+    },
+    {
+      "scan_id": "20260922T123649Z-6eeae64d",
+      "scan_ts": 1790080691.4382527,
+      "source_commit": "7c6ef448d95b0f4b6c21164edd5a19affc1a4032",
+      "markets": 426
+    },
+    {
+      "scan_id": "20260922T124516Z-1bfd8b52",
+      "scan_ts": 1790081231.3445458,
+      "source_commit": "f73a7c68611428131684085eea9c59674106226c",
+      "markets": 426
+    },
+    {
+      "scan_id": "20260922T130011Z-406fa6a0",
+      "scan_ts": 1790082097.4569836,
+      "source_commit": "577d56025d8f3e2415a127e605794837982ed2d8",
+      "markets": 426
+    },
+    {
+      "scan_id": "20260922T131746Z-636c17c6",
+      "scan_ts": 1790083152.433902,
+      "source_commit": "df566b081fedfa36cbd7d733087c17a283f1cf7e",
+      "markets": 426
+    },
+    {
+      "scan_id": "20260922T132532Z-56bda04b",
+      "scan_ts": 1790083617.551842,
+      "source_commit": "b7b620104f6a3cf0611d40f3e143af6024aaaa7b",
+      "markets": 426
+    },
+    {
+      "scan_id": "20260922T134035Z-a2d7815a",
+      "scan_ts": 1790084519.1955323,
+      "source_commit": "eb1762fb0de34f3e2185e1137ec65508aba8a7ae",
+      "markets": 426
+    },
+    {
+      "scan_id": "20260922T135623Z-d8eede1c",
+      "scan_ts": 1790085474.0590303,
+      "source_commit": "bd5dba0ff7f37a8e1f3365a23980ae0e5ac2efdb",
+      "markets": 426
+    },
+    {
+      "scan_id": "20260922T141800Z-3b0b7b4d",
+      "scan_ts": 1790086768.7560873,
+      "source_commit": "4fca7f52216bcfd70928a2af6b71fc1109c7ed29",
+      "markets": 426
+    },
+    {
+      "scan_id": "20260922T143640Z-399fa311",
+      "scan_ts": 1790087891.643781,
+      "source_commit": "69db857302e0c1da76325bf27072e5fb5dde81b3",
+      "markets": 426
+    },
+    {
+      "scan_id": "20260922T145413Z-8765f7ca",
+      "scan_ts": 1790088980.5384965,
+      "source_commit": "bc6752d17287a71fb90d3c23ffad4a1c277aeca3",
+      "markets": 426
+    },
+    {
+      "scan_id": "20260922T151312Z-6bb8b8d8",
+      "scan_ts": 1790090086.746802,
+      "source_commit": "608d3f4ef22c200c7f4faead3e6c5c31ae21ed6b",
+      "markets": 426
+    },
+    {
+      "scan_id": "20260922T153028Z-df038946",
+      "scan_ts": 1790091117.110171,
+      "source_commit": "23c3dfc20f7f2e6cbfdb90e74e02ecbdf35597d9",
+      "markets": 426
+    },
+    {
+      "scan_id": "20260922T154610Z-b6c50a3a",
+      "scan_ts": 1790092060.4326959,
+      "source_commit": "658feef4b8dd57145771d399a3e5586d7bb67846",
+      "markets": 426
+    },
+    {
+      "scan_id": "20260922T162043Z-125de486",
+      "scan_ts": 1790094136.7257078,
+      "source_commit": "dcebdf060295a71405a36702bd0991e6dd827995",
+      "markets": 426
+    },
+    {
+      "scan_id": "20260922T163908Z-2d210b74",
+      "scan_ts": 1790095241.1251707,
+      "source_commit": "e0a43e00e220f44b65dce554b627ca4dc012300c",
+      "markets": 426
+    },
+    {
+      "scan_id": "20260922T165419Z-dfd244c6",
+      "scan_ts": 1790096144.2922916,
+      "source_commit": "0f9f0a83f1818266ca16fdd810abaa06467ab1d6",
+      "markets": 426
+    },
+    {
+      "scan_id": "20260922T171254Z-302eca5b",
+      "scan_ts": 1790097292.8705416,
+      "source_commit": "b27085fe89159fd693415454e35363b8b290a836",
+      "markets": 426
+    },
+    {
+      "scan_id": "20260922T173003Z-4e4364f3",
+      "scan_ts": 1790098293.4072077,
+      "source_commit": "6d64b3cb93173e9a329a6fe3f441b8b2a5bbfd1a",
+      "markets": 426
+    },
+    {
+      "scan_id": "20260922T174428Z-231951fc",
+      "scan_ts": 1790099158.5025697,
+      "source_commit": "5b807c7916e4f36a1cded84583c443348703de77",
+      "markets": 426
+    },
+    {
+      "scan_id": "20260922T175711Z-2a8299ee",
+      "scan_ts": 1790099915.657489,
+      "source_commit": "b4bd90bbddf868826fa9f201711561d8278a44eb",
+      "markets": 426
+    },
+    {
+      "scan_id": "20260922T182226Z-365c93ab",
+      "scan_ts": 1790101441.2760274,
+      "source_commit": "9d4e7942dfff869d7f0ac0f9b9a0080b51f865c3",
+      "markets": 426
+    },
+    {
+      "scan_id": "20260922T184156Z-4a11f75c",
+      "scan_ts": 1790102610.1630938,
+      "source_commit": "74d457c9828e3a55aa339a98d375b873ccea7384",
+      "markets": 426
+    },
+    {
+      "scan_id": "20260922T185440Z-41349d83",
+      "scan_ts": 1790103382.7159295,
+      "source_commit": "c87e115abe596732837b6f8d2deced5e0dd1fa22",
+      "markets": 426
+    },
+    {
+      "scan_id": "20260922T190227Z-17519940",
+      "scan_ts": 1790103840.4806314,
+      "source_commit": "375076f4abaa7b6dd4730619e15e356f6ca7307d",
+      "markets": 426
+    },
+    {
+      "scan_id": "20260922T191601Z-8ec176a8",
+      "scan_ts": 1790104680.3818998,
+      "source_commit": "47cfa6ed63f4027147936d640c9dd0d97ecd4f62",
+      "markets": 426
+    },
+    {
+      "scan_id": "20260922T192341Z-66ee13a5",
+      "scan_ts": 1790105109.7294977,
+      "source_commit": "0cd268b50b91eb242de98779ea054f0c7f4db7b3",
+      "markets": 426
+    },
+    {
+      "scan_id": "20260922T193108Z-bb2ef03a",
+      "scan_ts": 1790105557.7804663,
+      "source_commit": "ab71bba972f6c18d8a75e420b4567c74f6090fa2",
+      "markets": 426
+    },
+    {
+      "scan_id": "20260922T194618Z-78046cf2",
+      "scan_ts": 1790106472.3631563,
+      "source_commit": "7bedc7f4b1f8f3df1a71c7da577841afa21035a8",
+      "markets": 426
+    },
+    {
+      "scan_id": "20260922T195923Z-04d3a105",
+      "scan_ts": 1790107258.3289647,
+      "source_commit": "f8b8a0161853cdfcf596be888196fe26361739c5",
+      "markets": 426
+    },
+    {
+      "scan_id": "20260922T201854Z-7fa391ef",
+      "scan_ts": 1790108426.0829496,
+      "source_commit": "def8e21d4d208c884d0d9cd8fa5cefe8d796442a",
+      "markets": 426
+    },
+    {
+      "scan_id": "20260922T203510Z-d2d339a7",
+      "scan_ts": 1790109399.834855,
+      "source_commit": "81fa33e3c8cd1008c7808480fc5af5d6dcdb72a5",
+      "markets": 426
+    },
+    {
+      "scan_id": "20260922T205020Z-a813ee2e",
+      "scan_ts": 1790110311.6953037,
+      "source_commit": "68dabed29d9fb3aa5f8b6bfdba03c694bb18091e",
+      "markets": 426
+    },
+    {
+      "scan_id": "20260922T210512Z-d5a042f0",
+      "scan_ts": 1790111201.2850502,
+      "source_commit": "bb88d23d2a903d6e10e86fca073f002c568f263f",
+      "markets": 426
+    },
+    {
+      "scan_id": "20260922T212217Z-bdceb26c",
+      "scan_ts": 1790112251.5341055,
+      "source_commit": "63ece4f8362d152c6f1bc66afe35750da67d579e",
+      "markets": 426
+    },
+    {
+      "scan_id": "20260922T213844Z-5bdd9f6a",
+      "scan_ts": 1790113216.0692148,
+      "source_commit": "2d5b30d7503a58e9ec045992c54de85744533ed0",
+      "markets": 426
+    },
+    {
+      "scan_id": "20260922T215244Z-b963171c",
+      "scan_ts": 1790114052.9828467,
+      "source_commit": "dc8a378d2a02a8163c3c9230cd0697182de6692a",
+      "markets": 426
+    },
+    {
+      "scan_id": "20260922T220918Z-4d22b47e",
+      "scan_ts": 1790115048.895529,
+      "source_commit": "8347668ecf920f8a0774aedb103fa87a8b9c4769",
+      "markets": 426
+    },
+    {
+      "scan_id": "20260922T222627Z-dfc2002b",
+      "scan_ts": 1790116073.5792987,
+      "source_commit": "25e85c6d6674536a1accb7e559ecab2a34b53b07",
+      "markets": 426
+    },
+    {
+      "scan_id": "20260922T224254Z-7318a3ce",
+      "scan_ts": 1790117065.6552758,
+      "source_commit": "5695b176a11c76e9fe21621768217d5fc1baf9d1",
+      "markets": 426
+    },
+    {
+      "scan_id": "20260922T225539Z-2ed18faa",
+      "scan_ts": 1790117829.4055817,
+      "source_commit": "eabaa78f64cdc56241d417ee74f78aa14558aa5c",
+      "markets": 426
+    },
+    {
+      "scan_id": "20260922T231419Z-76cc16d7",
+      "scan_ts": 1790118946.3197267,
+      "source_commit": "f131d866e6068681434f5e3a9c673848a1ee78f4",
+      "markets": 426
+    },
+    {
+      "scan_id": "20260922T232950Z-3c545bc8",
+      "scan_ts": 1790119901.1182425,
+      "source_commit": "3d70f273e09741399720a8b58a1f76939ef80e04",
+      "markets": 426
+    },
+    {
+      "scan_id": "20260922T234405Z-3145d771",
+      "scan_ts": 1790120730.459552,
+      "source_commit": "a0c41cd2299a20dc4f4861eaa66e2500ad5641fe",
+      "markets": 426
+    },
+    {
+      "scan_id": "20260922T235658Z-eab5272a",
+      "scan_ts": 1790121504.4951305,
+      "source_commit": "1001bde8dba753db9896e6085b65d299c62ac60b",
+      "markets": 426
+    },
+    {
+      "scan_id": "20260923T002339Z-361267b6",
+      "scan_ts": 1790123104.5292847,
+      "source_commit": "e5ddcbf25c33b016e437c71babe17443584206ea",
+      "markets": 426
+    },
+    {
+      "scan_id": "20260923T004418Z-7e7473ed",
+      "scan_ts": 1790124350.2168117,
+      "source_commit": "4d824be8bf809356da0c202952eda46a0d75073b",
+      "markets": 426
+    },
+    {
+      "scan_id": "20260923T005918Z-74077010",
+      "scan_ts": 1790125248.6458924,
+      "source_commit": "c3a71d87f8b1ffca6a46ff3e880cace57aeafd4a",
+      "markets": 426
+    },
+    {
+      "scan_id": "20260923T011850Z-683070aa",
+      "scan_ts": 1790126416.3153398,
+      "source_commit": "11bde46c0d83c7b73ee54f08af38da9ebca37ea4",
+      "markets": 426
+    },
+    {
+      "scan_id": "20260923T013440Z-08d02716",
+      "scan_ts": 1790127395.2089882,
+      "source_commit": "07f5af6991245feae92e7b8b08a96adbad714f17",
+      "markets": 426
+    },
+    {
+      "scan_id": "20260923T014844Z-88fac763",
+      "scan_ts": 1790128215.5058675,
+      "source_commit": "1d0297d70be7ebd3bd49c40bc28a59390278f14c",
+      "markets": 426
+    },
+    {
+      "scan_id": "20260923T020213Z-3bbd652e",
+      "scan_ts": 1790129022.7993417,
+      "source_commit": "a82b1f5d3e66cba59f13bf113251072c021550f2",
+      "markets": 426
+    },
+    {
+      "scan_id": "20260923T022217Z-369c8c61",
+      "scan_ts": 1790130227.3159318,
+      "source_commit": "8409a85bdaa2f9b39bbd2a9123b95c6522b4a11d",
+      "markets": 426
+    },
+    {
+      "scan_id": "20260923T024003Z-b4ba3320",
+      "scan_ts": 1790131288.8907719,
+      "source_commit": "4b7ce421456806506c8bad5427100641ea1dd1e5",
+      "markets": 426
+    },
+    {
+      "scan_id": "20260923T025446Z-7bdfb4fc",
+      "scan_ts": 1790132175.3517532,
+      "source_commit": "c5f006cf47db6da776c141e0adddce09e864f493",
+      "markets": 426
+    },
+    {
+      "scan_id": "20260923T031526Z-d52cf0dc",
+      "scan_ts": 1790133443.7036986,
+      "source_commit": "7e9df77bdb0b184225565622ecf69682210fa0f5",
+      "markets": 426
+    },
+    {
+      "scan_id": "20260923T033334Z-86e009c9",
+      "scan_ts": 1790134501.9257717,
+      "source_commit": "e853485ac904b3d339825a0dbdcd861306342ee7",
+      "markets": 426
+    },
+    {
+      "scan_id": "20260923T034926Z-6db12361",
+      "scan_ts": 1790135481.2014425,
+      "source_commit": "c55437584554fec941cc8d8d2eb781dd8852c155",
+      "markets": 426
+    },
+    {
+      "scan_id": "20260923T040336Z-bed79834",
+      "scan_ts": 1790136307.5506592,
+      "source_commit": "c5a94a3de77eee52f6035bcb434b4bc2171fd211",
+      "markets": 426
+    },
+    {
+      "scan_id": "20260923T042342Z-6005b65a",
+      "scan_ts": 1790137504.9530602,
+      "source_commit": "16d60533cc667b025ecfb9b22dd726732c52d679",
+      "markets": 426
+    },
+    {
+      "scan_id": "20260923T044155Z-fadf37ee",
+      "scan_ts": 1790138599.9506435,
+      "source_commit": "7afcfa2ff983ff9fc6e1f6304b10dfb8fde1143b",
+      "markets": 426
+    },
+    {
+      "scan_id": "20260923T045641Z-53827c9b",
+      "scan_ts": 1790139495.8145952,
+      "source_commit": "4c4ef4700c1ff892a37f7ff747f282edf9111677",
+      "markets": 426
+    },
+    {
+      "scan_id": "20260923T051649Z-0d658cf1",
+      "scan_ts": 1790140697.2944503,
+      "source_commit": "3f1f34e6f540c34f6a1e99a932bc48e282ff1bad",
+      "markets": 426
+    },
+    {
+      "scan_id": "20260923T053351Z-44286296",
+      "scan_ts": 1790141721.6334202,
+      "source_commit": "1545c0060a36bec2063d99934904e3fb34cc1757",
+      "markets": 426
+    },
+    {
+      "scan_id": "20260923T054912Z-784ed719",
+      "scan_ts": 1790142640.2297492,
+      "source_commit": "5dfa6d1ad3c6c9f988ff705a65e9d495120d7aa6",
+      "markets": 426
+    },
+    {
+      "scan_id": "20260923T060353Z-f89ebe18",
+      "scan_ts": 1790143548.9597435,
+      "source_commit": "a3b4d120826b8d25433152db0801c0d1f9ae55c2",
+      "markets": 426
+    },
+    {
+      "scan_id": "20260923T062906Z-92cf6830",
+      "scan_ts": 1790145037.5218165,
+      "source_commit": "0d4c4f98e476113794a81ffc31d6b312bdc5dc9c",
+      "markets": 426
+    },
+    {
+      "scan_id": "20260923T065026Z-ebf58cff",
+      "scan_ts": 1790146314.7653656,
+      "source_commit": "bbef0569f0057d4d3d06a03119a7b74b23667a68",
+      "markets": 426
+    },
+    {
+      "scan_id": "20260923T070628Z-34ff5a6d",
+      "scan_ts": 1790147275.658849,
+      "source_commit": "3e231027b4c0b23e4989aa951cb388b975af93ab",
+      "markets": 426
+    },
+    {
+      "scan_id": "20260923T072650Z-cfa42019",
+      "scan_ts": 1790148496.1625285,
+      "source_commit": "e9fff777b94fa9e037a93b4b0b11383d94937163",
+      "markets": 426
+    },
+    {
+      "scan_id": "20260923T074522Z-56cdfd33",
+      "scan_ts": 1790149607.7682922,
+      "source_commit": "e1dccb841c40c4db9bdf75545fd1b43395014778",
+      "markets": 426
+    },
+    {
+      "scan_id": "20260923T075844Z-141b187a",
+      "scan_ts": 1790150416.715079,
+      "source_commit": "758aa1642633911015221f251980f595b3d00093",
+      "markets": 426
+    },
+    {
+      "scan_id": "20260923T082115Z-18dadf68",
+      "scan_ts": 1790151799.0736952,
+      "source_commit": "72a6634c5ccb2cea83ad6466d96ed745a2780740",
+      "markets": 426
+    },
+    {
+      "scan_id": "20260923T083955Z-f2341c74",
+      "scan_ts": 1790152884.016978,
+      "source_commit": "4b3cd86abe31be1c8f6f68cf429bc39a0e1176ce",
+      "markets": 426
+    },
+    {
+      "scan_id": "20260923T085544Z-0c555f83",
+      "scan_ts": 1790153835.7005947,
+      "source_commit": "feb54e57f2bed0529efa241f7b36d3f7d684110f",
+      "markets": 426
+    },
+    {
+      "scan_id": "20260923T091628Z-a1fd9f81",
+      "scan_ts": 1790155077.8453934,
+      "source_commit": "6ccce4c9f88d1667b2bd0817de7046dd64d73b98",
+      "markets": 426
+    },
+    {
+      "scan_id": "20260923T093421Z-78be2ed1",
+      "scan_ts": 1790156155.2932606,
+      "source_commit": "f597f9b211d8c708c42b7b52fd20f0fcc3ffb3ac",
+      "markets": 426
+    },
+    {
+      "scan_id": "20260923T095037Z-a94277cd",
+      "scan_ts": 1790157126.9084845,
+      "source_commit": "e292df3f27a13fa540a94e7f57e42e0daff45d4e",
+      "markets": 426
+    },
+    {
+      "scan_id": "20260923T100550Z-e499cd6b",
+      "scan_ts": 1790158039.1636748,
+      "source_commit": "81659aad8b2c8fc8d8cd7c0a29a1a2686b9fe988",
+      "markets": 426
+    },
+    {
+      "scan_id": "20260923T102516Z-6ce98d3b",
+      "scan_ts": 1790159239.715391,
+      "source_commit": "5ad43c916ce590f09e192f149c8bdd6b68bd5503",
+      "markets": 426
+    },
+    {
+      "scan_id": "20260923T104339Z-8598364f",
+      "scan_ts": 1790160312.144807,
+      "source_commit": "c72d286e48e30e4ea04d133d502c37621662b337",
+      "markets": 426
+    },
+    {
+      "scan_id": "20260923T105742Z-1500d7c8",
+      "scan_ts": 1790161151.1715903,
+      "source_commit": "47dc825734fc449dac90525b5c9125ff5f552103",
+      "markets": 426
+    },
+    {
+      "scan_id": "20260923T111837Z-75c7b678",
+      "scan_ts": 1790162412.4125602,
+      "source_commit": "c1ce8dbb66bd53533c0d5307e1a7ba8e2670f48c",
+      "markets": 426
+    },
+    {
+      "scan_id": "20260923T113512Z-d4287908",
+      "scan_ts": 1790163404.7718678,
+      "source_commit": "420b3cc779e398476192d8fdf3c044ff04ff7257",
+      "markets": 426
+    },
+    {
+      "scan_id": "20260923T115111Z-aae00348",
+      "scan_ts": 1790164363.2500205,
+      "source_commit": "298a97d7a2dacfe454ef7a539e0edbcef4b49ce5",
+      "markets": 426
+    },
+    {
+      "scan_id": "20260923T120949Z-d1d36294",
+      "scan_ts": 1790165477.2857268,
+      "source_commit": "9c5c10fd1f50e57c6578c968222623046bc75c51",
+      "markets": 426
+    },
+    {
+      "scan_id": "20260923T123355Z-b3327a22",
+      "scan_ts": 1790166959.4691381,
+      "source_commit": "7959770c1c6569144c4ab834057d5d9114426b77",
+      "markets": 426
+    },
+    {
+      "scan_id": "20260923T125331Z-6510d669",
+      "scan_ts": 1790168102.556149,
+      "source_commit": "6cfadf7969ac84b80b4affc15656a79340480b23",
+      "markets": 426
+    },
+    {
+      "scan_id": "20260923T131242Z-7c2d0629",
+      "scan_ts": 1790169252.1773856,
+      "source_commit": "90b2a17d611d4b090871023db04d4c3514b3550b",
+      "markets": 426
+    },
+    {
+      "scan_id": "20260923T133238Z-1d0f6eb5",
+      "scan_ts": 1790170456.0473,
+      "source_commit": "08be5987f135b929a65d24d9fe14179855ad35e7",
+      "markets": 426
+    },
+    {
+      "scan_id": "20260923T134935Z-7f6e7e82",
+      "scan_ts": 1790171471.675902,
+      "source_commit": "6a9a6e9c52737ddce331cce5f24a020c1dfd39e8",
+      "markets": 426
+    },
+    {
+      "scan_id": "20260923T140437Z-d40d40b7",
+      "scan_ts": 1790172371.5792649,
+      "source_commit": "4c5d4a77967001fffbb9fa0011465f50f4baa0cb",
+      "markets": 426
+    },
+    {
+      "scan_id": "20260923T142514Z-5c968ff2",
+      "scan_ts": 1790173606.8814096,
+      "source_commit": "130aa8fc95ab255c083a19be6e56149fd0be7c73",
+      "markets": 426
+    },
+    {
+      "scan_id": "20260923T144432Z-9d1a134e",
+      "scan_ts": 1790174798.4727752,
+      "source_commit": "23c36cbf8ab8ba394ae0075dc0be29881252afb9",
+      "markets": 426
+    },
+    {
+      "scan_id": "20260923T145923Z-1f7f1c7c",
+      "scan_ts": 1790175654.5318584,
+      "source_commit": "72ca28a4bb083cda87a7a35ac60c81e6afc951f1",
+      "markets": 426
+    },
+    {
+      "scan_id": "20260923T152101Z-38336ca1",
+      "scan_ts": 1790176954.5140908,
+      "source_commit": "1e6f0218150a254946c7a1e256f5991682499448",
+      "markets": 426
+    },
+    {
+      "scan_id": "20260923T153936Z-ba0eb8c8",
+      "scan_ts": 1790178072.3182392,
+      "source_commit": "de426fe99b167b1773f10836b2ba77fae680d7f0",
+      "markets": 426
+    },
+    {
+      "scan_id": "20260923T155442Z-cc5dae26",
+      "scan_ts": 1790178981.664672,
+      "source_commit": "7e1c51eb0e812ca26108529547fb38febf1f6322",
+      "markets": 426
+    },
+    {
+      "scan_id": "20260923T161600Z-4c5338ca",
+      "scan_ts": 1790180252.6740358,
+      "source_commit": "35f23b99a6a6f3d6f0c885098a53cb95e17aa999",
+      "markets": 426
+    },
+    {
+      "scan_id": "20260923T163523Z-8c659aba",
+      "scan_ts": 1790181421.4393945,
+      "source_commit": "51da6f1e173925c382668d7e79e63595a16471b7",
+      "markets": 426
+    },
+    {
+      "scan_id": "20260923T165202Z-8e1c3143",
+      "scan_ts": 1790182445.4480424,
+      "source_commit": "25a155eb24fd8c606e8c68b685ed48d8ca2753fc",
+      "markets": 426
+    },
+    {
+      "scan_id": "20260923T170909Z-060803ce",
+      "scan_ts": 1790183441.7973933,
+      "source_commit": "8f745ad7ce2b9b0cf04794384ddfebb2cf55935f",
+      "markets": 426
+    },
+    {
+      "scan_id": "20260923T172748Z-3729eb5a",
+      "scan_ts": 1790184568.85683,
+      "source_commit": "3226f78616f226b67d65aa79b13337e01b640866",
+      "markets": 426
+    },
+    {
+      "scan_id": "20260923T174356Z-26759f00",
+      "scan_ts": 1790185534.6805878,
+      "source_commit": "03b993cd090fa945d9241825913694a2c85f5473",
+      "markets": 426
+    },
+    {
+      "scan_id": "20260923T175645Z-04615e42",
+      "scan_ts": 1790186301.354129,
+      "source_commit": "eee03bd463ee4634792400bb40e7547482e4635c",
+      "markets": 426
+    },
+    {
+      "scan_id": "20260923T182202Z-19dd0f40",
+      "scan_ts": 1790187818.1755693,
+      "source_commit": "9ace82050ddcf621e78d03e9f0414d0f4360373b",
+      "markets": 426
+    },
+    {
+      "scan_id": "20260923T184114Z-15fec9db",
+      "scan_ts": 1790188963.652396,
+      "source_commit": "19a3e544c7201c18dc16aa984951ae79641d5a1d",
+      "markets": 426
+    },
+    {
+      "scan_id": "20260923T185639Z-c5fd36ef",
+      "scan_ts": 1790189930.0243113,
+      "source_commit": "fb96627874430a95be9aba20d1a080b91c44797f",
+      "markets": 426
+    },
+    {
+      "scan_id": "20260923T191600Z-e49fb0a6",
+      "scan_ts": 1790191051.2177618,
+      "source_commit": "a3608b415883f59232f8d96fb3323340b1d751ef",
+      "markets": 426
+    },
+    {
+      "scan_id": "20260923T193252Z-e52b6e3f",
+      "scan_ts": 1790192068.0581071,
+      "source_commit": "923cfcea7f803fd1c0f06e4c8fda82415555beee",
+      "markets": 426
+    },
+    {
+      "scan_id": "20260923T194738Z-10fb98d8",
+      "scan_ts": 1790192959.3176692,
+      "source_commit": "d9ef882ab10d2724305255af1bbf05402e645fc1",
+      "markets": 426
+    },
+    {
+      "scan_id": "20260923T200043Z-8ae0c736",
+      "scan_ts": 1790193735.5617747,
+      "source_commit": "c07032e67a4b728f2e802e6ea30c1f800722dbfe",
+      "markets": 426
+    },
+    {
+      "scan_id": "20260923T202155Z-521b16fb",
+      "scan_ts": 1790195005.8191786,
+      "source_commit": "333f000f75637fd610b8ee2dd095e8230f1f2277",
+      "markets": 426
+    },
+    {
+      "scan_id": "20260923T203841Z-9b9d16a3",
+      "scan_ts": 1790196018.1015136,
+      "source_commit": "11bfaee8279d60117362e343796bf16ca6175745",
+      "markets": 426
+    },
+    {
+      "scan_id": "20260923T205224Z-396f464d",
+      "scan_ts": 1790196838.826936,
+      "source_commit": "0c0fc246b2b45491d9fc363a55533b7f3939f376",
+      "markets": 426
+    },
+    {
+      "scan_id": "20260923T210950Z-b505f4a4",
+      "scan_ts": 1790197912.5713644,
+      "source_commit": "1c4be7cfa224b950fa1331c74df62ee7fc765ff5",
+      "markets": 426
+    },
+    {
+      "scan_id": "20260923T212805Z-5c16c178",
+      "scan_ts": 1790198977.429894,
+      "source_commit": "596c9d29e4d5bfcd379d6341bf0ed978bfc77a2e",
+      "markets": 426
+    },
+    {
+      "scan_id": "20260923T214337Z-9dfc0019",
+      "scan_ts": 1790199910.3772562,
+      "source_commit": "34b042121bb8425b0e4b46e3d1a694d4b1f4ec75",
+      "markets": 426
+    },
+    {
+      "scan_id": "20260923T215629Z-a088f8b3",
+      "scan_ts": 1790200683.4988456,
+      "source_commit": "ec1d93197e0ebe5a108221e5ecb53b0403b1e49e",
+      "markets": 426
+    },
+    {
+      "scan_id": "20260923T220817Z-473aa845",
+      "scan_ts": 1790201393.6957703,
+      "source_commit": "57e67ef9231917e88c70b1070d0f72e6a63315b6",
+      "markets": 426
+    },
+    {
+      "scan_id": "20260923T221713Z-7b6355a7",
+      "scan_ts": 1790201921.5584645,
+      "source_commit": "f9a44cb9bd435a5a95565562116b0e1fc198c2f9",
+      "markets": 426
+    },
+    {
+      "scan_id": "20260923T223237Z-bb663f97",
+      "scan_ts": 1790202845.7177975,
+      "source_commit": "b3e5e94f3bfd45daae51b8c2f90dd19f929e2587",
+      "markets": 426
+    },
+    {
+      "scan_id": "20260923T224643Z-48281551",
+      "scan_ts": 1790203693.1949174,
+      "source_commit": "e19aea1ac5f08f676125a0e75a6cee6dda7cbe55",
+      "markets": 426
+    },
+    {
+      "scan_id": "20260923T225927Z-3b3833d4",
+      "scan_ts": 1790204459.796713,
+      "source_commit": "ac74045d656e681185963b471f833948ccb6f9d9",
+      "markets": 426
+    },
+    {
+      "scan_id": "20260923T230722Z-0d957bba",
+      "scan_ts": 1790204959.9415388,
+      "source_commit": "0c05e0fbf55b0ff99dae3f10bcfc3411bbee0cc6",
+      "markets": 426
+    },
+    {
+      "scan_id": "20260923T231642Z-f6c68173",
+      "scan_ts": 1790205520.5335133,
+      "source_commit": "a4461dc227c412d2d95e69783968f6da3c1642f3",
+      "markets": 426
+    },
+    {
+      "scan_id": "20260923T232511Z-7704bb30",
+      "scan_ts": 1790206000.817165,
+      "source_commit": "891806bbea8b640f4cc7072863f8b82df9cec45a",
+      "markets": 426
+    },
+    {
+      "scan_id": "20260923T233324Z-43e52ac4",
+      "scan_ts": 1790206496.1464624,
+      "source_commit": "0f6a8f70ed5c8fd6f83bb30c408f9790c934b058",
+      "markets": 426
+    },
+    {
+      "scan_id": "20260923T234124Z-01e333df",
+      "scan_ts": 1790206976.229397,
+      "source_commit": "66fe6964a7e1a70adb08fc6b06e4464167b0e661",
+      "markets": 426
+    },
+    {
+      "scan_id": "20260923T234804Z-069803e8",
+      "scan_ts": 1790207374.979741,
+      "source_commit": "fe68ee206d573e29c08728dff1ce5a32f02ba921",
+      "markets": 426
+    },
+    {
+      "scan_id": "20260923T235738Z-931d31e0",
+      "scan_ts": 1790207949.842151,
+      "source_commit": "66a2ded9c250971ae105851df3ee27b0c2e41787",
+      "markets": 426
+    },
+    {
+      "scan_id": "20260924T002537Z-260998c2",
+      "scan_ts": 1790209627.4444015,
+      "source_commit": "54cea06715b87f5ffd9adf39bb42bd9216f7685c",
+      "markets": 426
+    },
+    {
+      "scan_id": "20260924T004808Z-61771133",
+      "scan_ts": 1790210979.5324204,
+      "source_commit": "a6ceff3c699b5dff39edc52262777a1f57d51ff6",
+      "markets": 426
+    },
+    {
+      "scan_id": "20260924T010126Z-bf7eafcf",
+      "scan_ts": 1790211776.3183684,
+      "source_commit": "1a25ab7bff093f28a136e206b6d7513a3da7f7a2",
+      "markets": 426
+    },
+    {
+      "scan_id": "20260924T012020Z-31c2618f",
+      "scan_ts": 1790212943.8927467,
+      "source_commit": "4b24122eb2bc6508506a5ffc298d81f844b0b617",
+      "markets": 426
+    },
+    {
+      "scan_id": "20260924T013653Z-9ad4eaca",
+      "scan_ts": 1790213902.6601079,
+      "source_commit": "52835bf9e6fb63d9632aa340c1085e84e688b70d",
+      "markets": 426
+    },
+    {
+      "scan_id": "20260924T015234Z-ad3b7b70",
+      "scan_ts": 1790214841.7919993,
+      "source_commit": "5005547309a431fa0c6b58eec79ca51810fea52c",
+      "markets": 426
+    },
+    {
+      "scan_id": "20260924T021000Z-b1328eb2",
+      "scan_ts": 1790215887.4873857,
+      "source_commit": "f524cb0fca4fc717cc926185cbeb7452d9ace31a",
+      "markets": 426
+    },
+    {
+      "scan_id": "20260924T022919Z-87965533",
+      "scan_ts": 1790217045.631962,
+      "source_commit": "610608e2fe0fef437555432f2912be8a63a8d659",
+      "markets": 426
+    },
+    {
+      "scan_id": "20260924T024646Z-7543bd44",
+      "scan_ts": 1790218089.6627405,
+      "source_commit": "bf0524e162880b43c3b911c357a63f4ea4d105ab",
+      "markets": 426
+    },
+    {
+      "scan_id": "20260924T025930Z-31f446df",
+      "scan_ts": 1790218855.3745785,
+      "source_commit": "add230d7af8e5775ab93091cecd953dba09ead30",
+      "markets": 426
+    },
+    {
+      "scan_id": "20260924T032045Z-c0f7caa9",
+      "scan_ts": 1790220161.7717056,
+      "source_commit": "56db9ff2040f4b4139cefb43d1cbffdb1bc4a564",
+      "markets": 426
+    },
+    {
+      "scan_id": "20260924T033907Z-7622aeb1",
+      "scan_ts": 1790221244.4997704,
+      "source_commit": "647a51c15322b40742141d93a40a4d4fee5853f6",
+      "markets": 426
+    },
+    {
+      "scan_id": "20260924T035411Z-4dc773e6",
+      "scan_ts": 1790222143.7840412,
+      "source_commit": "b55d46765a3e2956de65a347b9d135322c7b414d",
+      "markets": 426
+    },
+    {
+      "scan_id": "20260924T041318Z-bb3fe5cd",
+      "scan_ts": 1790223283.710157,
+      "source_commit": "0dd73f731799076c93b73ed483d74f8318601bef",
+      "markets": 426
+    },
+    {
+      "scan_id": "20260924T043232Z-fc934232",
+      "scan_ts": 1790224444.585681,
+      "source_commit": "3465cc81f3bff4c47721caeef2ff3f99c9bde993",
+      "markets": 426
+    },
+    {
+      "scan_id": "20260924T044841Z-fdcb824d",
+      "scan_ts": 1790225409.4364,
+      "source_commit": "95945ae42dc11a87600e42c8bce036279d1510f3",
+      "markets": 426
+    },
+    {
+      "scan_id": "20260924T050146Z-c3b1e90d",
+      "scan_ts": 1790226199.9548066,
+      "source_commit": "4bbe032f7a49bdb894edc0b4e020ff427b74f7d8",
+      "markets": 426
+    },
+    {
+      "scan_id": "20260924T052123Z-339fb58e",
+      "scan_ts": 1790227397.4040043,
+      "source_commit": "b8049273dacdbe01670b15bb055d147d1a5253af",
+      "markets": 426
+    },
+    {
+      "scan_id": "20260924T053859Z-e91daeaa",
+      "scan_ts": 1790228426.5495858,
+      "source_commit": "121909f5f7344489106a2ddf4a3d378ac0347093",
+      "markets": 426
+    },
+    {
+      "scan_id": "20260924T055405Z-a7e5afbd",
+      "scan_ts": 1790229331.8356516,
+      "source_commit": "ee22a64dc667c6a750eeba58a43514f31f7de873",
+      "markets": 426
+    },
+    {
+      "scan_id": "20260924T061656Z-ed2fa319",
+      "scan_ts": 1790230706.21416,
+      "source_commit": "fa0e30c9662b9d544126e23ebe9024ef10ab979b",
+      "markets": 426
+    },
+    {
+      "scan_id": "20260924T063934Z-51612bf9",
+      "scan_ts": 1790232062.261869,
+      "source_commit": "8c622fe5c3f4e164306e2c07249921fe82955f71",
+      "markets": 426
+    },
+    {
+      "scan_id": "20260924T065808Z-41399eb3",
+      "scan_ts": 1790233174.9436944,
+      "source_commit": "1a3382d46435a0be1ad7e5f7cdfc9cbd70f87673",
+      "markets": 426
+    },
+    {
+      "scan_id": "20260924T072029Z-a4805768",
+      "scan_ts": 1790234519.8185349,
+      "source_commit": "5239e993b28fecc62c48e5fbfa8b4dc8e74212c5",
+      "markets": 426
+    },
+    {
+      "scan_id": "20260924T073812Z-d2874689",
+      "scan_ts": 1790235611.7841008,
+      "source_commit": "a6f45bb88fe2351b1bba94b78c7b4808dcfe59fe",
+      "markets": 426
+    },
+    {
+      "scan_id": "20260924T075339Z-7a0b1618",
+      "scan_ts": 1790236503.1360471,
+      "source_commit": "4ad8cc3fe92ea0353317ba0a5f8a8f405e06ef59",
+      "markets": 426
+    },
+    {
+      "scan_id": "20260924T081401Z-86b00eed",
+      "scan_ts": 1790237724.8833783,
+      "source_commit": "9ab426a314484a891900934ff7cffca0599bdf5a",
+      "markets": 426
+    },
+    {
+      "scan_id": "20260924T083425Z-e582defe",
+      "scan_ts": 1790238956.4113202,
+      "source_commit": "43d1f685d6c30ff95574dea0c80d57dc31665134",
+      "markets": 426
+    },
+    {
+      "scan_id": "20260924T085200Z-799da571",
+      "scan_ts": 1790240009.707927,
+      "source_commit": "75d21d69fd32714b12d32968b13a0766962cda5d",
+      "markets": 426
+    },
+    {
+      "scan_id": "20260924T090846Z-9acac9dc",
+      "scan_ts": 1790241015.8816617,
+      "source_commit": "c4fadc1475366130869e8f8f96b06e3c0a522f1f",
+      "markets": 426
+    },
+    {
+      "scan_id": "20260924T092849Z-de6f893b",
+      "scan_ts": 1790242218.5008645,
+      "source_commit": "0e61bff939e8c32b60e0f3db2b2948d39ec8b6ca",
+      "markets": 426
+    },
+    {
+      "scan_id": "20260924T094640Z-05467d9f",
+      "scan_ts": 1790243322.2398257,
+      "source_commit": "87c84d764447458d508d84417498556f91c103c3",
+      "markets": 426
+    },
+    {
+      "scan_id": "20260924T100012Z-a66f37b2",
+      "scan_ts": 1790244105.546335,
+      "source_commit": "077c22c710476c7a561d37efa7f202efd0f90f46",
+      "markets": 426
+    },
+    {
+      "scan_id": "20260924T102137Z-c6f77c59",
+      "scan_ts": 1790245390.1780508,
+      "source_commit": "075e1deb2a46a28bd14fb59b34e42f7e1c9e4aba",
+      "markets": 426
+    },
+    {
+      "scan_id": "20260924T103950Z-5ddc8b8e",
+      "scan_ts": 1790246489.625386,
+      "source_commit": "dfe2b02701ae4c6f7db987bdb9131fc0312638cd",
+      "markets": 426
+    },
+    {
+      "scan_id": "20260924T105524Z-15d33d25",
+      "scan_ts": 1790247416.4567518,
+      "source_commit": "8e6bf160a76f504e6ed718925c884ce48a4aa4c6",
+      "markets": 426
+    },
+    {
+      "scan_id": "20260924T111519Z-6366cf7c",
+      "scan_ts": 1790248613.1021879,
+      "source_commit": "2da7f55364e1b3dad0107907cb113701f2b77096",
+      "markets": 426
+    },
+    {
+      "scan_id": "20260924T113340Z-ef4dd5a7",
+      "scan_ts": 1790249713.823238,
+      "source_commit": "8dfbbf0019e5dbfb1a5da52477c1614329d91419",
+      "markets": 426
+    },
+    {
+      "scan_id": "20260924T114922Z-f8a709bc",
+      "scan_ts": 1790250683.265348,
+      "source_commit": "ab93c969b1229b4374b1bdf606421a66aaf3197b",
+      "markets": 426
+    },
+    {
+      "scan_id": "20260924T115833Z-8c70d476",
+      "scan_ts": 1790251204.4513862,
+      "source_commit": "b51fd0e0943aa597a16f50000ce814bdca296eb2",
+      "markets": 426
+    },
+    {
+      "scan_id": "20260924T120619Z-042649fc",
+      "scan_ts": 1790251670.3867288,
+      "source_commit": "b24fdcbea1fa8d5996a49a7c2903695e0eca5373",
+      "markets": 426
+    },
+    {
+      "scan_id": "20260924T122913Z-9cce07e0",
+      "scan_ts": 1790253045.652725,
+      "source_commit": "1a660419c5195d1f1685f57a3801df81ef83d1a9",
+      "markets": 426
+    },
+    {
+      "scan_id": "20260924T125121Z-9e62bbd2",
+      "scan_ts": 1790254375.89252,
+      "source_commit": "de1734df7e97e09571e31c0cd4e75571831c5a57",
+      "markets": 426
+    },
+    {
+      "scan_id": "20260924T130850Z-11823a0e",
+      "scan_ts": 1790255418.082574,
+      "source_commit": "dfe9b6e40f00b86bc72bb15cebd6b5df99b764d3",
+      "markets": 426
+    },
+    {
+      "scan_id": "20260924T132937Z-e15c611f",
+      "scan_ts": 1790256661.0485685,
+      "source_commit": "81b0979927554eb0ade252ac8b59607a781b9114",
+      "markets": 426
+    },
+    {
+      "scan_id": "20260924T134837Z-cfb64cae",
+      "scan_ts": 1790257802.989835,
+      "source_commit": "3ec2e7b2b74cbef13f95f6edc3a3dd7bf2e4e4d0",
+      "markets": 426
+    },
+    {
+      "scan_id": "20260924T140220Z-4f1d4fec",
+      "scan_ts": 1790258661.9566767,
+      "source_commit": "4926039f18992be58d32184af3feb015806e31cb",
+      "markets": 426
+    },
+    {
+      "scan_id": "20260924T142340Z-de8e62fe",
+      "scan_ts": 1790259902.9855547,
+      "source_commit": "6b136e3ff07635edf14aa7dcc1ab75b0d59585b8",
+      "markets": 426
+    },
+    {
+      "scan_id": "20260924T144405Z-a053fb58",
+      "scan_ts": 1790261134.3304625,
+      "source_commit": "2bf96c0e38114ef199dad6fdcd8572c4ac2cb72b",
+      "markets": 426
+    },
+    {
+      "scan_id": "20260924T145949Z-5debf0ed",
+      "scan_ts": 1790262083.2616594,
+      "source_commit": "2cb8594e16d002296f7fd83f75e4ec53c12ffe46",
+      "markets": 426
+    },
+    {
+      "scan_id": "20260924T152217Z-118f8f39",
+      "scan_ts": 1790263429.784881,
+      "source_commit": "fee1f043fb7f4394c50211ede4aa406317e24dbc",
+      "markets": 426
+    },
+    {
+      "scan_id": "20260924T154032Z-1298b4f7",
+      "scan_ts": 1790264520.5305266,
+      "source_commit": "3a3bc513ea35f7ed276ba542bb6d46aab8899b88",
+      "markets": 426
+    },
+    {
+      "scan_id": "20260924T155509Z-877e1500",
+      "scan_ts": 1790265401.7528522,
+      "source_commit": "83becb5f3b469cf879d97f67515cc6c41bcd1b9c",
+      "markets": 426
+    },
+    {
+      "scan_id": "20260924T161652Z-0473f4ef",
+      "scan_ts": 1790266734.8640108,
+      "source_commit": "5644220793c86386ceadd81b2386e118ffbffd50",
+      "markets": 426
+    },
+    {
+      "scan_id": "20260924T163529Z-beb54701",
+      "scan_ts": 1790267819.3103147,
+      "source_commit": "a5971d61d4059445400bbcbfebe58f553daf9597",
+      "markets": 426
+    },
+    {
+      "scan_id": "20260924T165234Z-ebeab3e0",
+      "scan_ts": 1790268844.5605886,
+      "source_commit": "ecb954aa7127fcd7103d01c2e08b910d2d6468dd",
+      "markets": 426
+    },
+    {
+      "scan_id": "20260924T170909Z-7f222249",
+      "scan_ts": 1790269841.08833,
+      "source_commit": "d677502df7381ee3c5c360e1f08276596445b75f",
+      "markets": 427
+    },
+    {
+      "scan_id": "20260924T172710Z-bff6e5e3",
+      "scan_ts": 1790270919.3770895,
+      "source_commit": "eb354639981bdfa11642fb0a8e963e5b1e3a517b",
+      "markets": 427
+    },
+    {
+      "scan_id": "20260924T174401Z-b4f47dac",
+      "scan_ts": 1790271931.16298,
+      "source_commit": "086fede178500360de1e8b470a495db2d70a2a08",
+      "markets": 427
+    },
+    {
+      "scan_id": "20260924T175649Z-9bce58f6",
+      "scan_ts": 1790272708.8799086,
+      "source_commit": "fedfba99c28b45d0a72ac4ce95e5d9e36c09a163",
+      "markets": 427
+    },
+    {
+      "scan_id": "20260924T182149Z-552ead1f",
+      "scan_ts": 1790274232.9715192,
+      "source_commit": "b15d9f7883b38867a7bcde3562fd81f3da252120",
+      "markets": 427
+    },
+    {
+      "scan_id": "20260924T183422Z-138bc90e",
+      "scan_ts": 1790274961.0525386,
+      "source_commit": "b477829c7e55bd91b1bab7ac132affb69b6e7e2a",
+      "markets": 427
+    },
+    {
+      "scan_id": "20260924T184246Z-c894ac99",
+      "scan_ts": 1790275467.9224048,
+      "source_commit": "a1dda6fa222ca990445d4caff7352af614d05761",
+      "markets": 427
+    },
+    {
+      "scan_id": "20260924T185738Z-97b12681",
+      "scan_ts": 1790276348.8567562,
+      "source_commit": "7be24881f8d142078a6f3e30bb98c3401ff3f6fd",
+      "markets": 427
+    },
+    {
+      "scan_id": "20260924T191721Z-5a4917a3",
+      "scan_ts": 1790277538.728484,
+      "source_commit": "2d2bed1338490bd81e632b59f4e359babf41a5fb",
+      "markets": 427
+    },
+    {
+      "scan_id": "20260924T192602Z-ea8dfa70",
+      "scan_ts": 1790278054.0610828,
+      "source_commit": "9a4e54f06f8b0c665ce68339c83fed466d891537",
+      "markets": 427
+    },
+    {
+      "scan_id": "20260924T193418Z-949b5465",
+      "scan_ts": 1790278547.8938231,
+      "source_commit": "91d192c3ce5622dab605ddacbd8495090b95f13c",
+      "markets": 427
+    },
+    {
+      "scan_id": "20260924T194224Z-ab19d983",
+      "scan_ts": 1790279029.9937482,
+      "source_commit": "2747d81eeca0142a641959df5091ef3d6c41050f",
+      "markets": 427
+    },
+    {
+      "scan_id": "20260924T195036Z-79be3860",
+      "scan_ts": 1790279528.405746,
+      "source_commit": "3fc9276b44a3a248b827ad5d4a16b23d04c13024",
+      "markets": 427
+    },
+    {
+      "scan_id": "20260924T195937Z-ff90a070",
+      "scan_ts": 1790280072.2945929,
+      "source_commit": "781c9d0084275ad8e17c3b89f696a63c516d41a5",
+      "markets": 427
+    },
+    {
+      "scan_id": "20260924T200802Z-f44357c6",
+      "scan_ts": 1790280568.80822,
+      "source_commit": "967a791d5be51a9e11f375557bcec58aa54cca29",
+      "markets": 427
+    },
+    {
+      "scan_id": "20260924T202155Z-3b6cc8e3",
+      "scan_ts": 1790281430.780755,
+      "source_commit": "b2c49a40a0f83cf717d57730a497fc9b64befc50",
+      "markets": 427
+    },
+    {
+      "scan_id": "20260924T203031Z-32bc9744",
+      "scan_ts": 1790281920.102379,
+      "source_commit": "c9edfd743fb7200a93e302532415a1883fbf25c7",
+      "markets": 427
+    },
+    {
+      "scan_id": "20260924T203849Z-314b58ab",
+      "scan_ts": 1790282416.765908,
+      "source_commit": "951f5602ba467d7c8bbae5ffec40419353cbf359",
+      "markets": 427
+    },
+    {
+      "scan_id": "20260924T204700Z-cfe81420",
+      "scan_ts": 1790282909.1810892,
+      "source_commit": "46b05f88dc1722367d8c39928577a5c9183bfea9",
+      "markets": 427
+    },
+    {
+      "scan_id": "20260924T205626Z-017dc649",
+      "scan_ts": 1790283477.9581854,
+      "source_commit": "73ce56ec0627183aff1dc048d8d957391fbf85e9",
+      "markets": 427
+    },
+    {
+      "scan_id": "20260924T210433Z-a8c4d6a5",
+      "scan_ts": 1790283963.7631621,
+      "source_commit": "3ab4ff68036ee506c6fe0266bb4146b86adc1b03",
+      "markets": 427
+    },
+    {
+      "scan_id": "20260924T211659Z-68591ee5",
+      "scan_ts": 1790284708.393551,
+      "source_commit": "81e0c0b4056dcfdf0da7f477e8624d0a898a6d30",
+      "markets": 427
+    },
+    {
+      "scan_id": "20260924T213246Z-358d8a0f",
+      "scan_ts": 1790285658.1509967,
+      "source_commit": "d1cbd655c2c0650233613da86e067782eb6c92b3",
+      "markets": 427
+    },
+    {
+      "scan_id": "20260924T214630Z-fd8896c7",
+      "scan_ts": 1790286479.9347122,
+      "source_commit": "1fd222d69af9df0b4c705af11949bedd9bbe8870",
+      "markets": 427
+    },
+    {
+      "scan_id": "20260924T215929Z-3d5fad13",
+      "scan_ts": 1790287259.6731157,
+      "source_commit": "94c4c2a6a2a7e1d14441eeb19bb539763c840da1",
+      "markets": 427
+    },
+    {
+      "scan_id": "20260924T222016Z-991b5c4c",
+      "scan_ts": 1790288541.7579262,
+      "source_commit": "9ff4b529ab17482f4aa26639a2dce7294b36342b",
+      "markets": 427
+    },
+    {
+      "scan_id": "20260924T223602Z-33316885",
+      "scan_ts": 1790289480.5977123,
+      "source_commit": "ccfd7cc7467ceefc6a084d324da365717b8c34c6",
+      "markets": 427
+    },
+    {
+      "scan_id": "20260924T225121Z-90112e1e",
+      "scan_ts": 1790290370.817661,
+      "source_commit": "a0591435a5a4b5c20326f9e34c5aea35cc178b58",
+      "markets": 427
+    },
+    {
+      "scan_id": "20260924T230705Z-47bcdc31",
+      "scan_ts": 1790291316.9427733,
+      "source_commit": "a80560d3e32f9dccba88b87970e8dfab4bb755db",
+      "markets": 427
+    },
+    {
+      "scan_id": "20260924T232439Z-84573d6a",
+      "scan_ts": 1790292371.8733323,
+      "source_commit": "c3beca1d5a4b14ba7b5abc360a9a385ca48435b2",
+      "markets": 427
+    },
+    {
+      "scan_id": "20260924T234033Z-f03825d3",
+      "scan_ts": 1790293323.835266,
+      "source_commit": "a7569df9f076646c41efe73d8908d9dc6544ebe7",
+      "markets": 427
+    },
+    {
+      "scan_id": "20260924T235308Z-2d9c2527",
+      "scan_ts": 1790294081.7678728,
+      "source_commit": "8426e4c41ef1edc8173589a25dbecd7af2143194",
+      "markets": 427
+    },
+    {
+      "scan_id": "20260925T001644Z-2a3340dd",
+      "scan_ts": 1790295494.105731,
+      "source_commit": "9258cf1bb5831e7653f2fe71a6f3c0fd36ab6bda",
+      "markets": 427
+    },
+    {
+      "scan_id": "20260925T004039Z-c968a7b2",
+      "scan_ts": 1790296954.919755,
+      "source_commit": "c5c20eb676f3af054b314eb180263013d7a2227a",
+      "markets": 427
+    },
+    {
+      "scan_id": "20260925T005718Z-5f4da7be",
+      "scan_ts": 1790297927.2013905,
+      "source_commit": "a62ea456c5e442c930fbee3a29b3eeea38a5cc82",
+      "markets": 427
+    },
+    {
+      "scan_id": "20260925T011723Z-9f8327ad",
+      "scan_ts": 1790299132.7367294,
+      "source_commit": "14d9d98c531928a8147d33cf8709e9f72665f863",
+      "markets": 427
+    },
+    {
+      "scan_id": "20260925T013230Z-ce46f13b",
+      "scan_ts": 1790300040.0891747,
+      "source_commit": "39e1e3ed877b4789060e691d4c4a46942a82c5da",
+      "markets": 427
+    },
+    {
+      "scan_id": "20260925T014640Z-82179210",
+      "scan_ts": 1790300890.4027212,
+      "source_commit": "b4d84ce27e103b0c7cb8c5cc4ac919038bf76526",
+      "markets": 427
+    },
+    {
+      "scan_id": "20260925T015934Z-aecbb166",
+      "scan_ts": 1790301671.626587,
+      "source_commit": "ca03d65e413b238585f33aeb57cf3b702ffe203e",
+      "markets": 427
+    },
+    {
+      "scan_id": "20260925T021927Z-28812219",
+      "scan_ts": 1790302859.790635,
+      "source_commit": "be22643a2becc4d5b5aa3526aed05068414fa8f8",
+      "markets": 427
+    },
+    {
+      "scan_id": "20260925T023629Z-70e65b1e",
+      "scan_ts": 1790303879.582617,
+      "source_commit": "e5afbbb8e4c29b2dde49b543acb7aae83787496b",
+      "markets": 427
+    },
+    {
+      "scan_id": "20260925T025156Z-b2ba43dd",
+      "scan_ts": 1790304833.5387485,
+      "source_commit": "0adc94d54e8d91994e211909d11c21eba4c4d603",
+      "markets": 427
+    },
+    {
+      "scan_id": "20260925T030931Z-ebcb8b03",
+      "scan_ts": 1790305865.0135772,
+      "source_commit": "0342454c8e97024dddf7dd8d2ebb07e65a430bfe",
+      "markets": 427
+    },
+    {
+      "scan_id": "20260925T032657Z-e74aa147",
+      "scan_ts": 1790306909.8873293,
+      "source_commit": "43b2cad4334fe3e436504811711904e00ad6055b",
+      "markets": 427
+    },
+    {
+      "scan_id": "20260925T034527Z-b1b57a55",
+      "scan_ts": 1790308024.4301672,
+      "source_commit": "4c22a0b0ed450323a299b8d147e6730ce9ebfdaa",
+      "markets": 427
+    },
+    {
+      "scan_id": "20260925T035902Z-c95b08c2",
+      "scan_ts": 1790308835.503609,
+      "source_commit": "6f02a316fd63631743744c91ed0343ac229e1187",
+      "markets": 427
+    },
+    {
+      "scan_id": "20260925T042103Z-47dba820",
+      "scan_ts": 1790310156.3071227,
+      "source_commit": "1afd5164e9052a8f8060217936376183a044c343",
+      "markets": 427
+    },
+    {
+      "scan_id": "20260925T044032Z-1766c273",
+      "scan_ts": 1790311319.5979111,
+      "source_commit": "5dbe48397ace476216b801691508dc83220802bf",
+      "markets": 427
+    },
+    {
+      "scan_id": "20260925T045620Z-365cd945",
+      "scan_ts": 1790312296.1435893,
+      "source_commit": "8892a9d1cf72ca13bbbb5ccb71f6c9873a813274",
+      "markets": 427
+    },
+    {
+      "scan_id": "20260925T051721Z-39c33d0d",
+      "scan_ts": 1790313530.7497098,
+      "source_commit": "15e7639d6ae70ce58043fe40512829df5710e5d1",
+      "markets": 427
+    },
+    {
+      "scan_id": "20260925T053433Z-35107a6c",
+      "scan_ts": 1790314561.9818132,
+      "source_commit": "451ec75611a8b65b84e7bcaac625fdb921520de9",
+      "markets": 427
+    },
+    {
+      "scan_id": "20260925T055057Z-9cb518d7",
+      "scan_ts": 1790315546.0646605,
+      "source_commit": "8048076f2a0a5ad6a7bee5a1f0518f6614d940cb",
+      "markets": 427
+    },
+    {
+      "scan_id": "20260925T060734Z-494600ac",
+      "scan_ts": 1790316540.2348692,
+      "source_commit": "409f757121c65e75ef0afad7d215b9295c342f49",
+      "markets": 427
+    },
+    {
+      "scan_id": "20260925T063301Z-845268f5",
+      "scan_ts": 1790318068.6622334,
+      "source_commit": "3849270e8c11e47dd8e88225a11abedbb3fec3de",
+      "markets": 427
+    },
+    {
+      "scan_id": "20260925T065335Z-b3c3d3b6",
+      "scan_ts": 1790319307.137919,
+      "source_commit": "554d251455cf4dec1254edec901c8534d60d2224",
+      "markets": 427
+    },
+    {
+      "scan_id": "20260925T070533Z-37c0549d",
+      "scan_ts": 1790320049.7945032,
+      "source_commit": "d5371e5eee106aa5be6197c5481d310f60ac5ebc",
+      "markets": 427
+    },
+    {
+      "scan_id": "20260925T071308Z-7c15fa04",
+      "scan_ts": 1790320469.8760679,
+      "source_commit": "b5b19aa6ba25f7b348e196df1716ca985817873c",
+      "markets": 427
+    },
+    {
+      "scan_id": "20260925T073226Z-608f8442",
+      "scan_ts": 1790321634.3394747,
+      "source_commit": "4d7d01802e655d946fe87d9b543820977fa2f6d0",
+      "markets": 427
+    },
+    {
+      "scan_id": "20260925T074911Z-f6760990",
+      "scan_ts": 1790322639.6501145,
+      "source_commit": "4bc01829419d344116164026263f4dad4dee8492",
+      "markets": 427
+    },
+    {
+      "scan_id": "20260925T080328Z-aaf02a7c",
+      "scan_ts": 1790323492.0605814,
+      "source_commit": "8211d9b3f5e2ff9ddb2c564a2f725169cc60aa1d",
+      "markets": 427
+    },
+    {
+      "scan_id": "20260925T082453Z-08bd3f0a",
+      "scan_ts": 1790324773.8693202,
+      "source_commit": "6d6c059214853ad70b63bb21db2d39c1d0462792",
+      "markets": 427
+    },
+    {
+      "scan_id": "20260925T084423Z-0900d294",
+      "scan_ts": 1790325949.645181,
+      "source_commit": "b5067b5329fd43d578eb3e3061982bb2f12d6fd5",
+      "markets": 427
+    },
+    {
+      "scan_id": "20260925T085901Z-baa8daa9",
+      "scan_ts": 1790326827.4648988,
+      "source_commit": "f9523c94f5edc00c77dbdcc5104618713ca67e4d",
+      "markets": 427
+    },
+    {
+      "scan_id": "20260925T092108Z-acc5c26b",
+      "scan_ts": 1790328192.5273273,
+      "source_commit": "9076964581fbd62052c43da2281a9e364d9233c2",
+      "markets": 427
+    },
+    {
+      "scan_id": "20260925T093953Z-277756b5",
+      "scan_ts": 1790329275.8338287,
+      "source_commit": "562ed94bb4f2dc931a68701d575e411d480496ae",
+      "markets": 427
+    },
+    {
+      "scan_id": "20260925T095543Z-442b4b40",
+      "scan_ts": 1790330227.6535954,
+      "source_commit": "1fbf3a700697badec965b303f583de649c4d91d9",
+      "markets": 427
+    },
+    {
+      "scan_id": "20260925T101629Z-776ee0c7",
+      "scan_ts": 1790331480.1159608,
+      "source_commit": "9f0b40693b8ad4000f7188c6da1e337d10c4637f",
+      "markets": 427
+    },
+    {
+      "scan_id": "20260925T103446Z-b5651c39",
+      "scan_ts": 1790332578.9156585,
+      "source_commit": "cc60e9066ad5e2d10c130f1cad42fcecd4126a76",
+      "markets": 427
+    },
+    {
+      "scan_id": "20260925T105111Z-b89af1a8",
+      "scan_ts": 1790333553.6191223,
+      "source_commit": "4317438af40c8839b18f558c1384bcca24b1cd5c",
+      "markets": 427
+    },
+    {
+      "scan_id": "20260925T110743Z-078b21cc",
+      "scan_ts": 1790334551.6291559,
+      "source_commit": "7114b836b0b128a2a6ca0f7c178de6f8fb1a9f8f",
+      "markets": 427
+    },
+    {
+      "scan_id": "20260925T112719Z-50fbfb3d",
+      "scan_ts": 1790335753.0149906,
+      "source_commit": "df8bbc1e18c7eca848ff798ce3a2e648ad658d44",
+      "markets": 427
+    },
+    {
+      "scan_id": "20260925T114523Z-1ad68aaf",
+      "scan_ts": 1790336809.146234,
+      "source_commit": "6ebf83fffb141b11328bfbd7f9e75fcaf64e305c",
+      "markets": 427
+    },
+    {
+      "scan_id": "20260925T115834Z-b340d5c3",
+      "scan_ts": 1790337600.1037214,
+      "source_commit": "5658606988dc4977a589de9647640f7012e56de1",
+      "markets": 427
+    },
+    {
+      "scan_id": "20260925T122442Z-d5dce63d",
+      "scan_ts": 1790339169.5081408,
+      "source_commit": "b1d68d87b0e03e3e6e7e788d2e8bbe26ed011402",
+      "markets": 427
+    },
+    {
+      "scan_id": "20260925T124735Z-f66842c5",
+      "scan_ts": 1790340548.7392395,
+      "source_commit": "c7e58ee13e8e18cab0620891b0b15f7f45e1f15c",
+      "markets": 427
+    },
+    {
+      "scan_id": "20260925T130242Z-b7884e6a",
+      "scan_ts": 1790341453.3863199,
+      "source_commit": "71f19dd460392598151eadf878dc2a4b07e9ab5c",
+      "markets": 427
+    },
+    {
+      "scan_id": "20260925T132420Z-c5706a66",
+      "scan_ts": 1790342759.2567031,
+      "source_commit": "d8ac06968500488daf27f18ad72b023bd6979350",
+      "markets": 427
+    },
+    {
+      "scan_id": "20260925T134318Z-5221b098",
+      "scan_ts": 1790343916.5190346,
+      "source_commit": "501ce73b0caade6163eda4d3af38a56977753edb",
+      "markets": 427
+    },
+    {
+      "scan_id": "20260925T135807Z-5c40724d",
+      "scan_ts": 1790344777.3338711,
+      "source_commit": "c927b7353a2e9343a8918b249e9becbe1d7ea392",
+      "markets": 427
+    },
+    {
+      "scan_id": "20260925T142050Z-b212a544",
+      "scan_ts": 1790346148.175662,
+      "source_commit": "22bbbed073679d4ba97b7f42e8fa2c022475b893",
+      "markets": 427
+    },
+    {
+      "scan_id": "20260925T144022Z-7179854c",
+      "scan_ts": 1790347317.0148766,
+      "source_commit": "7f2f9b941fee66ac1ac5281b0b7a650b3033b1ac",
+      "markets": 427
+    },
+    {
+      "scan_id": "20260925T145700Z-f5eaba10",
+      "scan_ts": 1790348317.5574358,
+      "source_commit": "f3f070150f3b8adbb2217b7e3811c24f37cddfc5",
+      "markets": 427
+    },
+    {
+      "scan_id": "20260925T152013Z-248405de",
+      "scan_ts": 1790349712.4188929,
+      "source_commit": "479296e5b036b981e26114dad5c91244162225f0",
+      "markets": 427
+    },
+    {
+      "scan_id": "20260925T153721Z-95a7302c",
+      "scan_ts": 1790350736.0367773,
+      "source_commit": "6420cc8f092cb111ea5ea7602c50a660129cd1a1",
+      "markets": 427
+    },
+    {
+      "scan_id": "20260925T155219Z-2406c7f7",
+      "scan_ts": 1790351659.3688962,
+      "source_commit": "66af9dbec311d1965faacd6e9dfb755eab9b54c5",
+      "markets": 427
+    },
+    {
+      "scan_id": "20260925T161034Z-0c80c6e5",
+      "scan_ts": 1790352724.1298459,
+      "source_commit": "cd62b5c5c16b0eb711cd1d9504d34b9c023f106c",
+      "markets": 427
+    },
+    {
+      "scan_id": "20260925T163118Z-0bb6ff0d",
+      "scan_ts": 1790353965.5191362,
+      "source_commit": "a00e8ea57947730861e9e45494f2a33c4d3a3d40",
+      "markets": 427
+    },
+    {
+      "scan_id": "20260925T164946Z-07dba25c",
+      "scan_ts": 1790355074.5342891,
+      "source_commit": "af56067cfab2aaee2fcc083200742a05766cb2e0",
+      "markets": 427
+    },
+    {
+      "scan_id": "20260925T170344Z-f14e8bc4",
+      "scan_ts": 1790355920.2079742,
+      "source_commit": "7b88dc3e1fc74888efa610188b6e7af16c4d8a6a",
+      "markets": 427
+    },
+    {
+      "scan_id": "20260925T172236Z-8e2de841",
+      "scan_ts": 1790357046.0104384,
+      "source_commit": "bc6e388f66e3729cfb4c11a5ce195b934b2ce351",
+      "markets": 427
+    },
+    {
+      "scan_id": "20260925T174033Z-f5156b0c",
+      "scan_ts": 1790358123.6074228,
+      "source_commit": "cedf30759e9ccef91630066e1324ba361e4fee98",
+      "markets": 427
+    },
+    {
+      "scan_id": "20260925T175530Z-1b65432b",
+      "scan_ts": 1790359047.2417154,
+      "source_commit": "ccbc9e4d9f9e1787fd814e9630109c290626d906",
+      "markets": 427
+    },
+    {
+      "scan_id": "20260925T181747Z-ee44727e",
+      "scan_ts": 1790360358.9076025,
+      "source_commit": "74875f48c84eafb311c100f873015008c949d79e",
+      "markets": 427
+    },
+    {
+      "scan_id": "20260925T183634Z-c8a7127f",
+      "scan_ts": 1790361483.59533,
+      "source_commit": "b542de63ab8bb824a75ca8793ae07ebcd9f4c578",
+      "markets": 427
+    },
+    {
+      "scan_id": "20260925T185346Z-55c3f3d0",
+      "scan_ts": 1790362512.724296,
+      "source_commit": "5f67bcf12e92ca0d026281304f9004308b4e7841",
+      "markets": 427
+    },
+    {
+      "scan_id": "20260925T191046Z-525cd3dd",
+      "scan_ts": 1790363546.7141263,
+      "source_commit": "c895fbac25292c238516b853113f461d924b3594",
+      "markets": 427
+    },
+    {
+      "scan_id": "20260925T192731Z-48500f34",
+      "scan_ts": 1790364543.2257657,
+      "source_commit": "37cf7907b460fb183341815b945d31be4478dc40",
+      "markets": 427
+    },
+    {
+      "scan_id": "20260925T194355Z-4e29526d",
+      "scan_ts": 1790365526.2612565,
+      "source_commit": "b6df053f2f3fd7cdcfccedcac00105f22b291dc8",
+      "markets": 427
+    },
+    {
+      "scan_id": "20260925T195654Z-6b4d1c24",
+      "scan_ts": 1790366333.9922917,
+      "source_commit": "fd104ffe7deb1f7ccde33424fc9397f0d063c8ca",
+      "markets": 427
+    },
+    {
+      "scan_id": "20260925T201707Z-e10e2eff",
+      "scan_ts": 1790367517.7400346,
+      "source_commit": "9c73fa85eab5a9b7f4493527f3e95be4ca984fbc",
+      "markets": 427
+    },
+    {
+      "scan_id": "20260925T203437Z-6ba01ec4",
+      "scan_ts": 1790368570.0721512,
+      "source_commit": "3ab6e22b3536eecf660a90789b56bd59441aedb7",
+      "markets": 427
+    },
+    {
+      "scan_id": "20260925T205047Z-bec2f6ea",
+      "scan_ts": 1790369537.2599144,
+      "source_commit": "f29004d93912fa85b7511359692d0975c8e0e0c6",
+      "markets": 427
+    },
+    {
+      "scan_id": "20260925T210618Z-a0a99242",
+      "scan_ts": 1790370469.5587816,
+      "source_commit": "132f0a022cebbe5be47d16d78580e2b52c08e98e",
+      "markets": 427
+    },
+    {
+      "scan_id": "20260925T212506Z-dd75ea4c",
+      "scan_ts": 1790371597.7714653,
+      "source_commit": "dfa0921156f27caadeb2aeb758e00f7a8a2df7b0",
+      "markets": 427
+    },
+    {
+      "scan_id": "20260925T214310Z-5c810df7",
+      "scan_ts": 1790372681.4602573,
+      "source_commit": "5163c2d8965ec4336cea9635603a892b0356d29a",
+      "markets": 427
+    },
+    {
+      "scan_id": "20260925T215152Z-6acc3917",
+      "scan_ts": 1790373204.7713315,
+      "source_commit": "e1a4109431a631bbdda5d91aa26a48948d4d83bd",
+      "markets": 427
+    },
+    {
+      "scan_id": "20260925T215951Z-a7116628",
+      "scan_ts": 1790373710.697549,
+      "source_commit": "71ff05ab4c3c3fd9859faf1a69b2b769f25f7084",
+      "markets": 427
+    },
+    {
+      "scan_id": "20260925T221759Z-f6a5936c",
+      "scan_ts": 1790374772.1218188,
+      "source_commit": "a8b10d8eabd9a3aeecf4697043ce89fc151c5c48",
+      "markets": 427
+    },
+    {
+      "scan_id": "20260925T222753Z-7c755fde",
+      "scan_ts": 1790375357.6584413,
+      "source_commit": "548cc416d1dd446650022946ff2dc3c5efaa6e01",
+      "markets": 427
+    },
+    {
+      "scan_id": "20260925T223637Z-8862be11",
+      "scan_ts": 1790375886.7431266,
+      "source_commit": "808017cbdd3a2497d209b39b7009dbc2417dd474",
+      "markets": 427
+    },
+    {
+      "scan_id": "20260925T224927Z-af850611",
+      "scan_ts": 1790376653.4350085,
+      "source_commit": "820d4aba67807fe6757e0318891fdc3e5014e303",
+      "markets": 427
+    },
+    {
+      "scan_id": "20260925T230324Z-d82f99a8",
+      "scan_ts": 1790377493.2642894,
+      "source_commit": "9701384edf7bba46c8791f0996b1c3756112f133",
+      "markets": 427
+    },
+    {
+      "scan_id": "20260925T231850Z-6ba15b51",
+      "scan_ts": 1790378416.4610226,
+      "source_commit": "712ed6dec4f7365230094353cc54599453d3ae75",
+      "markets": 427
+    },
+    {
+      "scan_id": "20260925T232749Z-dd769358",
+      "scan_ts": 1790378960.6953864,
+      "source_commit": "d0348d7f0ecf73ea975407dfec7cb0a41ea69da1",
+      "markets": 427
+    },
+    {
+      "scan_id": "20260925T233714Z-22a07ffe",
+      "scan_ts": 1790379525.3603086,
+      "source_commit": "eb7aa08fb484eb581ed077e8bd02460221e0dce1",
+      "markets": 427
+    },
+    {
+      "scan_id": "20260925T234631Z-16980de4",
+      "scan_ts": 1790380085.7930903,
+      "source_commit": "c4b276c803722198da482530ea46212c6e6f568b",
+      "markets": 427
+    },
+    {
+      "scan_id": "20260925T235451Z-ded657cf",
+      "scan_ts": 1790380580.6909459,
+      "source_commit": "8f53bd2acd1373aa1d937c3b282f37c2e7df9115",
+      "markets": 427
+    },
+    {
+      "scan_id": "20260926T000354Z-674ba90b",
+      "scan_ts": 1790381153.3796136,
+      "source_commit": "f6bad8b2c5aa4e6641ac51a31d9d5d7704fba0a2",
+      "markets": 427
+    },
+    {
+      "scan_id": "20260926T002847Z-5f8016b9",
+      "scan_ts": 1790382619.8270075,
+      "source_commit": "db73fd71ea433c49f6a084f38aa8f8ad00f868ed",
+      "markets": 427
+    },
+    {
+      "scan_id": "20260926T005001Z-0c4039c0",
+      "scan_ts": 1790383889.4799833,
+      "source_commit": "c7cc3c9ea1556f3a5ea1b048123413cd0cbad45a",
+      "markets": 427
+    },
+    {
+      "scan_id": "20260926T010401Z-17aa60c1",
+      "scan_ts": 1790384735.518259,
+      "source_commit": "a8c5beb167d7f709de740aec2427f20c6f6b9766",
+      "markets": 427
+    },
+    {
+      "scan_id": "20260926T012144Z-829b29ee",
+      "scan_ts": 1790385796.5839584,
+      "source_commit": "7f75ee108ae77fcbd6f18a3dde831160de8e95c8",
+      "markets": 427
+    },
+    {
+      "scan_id": "20260926T013738Z-d3c29c3f",
+      "scan_ts": 1790386748.3178878,
+      "source_commit": "bec2b348150fc026c3b4bee228af0aff47e8b27d",
+      "markets": 427
+    },
+    {
+      "scan_id": "20260926T015239Z-7ff04a87",
+      "scan_ts": 1790387647.4317386,
+      "source_commit": "08e4550eff198267967dab3e490049b7f3a1ce74",
+      "markets": 427
+    },
+    {
+      "scan_id": "20260926T020939Z-459d75ae",
+      "scan_ts": 1790388694.7678013,
+      "source_commit": "88706b992c0ab593992912957f3a1c272e8f4f80",
+      "markets": 427
+    },
+    {
+      "scan_id": "20260926T022801Z-128499af",
+      "scan_ts": 1790389766.5766153,
+      "source_commit": "2b2aed609379141ea2d4b5b3d85d8993ecd78a68",
+      "markets": 427
+    },
+    {
+      "scan_id": "20260926T024444Z-2bcc2d09",
+      "scan_ts": 1790390772.3650484,
+      "source_commit": "4aa10bf100415b8386c8f2700d25f84ae7711e6d",
+      "markets": 427
+    },
+    {
+      "scan_id": "20260926T025820Z-68150a41",
+      "scan_ts": 1790391592.391771,
+      "source_commit": "565e9c188fbdf9d62a5f4c3d817f5baa96c0d9d1",
+      "markets": 427
+    },
+    {
+      "scan_id": "20260926T031847Z-1dedfad7",
+      "scan_ts": 1790392815.2460642,
+      "source_commit": "aa5c78c103b0136681dfcbc6c8e2f7cf2e475437",
+      "markets": 427
+    },
+    {
+      "scan_id": "20260926T033605Z-72af8cd2",
+      "scan_ts": 1790393859.5422604,
+      "source_commit": "6092419f902260f77c61e60d36cbfa292fdd527f",
+      "markets": 427
+    },
+    {
+      "scan_id": "20260926T035104Z-07b5c035",
+      "scan_ts": 1790394756.240836,
+      "source_commit": "aeba222438fc52513c44a2285106bde1305cabea",
+      "markets": 427
+    },
+    {
+      "scan_id": "20260926T040652Z-c7f0ec46",
+      "scan_ts": 1790395702.4512048,
+      "source_commit": "e849105253784a5fb8b827bd842c20eeea1eaaf1",
+      "markets": 427
+    },
+    {
+      "scan_id": "20260926T042555Z-b9a95855",
+      "scan_ts": 1790396871.0711803,
+      "source_commit": "111d927a32f06f1e3d241841ce8fb1275e4f8488",
+      "markets": 427
+    },
+    {
+      "scan_id": "20260926T044354Z-2f5b9f10",
+      "scan_ts": 1790397918.7695282,
+      "source_commit": "e31d3fcb0996e621b3b29b70aea00c50bf30b48b",
+      "markets": 427
+    },
+    {
+      "scan_id": "20260926T045648Z-270c3476",
+      "scan_ts": 1790398693.0368528,
+      "source_commit": "b871e7c88876d37f0c574384cd94360321de3560",
+      "markets": 427
+    },
+    {
+      "scan_id": "20260926T051655Z-4bcc95f0",
+      "scan_ts": 1790399907.4715958,
+      "source_commit": "9406c643785dbf5b18f08fb26590cb67be2a5edf",
+      "markets": 427
+    },
+    {
+      "scan_id": "20260926T053308Z-3637d095",
+      "scan_ts": 1790400877.6236675,
+      "source_commit": "d9972d4cbf56a4cdb2506e694d50fbde5386e71b",
+      "markets": 427
+    },
+    {
+      "scan_id": "20260926T054723Z-84297f0f",
+      "scan_ts": 1790401731.927728,
+      "source_commit": "fce62a32acfe31bee7336a39a4170fa3704c2ff7",
+      "markets": 427
+    },
+    {
+      "scan_id": "20260926T060023Z-985b4613",
+      "scan_ts": 1790402510.0063498,
+      "source_commit": "c295a5ed1cb6d5c03768aa94d7f4e43221208ebd",
+      "markets": 427
+    },
+    {
+      "scan_id": "20260926T062523Z-36b09742",
+      "scan_ts": 1790404020.0424168,
+      "source_commit": "935f51b97d13ab396ef80f7abbcbb3cce58e333a",
+      "markets": 427
+    },
+    {
+      "scan_id": "20260926T064646Z-ae911c80",
+      "scan_ts": 1790405322.9777198,
+      "source_commit": "7b22371e8abd28336d836ba1e7c5d4825ec72176",
+      "markets": 427
+    },
+    {
+      "scan_id": "20260926T070027Z-b4b5a060",
+      "scan_ts": 1790406114.0221474,
+      "source_commit": "223fe220b3eeb017695e18fe665b7329fa7b8093",
+      "markets": 427
+    },
+    {
+      "scan_id": "20260926T072029Z-5e724ca9",
+      "scan_ts": 1790407316.5084798,
+      "source_commit": "bfb2e92f51379f69d04c8c4d1aa95320e9400fe8",
+      "markets": 427
+    },
+    {
+      "scan_id": "20260926T073544Z-0decdb21",
+      "scan_ts": 1790408232.9561934,
+      "source_commit": "5a1c87542f245274fcb276c4032ea315bcc8145a",
+      "markets": 427
+    },
+    {
+      "scan_id": "20260926T075002Z-60d2e586",
+      "scan_ts": 1790409092.1366382,
+      "source_commit": "064a760cbc3c7c225eb5211c5b05ab3b9fcc1248",
+      "markets": 427
+    },
+    {
+      "scan_id": "20260926T080517Z-b2531144",
+      "scan_ts": 1790410007.6640878,
+      "source_commit": "0740e2b11e6daf05b6e98a58b5141a8011700686",
+      "markets": 427
+    },
+    {
+      "scan_id": "20260926T082546Z-916be23e",
+      "scan_ts": 1790411234.38949,
+      "source_commit": "f602b803bb0113db582670b60736e995124a3512",
+      "markets": 427
+    },
+    {
+      "scan_id": "20260926T084349Z-a913c0c1",
+      "scan_ts": 1790412320.2750368,
+      "source_commit": "b0ba325d7a96d44fe7ef04ffdccd2aaebcaaefd8",
+      "markets": 427
+    },
+    {
+      "scan_id": "20260926T085658Z-e243d4dc",
+      "scan_ts": 1790413130.367956,
+      "source_commit": "ee2057e499d1dbc2b6c509b294baa4871cd30d68",
+      "markets": 427
+    },
+    {
+      "scan_id": "20260926T091724Z-9f4fd8ce",
+      "scan_ts": 1790414330.808266,
+      "source_commit": "0fa89c767c94448fca4fc1240cd9622826dd9d24",
+      "markets": 427
+    },
+    {
+      "scan_id": "20260926T093326Z-6858c5c2",
+      "scan_ts": 1790415297.26061,
+      "source_commit": "a804bab990c3a49f72d116b3452ebcce6fb2f0dd",
+      "markets": 427
+    },
+    {
+      "scan_id": "20260926T094734Z-5e7a93e8",
+      "scan_ts": 1790416142.6802008,
+      "source_commit": "3165587219106eaf874cef2bbede275c807e38f5",
+      "markets": 427
+    },
+    {
+      "scan_id": "20260926T100023Z-036e806b",
+      "scan_ts": 1790416911.9693916,
+      "source_commit": "e787ac63958db7ab2842e28edfba2cc532054226",
+      "markets": 427
+    },
+    {
+      "scan_id": "20260926T101953Z-9c79de74",
+      "scan_ts": 1790418083.4311976,
+      "source_commit": "3ba87baa9ad2ba612b15f146de78aa4ad011adaa",
+      "markets": 427
+    },
+    {
+      "scan_id": "20260926T103556Z-17b59611",
+      "scan_ts": 1790419042.2386384,
+      "source_commit": "42fe63f6c10b2edacae023363a50f31dca0a9d55",
+      "markets": 427
+    },
+    {
+      "scan_id": "20260926T105038Z-2c5ecb62",
+      "scan_ts": 1790419925.557756,
+      "source_commit": "43e3bc4210ca42250c8c4f4f38ff0d36aa9eaf3f",
+      "markets": 427
+    },
+    {
+      "scan_id": "20260926T110443Z-1f74a6a6",
+      "scan_ts": 1790420799.5860708,
+      "source_commit": "fc757ddd26fddb5eae6cb07a683d3dfdfde04559",
+      "markets": 427
+    },
+    {
+      "scan_id": "20260926T112211Z-2efd5095",
+      "scan_ts": 1790421815.2381778,
+      "source_commit": "0fe68d83f5cbc339bd82c74885bd2f3c618bafa1",
+      "markets": 427
+    },
+    {
+      "scan_id": "20260926T113821Z-e75a42cc",
+      "scan_ts": 1790422787.7842696,
+      "source_commit": "30a998587f10244615b91e00aedcf96bcf13882e",
+      "markets": 427
+    },
+    {
+      "scan_id": "20260926T115150Z-0f94a562",
+      "scan_ts": 1790423595.5807393,
+      "source_commit": "9bd3ddea8b71c6c4a9f56539374c5be493eed9d5",
+      "markets": 427
+    },
+    {
+      "scan_id": "20260926T121005Z-38f703cc",
+      "scan_ts": 1790424691.6458433,
+      "source_commit": "768dc7ce1152b2b8773ecb1077df717ecda58cda",
+      "markets": 427
+    },
+    {
+      "scan_id": "20260926T123249Z-c2f604bf",
+      "scan_ts": 1790426068.2641246,
+      "source_commit": "8c87d84f00919a1c9a67168b778c85cf3652d57a",
+      "markets": 427
+    },
+    {
+      "scan_id": "20260926T125104Z-5563a77e",
+      "scan_ts": 1790427158.066936,
+      "source_commit": "a324ee94900eadd8ba84a017f1ae0b5d5e329506",
+      "markets": 427
+    },
+    {
+      "scan_id": "20260926T130609Z-ef1edbee",
+      "scan_ts": 1790428086.3418841,
+      "source_commit": "fb86e39f4d4694e58cd4c047238d1b123f9151ba",
+      "markets": 427
+    },
+    {
+      "scan_id": "20260926T132320Z-c7fe4578",
+      "scan_ts": 1790429097.015772,
+      "source_commit": "51e07ff2d55684c2d8422c66b5ab142015db0953",
+      "markets": 427
+    },
+    {
+      "scan_id": "20260926T133922Z-6615e906",
+      "scan_ts": 1790430050.6138847,
+      "source_commit": "c718c66a9f709568c200f7f9fba0392cd39f925c",
+      "markets": 427
+    },
+    {
+      "scan_id": "20260926T135218Z-f606a039",
+      "scan_ts": 1790430825.2281868,
+      "source_commit": "7879f36f00a40da87ca5103eff279a84855e843c",
+      "markets": 427
+    },
+    {
+      "scan_id": "20260926T140906Z-de4b4000",
+      "scan_ts": 1790431831.6591065,
+      "source_commit": "9fd9472f6da2c9b9037673f2df575926c1b17800",
+      "markets": 427
+    },
+    {
+      "scan_id": "20260926T142741Z-da25a8b0",
+      "scan_ts": 1790432946.1307883,
+      "source_commit": "caa5a73e5cf28c65e7e58a91241c31d688d23c65",
+      "markets": 427
+    },
+    {
+      "scan_id": "20260926T144423Z-128ef711",
+      "scan_ts": 1790433949.2887511,
+      "source_commit": "3baf73229522f5dd858f9d88c5f156e500dc15b2",
+      "markets": 427
+    },
+    {
+      "scan_id": "20260926T145700Z-a41f1c93",
+      "scan_ts": 1790434703.1967416,
+      "source_commit": "f70a3da254229ca67074c9a82869e49e8e9152cc",
+      "markets": 427
+    },
+    {
+      "scan_id": "20260926T151716Z-284c987e",
+      "scan_ts": 1790435945.5184565,
+      "source_commit": "ce58cdae60e959159e75624efd1df5b510bc181a",
+      "markets": 427
+    },
+    {
+      "scan_id": "20260926T153453Z-1672b462",
+      "scan_ts": 1790436979.1965423,
+      "source_commit": "5a5e6a33d9d98c4b71e7f959ceb73fc0a4332d72",
+      "markets": 427
+    },
+    {
+      "scan_id": "20260926T155005Z-3f598c88",
+      "scan_ts": 1790437891.3754942,
+      "source_commit": "19f258f6311406ac13ea1056d23f958dec39d922",
+      "markets": 427
+    },
+    {
+      "scan_id": "20260926T160519Z-3ce8d6e5",
+      "scan_ts": 1790438806.2783058,
+      "source_commit": "28ba77ad02316eeef556ca84cc0db9e4666226ba",
+      "markets": 427
+    },
+    {
+      "scan_id": "20260926T162429Z-00bf612d",
+      "scan_ts": 1790439956.7035668,
+      "source_commit": "98140de6bcf3c76e22ded093ef11a992ce91be85",
+      "markets": 427
+    },
+    {
+      "scan_id": "20260926T164205Z-439193fc",
+      "scan_ts": 1790441015.1057384,
+      "source_commit": "805b1f0f73ec358b6500d6056b90bdc40963a0ff",
+      "markets": 427
+    },
+    {
+      "scan_id": "20260926T165533Z-3e1d6ecb",
+      "scan_ts": 1790441835.1177104,
+      "source_commit": "93f5b288e886fb1af31f091d56a94d4315694a59",
+      "markets": 427
+    },
+    {
+      "scan_id": "20260926T171425Z-dc530c9b",
+      "scan_ts": 1790442959.38585,
+      "source_commit": "284447e60d7d0efd9b348d6297267bf8aa6a3f3f",
+      "markets": 427
+    },
+    {
+      "scan_id": "20260926T173131Z-a5d8c93b",
+      "scan_ts": 1790444006.932617,
+      "source_commit": "f6541b5266b09dc80f95c52d08b82f7225ff570c",
+      "markets": 427
+    },
+    {
+      "scan_id": "20260926T174618Z-f94fb7ca",
+      "scan_ts": 1790444868.7275386,
+      "source_commit": "d1e788f75c20b824257c0116919b2bac976e69f4",
+      "markets": 427
+    },
+    {
+      "scan_id": "20260926T175940Z-bfd0f40f",
+      "scan_ts": 1790445673.14431,
+      "source_commit": "794c1a6bf9fd1dfdd7f73bbfe77cad93a4fac357",
+      "markets": 427
+    },
+    {
+      "scan_id": "20260926T182230Z-ff41ac46",
+      "scan_ts": 1790447042.0217655,
+      "source_commit": "6459cf2c2f54f637cf8ae8aeeb153a828d0104b2",
+      "markets": 427
+    },
+    {
+      "scan_id": "20260926T184208Z-22537584",
+      "scan_ts": 1790448217.6940162,
+      "source_commit": "deca97c421510c7f3cce35993c57f2774626b47a",
+      "markets": 427
+    },
+    {
+      "scan_id": "20260926T185730Z-7a58b58e",
+      "scan_ts": 1790449139.7019663,
+      "source_commit": "f6049df94fde2f8b04c6721867d4482c2b330571",
+      "markets": 427
+    },
+    {
+      "scan_id": "20260926T191606Z-fa199451",
+      "scan_ts": 1790450259.7600079,
+      "source_commit": "23f551fa9b68653fb6c41b71ced27ab9c5b3f304",
+      "markets": 427
+    },
+    {
+      "scan_id": "20260926T193050Z-8b327969",
+      "scan_ts": 1790451143.5365126,
+      "source_commit": "b4af1cca1ada3b536e307514f1817f8e30a33bbf",
+      "markets": 427
+    },
+    {
+      "scan_id": "20260926T194435Z-521535ae",
+      "scan_ts": 1790451995.6008072,
+      "source_commit": "a4839b9478813401b8438c478653dd63e4e8dd3b",
+      "markets": 427
+    },
+    {
+      "scan_id": "20260926T195723Z-fc78bc78",
+      "scan_ts": 1790452736.0947566,
+      "source_commit": "9905141661094c90e245b3e04e3c509533c313bd",
+      "markets": 427
+    },
+    {
+      "scan_id": "20260926T201719Z-c2d133ac",
+      "scan_ts": 1790453930.3752615,
+      "source_commit": "6da360da4fd06cca7ccea85672fd95abcd69a364",
+      "markets": 427
+    },
+    {
+      "scan_id": "20260926T203332Z-d2fc5b41",
+      "scan_ts": 1790454903.0601127,
+      "source_commit": "dd7e01c4533a6107b3371ba30912b84def622e00",
+      "markets": 427
+    },
+    {
+      "scan_id": "20260926T204814Z-e03bcbdd",
+      "scan_ts": 1790455783.3721793,
+      "source_commit": "9e7599239507fdbe0413a40827838b8cddf297d4",
+      "markets": 427
+    },
+    {
+      "scan_id": "20260926T210118Z-bf549707",
+      "scan_ts": 1790456573.5681207,
+      "source_commit": "b6c6871a7b33148fa4ab4426becab4b3cd80419c",
+      "markets": 427
+    },
+    {
+      "scan_id": "20260926T212048Z-5c3c5099",
+      "scan_ts": 1790457742.6579487,
+      "source_commit": "0e1b61c49580a728d0cfc05969285573bf8f7894",
+      "markets": 427
+    },
+    {
+      "scan_id": "20260926T213645Z-ade18b44",
+      "scan_ts": 1790458697.6228504,
+      "source_commit": "82098fd3cdd92b1e7cb12f057c2ce7a22b4dbdcf",
+      "markets": 427
+    },
+    {
+      "scan_id": "20260926T215001Z-492389da",
+      "scan_ts": 1790459524.1546323,
+      "source_commit": "f3d6924b85fd1e99a8d3ff0913ae2ae208503b26",
+      "markets": 427
+    },
+    {
+      "scan_id": "20260926T220427Z-75deb6a9",
+      "scan_ts": 1790460355.3836846,
+      "source_commit": "08b5c690ee30d4f256420ebee2264cae99b06072",
+      "markets": 427
+    },
+    {
+      "scan_id": "20260926T222222Z-656a50c5",
+      "scan_ts": 1790461431.8603437,
+      "source_commit": "b20c8ce60e31e3a916d431ac946cd320ca104667",
+      "markets": 427
+    },
+    {
+      "scan_id": "20260926T223902Z-819cfb88",
+      "scan_ts": 1790462432.4588864,
+      "source_commit": "2c7a9b5a11d372fc2021d222f9c65a28e8594f8d",
+      "markets": 427
+    },
+    {
+      "scan_id": "20260926T225345Z-b77284aa",
+      "scan_ts": 1790463315.2132618,
+      "source_commit": "6e15489645b37537cbfdc0fd9138e36a7bda63d8",
+      "markets": 427
+    },
+    {
+      "scan_id": "20260926T231128Z-ca0bdef3",
+      "scan_ts": 1790464377.8071134,
+      "source_commit": "50ad385ab707ff84ca64ea767bd5af82905af6b8",
+      "markets": 427
+    },
+    {
+      "scan_id": "20260926T232739Z-a2d7c766",
+      "scan_ts": 1790465349.3422632,
+      "source_commit": "2fe6d02fd485808d478134fda084b65bc47dc46d",
+      "markets": 427
+    },
+    {
+      "scan_id": "20260926T234247Z-61213e17",
+      "scan_ts": 1790466259.029221,
+      "source_commit": "ac140ea08a5d1eca52c31b7431930640b39f6dfa",
+      "markets": 427
+    },
+    {
+      "scan_id": "20260926T235539Z-75a600d7",
+      "scan_ts": 1790467057.3404791,
+      "source_commit": "baf52410e0ef6e48255361e7ca408b3f40f85b65",
+      "markets": 427
+    },
+    {
+      "scan_id": "20260927T002351Z-865925ce",
+      "scan_ts": 1790468724.2561057,
+      "source_commit": "e48721888e002923cdd30f5e8da84b20e0b6bf5e",
+      "markets": 427
+    }
+  ],
+  "bars": 739873
+}
