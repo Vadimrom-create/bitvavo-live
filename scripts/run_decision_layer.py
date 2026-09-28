@@ -110,6 +110,18 @@ def render(payload: dict) -> str:
                 f"- {row['market']} {row['change_24h_pct']:+.2f}% — {row['detection_state']} — "
                 f"couche {row['failure_layer']} — action {row['actionability_layer']}"
             )
+    pm = payload.get("position_management_policy") or {}
+    lines += [
+        "",
+        "## Gestion des positions détenues",
+        "",
+        f"Policy : {pm.get('policy', 'NON_CONFIGUREE')}",
+        f"- +{pm.get('first_partial_gain_pct', 0):g}% : prise partielle {pm.get('first_partial_fraction', 0) * 100:.0f}%.",
+        f"- +{pm.get('second_partial_gain_pct', 0):g}% : seconde prise {pm.get('second_partial_fraction', 0) * 100:.0f}%.",
+        f"- Runner conservé : {pm.get('runner_fraction', 0) * 100:.0f}%.",
+        f"- Revue coût d'opportunité après {pm.get('opportunity_cost_review_hours', 0):g} h ; sortie seulement avant la première partielle, proche/sous le PRU et avec momentum 15m affaibli.",
+        "- Pas de stop serré mécaniquement après une petite hausse ; le stop reste lié à l'invalidation structurelle.",
+    ]
     lines += [
         "",
         "## Garde-fous",
