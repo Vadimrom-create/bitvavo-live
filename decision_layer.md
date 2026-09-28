@@ -1,6 +1,6 @@
 # Decision Layer V1 + boucle de contrôle — shadow
 
-Scan : 2026-09-28T07:14:27.220393+00:00
+Scan : 2026-09-28T07:36:21.250815+00:00
 Policy : DECISION_LAYER_V1_SHADOW au-dessus de V4_FROZEN_20260908
 
 Cette couche ne modifie aucun score V4 et ne peut envoyer aucun ordre.
@@ -8,56 +8,55 @@ Entry est un indicateur de timing, pas un veto structurel.
 
 ## Quatre lectures obligatoires
 
-- **MEILLEUR_ACHAT_IMMEDIAT** : HBAR-EUR | action ACHETE_MAINTENANT | opportunité 8.833 | entrée 7.500 | trend 7.400 | rang 7.741
+- **MEILLEUR_ACHAT_IMMEDIAT** : HBAR-EUR | action ACHETE_MAINTENANT | opportunité 7.399 | entrée 7.400 | trend 7.400 | rang 7.061
   - V4 buy-ready with acceptable current entry; no structural veto.
-- **MEILLEURE_LIMITE_PASSIVE** : ONDO-EUR | action PLACE_LIMITE_PASSIVE | opportunité 8.216 | entrée 6.550 | trend 8.450 | rang 7.847
+- **MEILLEURE_LIMITE_PASSIVE** : ONDO-EUR | action PLACE_LIMITE_PASSIVE | opportunité 7.622 | entrée 6.500 | trend 8.450 | rang 7.568
   - Strong structure but imperfect current entry; prefer passive execution.
-- **MEILLEUR_LATENT_ACCELERATOR** : AZTEC-EUR | action LATENT_ACCELERATOR | opportunité 7.896 | entrée 5.750 | trend 8.650 | rang 7.194
+- **MEILLEUR_LATENT_ACCELERATOR** : IMX-EUR | action LATENT_ACCELERATOR | opportunité 7.708 | entrée 5.500 | trend 8.650 | rang 7.560
   - Strong structural opportunity retained despite weak instantaneous entry.
-- **MEILLEUR_PULLBACK_REENTRY** : KAS-EUR | action ATTENDS_REPRISE_OU_REENTREE | opportunité 8.213 | entrée 7.200 | trend 8.700 | rang 7.936
+- **MEILLEUR_PULLBACK_REENTRY** : CC-EUR | action ATTENDS_REPRISE_OU_REENTREE | opportunité 8.112 | entrée 6.400 | trend 8.700 | rang 7.835
   - Strong trend/opportunity retained through pullback; timing does not erase setup.
 
 ## Tous les achats immédiats
 
-1. HBAR-EUR — ACHETE_MAINTENANT — rank 7.741 — opportunité 8.833 — entrée 7.500 — trend 7.400
+1. HBAR-EUR — ACHETE_MAINTENANT — rank 7.061 — opportunité 7.399 — entrée 7.400 — trend 7.400
 
 ## Top cross-sectionnel — aperçu non exhaustif
 
 Ce top est une vue courte multi-buckets. Il ne doit jamais être utilisé comme liste exhaustive des achats immédiats.
-1. KAS-EUR — MEILLEUR_PULLBACK_REENTRY — ATTENDS_REPRISE_OU_REENTREE — rank 7.936
-2. CC-EUR — MEILLEUR_PULLBACK_REENTRY — ATTENDS_REPRISE_OU_REENTREE — rank 7.882
-3. ALLO-EUR — MEILLEUR_PULLBACK_REENTRY — ATTENDS_REPRISE_OU_REENTREE — rank 7.871
+1. CC-EUR — MEILLEUR_PULLBACK_REENTRY — ATTENDS_REPRISE_OU_REENTREE — rank 7.835
+2. PYTH-EUR — MEILLEUR_PULLBACK_REENTRY — ATTENDS_REPRISE_OU_REENTREE — rank 7.808
+3. KAS-EUR — MEILLEUR_PULLBACK_REENTRY — ATTENDS_REPRISE_OU_REENTREE — rank 7.798
 
 ## Accélération indépendante
 
-- IKA-EUR — CONFIRMED_ACCELERATION — score 7.703/10 — REQUIRES_FINAL_EXECUTION_VALIDATION
-- XYO-EUR — BUILDING_ACCELERATION — score 5.369/10 — REQUIRES_FINAL_EXECUTION_VALIDATION
+- ZRC-EUR — CONFIRMED_ACCELERATION — score 8.779/10 — REQUIRES_FINAL_EXECUTION_VALIDATION
 
 ## Watchlist persistante 24–72 h
 
-- HBAR-EUR — ACTIVE_NOW — score mémoire 7.741/10 — sources ACCELERATION, DECISION_LAYER, V4 — BUYABLE_NOW
+- HBAR-EUR — ACTIVE_NOW — score mémoire 7.061/10 — sources ACCELERATION, DECISION_LAYER, V4 — BUYABLE_NOW
 - DGB-EUR — MEMORY_24H — score mémoire 10.000/10 — sources ACCELERATION, V4 — MEMORY_ONLY
-- ZRC-EUR — MEMORY_24H — score mémoire 8.828/10 — sources ACCELERATION, V4 — MEMORY_ONLY
+- ZRC-EUR — ACTIVE_NOW — score mémoire 8.779/10 — sources ACCELERATION, V4 — WATCH_ONLY
 - FUEL-EUR — MEMORY_24H — score mémoire 8.500/10 — sources ACCELERATION, V4 — MEMORY_ONLY
 - XMN-EUR — MEMORY_24H — score mémoire 8.447/10 — sources ACCELERATION, V4 — MEMORY_ONLY
 - FRAX-EUR — MEMORY_24H — score mémoire 8.380/10 — sources ACCELERATION, V4 — MEMORY_ONLY
 - WMTX-EUR — MEMORY_24H — score mémoire 8.187/10 — sources ACCELERATION, V4 — MEMORY_ONLY
 - ACX-EUR — MEMORY_24H — score mémoire 8.120/10 — sources ACCELERATION — MEMORY_ONLY
 - CAP-EUR — MEMORY_24H — score mémoire 7.967/10 — sources ACCELERATION, V4 — MEMORY_ONLY
-- KAS-EUR — ACTIVE_NOW — score mémoire 7.936/10 — sources ACCELERATION, DECISION_LAYER, V4 — WATCH_ONLY
+- SAFE-EUR — MEMORY_24H — score mémoire 7.933/10 — sources ACCELERATION, DECISION_LAYER, V4 — MEMORY_ONLY
 
 ## Audit des plus fortes hausses
 
-- QNT-EUR +59.43% — DETECTED_EARLY — couche NONE — action INTERPRETATION
-- TREAD-EUR +42.86% — DETECTED_EARLY — couche NONE — action INTERPRETATION
-- AUDIO-EUR +23.69% — DETECTED_EARLY — couche NONE — action ENTRY_TIMING_OR_EXECUTION
-- GRT-EUR +16.23% — DETECTED_EARLY — couche NONE — action ENTRY_TIMING_OR_EXECUTION
-- SEI-EUR +11.64% — DETECTED_EARLY — couche NONE — action ENTRY_TIMING_OR_EXECUTION
-- XDC-EUR +11.10% — DETECTED_EARLY — couche NONE — action ENTRY_TIMING_OR_EXECUTION
-- GRASS-EUR +11.00% — DETECTED_EARLY — couche NONE — action ENTRY_TIMING_OR_EXECUTION
-- PUMP-EUR +10.67% — DETECTED_EARLY — couche NONE — action ENTRY_TIMING_OR_EXECUTION
-- SOON-EUR +9.89% — DETECTED_EARLY — couche NONE — action INTERPRETATION
-- AZTEC-EUR +8.41% — DETECTED_EARLY — couche NONE — action INTERPRETATION
+- QNT-EUR +62.36% — DETECTED_EARLY — couche NONE — action INTERPRETATION
+- TREAD-EUR +33.25% — DETECTED_EARLY — couche NONE — action INTERPRETATION
+- AUDIO-EUR +20.61% — DETECTED_EARLY — couche NONE — action ENTRY_TIMING_OR_EXECUTION
+- GRT-EUR +14.61% — DETECTED_EARLY — couche NONE — action ENTRY_TIMING_OR_EXECUTION
+- XDC-EUR +11.98% — DETECTED_EARLY — couche NONE — action ENTRY_TIMING_OR_EXECUTION
+- PUMP-EUR +8.36% — DETECTED_EARLY — couche NONE — action ENTRY_TIMING_OR_EXECUTION
+- AZTEC-EUR +8.29% — DETECTED_EARLY — couche NONE — action INTERPRETATION
+- SEI-EUR +8.12% — DETECTED_EARLY — couche NONE — action ENTRY_TIMING_OR_EXECUTION
+- SOON-EUR +7.53% — DETECTED_EARLY — couche NONE — action INTERPRETATION
+- SOSO-EUR +6.37% — NOT_DETECTED — couche SCANNER_COVERAGE — action NOT_APPLICABLE
 
 ## Garde-fous
 
