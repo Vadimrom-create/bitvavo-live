@@ -84,8 +84,10 @@ def management_event(balance, plan, quote, features, meta, orders, now):
     friction = fee + slip
     tp1 = finite(plan.get('tp1_eur'))
     tp2 = finite(plan.get('tp2_eur'))
-    realized1 = plan.get('tp1_done') is True or total <= initial * (1 - fraction1) + precision
-    realized2 = plan.get('tp2_done') is True or total <= initial * (1 - fraction1 - fraction2) + precision
+    target_remaining_after_tp1 = initial * (1 - fraction1)
+    target_remaining_after_tp2 = initial * (1 - fraction1 - fraction2)
+    realized1 = total <= target_remaining_after_tp1 + precision
+    realized2 = total <= target_remaining_after_tp2 + precision
 
     # Opportunity-cost exit: never a blind timer. It only activates before the
     # first profit take, after a full holding window, when the position is still
@@ -134,7 +136,7 @@ def management_event(balance, plan, quote, features, meta, orders, now):
         }, 'ACTION'
 
     if tp1 and bid >= tp1 and not realized1 and bid * (1 - friction) > cost * (1 + friction):
-        quantity = rounded(min(total, initial * fraction1), precision)
+        quantity = rounded(min(total, max(0.0, total - target_remaining_after_tp1)), precision)
         pending_tp = any(o.get('orderType') == 'limit' and finite(o.get('price'), float('inf')) <= bid
                          and finite(o.get('amountRemaining'), 0) >= quantity - precision for o in active)
         if pending_tp:
@@ -144,7 +146,7 @@ def management_event(balance, plan, quote, features, meta, orders, now):
                     'reason': 'Premier seuil de sécurisation atteint ; prends environ 35 % des profits et conserve le reste.',
                     'review_open_orders_first': (not orders_known) or bool(active), 'trigger_key': 'tp1'}, 'ACTION'
     if tp2 and bid >= tp2 and realized1 and not realized2 and bid * (1 - friction) > cost * (1 + friction):
-        quantity = rounded(min(total, initial * fraction2), precision)
+        quantity = rounded(min(total, max(0.0, total - target_remaining_after_tp2)), precision)
         pending_tp = any(o.get('orderType') == 'limit' and finite(o.get('price'), float('inf')) <= bid
                          and finite(o.get('amountRemaining'), 0) >= quantity - precision for o in active)
         if pending_tp:
