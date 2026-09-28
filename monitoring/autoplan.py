@@ -191,6 +191,10 @@ def automatic_plan(
         held,
         finite(inventory.get("peak_quantity"), held) or held,
     )
+    first_fraction = 0.35
+    second_fraction = 0.35
+    tp1_done = held <= initial * (1 - first_fraction) + 1e-12
+    tp2_done = held <= initial * (1 - first_fraction - second_fraction) + 1e-12
     # Exit-management policy is intentionally separate from the frozen signal
     # thresholds. The structural Solaire targets remain recorded as references,
     # while realized-profit management uses staged percentage thresholds:
@@ -207,9 +211,10 @@ def automatic_plan(
         "tp2_eur": avg_cost * 1.20,
         "structural_tp1_eur": tp1,
         "structural_tp2_eur": tp2,
-        "tp1_fraction": 0.35,
-        "tp2_fraction": 0.35,
-        "tp1_done": bool(inventory.get("sold_in_cycle")),
+        "tp1_fraction": first_fraction,
+        "tp2_fraction": second_fraction,
+        "tp1_done": tp1_done,
+        "tp2_done": tp2_done,
         "fee_rate": 0.0025,
         "slippage_rate": 0.001,
         "cycle_started_ts": cycle,
