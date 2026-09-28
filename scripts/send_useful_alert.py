@@ -19,7 +19,7 @@ import email_alert
 from email_alert_v4 import select_events
 from monitoring.account import ReadOnlyAccount
 from monitoring.autoplan import automatic_plan, reconstruct_positions, update_transaction_ledger
-from monitoring.positions import BUY, PLAN, management_event, mark_delivered, message, select_actions
+from monitoring.positions import BUY, HOLD, PLAN, management_event, mark_delivered, message, select_actions
 from monitoring.state import load_state, save_state
 from research.common import atomic_json, finite, freshness, read_json, utc
 from research.features import closed_candles, describe
@@ -286,12 +286,9 @@ def run(status):
             'market': market,
             'quantity': balance['amount'],
             'pru_eur': finite(inventory.get('avg_cost_eur')),
+            'management_state': HOLD,
         })
-    atomic_json(WALLET_SUMMARY, {
-        'generated_at_utc': account['retrieved_at_utc'],
-        'source': 'BITVAVO_VIEW_ONLY_BALANCE_AND_TRANSACTION_HISTORY',
-        'positions': wallet_rows,
-    })
+    wallet_by_market = {row['market']: row for row in wallet_rows}
 
     observed = state.setdefault('positions', {})
     for market, old in observed.items():
@@ -340,6 +337,15 @@ def run(status):
                         finite(current_plan.get('initial_amount'), 0) or 0,
                         rebuilt['initial_amount'],
                     )
+                    # Migrate the management policy for already-open positions
+                    # without changing their original structural stop.
+                    for field in (
+                        'tp1_eur', 'tp2_eur', 'structural_tp1_eur', 'structural_tp2_eur',
+                        'tp1_fraction', 'tp2_fraction', 'max_hold_hours',
+                        'recycle_max_gain_fraction', 'exit_policy',
+                    ):
+                        if field in rebuilt:
+                            current_plan[field] = rebuilt[field]
             p = current_plan or {}
 
             plan_ready = (
@@ -371,6 +377,8 @@ def run(status):
                     'observed_at_utc': account['retrieved_at_utc'],
                     'reason': 'Plan automatique impossible à reconstruire depuis l historique et la structure courante.',
                 })
+                wallet_by_market[market]['management_state'] = PLAN
+                wallet_by_market[market]['assessment'] = 'VERIFIED_PLAN_MISSING'
                 issues.append('VERIFIED_PLAN_MISSING')
                 continue
 
@@ -391,6 +399,23 @@ def run(status):
             # require a Bitvavo trading permission. Management stays conservative.
             event, reason = management_event(balance, p, quote, features, metadata[market], None, time.time())
             observed[market]['assessment'] = reason
+            bid = finite(quote.get('bid'))
+            row = wallet_by_market[market]
+            row.update({
+                'price_eur': bid,
+                'value_eur': (balance['amount'] * bid) if bid is not None else None,
+                'pnl_pct': (
+                    round((bid / finite(p.get('cost_basis_eur')) - 1) * 100, 3)
+                    if bid is not None and finite(p.get('cost_basis_eur')) not in (None, 0)
+                    else None
+                ),
+                'stop_eur': finite(p.get('stop_eur')),
+                'tp1_eur': finite(p.get('tp1_eur')),
+                'tp2_eur': finite(p.get('tp2_eur')),
+                'exit_policy': p.get('exit_policy'),
+                'assessment': reason,
+                'management_state': event['action'] if event else HOLD,
+            })
             if event:
                 events.append(event)
             if reason not in {'ACTION', 'NO_JUSTIFIED_ACTION', 'BELOW_ORDER_MINIMUM',
@@ -410,6 +435,18 @@ def run(status):
         except Exception:
             observed[market]['assessment'] = 'MARKET_READ_FAILED'
             issues.append('MARKET_READ_FAILED')
+    eur_balance = next((b for b in account['balances'] if b['symbol'] == 'EUR'), {})
+    cash_eur = finite(eur_balance.get('available'), 0) or 0
+    positions_value_eur = sum(finite(row.get('value_eur'), 0) or 0 for row in wallet_rows)
+    atomic_json(WALLET_SUMMARY, {
+        'generated_at_utc': account['retrieved_at_utc'],
+        'source': 'BITVAVO_VIEW_ONLY_BALANCE_TRANSACTION_HISTORY_AND_LIVE_BOOK',
+        'cash_eur': round(cash_eur, 2),
+        'positions_value_eur': round(positions_value_eur, 2),
+        'wallet_value_eur': round(cash_eur + positions_value_eur, 2),
+        'positions': wallet_rows,
+    })
+
     if not freshness(now=time.time(), retrieved=account['retrieved_at_utc'], max_retrieval_age=120)['ok']:
         events = []
         issues.append('ACCOUNT_SNAPSHOT_STALE')
