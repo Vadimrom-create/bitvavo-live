@@ -136,7 +136,7 @@ def management_event(balance, plan, quote, features, meta, orders, now):
         }, 'ACTION'
 
     if tp1 and bid >= tp1 and not realized1 and bid * (1 - friction) > cost * (1 + friction):
-        quantity = rounded(min(total, max(0.0, total - target_remaining_after_tp1)), precision)
+        quantity = rounded(min(total, max(0.0, round(total - target_remaining_after_tp1, 12))), precision)
         pending_tp = any(o.get('orderType') == 'limit' and finite(o.get('price'), float('inf')) <= bid
                          and finite(o.get('amountRemaining'), 0) >= quantity - precision for o in active)
         if pending_tp:
@@ -146,7 +146,7 @@ def management_event(balance, plan, quote, features, meta, orders, now):
                     'reason': 'Premier seuil de sécurisation atteint ; prends environ 35 % des profits et conserve le reste.',
                     'review_open_orders_first': (not orders_known) or bool(active), 'trigger_key': 'tp1'}, 'ACTION'
     if tp2 and bid >= tp2 and realized1 and not realized2 and bid * (1 - friction) > cost * (1 + friction):
-        quantity = rounded(min(total, max(0.0, total - target_remaining_after_tp2)), precision)
+        quantity = rounded(min(total, max(0.0, round(total - target_remaining_after_tp2, 12))), precision)
         pending_tp = any(o.get('orderType') == 'limit' and finite(o.get('price'), float('inf')) <= bid
                          and finite(o.get('amountRemaining'), 0) >= quantity - precision for o in active)
         if pending_tp:
