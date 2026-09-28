@@ -1,8 +1,8 @@
 # Bitvavo — V4 mesurée / infrastructure V5
 
-Scan UTC : 2026-09-28T14:36:56.906243+00:00
-État : OK | marchés EUR : 428 | V4 : 399 | données valides : 427
-Récupération : 2026-09-28T14:36:19.945267+00:00 | âge ticker : 151.7 s | durée : 154.0 s
+Scan UTC : 2026-09-28T14:58:51.293518+00:00
+État : OK | marchés EUR : 428 | V4 : 403 | données valides : 427
+Récupération : 2026-09-28T14:57:50.378866+00:00 | âge ticker : 185.8 s | durée : 187.0 s
 
 ## ACHÈTE — signal V4 et plan théorique
 
@@ -12,27 +12,27 @@ Les intervalles sans transaction sont représentés explicitement à volume 0 ; 
 
 ## SURVEILLE
 
-- XDC-EUR : 0.029987 € ; score 82.44/100 ; SURVEILLE ; seuil achat non atteint
-- C-EUR : 0.078524 € ; score 78.71/100 ; SURVEILLE ; seuil achat non atteint
-- IMX-EUR : 0.15294 € ; score 78.39/100 ; SURVEILLE ; SELLER_HEAVY_BOOK
-- GRAM-EUR : 1.4377 € ; score 78.20/100 ; SURVEILLE ; WICK_SETUP
-- RUNE-EUR : 0.65123 € ; score 77.79/100 ; SURVEILLE ; seuil achat non atteint
+- MON-EUR : 0.024645 € ; score 90.28/100 ; SURVEILLE ; SELLER_HEAVY_BOOK
+- SPK-EUR : 0.019425 € ; score 89.18/100 ; SURVEILLE ; SELLER_HEAVY_BOOK, WICK_SETUP, STABILITY_HOLD
+- CROSS-EUR : 0.13463 € ; score 88.05/100 ; SURVEILLE ; LOW_LIQUIDITY, SPREAD_RISK, SELLER_HEAVY_BOOK
+- MERL-EUR : 0.024061 € ; score 88.00/100 ; SURVEILLE ; seuil achat non atteint
+- ILV-EUR : 3.2864 € ; score 87.63/100 ; SURVEILLE ; SELLER_HEAVY_BOOK
 
 ## Contrôle des hausses
 
 | Marché | Prix € | 24 h | Détection | Couche d’échec | Actionnabilité |
 |---|---:|---:|---|---|---|
-| QNT-EUR | 209.305 | +41.81 % | DETECTED_EARLY | NONE | ENTRY_TIMING_OR_EXECUTION |
-| HBAR-EUR | 0.103672 | +26.06 % | DETECTED_EARLY | NONE | NONE |
-| NMR-EUR | 10.1123 | +18.56 % | DETECTED_EARLY | NONE | ENTRY_TIMING_OR_EXECUTION |
-| ALGO-EUR | 0.116004 | +12.83 % | DETECTED_EARLY | NONE | NONE |
-| AZTEC-EUR | 0.016296 | +11.50 % | DETECTED_EARLY | NONE | INTERPRETATION |
-| GRT-EUR | 0.027457 | +10.01 % | DETECTED_EARLY | NONE | ENTRY_TIMING_OR_EXECUTION |
-| INIT-EUR | 0.085303 | +9.10 % | NO_CONFIRMED_SHORT_TERM_EVENT | NOT_APPLICABLE | NOT_APPLICABLE |
-| IKA-EUR | 0.0017911 | +8.50 % | DETECTED_TOO_LATE | NONE | INTERPRETATION |
-| XDC-EUR | 0.029987 | +8.38 % | DETECTED_EARLY | NONE | ENTRY_TIMING_OR_EXECUTION |
-| PUMP-EUR | 0.0044722 | +7.73 % | DETECTED_EARLY | NONE | ENTRY_TIMING_OR_EXECUTION |
+| QNT-EUR | 201.884 | +36.68 % | DETECTED_EARLY | NONE | ENTRY_TIMING_OR_EXECUTION |
+| HBAR-EUR | 0.103909 | +26.55 % | DETECTED_EARLY | NONE | NONE |
+| NMR-EUR | 10.024 | +16.96 % | DETECTED_EARLY | NONE | ENTRY_TIMING_OR_EXECUTION |
+| AZTEC-EUR | 0.016245 | +12.50 % | DETECTED_EARLY | NONE | INTERPRETATION |
+| ALGO-EUR | 0.113251 | +10.21 % | DETECTED_EARLY | NONE | NONE |
+| GRT-EUR | 0.027299 | +9.38 % | DETECTED_EARLY | NONE | ENTRY_TIMING_OR_EXECUTION |
+| IKA-EUR | 0.0018018 | +9.37 % | DETECTED_TOO_LATE | NONE | INTERPRETATION |
+| XDC-EUR | 0.029897 | +8.92 % | DETECTED_EARLY | NONE | ENTRY_TIMING_OR_EXECUTION |
+| SOON-EUR | 0.27593 | +8.40 % | DETECTED_EARLY | NONE | INTERPRETATION |
+| INIT-EUR | 0.08333 | +6.58 % | DETECTED_EARLY | NONE | INTERPRETATION |
 
-Historique : 1700 scans ; 727273 observations ; 1246 épisodes d’achat évaluables.
+Historique : 1701 scans ; 727701 observations ; 1249 épisodes d’achat évaluables.
 V5 optimisée : aucune. Supériorité sur V4 : non démontrée. Probabilités : non calibrées.
 Le cash et le portefeuille du plan sont hypothétiques. Aucun ordre réel n’est envoyé.
