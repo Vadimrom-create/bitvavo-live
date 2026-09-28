@@ -10,8 +10,15 @@ Ajout demandé lors de la reprise du 8 septembre 2026. Les poids, seuils et règ
 |---|---|---|
 | ACHÈTE | Achat V4 admissible, relecture validée, publication réussie, carnet récent, prix à moins de 0,5 % du signal ; plan recalculé avec le solde réel si le compte privé est disponible, sinon plan public explicitement théorique | Avec compte : position déjà détenue, ordre d’achat ouvert, risque/exposition/cash indisponible ou dépassé, corrélation forte ou inconnue ; sans compte : spread >0,5 %, prix déplacé, structure ou plan public invalide |
 | VENDS | Prix acheteur récent inférieur ou égal au stop vérifié de la position | Solde ou carnet périmé, plan incohérent, ordre de sortie équivalent déjà présent |
-| PRENDS PARTIELLEMENT TES PROFITS | TP1 privé vérifié atteint, résultat estimé net positif, minimums respectés, spread ≤1 % | TP1 déjà confirmé, quantité déjà réduite au reliquat prévu, ordre limite équivalent déjà exécutable |
-| RELÈVE LE STOP | Support de bougies 15m closes valides et fraîches, buffer ATR, niveau supérieur au stop actuel et au seuil net de rentabilité | Structure absente, amélioration <max(0,5 ATR, 2 ticks), nouveau niveau inférieur à la dernière proposition, délai d’une heure |
+| PRENDS PARTIELLEMENT TES PROFITS | Politique `STAGED_10_20_RUNNER_V1` : ~35 % vers +10 %, puis ~35 % supplémentaires vers +20 %, résultat estimé net positif, minimums respectés, spread ≤1 % | Seuil déjà matérialisé, quantité déjà réduite au reliquat prévu, ordre limite équivalent déjà exécutable |
+| SORS ET RECYCLE LE CAPITAL | Avant toute prise partielle uniquement : position âgée d’au moins 72 h, performance ≤ +2 % vs PRU et momentum 15m clos affaibli (4 barres, accélération et extension MA20 non positives) | Stop déjà franchi, données de structure périmées/invalides, première prise partielle déjà réalisée, momentum encore sain |
+| RELÈVE LE STOP | Après une première prise partielle : support de bougies 15m closes valides et fraîches, buffer ATR, niveau supérieur au stop actuel et au seuil net de rentabilité | Structure absente, amélioration <max(0,5 ATR, 2 ticks), nouveau niveau inférieur à la dernière proposition, délai d’une heure |
+
+Priorité par position : stop de protection, recyclage du capital, profits partiels, relève de stop, achat.
+
+La politique active de gestion est **`STAGED_10_20_RUNNER_V1`** : environ **35 % à +10 %**, **35 % supplémentaires à +20 %**, puis **30 % conservés comme runner**. Il n’existe donc pas de liquidation complète mécanique à +12 %. Le runner reste protégé par l’invalidation technique ; un petit gain ne provoque pas automatiquement un stop collé au PRU.
+
+Le « time-stop » est volontairement un **opportunity-cost stop conditionnel**, pas une durée maximale aveugle : après 72 h, une sortie de recyclage n’est proposée que si aucune première prise partielle n’a eu lieu, si le prix reste au plus à +2 % du PRU et si les bougies closes 15m montrent un affaiblissement conjoint du momentum.
 
 Priorité par position : sortie, profits partiels, stop, achat. Sans justification, **aucun email**. Un stop n’est jamais abaissé. Un stop proposé n’est jamais enregistré comme exécuté. Le franchissement d’un stop peut être contrôlé même sans historique de bougies ; il exige un carnet récent. Un stop-limit potentiellement bloqué ne suffit pas à supprimer une alerte de sortie. Les ordres de vente concurrents sont signalés dans l’email pour vérification humaine.
 
@@ -44,9 +51,14 @@ Exemple de schéma **fictif, à remplacer par les données réellement vérifié
     "initial_amount": 10,
     "cost_basis_eur": 10,
     "stop_eur": 9,
-    "tp1_eur": 15,
-    "tp1_fraction": 0.5,
+    "tp1_eur": 11,
+    "tp2_eur": 12,
+    "tp1_fraction": 0.35,
+    "tp2_fraction": 0.35,
     "tp1_done": false,
+    "max_hold_hours": 72,
+    "recycle_max_gain_fraction": 0.02,
+    "exit_policy": "STAGED_10_20_RUNNER_V1",
     "fee_rate": 0.0025,
     "slippage_rate": 0.001
   }
