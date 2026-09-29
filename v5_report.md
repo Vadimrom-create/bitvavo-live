@@ -1,42 +1,43 @@
 # Bitvavo — V4 mesurée / infrastructure V5
 
-Scan UTC : 2026-09-29T04:37:26.416411+00:00
+Scan UTC : 2026-09-29T04:55:36.444961+00:00
 État : OK | marchés EUR : 428 | V4 : 395 | données valides : 428
-Récupération : 2026-09-29T04:36:53.915697+00:00 | âge ticker : 156.2 s | durée : 157.4 s
+Récupération : 2026-09-29T04:55:05.663210+00:00 | âge ticker : 144.4 s | durée : 145.4 s
 
 ## ACHÈTE — signal V4 et plan théorique
 
-AUCUN ACHAT VALIDÉ — cette absence ne valide pas les marchés aux données insuffisantes.
 Bougies utilisables : 5 min 428/428 ; 15 min 428/428.
 Les intervalles sans transaction sont représentés explicitement à volume 0 ; aucune transaction n’est inventée.
 
 Achats bruts V4 bloqués avant alerte :
-- CC-EUR : WICK_SETUP, STABILITY_HOLD, INSUFFICIENT_NET_RISK_REWARD
 - POL-EUR : INSUFFICIENT_NET_RISK_REWARD
+- ICP-EUR : 2.8587 € | IGNITION | score 86.56/100 | entrée 7.45/10
+  Entrée 2.86 € ; stop 2.6985 € ; TP1 3.1829 € ; TP2 3.3444 € ; montant 189.66 € ; risque théorique 12.00 € ; R/R net 1.67.
+  Chase risk : 3.517/10 (diagnostic non calibré). Probabilités +10/+20/+30/+40 % : indisponibles.
 
 ## SURVEILLE
 
-- W-EUR : 0.012306 € ; score 91.73/100 ; SURVEILLE ; seuil achat non atteint
-- RUNE-EUR : 0.67514 € ; score 90.68/100 ; SURVEILLE ; seuil achat non atteint
-- PHA-EUR : 0.05551 € ; score 87.66/100 ; SURVEILLE ; WICK_SETUP
-- GLMR-EUR : 0.006776 € ; score 87.07/100 ; SURVEILLE ; seuil achat non atteint
-- ETHFI-EUR : 0.60336 € ; score 86.16/100 ; SURVEILLE ; WICK_SETUP
+- W-EUR : 0.012352 € ; score 85.98/100 ; SURVEILLE ; seuil achat non atteint
+- ARB-EUR : 0.17385 € ; score 85.12/100 ; SURVEILLE ; WICK_SETUP
+- RSR-EUR : 0.0014345 € ; score 85.08/100 ; SURVEILLE ; seuil achat non atteint
+- GALA-EUR : 0.0018877 € ; score 84.46/100 ; SURVEILLE ; WICK_SETUP
+- DOGE-EUR : 0.081903 € ; score 83.96/100 ; SURVEILLE ; WICK_SETUP
 
 ## Contrôle des hausses
 
 | Marché | Prix € | 24 h | Détection | Couche d’échec | Actionnabilité |
 |---|---:|---:|---|---|---|
-| NMR-EUR | 12.1354 | +38.19 % | DETECTED_EARLY | NONE | ENTRY_TIMING_OR_EXECUTION |
-| HBAR-EUR | 0.105396 | +25.46 % | DETECTED_EARLY | NONE | NONE |
-| ALGO-EUR | 0.120569 | +17.14 % | DETECTED_EARLY | NONE | NONE |
-| 0G-EUR | 0.26064 | +16.17 % | DETECTED_EARLY | NONE | ENTRY_TIMING_OR_EXECUTION |
-| CRV-EUR | 0.33931 | +15.25 % | DETECTED_EARLY | NONE | INTERPRETATION |
-| CELO-EUR | 0.090861 | +10.64 % | DETECTED_EARLY | NONE | INTERPRETATION |
-| GRASS-EUR | 0.59732 | +9.09 % | DETECTED_EARLY | NONE | ENTRY_TIMING_OR_EXECUTION |
-| ARX-EUR | 0.22802 | +7.88 % | DETECTED_EARLY | NONE | INTERPRETATION |
-| MIOTA-EUR | 0.048429 | +7.12 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
+| NMR-EUR | 11.782 | +33.36 % | DETECTED_EARLY | NONE | ENTRY_TIMING_OR_EXECUTION |
+| HBAR-EUR | 0.106061 | +26.70 % | DETECTED_EARLY | NONE | NONE |
+| 0G-EUR | 0.26658 | +18.82 % | DETECTED_EARLY | NONE | ENTRY_TIMING_OR_EXECUTION |
+| ALGO-EUR | 0.121968 | +17.96 % | DETECTED_EARLY | NONE | NONE |
+| CRV-EUR | 0.34334 | +16.62 % | DETECTED_EARLY | NONE | INTERPRETATION |
+| CELO-EUR | 0.090646 | +11.38 % | DETECTED_EARLY | NONE | INTERPRETATION |
+| GRASS-EUR | 0.601 | +9.46 % | DETECTED_EARLY | NONE | ENTRY_TIMING_OR_EXECUTION |
+| MIOTA-EUR | 0.0488 | +8.87 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
 | IKA-EUR | 0.0017901 | +7.08 % | DETECTED_TOO_LATE | NONE | INTERPRETATION |
+| XLM-EUR | 0.19851 | +6.84 % | DETECTED_EARLY | NONE | ENTRY_TIMING_OR_EXECUTION |
 
-Historique : 1745 scans ; 746533 observations ; 1281 épisodes d’achat évaluables.
+Historique : 1746 scans ; 746961 observations ; 1283 épisodes d’achat évaluables.
 V5 optimisée : aucune. Supériorité sur V4 : non démontrée. Probabilités : non calibrées.
 Le cash et le portefeuille du plan sont hypothétiques. Aucun ordre réel n’est envoyé.
