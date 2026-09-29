@@ -1,8 +1,8 @@
 # Bitvavo — V4 mesurée / infrastructure V5
 
-Scan UTC : 2026-09-29T15:26:34.213200+00:00
-État : OK | marchés EUR : 429 | V4 : 390 | données valides : 428
-Récupération : 2026-09-29T15:26:00.773987+00:00 | âge ticker : 147.7 s | durée : 149.0 s
+Scan UTC : 2026-09-29T15:49:16.249377+00:00
+État : OK | marchés EUR : 429 | V4 : 396 | données valides : 428
+Récupération : 2026-09-29T15:48:36.855480+00:00 | âge ticker : 160.8 s | durée : 162.1 s
 
 ## ACHÈTE — signal V4 et plan théorique
 
@@ -15,27 +15,27 @@ Achats bruts V4 bloqués avant alerte :
 
 ## SURVEILLE
 
-- WLD-EUR : 0.4463 € ; score 87.36/100 ; SURVEILLE ; WICK_SETUP, STABILITY_HOLD, INSUFFICIENT_NET_RISK_REWARD
-- REZ-EUR : 0.0037922 € ; score 83.89/100 ; SURVEILLE ; seuil achat non atteint
-- ZIG-EUR : 0.045891 € ; score 83.16/100 ; SURVEILLE ; seuil achat non atteint
-- ALGO-EUR : 0.113764 € ; score 81.65/100 ; SURVEILLE ; seuil achat non atteint
-- GALA-EUR : 0.0020174 € ; score 81.18/100 ; SURVEILLE ; STABILITY_HOLD
+- MOVR-EUR : 0.9287 € ; score 89.33/100 ; SURVEILLE ; seuil achat non atteint
+- JASMY-EUR : 0.0046916 € ; score 81.62/100 ; SURVEILLE ; SPREAD_RISK
+- GALA-EUR : 0.0020074 € ; score 80.19/100 ; SURVEILLE ; seuil achat non atteint
+- LINK-EUR : 13.0646 € ; score 79.69/100 ; SURVEILLE ; WICK_SETUP
+- DBR-EUR : 0.019089 € ; score 78.90/100 ; SURVEILLE ; SELLER_HEAVY_BOOK, WICK_SETUP
 
 ## Contrôle des hausses
 
 | Marché | Prix € | 24 h | Détection | Couche d’échec | Actionnabilité |
 |---|---:|---:|---|---|---|
-| 0G-EUR | 0.2983 | +37.42 % | DETECTED_EARLY | NONE | ENTRY_TIMING_OR_EXECUTION |
-| POND-EUR | 0.0016886 | +34.70 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
-| ZBCN-EUR | 0.0021926 | +24.35 % | NOT_DETECTED | SCANNER_SCORING | NOT_APPLICABLE |
-| CRV-EUR | 0.35628 | +23.86 % | DETECTED_EARLY | NONE | INTERPRETATION |
-| GRASS-EUR | 0.61053 | +22.76 % | DETECTED_EARLY | NONE | ENTRY_TIMING_OR_EXECUTION |
-| INIT-EUR | 0.096087 | +20.49 % | NOT_DETECTED | SCANNER_SCORING | NOT_APPLICABLE |
-| AAVE-EUR | 150.94 | +17.87 % | DETECTED_EARLY | NONE | NONE |
-| CELO-EUR | 0.094201 | +17.80 % | DETECTED_EARLY | NONE | INTERPRETATION |
-| SYRUP-EUR | 0.21265 | +15.23 % | DETECTED_EARLY | NONE | INTERPRETATION |
-| ICP-EUR | 2.9536 | +14.19 % | DETECTED_EARLY | NONE | ENTRY_TIMING_OR_EXECUTION |
+| POND-EUR | 0.0017756 | +43.30 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
+| 0G-EUR | 0.30605 | +41.09 % | DETECTED_EARLY | NONE | ENTRY_TIMING_OR_EXECUTION |
+| ZBCN-EUR | 0.0022604 | +27.44 % | NOT_DETECTED | SCANNER_SCORING | NOT_APPLICABLE |
+| GRASS-EUR | 0.59555 | +23.07 % | DETECTED_EARLY | NONE | ENTRY_TIMING_OR_EXECUTION |
+| CRV-EUR | 0.35351 | +22.36 % | DETECTED_EARLY | NONE | INTERPRETATION |
+| INIT-EUR | 0.096388 | +17.84 % | NOT_DETECTED | SCANNER_SCORING | NOT_APPLICABLE |
+| AAVE-EUR | 150.49 | +17.27 % | DETECTED_EARLY | NONE | NONE |
+| SYRUP-EUR | 0.21724 | +16.87 % | DETECTED_EARLY | NONE | INTERPRETATION |
+| CELO-EUR | 0.094365 | +16.46 % | DETECTED_EARLY | NONE | INTERPRETATION |
+| ICP-EUR | 2.9876 | +14.90 % | DETECTED_EARLY | NONE | ENTRY_TIMING_OR_EXECUTION |
 
-Historique : 1776 scans ; 759814 observations ; 1319 épisodes d’achat évaluables.
+Historique : 1777 scans ; 760243 observations ; 1321 épisodes d’achat évaluables.
 V5 optimisée : aucune. Supériorité sur V4 : non démontrée. Probabilités : non calibrées.
 Le cash et le portefeuille du plan sont hypothétiques. Aucun ordre réel n’est envoyé.
