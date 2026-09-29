@@ -1,6 +1,6 @@
 # Audit qualité des données Bitvavo
 
-Scan : 2026-09-29T13:15:29.214734+00:00 (20260929T131357Z-763450fb)
+Scan : 2026-09-29T13:38:58.817765+00:00 (20260929T133722Z-c2b1fe4c)
 Univers : 429 | strategy-grade : 428 | rejetés : 1
 5m valides : 429 | 15m valides : 428 | deux intervalles valides : 428
 
@@ -25,7 +25,7 @@ Univers : 429 | strategy-grade : 428 | rejetés : 1
 
 | Marché | Vol. 24h € | 24h | Causes | 5m bars/gaps manquants | 15m bars/gaps manquants |
 |---|---:|---:|---|---:|---:|
-| DRV-EUR | 407629 | +3.78% | INVALID_15M | 28/0 | 10/0 |
+| DRV-EUR | 428706 | +3.08% | INVALID_15M | 32/0 | 11/0 |
 
 Lecture : bars/gaps manquants = nombre de bougies closes reçues / nombre d’intervalles sans bougie à l’intérieur des 25 dernières bougies observées.
 Ce fichier est purement diagnostique : aucune règle de trading n’est modifiée.
