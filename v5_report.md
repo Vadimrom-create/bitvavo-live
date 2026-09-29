@@ -1,8 +1,8 @@
 # Bitvavo — V4 mesurée / infrastructure V5
 
-Scan UTC : 2026-09-29T03:38:54.212399+00:00
+Scan UTC : 2026-09-29T03:57:06.247776+00:00
 État : OK | marchés EUR : 428 | V4 : 395 | données valides : 428
-Récupération : 2026-09-29T03:38:22.671854+00:00 | âge ticker : 146.1 s | durée : 147.0 s
+Récupération : 2026-09-29T03:56:11.434405+00:00 | âge ticker : 169.1 s | durée : 170.1 s
 
 ## ACHÈTE — signal V4 et plan théorique
 
@@ -12,27 +12,27 @@ Les intervalles sans transaction sont représentés explicitement à volume 0 ; 
 
 ## SURVEILLE
 
-- XDC-EUR : 0.03031 € ; score 93.64/100 ; SURVEILLE ; seuil achat non atteint
-- CVX-EUR : 1.961 € ; score 87.52/100 ; SURVEILLE ; SELLER_HEAVY_BOOK, WICK_SETUP, STABILITY_HOLD
-- PEPE-EUR : 3.6827e-06 € ; score 86.15/100 ; SURVEILLE ; seuil achat non atteint
-- XVG-EUR : 0.0027276 € ; score 85.23/100 ; SURVEILLE ; SELLER_HEAVY_BOOK
-- ACU-EUR : 0.11112 € ; score 84.78/100 ; SURVEILLE ; SELLER_HEAVY_BOOK, WICK_SETUP
+- IO-EUR : 0.13533 € ; score 85.96/100 ; SURVEILLE ; STABILITY_HOLD
+- ACH-EUR : 0.0052144 € ; score 85.88/100 ; SURVEILLE ; SPREAD_RISK, SELLER_HEAVY_BOOK, STABILITY_HOLD
+- GOAT-EUR : 0.016743 € ; score 85.57/100 ; SURVEILLE ; SELLER_HEAVY_BOOK
+- SKL-EUR : 0.0038792 € ; score 84.28/100 ; SURVEILLE ; SELLER_HEAVY_BOOK
+- MIOTA-EUR : 0.047781 € ; score 83.33/100 ; SURVEILLE ; WICK_SETUP
 
 ## Contrôle des hausses
 
 | Marché | Prix € | 24 h | Détection | Couche d’échec | Actionnabilité |
 |---|---:|---:|---|---|---|
-| NMR-EUR | 13.122 | +49.61 % | DETECTED_EARLY | NONE | ENTRY_TIMING_OR_EXECUTION |
-| HBAR-EUR | 0.104441 | +24.27 % | DETECTED_EARLY | NONE | NONE |
-| ALGO-EUR | 0.118977 | +16.45 % | DETECTED_EARLY | NONE | NONE |
-| 0G-EUR | 0.25814 | +15.35 % | DETECTED_EARLY | NONE | ENTRY_TIMING_OR_EXECUTION |
-| CRV-EUR | 0.33803 | +14.72 % | DETECTED_EARLY | NONE | INTERPRETATION |
-| ARX-EUR | 0.2228 | +9.38 % | DETECTED_EARLY | NONE | INTERPRETATION |
-| AZTEC-EUR | 0.016149 | +8.96 % | DETECTED_EARLY | NONE | ENTRY_TIMING_OR_EXECUTION |
-| SYRUP-EUR | 0.19971 | +7.79 % | DETECTED_EARLY | NONE | INTERPRETATION |
-| IKA-EUR | 0.0018008 | +7.75 % | DETECTED_TOO_LATE | NONE | INTERPRETATION |
-| XLM-EUR | 0.19917 | +7.59 % | DETECTED_EARLY | NONE | ENTRY_TIMING_OR_EXECUTION |
+| NMR-EUR | 12.85 | +45.99 % | DETECTED_EARLY | NONE | ENTRY_TIMING_OR_EXECUTION |
+| HBAR-EUR | 0.104362 | +24.46 % | DETECTED_EARLY | NONE | NONE |
+| CRV-EUR | 0.34151 | +17.51 % | DETECTED_EARLY | NONE | INTERPRETATION |
+| ALGO-EUR | 0.119264 | +17.41 % | DETECTED_EARLY | NONE | NONE |
+| 0G-EUR | 0.25508 | +13.98 % | DETECTED_EARLY | NONE | ENTRY_TIMING_OR_EXECUTION |
+| MIOTA-EUR | 0.047781 | +8.40 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
+| ARX-EUR | 0.22256 | +8.28 % | DETECTED_EARLY | NONE | INTERPRETATION |
+| IKA-EUR | 0.0018098 | +8.00 % | DETECTED_TOO_LATE | NONE | INTERPRETATION |
+| XLM-EUR | 0.19918 | +7.68 % | DETECTED_EARLY | NONE | ENTRY_TIMING_OR_EXECUTION |
+| SYRUP-EUR | 0.19965 | +7.66 % | DETECTED_EARLY | NONE | INTERPRETATION |
 
-Historique : 1742 scans ; 745249 observations ; 1278 épisodes d’achat évaluables.
+Historique : 1743 scans ; 745677 observations ; 1279 épisodes d’achat évaluables.
 V5 optimisée : aucune. Supériorité sur V4 : non démontrée. Probabilités : non calibrées.
 Le cash et le portefeuille du plan sont hypothétiques. Aucun ordre réel n’est envoyé.
