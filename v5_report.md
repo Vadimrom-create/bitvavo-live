@@ -1,8 +1,8 @@
 # Bitvavo — V4 mesurée / infrastructure V5
 
-Scan UTC : 2026-09-29T06:59:21.366795+00:00
+Scan UTC : 2026-09-29T07:23:51.308276+00:00
 État : OK | marchés EUR : 428 | V4 : 392 | données valides : 428
-Récupération : 2026-09-29T06:58:53.613250+00:00 | âge ticker : 148.4 s | durée : 150.0 s
+Récupération : 2026-09-29T07:22:48.489445+00:00 | âge ticker : 186.5 s | durée : 187.3 s
 
 ## ACHÈTE — signal V4 et plan théorique
 
@@ -10,48 +10,47 @@ Bougies utilisables : 5 min 428/428 ; 15 min 428/428.
 Les intervalles sans transaction sont représentés explicitement à volume 0 ; aucune transaction n’est inventée.
 
 Achats bruts V4 bloqués avant alerte :
-- AVAX-EUR : WICK_SETUP, BELOW_EXCHANGE_MINIMUM
-- FET-EUR : BELOW_EXCHANGE_MINIMUM
-- GALA-EUR : WICK_SETUP, BELOW_EXCHANGE_MINIMUM
-- ICP-EUR : BELOW_EXCHANGE_MINIMUM
-- LINK-EUR : INSUFFICIENT_NET_RISK_REWARD
-- LTC-EUR : WICK_SETUP, INSUFFICIENT_NET_RISK_REWARD
-- PEAQ-EUR : BELOW_EXCHANGE_MINIMUM
-- SOL-EUR : INSUFFICIENT_NET_RISK_REWARD
-- SYRUP-EUR : BELOW_EXCHANGE_MINIMUM
-- TAO-EUR : WICK_SETUP, INSUFFICIENT_NET_RISK_REWARD
+- ADA-EUR : WICK_SETUP, BELOW_EXCHANGE_MINIMUM
+- AVAX-EUR : STABILITY_HOLD, BELOW_EXCHANGE_MINIMUM
+- BNB-EUR : INSUFFICIENT_NET_RISK_REWARD
+- FET-EUR : WICK_SETUP, STABILITY_HOLD, BELOW_EXCHANGE_MINIMUM
+- GALA-EUR : WICK_SETUP, STABILITY_HOLD, BELOW_EXCHANGE_MINIMUM
+- LINK-EUR : CHASE_RISK, BASELINE_BUY_CHASE_CONTRADICTION
+- ONDO-EUR : BELOW_EXCHANGE_MINIMUM
+- SYRUP-EUR : STABILITY_HOLD, INSUFFICIENT_NET_RISK_REWARD
+- TAO-EUR : WICK_SETUP, BELOW_EXCHANGE_MINIMUM
 - VIRTUAL-EUR : WICK_SETUP, INSUFFICIENT_NET_RISK_REWARD
-- WLD-EUR : WICK_SETUP, BELOW_EXCHANGE_MINIMUM
-- XDC-EUR : 0.030923 € | IGNITION | score 92.43/100 | entrée 7.65/10
-  Entrée 0.030887 € ; stop 0.029599 € ; TP1 0.033463 € ; TP2 0.034751 € ; montant 247.15 € ; risque théorique 12.00 € ; R/R net 1.57.
-  Chase risk : 2.842/10 (diagnostic non calibré). Probabilités +10/+20/+30/+40 % : indisponibles.
-- ONDO-EUR : 0.46032 € | IGNITION | score 91.92/100 | entrée 8.05/10
-  Entrée 0.45998 € ; stop 0.44057 € ; TP1 0.49879 € ; TP2 0.51821 € ; montant 244.65 € ; risque théorique 12.00 € ; R/R net 1.57.
-  Chase risk : 2.87/10 (diagnostic non calibré). Probabilités +10/+20/+30/+40 % : indisponibles.
+- XDC-EUR : SPREAD_RISK, STABILITY_HOLD, INSUFFICIENT_NET_RISK_REWARD
+- WLD-EUR : 0.43935 € | IGNITION | score 90.80/100 | entrée 7.80/10
+  Entrée 0.43994 € ; stop 0.41329 € ; TP1 0.49324 € ; TP2 0.51989 € ; montant 178.14 € ; risque théorique 12.00 € ; R/R net 1.69.
+  Chase risk : 6.605/10 (diagnostic non calibré). Probabilités +10/+20/+30/+40 % : indisponibles.
+- PEAQ-EUR : 0.038016 € | IGNITION | score 90.70/100 | entrée 7.10/10
+  Entrée 0.038024 € ; stop 0.036172 € ; TP1 0.041728 € ; TP2 0.04358 € ; montant 216.08 € ; risque théorique 12.00 € ; R/R net 1.62.
+  Chase risk : 5.28/10 (diagnostic non calibré). Probabilités +10/+20/+30/+40 % : indisponibles.
 
 ## SURVEILLE
 
-- AZTEC-EUR : 0.016765 € ; score 92.94/100 ; SURVEILLE ; seuil achat non atteint
-- FET-EUR : 0.20093 € ; score 91.46/100 ; SURVEILLE ; BELOW_EXCHANGE_MINIMUM
-- LTC-EUR : 60.391 € ; score 91.46/100 ; SURVEILLE ; WICK_SETUP, INSUFFICIENT_NET_RISK_REWARD
-- PEAQ-EUR : 0.03735 € ; score 90.43/100 ; SURVEILLE ; BELOW_EXCHANGE_MINIMUM
-- VIRTUAL-EUR : 0.721 € ; score 90.36/100 ; SURVEILLE ; WICK_SETUP, INSUFFICIENT_NET_RISK_REWARD
+- W-EUR : 0.012831 € ; score 92.10/100 ; SURVEILLE ; seuil achat non atteint
+- VIRTUAL-EUR : 0.72079 € ; score 88.86/100 ; SURVEILLE ; WICK_SETUP, INSUFFICIENT_NET_RISK_REWARD
+- ONDO-EUR : 0.459 € ; score 88.24/100 ; SURVEILLE ; BELOW_EXCHANGE_MINIMUM
+- AZTEC-EUR : 0.016651 € ; score 88.02/100 ; SURVEILLE ; seuil achat non atteint
+- TAO-EUR : 274.16 € ; score 87.67/100 ; SURVEILLE ; WICK_SETUP, BELOW_EXCHANGE_MINIMUM
 
 ## Contrôle des hausses
 
 | Marché | Prix € | 24 h | Détection | Couche d’échec | Actionnabilité |
 |---|---:|---:|---|---|---|
-| NMR-EUR | 11.2927 | +27.25 % | DETECTED_EARLY | NONE | ENTRY_TIMING_OR_EXECUTION |
-| HBAR-EUR | 0.103799 | +21.79 % | DETECTED_EARLY | NONE | NONE |
-| 0G-EUR | 0.2714 | +21.31 % | DETECTED_EARLY | NONE | ENTRY_TIMING_OR_EXECUTION |
-| CRV-EUR | 0.35059 | +20.82 % | DETECTED_EARLY | NONE | INTERPRETATION |
-| ARX-EUR | 0.24466 | +16.79 % | DETECTED_EARLY | NONE | ENTRY_TIMING_OR_EXECUTION |
-| CELO-EUR | 0.091858 | +14.82 % | DETECTED_EARLY | NONE | INTERPRETATION |
-| ALICE-EUR | 0.14846 | +13.54 % | DETECTED_EARLY | NONE | INTERPRETATION |
-| ALGO-EUR | 0.116824 | +13.43 % | DETECTED_EARLY | NONE | NONE |
-| CVX-EUR | 2.0188 | +11.22 % | NO_CONFIRMED_SHORT_TERM_EVENT | NOT_APPLICABLE | NOT_APPLICABLE |
-| NPC-EUR | 0.0207337 | +10.26 % | DETECTED_EARLY | NONE | INTERPRETATION |
+| NMR-EUR | 11.1522 | +29.64 % | DETECTED_EARLY | NONE | ENTRY_TIMING_OR_EXECUTION |
+| ARX-EUR | 0.2546 | +24.63 % | DETECTED_EARLY | NONE | ENTRY_TIMING_OR_EXECUTION |
+| CRV-EUR | 0.35099 | +21.97 % | DETECTED_EARLY | NONE | INTERPRETATION |
+| POND-EUR | 0.001534 | +20.28 % | DETECTED_EARLY | NONE | INTERPRETATION |
+| HBAR-EUR | 0.103346 | +19.70 % | DETECTED_EARLY | NONE | NONE |
+| 0G-EUR | 0.26534 | +18.60 % | DETECTED_EARLY | NONE | ENTRY_TIMING_OR_EXECUTION |
+| CELO-EUR | 0.092265 | +15.33 % | DETECTED_EARLY | NONE | INTERPRETATION |
+| ALICE-EUR | 0.15008 | +15.13 % | DETECTED_EARLY | NONE | INTERPRETATION |
+| CVX-EUR | 1.9872 | +11.72 % | NO_CONFIRMED_SHORT_TERM_EVENT | NOT_APPLICABLE | NOT_APPLICABLE |
+| GRASS-EUR | 0.61502 | +11.67 % | DETECTED_EARLY | NONE | ENTRY_TIMING_OR_EXECUTION |
 
-Historique : 1752 scans ; 749529 observations ; 1284 épisodes d’achat évaluables.
+Historique : 1753 scans ; 749957 observations ; 1284 épisodes d’achat évaluables.
 V5 optimisée : aucune. Supériorité sur V4 : non démontrée. Probabilités : non calibrées.
 Le cash et le portefeuille du plan sont hypothétiques. Aucun ordre réel n’est envoyé.
