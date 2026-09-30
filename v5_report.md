@@ -1,43 +1,40 @@
 # Bitvavo — V4 mesurée / infrastructure V5
 
-Scan UTC : 2026-09-30T17:42:42.074234+00:00
-État : OK | marchés EUR : 430 | V4 : 393 | données valides : 430
-Récupération : 2026-09-30T17:42:04.964787+00:00 | âge ticker : 166.2 s | durée : 167.8 s
+Scan UTC : 2026-09-30T17:59:17.209169+00:00
+État : OK | marchés EUR : 430 | V4 : 394 | données valides : 430
+Récupération : 2026-09-30T17:58:39.906820+00:00 | âge ticker : 170.6 s | durée : 171.6 s
 
 ## ACHÈTE — signal V4 et plan théorique
 
 Bougies utilisables : 5 min 430/430 ; 15 min 430/430.
 Les intervalles sans transaction sont représentés explicitement à volume 0 ; aucune transaction n’est inventée.
-
-Achats bruts V4 bloqués avant alerte :
-- PUMP-EUR : CHASE_RISK, BASELINE_BUY_CHASE_CONTRADICTION
-- ZIG-EUR : 0.04823 € | IGNITION | score 81.98/100 | entrée 6.95/10
-  Entrée 0.048412 € ; stop 0.045949 € ; TP1 0.053337 € ; TP2 0.0558 € ; montant 207.98 € ; risque théorique 12.00 € ; R/R net 1.64.
-  Chase risk : 5.003/10 (diagnostic non calibré). Probabilités +10/+20/+30/+40 % : indisponibles.
+- PUMP-EUR : 0.0051917 € | IGNITION | score 81.65/100 | entrée 7.25/10
+  Entrée 0.0051892 € ; stop 0.0049046 € ; TP1 0.0057583 € ; TP2 0.0060429 € ; montant 194.64 € ; risque théorique 12.00 € ; R/R net 1.66.
+  Chase risk : 4.413/10 (diagnostic non calibré). Probabilités +10/+20/+30/+40 % : indisponibles.
 
 ## SURVEILLE
 
-- COMP-EUR : 21.859 € ; score 84.40/100 ; SURVEILLE ; seuil achat non atteint
-- DRV-EUR : 0.3402 € ; score 84.28/100 ; SURVEILLE ; SPREAD_RISK
-- SOLV-EUR : 0.0038275 € ; score 84.08/100 ; SURVEILLE ; LOW_LIQUIDITY, WICK_SETUP
-- LUNA2-EUR : 0.045254 € ; score 83.91/100 ; SURVEILLE ; LOW_LIQUIDITY
-- ALGO-EUR : 0.109904 € ; score 83.44/100 ; SURVEILLE ; WICK_SETUP
+- LQTY-EUR : 0.20945 € ; score 88.47/100 ; SURVEILLE ; SPREAD_RISK
+- TRB-EUR : 18.2 € ; score 88.31/100 ; SURVEILLE ; SELLER_HEAVY_BOOK, WICK_SETUP
+- SHIB-EUR : 5.0742e-06 € ; score 87.35/100 ; SURVEILLE ; seuil achat non atteint
+- JASMY-EUR : 0.0044779 € ; score 87.33/100 ; SURVEILLE ; WICK_SETUP
+- ETHFI-EUR : 0.69708 € ; score 84.29/100 ; SURVEILLE ; seuil achat non atteint
 
 ## Contrôle des hausses
 
 | Marché | Prix € | 24 h | Détection | Couche d’échec | Actionnabilité |
 |---|---:|---:|---|---|---|
-| MOVR-EUR | 1.4353 | +51.10 % | DETECTED_EARLY | NONE | ENTRY_TIMING_OR_EXECUTION |
-| CT-EUR | 0.33313 | +39.38 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
-| UP-EUR | 0.08073 | +32.43 % | NOT_DETECTED | SCANNER_SCORING | NOT_APPLICABLE |
-| SOON-EUR | 0.43642 | +23.72 % | DETECTED_EARLY | NONE | INTERPRETATION |
-| QNT-EUR | 267.131 | +21.57 % | DETECTED_EARLY | NONE | INTERPRETATION |
-| GLMR-EUR | 0.007899 | +20.76 % | NOT_DETECTED | SCANNER_SCORING | NOT_APPLICABLE |
-| NOM-EUR | 0.002142 | +19.52 % | DETECTED_EARLY | NONE | ENTRY_TIMING_OR_EXECUTION |
-| STX-EUR | 0.32015 | +15.05 % | DETECTED_EARLY | NONE | INTERPRETATION |
-| MERL-EUR | 0.028316 | +14.67 % | DETECTED_EARLY | NONE | INTERPRETATION |
-| PHA-EUR | 0.068 | +12.53 % | DETECTED_EARLY | NONE | INTERPRETATION |
+| MOVR-EUR | 1.5056 | +58.50 % | DETECTED_EARLY | NONE | ENTRY_TIMING_OR_EXECUTION |
+| CT-EUR | 0.33826 | +41.53 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
+| UP-EUR | 0.08249 | +35.32 % | NOT_DETECTED | SCANNER_SCORING | NOT_APPLICABLE |
+| SOON-EUR | 0.43731 | +23.62 % | DETECTED_EARLY | NONE | INTERPRETATION |
+| QNT-EUR | 267.116 | +19.91 % | DETECTED_EARLY | NONE | INTERPRETATION |
+| GLMR-EUR | 0.007879 | +18.91 % | NOT_DETECTED | SCANNER_SCORING | NOT_APPLICABLE |
+| NOM-EUR | 0.0020985 | +17.10 % | DETECTED_EARLY | NONE | ENTRY_TIMING_OR_EXECUTION |
+| MERL-EUR | 0.028388 | +15.07 % | DETECTED_EARLY | NONE | INTERPRETATION |
+| PHA-EUR | 0.068136 | +14.75 % | DETECTED_EARLY | NONE | INTERPRETATION |
+| STX-EUR | 0.31587 | +12.82 % | DETECTED_EARLY | NONE | INTERPRETATION |
 
-Historique : 1853 scans ; 792868 observations ; 1415 épisodes d’achat évaluables.
+Historique : 1854 scans ; 793298 observations ; 1416 épisodes d’achat évaluables.
 V5 optimisée : aucune. Supériorité sur V4 : non démontrée. Probabilités : non calibrées.
 Le cash et le portefeuille du plan sont hypothétiques. Aucun ordre réel n’est envoyé.
