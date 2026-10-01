@@ -1,8 +1,8 @@
 # Bitvavo — V4 mesurée / infrastructure V5
 
-Scan UTC : 2026-10-01T16:57:30.128045+00:00
-État : OK | marchés EUR : 430 | V4 : 386 | données valides : 430
-Récupération : 2026-10-01T16:56:57.726562+00:00 | âge ticker : 159.9 s | durée : 161.1 s
+Scan UTC : 2026-10-01T17:19:15.986802+00:00
+État : OK | marchés EUR : 430 | V4 : 387 | données valides : 430
+Récupération : 2026-10-01T17:18:44.836843+00:00 | âge ticker : 151.2 s | durée : 153.3 s
 
 ## ACHÈTE — signal V4 et plan théorique
 
@@ -11,31 +11,33 @@ Bougies utilisables : 5 min 430/430 ; 15 min 430/430.
 Les intervalles sans transaction sont représentés explicitement à volume 0 ; aucune transaction n’est inventée.
 
 Achats bruts V4 bloqués avant alerte :
-- TRX-EUR : INSUFFICIENT_NET_RISK_REWARD
+- ADA-EUR : WICK_SETUP, INSUFFICIENT_NET_RISK_REWARD
+- STX-EUR : INSUFFICIENT_NET_RISK_REWARD
+- TRX-EUR : STABILITY_HOLD, INSUFFICIENT_NET_RISK_REWARD
 
 ## SURVEILLE
 
-- INIT-EUR : 0.090666 € ; score 87.90/100 ; SURVEILLE ; SPREAD_RISK
-- 0G-EUR : 0.26648 € ; score 87.82/100 ; SURVEILLE ; SPREAD_RISK, SELLER_HEAVY_BOOK
-- IO-EUR : 0.14047 € ; score 86.71/100 ; SURVEILLE ; WICK_SETUP
-- ENSO-EUR : 0.9064 € ; score 86.70/100 ; SURVEILLE ; seuil achat non atteint
-- ARB-EUR : 0.17661 € ; score 84.64/100 ; SURVEILLE ; seuil achat non atteint
+- KSM-EUR : 4.5862 € ; score 86.32/100 ; SURVEILLE ; SPREAD_RISK, SELLER_HEAVY_BOOK
+- WAL-EUR : 0.030245 € ; score 86.17/100 ; SURVEILLE ; seuil achat non atteint
+- MIOTA-EUR : 0.049075 € ; score 85.99/100 ; SURVEILLE ; SPREAD_RISK, SELLER_HEAVY_BOOK, WICK_SETUP
+- JUP-EUR : 0.2846 € ; score 85.94/100 ; SURVEILLE ; seuil achat non atteint
+- STX-EUR : 0.3421 € ; score 85.70/100 ; SURVEILLE ; INSUFFICIENT_NET_RISK_REWARD
 
 ## Contrôle des hausses
 
 | Marché | Prix € | 24 h | Détection | Couche d’échec | Actionnabilité |
 |---|---:|---:|---|---|---|
-| SWEAT-EUR | 0.00061 | +135.69 % | NOT_DETECTED | SCANNER_SCORING | NOT_APPLICABLE |
-| MOVR-EUR | 2.8514 | +79.76 % | DETECTED_EARLY | NONE | INTERPRETATION |
-| CAP-EUR | 0.0742954 | +27.99 % | NOT_DETECTED | SCANNER_SCORING | NOT_APPLICABLE |
-| ALICE-EUR | 0.18266 | +26.00 % | DETECTED_EARLY | NONE | ENTRY_TIMING_OR_EXECUTION |
-| MEGA-EUR | 0.04751 | +25.59 % | DETECTED_EARLY | NONE | NONE |
-| NOS-EUR | 0.49967 | +23.05 % | DETECTED_EARLY | NONE | ENTRY_TIMING_OR_EXECUTION |
-| SYN-EUR | 0.176782 | +19.32 % | DETECTED_EARLY | NONE | INTERPRETATION |
-| MON-EUR | 0.029269 | +16.82 % | DETECTED_EARLY | NONE | ENTRY_TIMING_OR_EXECUTION |
-| MOVE-EUR | 0.0094 | +15.32 % | DETECTED_EARLY | NONE | ENTRY_TIMING_OR_EXECUTION |
-| CT-EUR | 0.40946 | +15.18 % | NOT_DETECTED | SCANNER_SCORING | NOT_APPLICABLE |
+| SWEAT-EUR | 0.00056481 | +116.89 % | NOT_DETECTED | SCANNER_SCORING | NOT_APPLICABLE |
+| MOVR-EUR | 2.6509 | +83.14 % | DETECTED_EARLY | NONE | INTERPRETATION |
+| CAP-EUR | 0.0773591 | +32.58 % | NOT_DETECTED | SCANNER_SCORING | NOT_APPLICABLE |
+| MEGA-EUR | 0.04782 | +27.38 % | DETECTED_EARLY | NONE | NONE |
+| ALICE-EUR | 0.18218 | +25.81 % | DETECTED_EARLY | NONE | ENTRY_TIMING_OR_EXECUTION |
+| CT-EUR | 0.42236 | +21.57 % | NOT_DETECTED | SCANNER_SCORING | NOT_APPLICABLE |
+| NOS-EUR | 0.49137 | +21.00 % | DETECTED_EARLY | NONE | ENTRY_TIMING_OR_EXECUTION |
+| MON-EUR | 0.030274 | +20.04 % | DETECTED_EARLY | NONE | ENTRY_TIMING_OR_EXECUTION |
+| MOVE-EUR | 0.009605 | +17.84 % | DETECTED_EARLY | NONE | ENTRY_TIMING_OR_EXECUTION |
+| SYN-EUR | 0.171992 | +17.67 % | DETECTED_EARLY | NONE | INTERPRETATION |
 
-Historique : 1920 scans ; 821678 observations ; 1485 épisodes d’achat évaluables.
+Historique : 1921 scans ; 822108 observations ; 1485 épisodes d’achat évaluables.
 V5 optimisée : aucune. Supériorité sur V4 : non démontrée. Probabilités : non calibrées.
 Le cash et le portefeuille du plan sont hypothétiques. Aucun ordre réel n’est envoyé.
