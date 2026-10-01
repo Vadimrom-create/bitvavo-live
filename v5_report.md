@@ -1,8 +1,8 @@
 # Bitvavo — V4 mesurée / infrastructure V5
 
-Scan UTC : 2026-10-01T10:08:55.673352+00:00
-État : OK | marchés EUR : 430 | V4 : 389 | données valides : 430
-Récupération : 2026-10-01T10:07:55.022210+00:00 | âge ticker : 180.0 s | durée : 180.9 s
+Scan UTC : 2026-10-01T10:31:42.889943+00:00
+État : OK | marchés EUR : 430 | V4 : 388 | données valides : 430
+Récupération : 2026-10-01T10:31:01.794339+00:00 | âge ticker : 161.2 s | durée : 162.9 s
 
 ## ACHÈTE — signal V4 et plan théorique
 
@@ -12,27 +12,27 @@ Les intervalles sans transaction sont représentés explicitement à volume 0 ; 
 
 ## SURVEILLE
 
-- BLUR-EUR : 0.01804 € ; score 86.78/100 ; SURVEILLE ; STABILITY_HOLD
-- INJ-EUR : 6.5365 € ; score 86.48/100 ; SURVEILLE ; STABILITY_HOLD
-- APE-EUR : 0.13177 € ; score 85.13/100 ; SURVEILLE ; SELLER_HEAVY_BOOK, STABILITY_HOLD
-- HOT-EUR : 0.00039432 € ; score 84.91/100 ; SURVEILLE ; SPREAD_RISK, VERY_SELLER_HEAVY_BOOK, STABILITY_HOLD
-- SHIB-EUR : 5.0416e-06 € ; score 84.50/100 ; SURVEILLE ; WICK_SETUP
+- ALICE-EUR : 0.15062 € ; score 83.19/100 ; SURVEILLE ; seuil achat non atteint
+- TRX-EUR : 0.29574 € ; score 81.71/100 ; SURVEILLE ; WICK_SETUP, STABILITY_HOLD
+- WLD-EUR : 0.45579 € ; score 79.55/100 ; SURVEILLE ; seuil achat non atteint
+- AAVE-EUR : 145.2 € ; score 79.39/100 ; SURVEILLE ; WICK_SETUP
+- KAIA-EUR : 0.032242 € ; score 78.36/100 ; SURVEILLE ; seuil achat non atteint
 
 ## Contrôle des hausses
 
 | Marché | Prix € | 24 h | Détection | Couche d’échec | Actionnabilité |
 |---|---:|---:|---|---|---|
-| MOVR-EUR | 2.485 | +56.29 % | DETECTED_EARLY | NONE | INTERPRETATION |
-| NOM-EUR | 0.0026437 | +38.10 % | DETECTED_EARLY | NONE | INTERPRETATION |
-| CT-EUR | 0.42094 | +25.70 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
-| STX-EUR | 0.33961 | +21.02 % | DETECTED_EARLY | NONE | INTERPRETATION |
-| CAP-EUR | 0.0652934 | +19.34 % | NOT_DETECTED | SCANNER_SCORING | NOT_APPLICABLE |
-| NOS-EUR | 0.47213 | +16.90 % | DETECTED_EARLY | NONE | ENTRY_TIMING_OR_EXECUTION |
-| HEI-EUR | 0.138189 | +15.85 % | NOT_DETECTED | SCANNER_SCORING | NOT_APPLICABLE |
-| MON-EUR | 0.027997 | +14.92 % | DETECTED_EARLY | NONE | ENTRY_TIMING_OR_EXECUTION |
-| VELO-EUR | 0.0051606 | +14.55 % | NO_CONFIRMED_SHORT_TERM_EVENT | NOT_APPLICABLE | NOT_APPLICABLE |
-| JASMY-EUR | 0.0052516 | +14.53 % | DETECTED_EARLY | NONE | ENTRY_TIMING_OR_EXECUTION |
+| MOVR-EUR | 2.5302 | +63.40 % | DETECTED_EARLY | NONE | INTERPRETATION |
+| CT-EUR | 0.45238 | +45.96 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
+| NOM-EUR | 0.0026091 | +32.87 % | DETECTED_EARLY | NONE | INTERPRETATION |
+| STX-EUR | 0.34021 | +20.64 % | DETECTED_EARLY | NONE | INTERPRETATION |
+| CAP-EUR | 0.0653783 | +19.15 % | NOT_DETECTED | SCANNER_SCORING | NOT_APPLICABLE |
+| NOS-EUR | 0.46861 | +16.64 % | DETECTED_EARLY | NONE | ENTRY_TIMING_OR_EXECUTION |
+| MON-EUR | 0.027925 | +14.91 % | DETECTED_EARLY | NONE | ENTRY_TIMING_OR_EXECUTION |
+| JASMY-EUR | 0.0052433 | +14.78 % | DETECTED_EARLY | NONE | ENTRY_TIMING_OR_EXECUTION |
+| HEI-EUR | 0.137785 | +14.70 % | NOT_DETECTED | SCANNER_SCORING | NOT_APPLICABLE |
+| VELO-EUR | 0.0051446 | +13.71 % | NO_CONFIRMED_SHORT_TERM_EVENT | NOT_APPLICABLE | NOT_APPLICABLE |
 
-Historique : 1901 scans ; 813508 observations ; 1475 épisodes d’achat évaluables.
+Historique : 1902 scans ; 813938 observations ; 1475 épisodes d’achat évaluables.
 V5 optimisée : aucune. Supériorité sur V4 : non démontrée. Probabilités : non calibrées.
 Le cash et le portefeuille du plan sont hypothétiques. Aucun ordre réel n’est envoyé.
