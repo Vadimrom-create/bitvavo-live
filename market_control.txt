@@ -1,90 +1,87 @@
 BITVAVO MARKET CONTROL — FULL ACTIVE EUR UNIVERSE
-generated_at_utc: 2026-10-01T07:22:47.215828+00:00
+generated_at_utc: 2026-10-01T07:43:15.538551+00:00
 active_eur_markets: 430
-v4_generated_at_utc: 2026-10-01T07:22:05.120197+00:00
-v3_generated_at_utc: 2026-10-01T07:22:05.120197+00:00
+v4_generated_at_utc: 2026-10-01T07:42:35.528338+00:00
+v3_generated_at_utc: 2026-10-01T07:42:35.528338+00:00
 RULE: this is the mandatory second reading of every scan; V3/V4 remain the prospective first reading.
 
 COVERAGE
-top_10: V4=1/10 | V3=0/10 | either=1/10 (10.0%)
-top_20: V4=7/20 | V3=2/20 | either=7/20 (35.0%)
-top_40: V4=14/40 | V3=5/40 | either=14/40 (35.0%)
+top_10: V4=0/10 | V3=0/10 | either=0/10 (0.0%)
+top_20: V4=5/20 | V3=2/20 | either=5/20 (25.0%)
+top_40: V4=12/40 | V3=5/40 | either=12/40 (30.0%)
 
 TOP_24H_GAINERS
 rank | market | ch24% | last | vol24EUR | collector | V4[action,opp,entry,trend] | V3[stage,buy,score] | audit
-1 | MOVR-EUR | 67.6609 | 2.5969 | 7640824 | TRUE | -, -, -, - | -, FALSE, - | NOT_DETECTED_V3_V4
-2 | CT-EUR | 51.4644 | 0.362 | 2898419 | TRUE | -, -, -, - | -, FALSE, - | NOT_DETECTED_V3_V4
-3 | STX-EUR | 29.7728 | 0.35877 | 1339450 | TRUE | -, -, -, - | -, FALSE, - | NOT_DETECTED_V3_V4
-4 | MON-EUR | 26.404 | 0.029801 | 1532618 | TRUE | -, -, -, - | -, FALSE, - | NOT_DETECTED_V3_V4
-5 | NOM-EUR | 25.9216 | 0.0023604 | 583249 | TRUE | -, -, -, - | -, FALSE, - | NOT_DETECTED_V3_V4
-6 | TRAC-EUR | 23.0063 | 0.43249 | 312290 | TRUE | -, -, -, - | -, FALSE, - | NOT_DETECTED_V3_V4
-7 | NOS-EUR | 21.9678 | 0.48892 | 125088 | TRUE | -, -, -, - | -, FALSE, - | NOT_DETECTED_V3_V4
-8 | ICX-EUR | 21.7302 | 0.007669 | 144088 | TRUE | -, -, -, - | -, FALSE, - | NOT_DETECTED_V3_V4
-9 | CAP-EUR | 21.4764 | 0.065097 | 307976 | TRUE | -, -, -, - | -, FALSE, - | NOT_DETECTED_V3_V4
-10 | ESP-EUR | 13.7034 | 0.098574 | 72533 | TRUE | ENTRY_WINDOW, 7.592, 6.4, 8.6 | -, FALSE, - | V4_TRACKED
-11 | RED-EUR | 13.3731 | 0.16328 | 108116 | TRUE | WATCH, 7.845, 5.25, 8.95 | -, FALSE, - | V4_TRACKED
-12 | PLUME-EUR | 13.3147 | 0.0177495 | 694969 | TRUE | WATCH, 7.846, 5.1, 9.2 | -, FALSE, - | V4_TRACKED
-13 | DUSK-EUR | 12.6232 | 0.083045 | 132310 | TRUE | ENTRY_WINDOW, 7.995, 5.75, 7.6 | IGNITION, TRUE, 8.925 | V4_TRACKED
-14 | KAIA-EUR | 12.0449 | 0.033051 | 241142 | TRUE | ENTRY_WINDOW, 7.814, 5.3, 8.55 | -, FALSE, - | V4_TRACKED
-15 | ZETA-EUR | 11.653 | 0.051673 | 85622 | TRUE | WATCH, 7.604, 5.6, 8.2 | -, FALSE, - | V4_TRACKED
-16 | BTT-EUR | 11.4606 | 3.6004e-07 | 21440 | TRUE | -, -, -, - | -, FALSE, - | NOT_DETECTED_V3_V4
-17 | MOVE-EUR | 11.1125 | 0.008929 | 137724 | TRUE | -, -, -, - | -, FALSE, - | NOT_DETECTED_V3_V4
-18 | VELO-EUR | 11.0779 | 0.0049764 | 42332 | TRUE | -, -, -, - | -, FALSE, - | NOT_DETECTED_V3_V4
-19 | HUMA-EUR | 10.996 | 0.02892 | 301029 | TRUE | ENTRY_WINDOW, 8.191, 6.6, 8.6 | IGNITION, FALSE, 8.482 | V4_TRACKED
-20 | DRV-EUR | 10.8796 | 0.36343 | 255971 | TRUE | -, -, -, - | -, FALSE, - | NOT_DETECTED_V3_V4
-21 | NEAR-EUR | 10.5154 | 4.7778 | 12236989 | TRUE | -, -, -, - | -, FALSE, - | NOT_DETECTED_V3_V4
-22 | MIOTA-EUR | 10.2415 | 0.050129 | 84007 | TRUE | ENTRY_WINDOW, 7.707, 5.25, 8.15 | -, FALSE, - | V4_TRACKED
-23 | FET-EUR | 10.1804 | 0.2131 | 3775545 | TRUE | REENTRY_READY, 8.314, 7.2, 7.55 | IGNITION, FALSE, 9.978 | V4_ACTIONABLE
-24 | MEGA-EUR | 9.6386 | 0.04095 | 58974 | TRUE | ENTRY_WINDOW, 7.861, 6.35, 6.25 | IGNITION, FALSE, 9.742 | V4_TRACKED
-25 | GLMR-EUR | 9.6221 | 0.008818 | 1026418 | TRUE | -, -, -, - | -, FALSE, - | NOT_DETECTED_V3_V4
-26 | ZIG-EUR | 9.3682 | 0.0502 | 191569 | TRUE | ENTRY_WINDOW, 7.766, 6.5, 8.5 | -, FALSE, - | V4_TRACKED
-27 | RE-EUR | 8.3607 | 0.45479 | 55029 | TRUE | ENTRY_WINDOW, 7.852, 6.3, 6.45 | IGNITION, FALSE, 10.0 | V4_TRACKED
-28 | ENA-EUR | 8.2382 | 0.23702 | 1929033 | TRUE | -, -, -, - | -, FALSE, - | NOT_DETECTED_V3_V4
-29 | SOON-EUR | 8.0454 | 0.41188 | 1377123 | TRUE | -, -, -, - | -, FALSE, - | NOT_DETECTED_V3_V4
-30 | SCR-EUR | 7.8595 | 0.023179 | 63077 | TRUE | -, -, -, - | -, FALSE, - | NOT_DETECTED_V3_V4
-31 | WIN-EUR | 7.7018 | 4.4721e-05 | 25707 | TRUE | -, -, -, - | -, FALSE, - | NOT_DETECTED_V3_V4
-32 | WLD-EUR | 7.7004 | 0.47232 | 4497831 | TRUE | REENTRY_READY, 7.77, 6.55, 8.65 | -, FALSE, - | V4_ACTIONABLE
-33 | STRK-EUR | 7.6517 | 0.039323 | 114135 | TRUE | WATCH, 7.771, 6.4, 8.2 | -, FALSE, - | V4_TRACKED
-34 | PUFFER-EUR | 7.5532 | 0.024392 | 5729 | TRUE | -, -, -, - | -, FALSE, - | NOT_DETECTED_V3_V4
-35 | LIGHTER-EUR | 7.4534 | 3.5595 | 353391 | TRUE | -, -, -, - | -, FALSE, - | NOT_DETECTED_V3_V4
-36 | PENDLE-EUR | 7.3708 | 2.1967 | 100836 | TRUE | -, -, -, - | -, FALSE, - | NOT_DETECTED_V3_V4
-37 | REZ-EUR | 6.8138 | 0.0040695 | 220720 | TRUE | -, -, -, - | -, FALSE, - | NOT_DETECTED_V3_V4
-38 | HNT-EUR | 6.6591 | 0.44271 | 167272 | TRUE | -, -, -, - | -, FALSE, - | NOT_DETECTED_V3_V4
-39 | SPX-EUR | 6.6155 | 0.39887 | 422829 | TRUE | -, -, -, - | -, FALSE, - | NOT_DETECTED_V3_V4
-40 | S-EUR | 6.5068 | 0.035585 | 251394 | TRUE | -, -, -, - | -, FALSE, - | NOT_DETECTED_V3_V4
+1 | MOVR-EUR | 76.7175 | 2.5981 | 7753478 | TRUE | -, -, -, - | -, FALSE, - | NOT_DETECTED_V3_V4
+2 | CT-EUR | 53.431 | 0.3667 | 2911407 | TRUE | -, -, -, - | -, FALSE, - | NOT_DETECTED_V3_V4
+3 | NOM-EUR | 34.455 | 0.0025053 | 630349 | TRUE | -, -, -, - | -, FALSE, - | NOT_DETECTED_V3_V4
+4 | STX-EUR | 29.1037 | 0.35692 | 1368620 | TRUE | -, -, -, - | -, FALSE, - | NOT_DETECTED_V3_V4
+5 | MON-EUR | 22.321 | 0.029176 | 1589019 | TRUE | -, -, -, - | -, FALSE, - | NOT_DETECTED_V3_V4
+6 | NOS-EUR | 20.7687 | 0.48229 | 124757 | TRUE | -, -, -, - | -, FALSE, - | NOT_DETECTED_V3_V4
+7 | CAP-EUR | 20.7255 | 0.0648006 | 310526 | TRUE | -, -, -, - | -, FALSE, - | NOT_DETECTED_V3_V4
+8 | TRAC-EUR | 17.6504 | 0.42 | 317592 | TRUE | -, -, -, - | -, FALSE, - | NOT_DETECTED_V3_V4
+9 | ICX-EUR | 14.8983 | 0.007342 | 140911 | TRUE | -, -, -, - | -, FALSE, - | NOT_DETECTED_V3_V4
+10 | ESP-EUR | 12.8117 | 0.097801 | 80501 | TRUE | -, -, -, - | -, FALSE, - | NOT_DETECTED_V3_V4
+11 | RED-EUR | 12.7413 | 0.16237 | 108156 | TRUE | WATCH, 7.803, 5.95, 8.95 | -, FALSE, - | V4_TRACKED
+12 | VELO-EUR | 11.9151 | 0.00498 | 44066 | TRUE | -, -, -, - | -, FALSE, - | NOT_DETECTED_V3_V4
+13 | PLUME-EUR | 11.4227 | 0.01764 | 697221 | TRUE | WATCH, 7.648, 5.3, 9.2 | -, FALSE, - | V4_TRACKED
+14 | KAIA-EUR | 11.3575 | 0.032944 | 258098 | TRUE | ENTRY_WINDOW, 8.236, 7.05, 8.55 | IGNITION, TRUE, 8.933 | V4_TRACKED
+15 | ZETA-EUR | 10.5421 | 0.051139 | 87189 | TRUE | WATCH, 7.732, 5.85, 8.2 | -, FALSE, - | V4_TRACKED
+16 | DUSK-EUR | 10.4791 | 0.081464 | 151993 | TRUE | -, -, -, - | -, FALSE, - | NOT_DETECTED_V3_V4
+17 | ZIG-EUR | 10.2553 | 0.050519 | 200253 | TRUE | ENTRY_WINDOW, 7.95, 7.1, 8.5 | PRE_IGNITION, FALSE, 7.925 | V4_TRACKED
+18 | GLMR-EUR | 10.0605 | 0.00873 | 987325 | TRUE | -, -, -, - | -, FALSE, - | NOT_DETECTED_V3_V4
+19 | BTT-EUR | 9.7548 | 3.5453e-07 | 21647 | TRUE | -, -, -, - | -, FALSE, - | NOT_DETECTED_V3_V4
+20 | MOVE-EUR | 8.9846 | 0.008758 | 141747 | TRUE | -, -, -, - | -, FALSE, - | NOT_DETECTED_V3_V4
+21 | RE-EUR | 8.9683 | 0.45734 | 58208 | TRUE | ENTRY_WINDOW, 8.146, 6.45, 6.45 | IGNITION, FALSE, 10.0 | V4_TRACKED
+22 | DRV-EUR | 8.864 | 0.36108 | 255085 | TRUE | -, -, -, - | -, FALSE, - | NOT_DETECTED_V3_V4
+23 | FET-EUR | 8.4003 | 0.20918 | 3870662 | TRUE | REENTRY_READY, 7.176, 6.95, 6.15 | WATCH, FALSE, 6.327 | V4_ACTIONABLE
+24 | MEGA-EUR | 8.0951 | 0.04046 | 69823 | TRUE | -, -, -, - | -, FALSE, - | NOT_DETECTED_V3_V4
+25 | LIGHTER-EUR | 7.6355 | 3.5707 | 355144 | TRUE | ENTRY_WINDOW, 7.954, 5.8, 3.6 | IGNITION, FALSE, 10.0 | V4_TRACKED
+26 | PUFFER-EUR | 7.2005 | 0.024312 | 5759 | TRUE | -, -, -, - | -, FALSE, - | NOT_DETECTED_V3_V4
+27 | ENA-EUR | 6.9737 | 0.23485 | 1946137 | TRUE | -, -, -, - | -, FALSE, - | NOT_DETECTED_V3_V4
+28 | HUMA-EUR | 6.966 | 0.02787 | 313542 | TRUE | ENTRY_WINDOW, 7.528, 5.25, 8.6 | -, FALSE, - | V4_TRACKED
+29 | MIOTA-EUR | 6.8596 | 0.048993 | 85499 | TRUE | -, -, -, - | -, FALSE, - | NOT_DETECTED_V3_V4
+30 | WIN-EUR | 6.7794 | 4.4338e-05 | 29750 | TRUE | -, -, -, - | -, FALSE, - | NOT_DETECTED_V3_V4
+31 | PENDLE-EUR | 6.698 | 2.1808 | 102119 | TRUE | -, -, -, - | -, FALSE, - | NOT_DETECTED_V3_V4
+32 | MAGIC-EUR | 6.5067 | 0.047682 | 44690 | TRUE | WATCH, 7.541, 5.3, 8.0 | -, FALSE, - | V4_TRACKED
+33 | NEAR-EUR | 6.2552 | 4.7138 | 12298991 | TRUE | -, -, -, - | -, FALSE, - | NOT_DETECTED_V3_V4
+34 | STRK-EUR | 6.1565 | 0.0389 | 113482 | TRUE | -, -, -, - | -, FALSE, - | NOT_DETECTED_V3_V4
+35 | ORCA-EUR | 6.1071 | 1.47803 | 34327 | TRUE | -, -, -, - | -, FALSE, - | NOT_DETECTED_V3_V4
+36 | S-EUR | 6.1058 | 0.035451 | 248302 | TRUE | -, -, -, - | -, FALSE, - | NOT_DETECTED_V3_V4
+37 | AUDIO-EUR | 5.6642 | 0.014476 | 233354 | TRUE | -, -, -, - | -, FALSE, - | NOT_DETECTED_V3_V4
+38 | REZ-EUR | 5.4237 | 0.0040294 | 221308 | TRUE | -, -, -, - | -, FALSE, - | NOT_DETECTED_V3_V4
+39 | XDC-EUR | 5.1092 | 0.031414 | 135479 | TRUE | WATCH, 7.695, 6.85, 8.7 | -, FALSE, - | V4_TRACKED
+40 | WLD-EUR | 5.0557 | 0.46401 | 4539991 | TRUE | ENTRY_WINDOW, 7.985, 6.5, 8.65 | -, FALSE, - | V4_TRACKED
 
 MISSED_MATERIAL_MOVERS_>=5%
-#1 MOVR-EUR | +67.66% | vol24=7640824 EUR | collector=True
-#2 CT-EUR | +51.46% | vol24=2898419 EUR | collector=True
-#3 STX-EUR | +29.77% | vol24=1339450 EUR | collector=True
-#4 MON-EUR | +26.40% | vol24=1532618 EUR | collector=True
-#5 NOM-EUR | +25.92% | vol24=583249 EUR | collector=True
-#6 TRAC-EUR | +23.01% | vol24=312290 EUR | collector=True
-#7 NOS-EUR | +21.97% | vol24=125088 EUR | collector=True
-#8 ICX-EUR | +21.73% | vol24=144088 EUR | collector=True
-#9 CAP-EUR | +21.48% | vol24=307976 EUR | collector=True
-#16 BTT-EUR | +11.46% | vol24=21440 EUR | collector=True
-#17 MOVE-EUR | +11.11% | vol24=137724 EUR | collector=True
-#18 VELO-EUR | +11.08% | vol24=42332 EUR | collector=True
-#20 DRV-EUR | +10.88% | vol24=255971 EUR | collector=True
-#21 NEAR-EUR | +10.52% | vol24=12236989 EUR | collector=True
-#25 GLMR-EUR | +9.62% | vol24=1026418 EUR | collector=True
-#28 ENA-EUR | +8.24% | vol24=1929033 EUR | collector=True
-#29 SOON-EUR | +8.05% | vol24=1377123 EUR | collector=True
-#30 SCR-EUR | +7.86% | vol24=63077 EUR | collector=True
-#31 WIN-EUR | +7.70% | vol24=25707 EUR | collector=True
-#34 PUFFER-EUR | +7.55% | vol24=5729 EUR | collector=True
-#35 LIGHTER-EUR | +7.45% | vol24=353391 EUR | collector=True
-#36 PENDLE-EUR | +7.37% | vol24=100836 EUR | collector=True
-#37 REZ-EUR | +6.81% | vol24=220720 EUR | collector=True
-#38 HNT-EUR | +6.66% | vol24=167272 EUR | collector=True
-#39 SPX-EUR | +6.62% | vol24=422829 EUR | collector=True
-#40 S-EUR | +6.51% | vol24=251394 EUR | collector=True
-#41 ZEN-EUR | +6.24% | vol24=201311 EUR | collector=True
-#42 VIRTUAL-EUR | +6.23% | vol24=417562 EUR | collector=True
-#44 ORCA-EUR | +6.18% | vol24=35311 EUR | collector=True
-#45 ZAMA-EUR | +6.05% | vol24=135253 EUR | collector=True
+#1 MOVR-EUR | +76.72% | vol24=7753478 EUR | collector=True
+#2 CT-EUR | +53.43% | vol24=2911407 EUR | collector=True
+#3 NOM-EUR | +34.45% | vol24=630349 EUR | collector=True
+#4 STX-EUR | +29.10% | vol24=1368620 EUR | collector=True
+#5 MON-EUR | +22.32% | vol24=1589019 EUR | collector=True
+#6 NOS-EUR | +20.77% | vol24=124757 EUR | collector=True
+#7 CAP-EUR | +20.73% | vol24=310526 EUR | collector=True
+#8 TRAC-EUR | +17.65% | vol24=317592 EUR | collector=True
+#9 ICX-EUR | +14.90% | vol24=140911 EUR | collector=True
+#10 ESP-EUR | +12.81% | vol24=80501 EUR | collector=True
+#12 VELO-EUR | +11.92% | vol24=44066 EUR | collector=True
+#16 DUSK-EUR | +10.48% | vol24=151993 EUR | collector=True
+#18 GLMR-EUR | +10.06% | vol24=987325 EUR | collector=True
+#19 BTT-EUR | +9.75% | vol24=21647 EUR | collector=True
+#20 MOVE-EUR | +8.98% | vol24=141747 EUR | collector=True
+#22 DRV-EUR | +8.86% | vol24=255085 EUR | collector=True
+#24 MEGA-EUR | +8.10% | vol24=69823 EUR | collector=True
+#26 PUFFER-EUR | +7.20% | vol24=5759 EUR | collector=True
+#27 ENA-EUR | +6.97% | vol24=1946137 EUR | collector=True
+#29 MIOTA-EUR | +6.86% | vol24=85499 EUR | collector=True
+#30 WIN-EUR | +6.78% | vol24=29750 EUR | collector=True
+#31 PENDLE-EUR | +6.70% | vol24=102119 EUR | collector=True
+#33 NEAR-EUR | +6.26% | vol24=12298991 EUR | collector=True
+#34 STRK-EUR | +6.16% | vol24=113482 EUR | collector=True
+#35 ORCA-EUR | +6.11% | vol24=34327 EUR | collector=True
+#36 S-EUR | +6.11% | vol24=248302 EUR | collector=True
+#37 AUDIO-EUR | +5.66% | vol24=233354 EUR | collector=True
+#38 REZ-EUR | +5.42% | vol24=221308 EUR | collector=True
 
 PROSPECTIVE_V4_BEFORE_LEADERBOARD
-QNT-EUR | ch24=+6.23% | V4=REENTRY_READY | opp=8.245 entry=7.7 trend=7.55
-WLD-EUR | ch24=+7.70% | V4=REENTRY_READY | opp=7.77 entry=6.55 trend=8.65
+none
