@@ -18,6 +18,7 @@ if str(ROOT) not in sys.path: sys.path.insert(0,str(ROOT))
 
 from research.common import atomic_json, finite, read_json, utc
 from research.http import PublicClient
+from research.production_journal import evaluate_closed_5m_path
 from scripts.send_production_buy_alert import validate
 
 CANDIDATES="production_alert_candidates.json"
@@ -35,54 +36,29 @@ def _event(journal,key):
         if e.get("event_id")==key: return e
     return None
 
-def _closed_5m(raw,now):
-    out=[]
-    for x in raw:
-        if not isinstance(x,list) or len(x)<6: continue
-        t,h,l,c=finite(x[0]),finite(x[2]),finite(x[3]),finite(x[4])
-        if None in (t,h,l,c): continue
-        if t+300_000 <= now*1000: out.append((int(t),h,l,c))
-    return sorted(out)
-
-def _evaluate_from(bars,start_ts,baseline,hours,method):
-    if start_ts is None or baseline is None or baseline<=0: return None
-    first=((int(start_ts*1000)//300_000)+1)*300_000
-    end=int((start_ts+hours*3600)*1000)
-    xs=[x for x in bars if first<=x[0]<end]
-    if not xs: return None
-    high=max(x[1] for x in xs); low=min(x[2] for x in xs); close=xs[-1][3]
-    return {
-        "horizon_hours":hours,
-        "mfe_pct":round((high/baseline-1)*100,4),
-        "mae_pct":round((low/baseline-1)*100,4),
-        "close_return_pct":round((close/baseline-1)*100,4),
-        "bars_used":len(xs),
-        "method":method,
-    }
-
 def _parse_ts(value):
     try:
         return datetime.fromisoformat(str(value).replace("Z","+00:00")).timestamp()
     except Exception:
         return None
 
-def _evaluate(event,bars,hours):
-    return _evaluate_from(
-        bars,
+def _evaluate(event,raw_bars,hours):
+    return evaluate_closed_5m_path(
+        raw_bars,
         finite(event.get("rejected_ts")),
         finite(event.get("rejection_price_eur")),
         hours,
-        "closed_5m_bars_after_rejection",
     )
 
-def _evaluate_reentry(event,bars,hours):
+def _evaluate_reentry(event,raw_bars,hours):
     snap=event.get("first_later_execution_valid_snapshot") or {}
-    return _evaluate_from(
-        bars,
+    return evaluate_closed_5m_path(
+        raw_bars,
         _parse_ts(snap.get("at_utc")),
         finite(snap.get("entry_eur"),finite(snap.get("signal_price_eur"))),
         hours,
-        "closed_5m_bars_after_first_execution_valid_snapshot",
+        stop_eur=finite(snap.get("stop_eur")),
+        tp1_eur=finite(snap.get("tp1_eur")),
     )
 
 def _reentry_tier(row):
@@ -143,8 +119,8 @@ def main():
     alert=read_json(ALERT_STATUS,{})
     state=read_json(STATE,{"schema":"solaire_rejection_shadow_state_v5","markets":{}})
     journal=read_json(JOURNAL,{"schema":"solaire_rejection_shadow_journal_v5","events":[]})
-    state["schema"]="solaire_rejection_shadow_state_v5"; state.setdefault("markets",{})
-    journal["schema"]="solaire_rejection_shadow_journal_v5"; journal.setdefault("events",[])
+    state["schema"]="solaire_rejection_shadow_state_v8"; state.setdefault("markets",{})
+    journal["schema"]="solaire_rejection_shadow_journal_v8"; journal.setdefault("events",[])
     for e in journal["events"]:
         e.setdefault("evaluations",{})
         e.setdefault("execution_valid_evaluations",{})
@@ -153,6 +129,9 @@ def main():
         e.setdefault("first_later_execution_valid_snapshot",None)
         e.setdefault("first_later_execution_valid_with_15m_confirmation",None)
         e.setdefault("first_later_fully_actionable_entry",e.get("first_later_qualifying_entry"))
+        e["execution_pass_observed"]=bool(e.get("first_later_execution_valid_snapshot"))
+        e.setdefault("initial_veto_reason_changed", len(e.get("reason_history") or []) > 1)
+        e.setdefault("legacy_original_condition_resolved", e.get("original_condition_resolved"))
         snap=e.get("first_later_execution_valid_snapshot") or {}
         if snap:
             if not snap.get("reentry_tier"):
@@ -182,12 +161,14 @@ def main():
             continue
         row=confirmed_rows.get(market) or tracking_rows.get(market)
         if not row: continue
-        event_id=f"{market}|{int(now)}"
+        rejected_at=alert.get("checked_at_utc") or utc(now)
+        rejected_ts=_parse_ts(rejected_at) or now
+        event_id=f"{market}|{int(rejected_ts)}"
         event={
             "event_id":event_id,"market":market,
             "first_rejection_reason":reason,
-            "rejected_at_utc":alert.get("checked_at_utc") or utc(now),
-            "rejected_ts":now,
+            "rejected_at_utc":rejected_at,
+            "rejected_ts":rejected_ts,
             "rejection_price_eur":finite(row.get("last")),
             "signal_score":finite(row.get("signal_score")),
             "signal_state":row.get("signal_state"),
@@ -196,7 +177,10 @@ def main():
             "confirmation_scope":(row.get("acceleration") or {}).get("confirmation_scope"),
             "reason_history":[{"at_utc":alert.get("checked_at_utc") or utc(now),"reason":reason,
                                "signal_state":row.get("signal_state")}],
-            "original_condition_resolved":False,
+            "original_condition_resolved":False,  # legacy: v8 sets true only after a full execution PASS
+            "legacy_original_condition_resolved":False,
+            "initial_veto_reason_changed":False,
+            "execution_pass_observed":False,
             "first_later_building_snapshot":None,
             "first_later_confirmed_snapshot":None,
             "first_later_execution_valid_snapshot":None,
@@ -249,6 +233,7 @@ def main():
                     if validated:
                         snap=_validated_snapshot(event,row,validated,checked)
                         event["original_condition_resolved"]=True
+                        event["execution_pass_observed"]=True
                         if event.get("first_later_execution_valid_snapshot") is None:
                             event["first_later_execution_valid_snapshot"]=snap
                             if row.get("signal_state")=="BUILDING_ACCELERATION":
@@ -265,7 +250,7 @@ def main():
                             event["closed_at_utc"]=utc(checked)
                     else:
                         if reason != event.get("first_rejection_reason"):
-                            event["original_condition_resolved"]=True
+                            event["initial_veto_reason_changed"]=True
                         if reason != prior:
                             event.setdefault("reason_history",[]).append({
                                 "at_utc":utc(checked),"reason":reason,
@@ -296,10 +281,9 @@ def main():
         for market,items in due.items():
             try:
                 raw=client.get("/"+market+"/candles",{"interval":"5m","limit":400},cache=False)
-                bars=_closed_5m(raw,now)
                 for kind,idx,h in items:
                     event=journal["events"][idx]
-                    result=_evaluate(event,bars,h) if kind=="rejection" else _evaluate_reentry(event,bars,h)
+                    result=_evaluate(event,raw,h) if kind=="rejection" else _evaluate_reentry(event,raw,h)
                     if result is None:
                         continue
                     if kind=="rejection":
@@ -320,7 +304,7 @@ def main():
         for event in events:
             snap=event.get("first_later_execution_valid_snapshot") or {}
             ev=(event.get("execution_valid_evaluations") or {}).get(str(horizon))
-            if not snap or not ev:
+            if not snap or not ev or ev.get("status")!="COMPLETE":
                 continue
             xs.append((snap,ev))
         vals=lambda key:[finite(ev.get(key)) for _,ev in xs if finite(ev.get(key)) is not None]
@@ -425,7 +409,7 @@ def main():
     ]
     state["updated_at_utc"]=utc(); journal["updated_at_utc"]=utc()
     status={
-        "schema":"solaire_rejection_shadow_v7","checked_at_utc":utc(),
+        "schema":"solaire_rejection_shadow_v8","checked_at_utc":utc(),
         "status":"OK" if not errors else "DEGRADED_NONBLOCKING",
         "new_events":new_events,"revalidations":revalidations,
         "new_fully_actionable":fully_actionable,
@@ -433,7 +417,9 @@ def main():
         "evaluated_horizons":evaluated_horizons,
         "evaluated_reentry_horizons":evaluated_reentry_horizons,
         "active_events":sum(not e.get("closed") for e in journal["events"]),
-        "events_with_original_condition_resolved":sum(bool(e.get("original_condition_resolved")) for e in journal["events"]),
+        "events_with_execution_pass":sum(bool(e.get("execution_pass_observed")) for e in journal["events"]),
+        "events_with_initial_veto_reason_changed":sum(bool(e.get("initial_veto_reason_changed")) for e in journal["events"]),
+        "legacy_events_with_original_condition_resolved":sum(bool(e.get("legacy_original_condition_resolved")) for e in journal["events"]),
         "events_with_building_milestone":sum(bool(e.get("first_later_building_snapshot")) for e in journal["events"]),
         "events_with_confirmed_milestone":sum(bool(e.get("first_later_confirmed_snapshot")) for e in journal["events"]),
         "events_with_execution_valid_snapshot":sum(bool(e.get("first_later_execution_valid_snapshot")) for e in journal["events"]),
@@ -447,6 +433,16 @@ def main():
         "reentries_with_4h":sum("4" in (e.get("execution_valid_evaluations") or {}) for e in journal["events"]),
         "reentries_with_12h":sum("12" in (e.get("execution_valid_evaluations") or {}) for e in journal["events"]),
         "reentries_with_24h":sum("24" in (e.get("execution_valid_evaluations") or {}) for e in journal["events"]),
+        "incomplete_rejection_evaluations":sum(
+            ev.get("status")=="INCOMPLETE"
+            for e in journal["events"] for ev in (e.get("evaluations") or {}).values()
+            if isinstance(ev,dict)
+        ),
+        "incomplete_reentry_evaluations":sum(
+            ev.get("status")=="INCOMPLETE"
+            for e in journal["events"] for ev in (e.get("execution_valid_evaluations") or {}).values()
+            if isinstance(ev,dict)
+        ),
         "reentry_tier_cohorts":reentry_cohorts,
         "reentry_policy_cohorts":policy_cohorts,
         "reentry_reason_cohorts":reason_cohorts,
