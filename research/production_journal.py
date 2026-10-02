@@ -126,26 +126,47 @@ def due_horizons(entry: dict[str, Any], now: float) -> list[int]:
     ]
 
 
-def evaluate_bars(
-    entry: dict[str, Any],
+def evaluate_closed_5m_path(
     raw_bars: list[list[Any]],
+    start_ts: float | None,
+    baseline: float | None,
     horizon_hours: int,
-) -> dict[str, Any] | None:
-    decision_ts = finite(entry.get("decision_ts"))
-    baseline = finite(entry.get("entry_eur"))
-    if baseline is None:
-        baseline = finite(entry.get("signal_price_eur"))
-    if decision_ts is None or baseline is None or baseline <= 0:
-        return None
+    *,
+    stop_eur: float | None = None,
+    tp1_eur: float | None = None,
+) -> dict[str, Any]:
+    """Causal 5m evaluator shared by production and measurement-only shadows.
 
-    # Evaluate only a complete, chronological sequence of fully closed 5m bars.
-    # Bitvavo may return candles newest-first and may omit intervals without
-    # transactions; neither condition may silently change close/path outcomes.
-    first_full_start = ((int(decision_ts * 1000) // 300_000) + 1) * 300_000
-    end_ms = int((decision_ts + horizon_hours * 3600) * 1000)
+    It only uses fully closed 5m bars strictly after the bar containing the
+    start timestamp. Missing intervals are explicit INCOMPLETE results rather
+    than being interpreted as flat prices or silently shortened horizons.
+
+    If both stop and TP1 occur inside the same 5m bar, the path result is
+    conservative: STOP_SAME_BAR_CONSERVATIVE.
+    """
+    start_ts = finite(start_ts)
+    baseline = finite(baseline)
+    if start_ts is None or baseline is None or baseline <= 0:
+        return {
+            "status": "UNKNOWN",
+            "reason": "INVALID_START_OR_BASELINE",
+            "horizon_hours": horizon_hours,
+            "method": "chronological_continuous_closed_5m_bars_after_decision_bar",
+        }
+
+    first_full_start = ((int(start_ts * 1000) // 300_000) + 1) * 300_000
+    end_ms = int((start_ts + horizon_hours * 3600) * 1000)
     last_full_start = ((end_ms - 300_000) // 300_000) * 300_000
     if last_full_start < first_full_start:
-        return None
+        return {
+            "status": "INCOMPLETE",
+            "reason": "NO_FULL_CLOSED_BAR_IN_HORIZON",
+            "horizon_hours": horizon_hours,
+            "bars_used": 0,
+            "expected_bars": 0,
+            "coverage_ratio": 0.0,
+            "method": "chronological_continuous_closed_5m_bars_after_decision_bar",
+        }
 
     parsed: dict[int, tuple[int, float, float, float]] = {}
     for row in raw_bars:
@@ -166,13 +187,33 @@ def evaluate_bars(
     expected_starts = list(range(first_full_start, last_full_start + 1, 300_000))
     missing_starts = [start for start in expected_starts if start not in parsed]
     if missing_starts:
-        # Do not invent flat candles for no-trade intervals or evaluate a
-        # partial horizon as though it were complete.
-        return None
+        present = len(expected_starts) - len(missing_starts)
+        return {
+            "status": "INCOMPLETE",
+            "reason": "MISSING_CLOSED_5M_BARS",
+            "horizon_hours": horizon_hours,
+            "bars_used": present,
+            "expected_bars": len(expected_starts),
+            "missing_bars": len(missing_starts),
+            "coverage_ratio": round(present / len(expected_starts), 6)
+            if expected_starts
+            else 0.0,
+            "first_expected_bar_start_ms": first_full_start,
+            "last_expected_bar_start_ms": last_full_start,
+            "method": "chronological_continuous_closed_5m_bars_after_decision_bar",
+        }
 
     bars = [parsed[start] for start in expected_starts]
     if not bars:
-        return None
+        return {
+            "status": "INCOMPLETE",
+            "reason": "NO_USABLE_CLOSED_5M_BARS",
+            "horizon_hours": horizon_hours,
+            "bars_used": 0,
+            "expected_bars": len(expected_starts),
+            "coverage_ratio": 0.0,
+            "method": "chronological_continuous_closed_5m_bars_after_decision_bar",
+        }
 
     high = max(row[1] for row in bars)
     low = min(row[2] for row in bars)
@@ -181,32 +222,32 @@ def evaluate_bars(
     mae = (low / baseline - 1) * 100
     close_return = (close / baseline - 1) * 100
 
-    result = "OBSERVED"
+    path_result = "OBSERVED"
     path_event_ts = None
-    if entry.get("decision_type") == "BUY_SENT":
-        stop = finite(entry.get("stop_eur"))
-        tp1 = finite(entry.get("tp1_eur"))
-        if stop is not None and tp1 is not None:
-            result = "OPEN"
-            for bar_ts, bar_high, bar_low, _ in bars:
-                if bar_low <= stop and bar_high >= tp1:
-                    result = "STOP_SAME_BAR_CONSERVATIVE"
-                    path_event_ts = bar_ts
-                    break
-                if bar_low <= stop:
-                    result = "STOP"
-                    path_event_ts = bar_ts
-                    break
-                if bar_high >= tp1:
-                    result = "TP1"
-                    path_event_ts = bar_ts
-                    break
-    elif entry.get("decision_type") == "REJECTED":
-        result = "MISSED_UPSIDE_GE5" if mfe >= 5.0 else "NO_5PCT_MFE"
+    stop_eur = finite(stop_eur)
+    tp1_eur = finite(tp1_eur)
+    if stop_eur is not None or tp1_eur is not None:
+        path_result = "OPEN"
+        for bar_ts, bar_high, bar_low, _ in bars:
+            stop_hit = stop_eur is not None and bar_low <= stop_eur
+            tp1_hit = tp1_eur is not None and bar_high >= tp1_eur
+            if stop_hit and tp1_hit:
+                path_result = "STOP_SAME_BAR_CONSERVATIVE"
+                path_event_ts = bar_ts
+                break
+            if stop_hit:
+                path_result = "STOP"
+                path_event_ts = bar_ts
+                break
+            if tp1_hit:
+                path_result = "TP1"
+                path_event_ts = bar_ts
+                break
 
     return {
+        "status": "COMPLETE",
         "horizon_hours": horizon_hours,
-        "result": result,
+        "result": path_result,
         "mfe_pct": round(mfe, 4),
         "mae_pct": round(mae, 4),
         "close_return_pct": round(close_return, 4),
@@ -216,5 +257,66 @@ def evaluate_bars(
         "first_bar_start_ms": bars[0][0],
         "last_bar_start_ms": bars[-1][0],
         "path_event_start_ms": path_event_ts,
+        "path_policy": "stop_before_tp1_if_both_touched_same_5m_bar",
         "method": "chronological_continuous_closed_5m_bars_after_decision_bar",
+    }
+
+
+def evaluate_bars(
+    entry: dict[str, Any],
+    raw_bars: list[list[Any]],
+    horizon_hours: int,
+) -> dict[str, Any] | None:
+    """Backward-compatible production-journal evaluator.
+
+    Existing production behavior is preserved: incomplete/unknown horizons
+    still return None. Shadows can call evaluate_closed_5m_path directly to
+    keep INCOMPLETE/UNKNOWN provenance visible.
+    """
+    decision_ts = finite(entry.get("decision_ts"))
+    baseline = finite(entry.get("entry_eur"))
+    if baseline is None:
+        baseline = finite(entry.get("signal_price_eur"))
+    if decision_ts is None or baseline is None or baseline <= 0:
+        return None
+
+    stop = None
+    tp1 = None
+    if entry.get("decision_type") == "BUY_SENT":
+        stop = finite(entry.get("stop_eur"))
+        tp1 = finite(entry.get("tp1_eur"))
+
+    path = evaluate_closed_5m_path(
+        raw_bars,
+        decision_ts,
+        baseline,
+        horizon_hours,
+        stop_eur=stop,
+        tp1_eur=tp1,
+    )
+    if path.get("status") != "COMPLETE":
+        return None
+
+    result = path["result"]
+    if entry.get("decision_type") == "REJECTED":
+        result = (
+            "MISSED_UPSIDE_GE5"
+            if finite(path.get("mfe_pct"), -999) >= 5.0
+            else "NO_5PCT_MFE"
+        )
+
+    # Preserve the historical output contract exactly for production journals.
+    return {
+        "horizon_hours": horizon_hours,
+        "result": result,
+        "mfe_pct": path["mfe_pct"],
+        "mae_pct": path["mae_pct"],
+        "close_return_pct": path["close_return_pct"],
+        "bars_used": path["bars_used"],
+        "expected_bars": path["expected_bars"],
+        "coverage_ratio": path["coverage_ratio"],
+        "first_bar_start_ms": path["first_bar_start_ms"],
+        "last_bar_start_ms": path["last_bar_start_ms"],
+        "path_event_start_ms": path["path_event_start_ms"],
+        "method": path["method"],
     }
