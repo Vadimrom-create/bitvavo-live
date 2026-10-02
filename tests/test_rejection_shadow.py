@@ -16,7 +16,7 @@ def test_rejection_shadow_measures_reentry_from_execution_clean_snapshot():
     x=Path("scripts/update_rejection_shadow.py").read_text()
     assert "execution_valid_evaluations" in x
     assert "_evaluate_reentry" in x
-    assert "closed_5m_bars_after_first_execution_valid_snapshot" in x
+    assert "evaluate_closed_5m_path" in x
     assert "evaluated_reentry_horizons" in x
 
 
@@ -64,3 +64,20 @@ def test_rejection_shadow_preserves_reentry_milestones():
     assert "first_later_execution_valid_with_15m_confirmation" in x
     assert "timeframe_confirmation_15m" in x
     assert "confirmation_15m_component" in x
+
+
+def test_rejection_shadow_separates_reason_change_from_execution_pass():
+    x=Path("scripts/update_rejection_shadow.py").read_text()
+    assert "initial_veto_reason_changed" in x
+    assert "execution_pass_observed" in x
+    assert "events_with_execution_pass" in x
+    assert "events_with_initial_veto_reason_changed" in x
+    assert "legacy_events_with_original_condition_resolved" in x
+
+
+def test_rejection_shadow_uses_production_rejection_timestamp_and_explicit_incomplete_results():
+    x=Path("scripts/update_rejection_shadow.py").read_text()
+    assert "rejected_ts=_parse_ts(rejected_at) or now" in x
+    assert "evaluate_closed_5m_path" in x
+    assert "incomplete_rejection_evaluations" in x
+    assert "incomplete_reentry_evaluations" in x

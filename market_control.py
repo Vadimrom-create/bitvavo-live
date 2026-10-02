@@ -75,7 +75,7 @@ def classify(v4: dict | None, v3: dict | None) -> str:
         if v3.get("buy_ready"):
             return "V3_BUY_ONLY"
         return "V3_TRACKED_ONLY"
-    return "NOT_DETECTED_V3_V4"
+    return "NOT_CURRENTLY_PRESENT_V3_V4"
 
 
 def main():
@@ -148,7 +148,12 @@ def main():
             "v3_mode": (v3 or {}).get("signal_mode"),
             "v3_score": (v3 or {}).get("final_score"),
             "v3_buy_ready": bool((v3 or {}).get("buy_ready")),
-            "audit_state": classify(v4, v3),
+            "current_presence_state": classify(v4, v3),
+            "audit_state": (
+                "NOT_DETECTED_V3_V4"
+                if classify(v4, v3) == "NOT_CURRENTLY_PRESENT_V3_V4"
+                else classify(v4, v3)
+            ),  # deprecated legacy alias; do not interpret as historical detection
         })
 
     rows.sort(
@@ -159,21 +164,30 @@ def main():
     for rank, row in enumerate(rows, 1):
         row["rank_24h"] = rank
 
-    coverage = {}
+    coverage = {}  # deprecated legacy container: this is current presence, not historical recall
+    current_watchlist_presence = {}
     for count in TOP_COVERAGE_COUNTS:
         sample = rows[:count]
         v4_seen = sum(1 for r in sample if r["v4_present"])
         v3_seen = sum(1 for r in sample if r["v3_present"])
         either_seen = sum(1 for r in sample if r["v4_present"] or r["v3_present"])
+        rate = round(100.0 * either_seen / len(sample), 1) if sample else None
         coverage[f"top_{count}"] = {
             "count": len(sample),
             "v4_seen": v4_seen,
             "v3_seen": v3_seen,
             "either_seen": either_seen,
-            "either_coverage_pct": round(100.0 * either_seen / len(sample), 1) if sample else None,
+            "either_coverage_pct": rate,
+        }
+        current_watchlist_presence[f"top_{count}"] = {
+            "numerator": either_seen,
+            "denominator": len(sample),
+            "rate_pct": rate,
+            "v4_present": v4_seen,
+            "v3_present": v3_seen,
         }
 
-    material_misses = [
+    material_not_currently_present = [
         r for r in rows
         if (r.get("change_24h_pct") or -999) >= MATERIAL_MOVER_PCT
         and not r["v4_present"]
@@ -192,14 +206,27 @@ def main():
     generated_at = datetime.now(timezone.utc).isoformat()
     output = {
         "generated_at_utc": generated_at,
+        "schema": "solaire_market_control_v2",
         "source": "Bitvavo public REST API + current V3/V4 outputs",
-        "purpose": "Mandatory second reading for every scan: full active EUR market leaderboard cross-checked against prospective V3/V4 detection.",
+        "purpose": "Current full-universe leaderboard cross-checked against current V3/V4 watchlist presence. This runtime does not infer historical detection from current absence.",
         "active_eur_market_count": len(rows),
         "v4_generated_at_utc": v4_payload.get("generated_at_utc"),
         "v3_generated_at_utc": v3_payload.get("generated_at_utc"),
+        "current_watchlist_presence": current_watchlist_presence,
         "coverage": coverage,
+        "coverage_deprecation": "DEPRECATED: coverage/either_coverage_pct measure current watchlist presence only; use current_watchlist_presence.",
+        "historical_detection": {
+            "status": "UNKNOWN",
+            "reason": "No historical event index is an input to market_control.py in this runtime. Current absence must not erase a prior detection or BUY.",
+        },
+        "metric_definitions": {
+            "CURRENT_WATCHLIST_PRESENCE_RATE": "markets present now in V3 or V4 divided by the announced leaderboard denominator",
+            "HISTORICAL_DETECTION_RATE": "UNKNOWN until a timestamped historical detection-event source is joined",
+            "TIMELY_DETECTION_RATE": "UNKNOWN until a predeclared reference event and timestamped detection history are joined",
+        },
         "material_mover_threshold_pct": MATERIAL_MOVER_PCT,
-        "material_misses": material_misses,
+        "material_not_currently_present": material_not_currently_present,
+        "material_misses": material_not_currently_present,  # deprecated legacy alias
         "prospective_v4_before_leaderboard": prospective,
         "top_gainers": rows[:TOP_TEXT_COUNT],
         "all_markets_ranked_24h": rows,
@@ -214,7 +241,7 @@ def main():
         f"v3_generated_at_utc: {v3_payload.get('generated_at_utc')}",
         "RULE: this is the mandatory second reading of every scan; V3/V4 remain the prospective first reading.",
         "",
-        "COVERAGE",
+        "CURRENT_WATCHLIST_PRESENCE (not historical detection)",
     ]
     for key, value in coverage.items():
         lines.append(
@@ -234,12 +261,12 @@ def main():
             f"{r['v4_action'] or '-'}, {r['v4_opportunity'] if r['v4_opportunity'] is not None else '-'}, "
             f"{r['v4_entry'] if r['v4_entry'] is not None else '-'}, {r['v4_trend'] if r['v4_trend'] is not None else '-'} | "
             f"{r['v3_stage'] or '-'}, {str(r['v3_buy_ready']).upper()}, {r['v3_score'] if r['v3_score'] is not None else '-'} | "
-            f"{r['audit_state']}"
+            f"{r['current_presence_state']}"
         )
 
-    lines.extend(["", f"MISSED_MATERIAL_MOVERS_>={MATERIAL_MOVER_PCT:.0f}%"])
-    if material_misses:
-        for r in material_misses[:30]:
+    lines.extend(["", f"MATERIAL_MOVERS_NOT_CURRENTLY_PRESENT_>={MATERIAL_MOVER_PCT:.0f}%"])
+    if material_not_currently_present:
+        for r in material_not_currently_present[:30]:
             lines.append(
                 f"#{r['rank_24h']} {r['market']} | {r['change_24h_pct']:+.2f}% | "
                 f"vol24={r['quote_volume_24h_eur']:.0f} EUR | collector={r['in_collector_prefilter']}"
