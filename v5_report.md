@@ -1,8 +1,8 @@
 # Bitvavo — V4 mesurée / infrastructure V5
 
-Scan UTC : 2026-10-02T19:48:25.744753+00:00
+Scan UTC : 2026-10-02T20:02:28.892985+00:00
 État : OK | marchés EUR : 426 | V4 : 401 | données valides : 426
-Récupération : 2026-10-02T19:47:47.722265+00:00 | âge ticker : 154.9 s | durée : 155.7 s
+Récupération : 2026-10-02T20:01:53.491267+00:00 | âge ticker : 150.4 s | durée : 151.6 s
 
 ## ACHÈTE — signal V4 et plan théorique
 
@@ -12,27 +12,27 @@ Les intervalles sans transaction sont représentés explicitement à volume 0 ; 
 
 ## SURVEILLE
 
-- ALT-EUR : 0.0067662 € ; score 86.94/100 ; SURVEILLE ; seuil achat non atteint
-- CROSS-EUR : 0.124475 € ; score 85.78/100 ; SURVEILLE ; seuil achat non atteint
-- SUPER-EUR : 0.19971 € ; score 84.09/100 ; SURVEILLE ; SELLER_HEAVY_BOOK
-- PROM-EUR : 5.6156 € ; score 83.01/100 ; SURVEILLE ; seuil achat non atteint
-- AAVE-EUR : 160.3 € ; score 81.89/100 ; SURVEILLE ; WICK_SETUP
+- RUNE-EUR : 0.6575 € ; score 88.20/100 ; SURVEILLE ; seuil achat non atteint
+- AAVE-EUR : 161.07 € ; score 81.89/100 ; SURVEILLE ; WICK_SETUP, STABILITY_HOLD
+- WLD-EUR : 0.48152 € ; score 78.92/100 ; SURVEILLE ; seuil achat non atteint
+- FLUID-EUR : 1.4001 € ; score 78.42/100 ; SURVEILLE ; seuil achat non atteint
+- HUMA-EUR : 0.029752 € ; score 77.74/100 ; SURVEILLE ; seuil achat non atteint
 
 ## Contrôle des hausses
 
 | Marché | Prix € | 24 h | Détection | Couche d’échec | Actionnabilité |
 |---|---:|---:|---|---|---|
-| SAND-EUR | 0.054505 | +38.16 % | DETECTED_EARLY | NONE | INTERPRETATION |
-| GTC-EUR | 0.131866 | +25.99 % | DETECTED_EARLY | NONE | INTERPRETATION |
-| CT-EUR | 0.47551 | +13.85 % | DETECTED_EARLY | NONE | INTERPRETATION |
-| ATH-EUR | 0.0058963 | +12.62 % | DETECTED_EARLY | NONE | INTERPRETATION |
-| SCR-EUR | 0.02472 | +10.64 % | DETECTED_EARLY | NONE | INTERPRETATION |
-| GALA-EUR | 0.0022381 | +9.51 % | DETECTED_EARLY | NONE | ENTRY_TIMING_OR_EXECUTION |
-| APE-EUR | 0.14343 | +8.73 % | DETECTED_EARLY | NONE | INTERPRETATION |
-| WLD-EUR | 0.48104 | +8.23 % | DETECTED_EARLY | NONE | NONE |
-| MANA-EUR | 0.085582 | +7.88 % | NOT_DETECTED | SCANNER_SCORING | NOT_APPLICABLE |
-| ENJ-EUR | 0.028418 | +7.88 % | DETECTED_EARLY | NONE | INTERPRETATION |
+| SAND-EUR | 0.055491 | +40.98 % | DETECTED_EARLY | NONE | INTERPRETATION |
+| GTC-EUR | 0.135 | +24.32 % | DETECTED_EARLY | NONE | INTERPRETATION |
+| CT-EUR | 0.47744 | +13.47 % | DETECTED_EARLY | NONE | INTERPRETATION |
+| ATH-EUR | 0.0058774 | +12.11 % | DETECTED_EARLY | NONE | INTERPRETATION |
+| SCR-EUR | 0.024813 | +11.05 % | DETECTED_EARLY | NONE | INTERPRETATION |
+| GALA-EUR | 0.0022553 | +10.40 % | DETECTED_EARLY | NONE | ENTRY_TIMING_OR_EXECUTION |
+| APE-EUR | 0.14456 | +9.59 % | DETECTED_EARLY | NONE | INTERPRETATION |
+| ENJ-EUR | 0.028611 | +8.61 % | DETECTED_EARLY | NONE | INTERPRETATION |
+| MANA-EUR | 0.085763 | +8.16 % | NOT_DETECTED | SCANNER_SCORING | NOT_APPLICABLE |
+| WLD-EUR | 0.48152 | +7.74 % | DETECTED_EARLY | NONE | NONE |
 
-Historique : 2001 scans ; 856412 observations ; 1581 épisodes d’achat évaluables.
+Historique : 2002 scans ; 856838 observations ; 1582 épisodes d’achat évaluables.
 V5 optimisée : aucune. Supériorité sur V4 : non démontrée. Probabilités : non calibrées.
 Le cash et le portefeuille du plan sont hypothétiques. Aucun ordre réel n’est envoyé.
