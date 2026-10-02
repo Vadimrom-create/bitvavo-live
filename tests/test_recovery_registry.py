@@ -120,3 +120,15 @@ def test_ttl_is_fixed_at_24h_and_expires_without_retrospective_extension():
     record = registry["episodes"]["ABC-EUR|1000"]
     assert record["state"] == "EXPIRED_24H"
     assert record["closed"] is True
+
+
+def test_registry_module_has_no_sender_mail_or_order_dependency():
+    from pathlib import Path
+
+    x = Path("research/recovery_registry.py").read_text()
+    assert "send_production_buy_alert" not in x
+    assert "email_alert" not in x
+    assert "mark_sent" not in x
+    assert '"affects_buy_gate": False' in x
+    assert '"affects_email": False' in x
+    assert '"affects_orders": False' in x
