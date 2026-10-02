@@ -90,3 +90,11 @@ def test_rejection_shadow_persists_blocked_alive_registry_without_sender_activat
     assert "observe_episode" in x
     assert "SIGNAL_ABSENT_NOT_EVALUATED" in x
     assert "recovery_registry" in x
+
+
+def test_recovery_registry_checks_prior_thesis_without_mutating_sender_state():
+    x=Path("scripts/update_rejection_shadow.py").read_text()
+    assert 'PRODUCTION_STATE="production_alert_state.json"' in x
+    assert "prior_buy_thesis_active" in x
+    assert "prior_thesis_clear" in x
+    assert "mark_sent" not in x
