@@ -19,13 +19,16 @@ if str(ROOT) not in sys.path: sys.path.insert(0,str(ROOT))
 from research.common import atomic_json, finite, read_json, utc
 from research.http import PublicClient
 from research.production_journal import evaluate_closed_5m_path
-from scripts.send_production_buy_alert import validate
+from research.recovery_registry import (normalize_registry, observe_episode, register_episode, summarize)
+from scripts.send_production_buy_alert import prior_buy_thesis_active, validate
 
 CANDIDATES="production_alert_candidates.json"
 ALERT_STATUS="production_alert_status.json"
 STATE="production_rejection_shadow_state.json"
 JOURNAL="production_rejection_shadow_journal.json"
 STATUS="production_rejection_shadow_status.json"
+REGISTRY="production_recovery_registry_shadow.json"
+PRODUCTION_STATE="production_alert_state.json"
 TRACKED={"STRUCTURAL_RANGE_TOO_NARROW","SPREAD_TOO_WIDE","INSUFFICIENT_EXECUTION_LIQUIDITY","STRUCTURAL_STOP_TOO_WIDE"}
 HORIZONS=(1,4,12,24)
 MAX_AGE=24*3600
@@ -119,6 +122,8 @@ def main():
     alert=read_json(ALERT_STATUS,{})
     state=read_json(STATE,{"schema":"solaire_rejection_shadow_state_v5","markets":{}})
     journal=read_json(JOURNAL,{"schema":"solaire_rejection_shadow_journal_v5","events":[]})
+    registry=normalize_registry(read_json(REGISTRY,{}))
+    production_state=read_json(PRODUCTION_STATE,{"markets":{}})
     state["schema"]="solaire_rejection_shadow_state_v8"; state.setdefault("markets",{})
     journal["schema"]="solaire_rejection_shadow_journal_v8"; journal.setdefault("events",[])
     for e in journal["events"]:
@@ -150,6 +155,24 @@ def main():
     tracking_rows={r.get("market"):r for r in payload.get("tracking",[]) if isinstance(r,dict) and r.get("market")}
     current_rej={r.get("market"):r.get("reason") for r in (alert.get("rejections") or [])
                  if r.get("market") and r.get("reason") in TRACKED}
+
+    # Backfill only still-open prospective events into the autonomous registry.
+    # A missing current row is allowed: absence is not an invalidation.
+    for existing in journal["events"]:
+        if existing.get("closed") or not existing.get("event_id"):
+            continue
+        source_row=tracking_rows.get(existing.get("market")) or confirmed_rows.get(existing.get("market"))
+        if source_row is None:
+            source_row={
+                "market":existing.get("market"),
+                "last":existing.get("rejection_price_eur"),
+                "signal_state":existing.get("signal_state"),
+                "signal_score":existing.get("signal_score"),
+                "episode":existing.get("source_episode"),
+                "acceleration":{"evidence_count":existing.get("evidence_count") or 0},
+            }
+        registry=register_episode(registry,existing,source_row,now)
+
     new_events=0
 
     # A rejection event can only start from a production-confirmed candidate.
@@ -170,6 +193,8 @@ def main():
             "rejected_at_utc":rejected_at,
             "rejected_ts":rejected_ts,
             "rejection_price_eur":finite(row.get("last")),
+            "source_episode":int(finite(row.get("episode"))) if finite(row.get("episode")) is not None else None,
+            "source_quote_volume_24h_eur":finite(row.get("quote_volume_24h_eur")),
             "signal_score":finite(row.get("signal_score")),
             "signal_state":row.get("signal_state"),
             "evidence_count":int((row.get("acceleration") or {}).get("evidence_count") or 0),
@@ -193,12 +218,14 @@ def main():
             "affects_detection":False,"affects_buy_gate":False,"affects_email":False,
         }
         journal["events"].append(event)
+        registry=register_episode(registry,event,row,now)
         st["active_event_id"]=event_id
         new_events+=1
 
     client=PublicClient(timeout=10,retries=2,requests_per_second=8)
     errors=[]; revalidations=0; fully_actionable=0; execution_valid_while_building=0
     evaluated_horizons=0; evaluated_reentry_horizons=0
+    validation_cache={}
     try:
         client.get("/time",cache=False)
         metadata={m["market"]:m for m in client.get("/markets")
@@ -223,6 +250,7 @@ def main():
                     if row.get("signal_state")=="CONFIRMED_ACCELERATION" and event.get("first_later_confirmed_snapshot") is None:
                         event["first_later_confirmed_snapshot"]=signal_snap
                     validated,reason=validate(row,client,metadata,checked)
+                    validation_cache[market]=(validated,reason,checked,row)
                     revalidations+=1
                     event["last_revalidation"]={
                         "checked_at_utc":utc(checked),"passed_execution_gate":bool(validated),
@@ -263,6 +291,50 @@ def main():
                 event["closed"]=True
                 event["close_reason"]="EXPIRED_24H_WITHOUT_FULLY_ACTIONABLE_ENTRY"
                 event["closed_at_utc"]=utc(now)
+
+        # Independent lifecycle: registry episodes remain observable even if the
+        # legacy rejection event is no longer current. Current-scan absence is
+        # recorded but cannot itself invalidate or promote a candidate.
+        for registry_event_id,record in list((registry.get("episodes") or {}).items()):
+            if record.get("closed"):
+                continue
+            market=record.get("market")
+            row=tracking_rows.get(market) or confirmed_rows.get(market)
+            if row is None:
+                registry=observe_episode(
+                    registry,registry_event_id,None,now,
+                    execution_pass=None,
+                    execution_reason="SIGNAL_ABSENT_NOT_EVALUATED",
+                    plan=None,
+                )
+                continue
+            cached=validation_cache.get(market)
+            if cached is None:
+                try:
+                    checked=time.time()
+                    validated,reason=validate(row,client,metadata,checked)
+                    validation_cache[market]=(validated,reason,checked,row)
+                    revalidations+=1
+                except (RuntimeError,ValueError,KeyError) as exc:
+                    errors.append({"market":market,"reason":type(exc).__name__+":"+str(exc)})
+                    continue
+            else:
+                validated,reason,checked,_=cached
+            prior_thesis_clear=None
+            prior_thesis_status=None
+            if validated:
+                thesis_active,prior_thesis_status=prior_buy_thesis_active(
+                    production_state,validated,checked
+                )
+                prior_thesis_clear=not thesis_active
+            registry=observe_episode(
+                registry,registry_event_id,row,checked,
+                execution_pass=bool(validated),
+                execution_reason=reason,
+                plan=(validated or {}).get("trade") if validated else None,
+                prior_thesis_clear=prior_thesis_clear,
+                prior_thesis_status=prior_thesis_status,
+            )
 
         due={}
         for idx,event in enumerate(journal["events"]):
@@ -447,6 +519,7 @@ def main():
         "reentry_policy_cohorts":policy_cohorts,
         "reentry_reason_cohorts":reason_cohorts,
         "rapid_reentry_cohorts":rapid_reentry_cohorts,
+        "recovery_registry":summarize(registry),
         "priority2_promotion_readiness":{
             "prospective_comparable_reentries":len(comparable_reentries),
             "target_reentries":20,
@@ -455,7 +528,7 @@ def main():
         "errors":errors,
         "affects_detection":False,"affects_buy_gate":False,"affects_email":False,
     }
-    atomic_json(STATE,state); atomic_json(JOURNAL,journal); atomic_json(STATUS,status)
+    atomic_json(STATE,state); atomic_json(JOURNAL,journal); atomic_json(REGISTRY,registry); atomic_json(STATUS,status)
     print("SOLAIRE_REJECTION_SHADOW "+json.dumps(status,ensure_ascii=False))
     return 0
 
