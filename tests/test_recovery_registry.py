@@ -154,3 +154,12 @@ def test_prior_thesis_block_prevents_shadow_candidate():
     assert record["state"] == "TECHNICAL_PASS_PRIOR_THESIS_BLOCKED"
     assert record["closed"] is False
     assert record["proposal_count"] == 0
+
+
+def test_production_workflow_persists_recovery_registry():
+    from pathlib import Path
+
+    x = Path(".github/workflows/production_scan.yml").read_text()
+    assert "'research/recovery_registry.py'" in x
+    assert "production_recovery_registry_shadow.json" in x
+    assert "python scripts/update_rejection_shadow.py" in x
