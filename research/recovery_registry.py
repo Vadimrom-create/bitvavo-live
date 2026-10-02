@@ -32,6 +32,7 @@ POLICY = {
     "building_min_evidence": 4,
     "candidate_requires_execution_pass": True,
     "candidate_requires_current_signal_quality_pass": True,
+    "candidate_requires_prior_thesis_clear": True,
     "affects_detection": False,
     "affects_buy_gate": False,
     "affects_email": False,
@@ -92,6 +93,8 @@ def _attempt(
     execution_pass: bool | None,
     execution_reason: str | None,
     plan: dict[str, Any] | None,
+    prior_thesis_clear: bool | None,
+    prior_thesis_status: str | None,
 ) -> dict[str, Any]:
     quality_pass, quality_reason = _signal_quality(row)
     return {
@@ -109,6 +112,8 @@ def _attempt(
         "execution_pass": execution_pass,
         "execution_reason": execution_reason,
         "plan": copy.deepcopy(plan) if plan else None,
+        "prior_thesis_clear": prior_thesis_clear,
+        "prior_thesis_status": prior_thesis_status,
     }
 
 
@@ -175,6 +180,8 @@ def observe_episode(
     execution_pass: bool | None,
     execution_reason: str | None = None,
     plan: dict[str, Any] | None = None,
+    prior_thesis_clear: bool | None = None,
+    prior_thesis_status: str | None = None,
 ) -> dict[str, Any]:
     registry = normalize_registry(registry)
     record = registry["episodes"].get(event_id)
@@ -212,6 +219,8 @@ def observe_episode(
         execution_pass=execution_pass,
         execution_reason=execution_reason,
         plan=plan,
+        prior_thesis_clear=prior_thesis_clear,
+        prior_thesis_status=prior_thesis_status,
     )
     record.setdefault("attempts", []).append(attempt)
     record["attempts"] = record["attempts"][-MAX_ATTEMPTS_PER_EPISODE:]
@@ -249,6 +258,12 @@ def observe_episode(
     if not attempt["signal_quality_pass"]:
         record["state"] = "TECHNICAL_PASS_SIGNAL_NOT_QUALIFIED"
         record["last_status_reason"] = attempt["signal_quality_reason"]
+        registry["updated_at_utc"] = utc(now)
+        return registry
+
+    if prior_thesis_clear is not True:
+        record["state"] = "TECHNICAL_PASS_PRIOR_THESIS_BLOCKED"
+        record["last_status_reason"] = prior_thesis_status or "PRIOR_THESIS_STATUS_UNKNOWN"
         registry["updated_at_utc"] = utc(now)
         return registry
 
