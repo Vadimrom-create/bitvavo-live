@@ -75,6 +75,8 @@ def test_first_qualified_recovery_emits_one_shadow_candidate_only():
         1300.0,
         execution_pass=True,
         plan={"entry_eur": 1.02, "stop_eur": 0.98},
+        prior_thesis_clear=True,
+        prior_thesis_status="NO_TRACKED_PRIOR_BUY_THESIS",
     )
     record = registry["episodes"]["ABC-EUR|1000"]
     assert record["state"] == "SHADOW_RECOVERY_CANDIDATE"
@@ -88,6 +90,8 @@ def test_first_qualified_recovery_emits_one_shadow_candidate_only():
         1400.0,
         execution_pass=True,
         plan={"entry_eur": 1.03, "stop_eur": 0.99},
+        prior_thesis_clear=True,
+        prior_thesis_status="NO_TRACKED_PRIOR_BUY_THESIS",
     )
     assert registry["episodes"]["ABC-EUR|1000"]["proposal_count"] == 1
 
@@ -132,3 +136,21 @@ def test_registry_module_has_no_sender_mail_or_order_dependency():
     assert '"affects_buy_gate": False' in x
     assert '"affects_email": False' in x
     assert '"affects_orders": False' in x
+
+
+def test_prior_thesis_block_prevents_shadow_candidate():
+    registry = register_episode(new_registry(), _event(), _row(), 1001.0)
+    registry = observe_episode(
+        registry,
+        "ABC-EUR|1000",
+        _row(),
+        1300.0,
+        execution_pass=True,
+        plan={"entry_eur": 1.02, "stop_eur": 0.98},
+        prior_thesis_clear=False,
+        prior_thesis_status="PRIOR_BUY_THESIS_STILL_ACTIVE",
+    )
+    record = registry["episodes"]["ABC-EUR|1000"]
+    assert record["state"] == "TECHNICAL_PASS_PRIOR_THESIS_BLOCKED"
+    assert record["closed"] is False
+    assert record["proposal_count"] == 0
