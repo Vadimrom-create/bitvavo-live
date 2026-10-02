@@ -19,6 +19,7 @@ if str(ROOT) not in sys.path: sys.path.insert(0,str(ROOT))
 from research.common import atomic_json, finite, freshness, read_json, utc
 from research.features import closed_candles, describe
 from research.http import PublicClient
+from research.production_journal import evaluate_closed_5m_path
 from research.risk import structural_plan
 from scripts.send_production_buy_alert import (
     MIN_QUOTE_VOLUME_EUR, MAX_SPREAD, MAX_STOP_DISTANCE_PCT,
@@ -34,34 +35,15 @@ MAX_EVENTS=3000
 HQ_MIN_SCORE=6.0
 HQ_MIN_EVIDENCE=4
 
-def _closed_rows(raw,now):
-    out=[]
-    for x in raw:
-        if not isinstance(x,list) or len(x)<6: continue
-        t,h,l,c=finite(x[0]),finite(x[2]),finite(x[3]),finite(x[4])
-        if None in (t,h,l,c): continue
-        if t+300_000<=now*1000: out.append((int(t),h,l,c))
-    return sorted(out)
-
-def _eval(event,bars,h):
-    t0=finite(event.get("detected_ts")); base=finite(event.get("fast_entry_eur"))
-    if t0 is None or base is None or base<=0: return None
-    first=((int(t0*1000)//300_000)+1)*300_000
-    end=int((t0+h*3600)*1000)
-    xs=[x for x in bars if first<=x[0]<end]
-    if not xs: return None
-    high=max(x[1] for x in xs); low=min(x[2] for x in xs); close=xs[-1][3]
-    stop=finite(event.get("fast_stop_eur")); tp1=finite(event.get("fast_tp1_eur"))
-    return {
-        "horizon_hours":h,
-        "mfe_pct":round((high/base-1)*100,4),
-        "mae_pct":round((low/base-1)*100,4),
-        "close_return_pct":round((close/base-1)*100,4),
-        "stop_touched":bool(stop is not None and low<=stop),
-        "tp1_touched":bool(tp1 is not None and high>=tp1),
-        "intrabar_order_if_both_touched":"UNKNOWN" if stop is not None and tp1 is not None and low<=stop and high>=tp1 else None,
-        "bars":len(xs),
-    }
+def _eval(event,raw_bars,h):
+    return evaluate_closed_5m_path(
+        raw_bars,
+        finite(event.get("plan_available_ts"), finite(event.get("detected_ts"))),
+        finite(event.get("fast_entry_eur")),
+        h,
+        stop_eur=finite(event.get("fast_stop_eur")),
+        tp1_eur=finite(event.get("fast_tp1_eur")),
+    )
 
 def _eligible_signal(row):
     state=row.get("signal_state")
@@ -135,16 +117,17 @@ def _snapshot(row,client,meta,now):
 def main():
     now=time.time()
     payload=read_json(INPUT,{})
-    state=read_json(STATE,{"schema":"solaire_breakout_risk_shadow_state_v1","markets":{}})
-    journal=read_json(JOURNAL,{"schema":"solaire_breakout_risk_shadow_journal_v1","events":[]})
-    state.setdefault("markets",{}); journal.setdefault("events",[])
+    state=read_json(STATE,{"schema":"solaire_breakout_risk_shadow_state_v2","markets":{}})
+    journal=read_json(JOURNAL,{"schema":"solaire_breakout_risk_shadow_journal_v2","events":[]})
+    state["schema"]="solaire_breakout_risk_shadow_state_v2"; state.setdefault("markets",{})
+    journal["schema"]="solaire_breakout_risk_shadow_journal_v2"; journal.setdefault("events",[])
     rows={r["market"]:r for r in payload.get("tracking",[]) or []
           if isinstance(r,dict) and r.get("market") and _eligible_signal(r)}
 
     status={
-        "schema":"solaire_breakout_risk_shadow_v1","checked_at_utc":utc(now),"status":"OK",
+        "schema":"solaire_breakout_risk_shadow_v2","checked_at_utc":utc(now),"status":"OK",
         "tracked_signals":len(rows),"fast_recovery_candidates":0,"new_events":0,
-        "evaluated_horizons":0,"errors":[],
+        "evaluated_horizons":0,"incomplete_horizons":0,"errors":[],
         "affects_detection":False,"affects_buy_gate":False,"affects_email":False,
     }
     client=PublicClient(timeout=10,retries=2,requests_per_second=8)
@@ -167,9 +150,13 @@ def main():
             if is_candidate and not st.get("active"):
                 fast=snap.get("fast_plan") or {}
                 current=snap.get("current_plan") or {}
+                plan_now=time.time()
                 event={
-                    "event_id":f"{market}|{int(time.time())}","market":market,
-                    "detected_at_utc":payload.get("generated_at_utc"),"detected_ts":time.time(),
+                    "event_id":f"{market}|{int(plan_now)}","market":market,
+                    "payload_generated_at_utc":payload.get("generated_at_utc"),
+                    "detected_at_utc":payload.get("generated_at_utc"),  # legacy alias
+                    "detected_ts":plan_now,  # legacy alias for historical readers
+                    "plan_available_at_utc":utc(plan_now),"plan_available_ts":plan_now,
                     "signal_state":row.get("signal_state"),"signal_score":finite(row.get("signal_score")),
                     "evidence_count":int((row.get("acceleration") or {}).get("evidence_count") or 0),
                     "signal_price_eur":finite(row.get("last")),
@@ -194,7 +181,7 @@ def main():
 
         due={}
         for idx,e in enumerate(journal["events"]):
-            t0=finite(e.get("detected_ts"))
+            t0=finite(e.get("plan_available_ts"), finite(e.get("detected_ts")))
             if t0 is None: continue
             for h in HORIZONS:
                 if now>=t0+h*3600 and str(h) not in e.setdefault("evaluations",{}):
@@ -202,12 +189,13 @@ def main():
         for market,items in due.items():
             try:
                 raw=client.get("/"+market+"/candles",{"interval":"5m","limit":400},cache=False)
-                bars=_closed_rows(raw,now)
                 for idx,h in items:
-                    result=_eval(journal["events"][idx],bars,h)
+                    result=_eval(journal["events"][idx],raw,h)
                     if result:
                         journal["events"][idx]["evaluations"][str(h)]=result
                         status["evaluated_horizons"]+=1
+                        if result.get("status")=="INCOMPLETE":
+                            status["incomplete_horizons"]+=1
             except Exception as exc:
                 status["errors"].append({"market":market,"reason":type(exc).__name__+":"+str(exc)})
     except Exception as exc:
