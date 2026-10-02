@@ -1,6 +1,6 @@
 # Decision Layer V1 + boucle de contrôle — shadow
 
-Scan : 2026-10-02T04:46:51.900429+00:00
+Scan : 2026-10-02T05:01:52.100967+00:00
 Policy : DECISION_LAYER_V1_SHADOW au-dessus de V4_FROZEN_20260908
 
 Cette couche ne modifie aucun score V4 et ne peut envoyer aucun ordre.
@@ -8,81 +8,80 @@ Entry est un indicateur de timing, pas un veto structurel.
 
 ## Quatre lectures obligatoires
 
-- **MEILLEUR_ACHAT_IMMEDIAT** : ZRO-EUR | action ACHETE_MAINTENANT | opportunité 9.284 | entrée 6.850 | trend 8.550 | rang 8.304
+- **MEILLEUR_ACHAT_IMMEDIAT** : ZRO-EUR | action ACHETE_MAINTENANT | opportunité 9.344 | entrée 6.850 | trend 8.550 | rang 8.261
   - V4 buy-ready with acceptable current entry; no structural veto.
-- **MEILLEURE_LIMITE_PASSIVE** : ALGO-EUR | action PLACE_LIMITE_PASSIVE | opportunité 8.196 | entrée 6.700 | trend 7.400 | rang 7.357
+- **MEILLEURE_LIMITE_PASSIVE** : ZIG-EUR | action PLACE_LIMITE_PASSIVE | opportunité 7.464 | entrée 5.850 | trend 8.150 | rang 6.759
   - Strong structure but imperfect current entry; prefer passive execution.
-- **MEILLEUR_LATENT_ACCELERATOR** : DYDX-EUR | action LATENT_ACCELERATOR | opportunité 7.975 | entrée 4.500 | trend 8.950 | rang 7.668
+- **MEILLEUR_LATENT_ACCELERATOR** : DYDX-EUR | action LATENT_ACCELERATOR | opportunité 8.659 | entrée 5.600 | trend 8.950 | rang 8.068
   - Strong structural opportunity retained despite weak instantaneous entry.
-- **MEILLEUR_PULLBACK_REENTRY** : AAVE-EUR | action ATTENDS_REPRISE_OU_REENTREE | opportunité 9.272 | entrée 8.200 | trend 8.950 | rang 8.294
+- **MEILLEUR_PULLBACK_REENTRY** : STX-EUR | action ATTENDS_REPRISE_OU_REENTREE | opportunité 8.287 | entrée 6.650 | trend 8.650 | rang 7.886
   - Strong trend/opportunity retained through pullback; timing does not erase setup.
 
 ## Tous les achats immédiats
 
-1. ZRO-EUR — ACHETE_MAINTENANT — rank 8.304 — opportunité 9.284 — entrée 6.850 — trend 8.550
-2. HBAR-EUR — ACHETE_MAINTENANT — rank 8.050 — opportunité 9.054 — entrée 7.650 — trend 7.950
-3. SUI-EUR — ACHETE_MAINTENANT — rank 7.556 — opportunité 8.914 — entrée 7.850 — trend 6.800
-4. WLD-EUR — ACHETE_MAINTENANT — rank 7.511 — opportunité 8.925 — entrée 7.650 — trend 6.900
-5. LINK-EUR — ACHETE_MAINTENANT — rank 7.447 — opportunité 8.893 — entrée 7.600 — trend 6.450
-6. AVAX-EUR — ACHETE_MAINTENANT — rank 7.426 — opportunité 8.939 — entrée 7.600 — trend 6.650
-7. ADA-EUR — ACHETE_MAINTENANT — rank 7.337 — opportunité 8.730 — entrée 7.600 — trend 6.600
-8. PEPE-EUR — ACHETE_MAINTENANT — rank 7.129 — opportunité 8.812 — entrée 7.400 — trend 6.150
-9. XLM-EUR — ACHETE_MAINTENANT — rank 7.045 — opportunité 8.719 — entrée 7.850 — trend 5.950
-10. TAO-EUR — ACHETE_MAINTENANT — rank 7.034 — opportunité 8.015 — entrée 7.600 — trend 6.550
-11. CRV-EUR — ACHETE_MAINTENANT — rank 6.951 — opportunité 8.645 — entrée 7.250 — trend 5.750
-12. FET-EUR — ACHETE_MAINTENANT — rank 6.787 — opportunité 7.736 — entrée 7.650 — trend 6.050
-13. UNI-EUR — ACHETE_MAINTENANT — rank 6.785 — opportunité 8.743 — entrée 7.500 — trend 5.850
-14. VIRTUAL-EUR — ACHETE_MAINTENANT — rank 6.733 — opportunité 8.737 — entrée 7.250 — trend 6.150
-15. BNB-EUR — ACHETE_MAINTENANT — rank 6.576 — opportunité 8.279 — entrée 7.250 — trend 5.350
-16. DOGE-EUR — ACHETE_MAINTENANT — rank 6.552 — opportunité 8.448 — entrée 7.500 — trend 5.600
-17. XRP-EUR — ACHETE_MAINTENANT — rank 6.518 — opportunité 8.096 — entrée 7.600 — trend 4.900
-18. SHIB-EUR — ACHETE_MAINTENANT — rank 6.218 — opportunité 8.556 — entrée 7.450 — trend 5.050
+1. ZRO-EUR — ACHETE_MAINTENANT — rank 8.261 — opportunité 9.344 — entrée 6.850 — trend 8.550
+2. HBAR-EUR — ACHETE_MAINTENANT — rank 8.094 — opportunité 9.190 — entrée 7.650 — trend 7.950
+3. ALGO-EUR — ACHETE_MAINTENANT — rank 7.535 — opportunité 8.552 — entrée 7.200 — trend 7.400
+4. WLD-EUR — ACHETE_MAINTENANT — rank 7.514 — opportunité 8.985 — entrée 7.400 — trend 6.900
+5. LINK-EUR — ACHETE_MAINTENANT — rank 7.414 — opportunité 8.743 — entrée 8.100 — trend 6.450
+6. ADA-EUR — ACHETE_MAINTENANT — rank 7.380 — opportunité 8.928 — entrée 7.600 — trend 6.600
+7. SUI-EUR — ACHETE_MAINTENANT — rank 7.372 — opportunité 8.621 — entrée 7.350 — trend 6.800
+8. PUMP-EUR — ACHETE_MAINTENANT — rank 7.358 — opportunité 8.064 — entrée 7.650 — trend 7.800
+9. AVAX-EUR — ACHETE_MAINTENANT — rank 7.297 — opportunité 8.568 — entrée 7.600 — trend 6.650
+10. RENDER-EUR — ACHETE_MAINTENANT — rank 7.251 — opportunité 8.829 — entrée 7.300 — trend 6.550
+11. ONDO-EUR — ACHETE_MAINTENANT — rank 7.138 — opportunité 8.683 — entrée 7.850 — trend 5.900
+12. XLM-EUR — ACHETE_MAINTENANT — rank 7.124 — opportunité 8.778 — entrée 7.600 — trend 5.950
+13. FET-EUR — ACHETE_MAINTENANT — rank 7.090 — opportunité 8.114 — entrée 7.100 — trend 6.800
+14. TAO-EUR — ACHETE_MAINTENANT — rank 7.071 — opportunité 8.168 — entrée 7.400 — trend 6.550
+15. UNI-EUR — ACHETE_MAINTENANT — rank 6.965 — opportunité 8.619 — entrée 7.400 — trend 5.850
+16. DOGE-EUR — ACHETE_MAINTENANT — rank 6.755 — opportunité 8.248 — entrée 7.400 — trend 5.600
+17. BNB-EUR — ACHETE_MAINTENANT — rank 6.712 — opportunité 8.475 — entrée 7.000 — trend 5.350
 
 ## Top cross-sectionnel — aperçu non exhaustif
 
 Ce top est une vue courte multi-buckets. Il ne doit jamais être utilisé comme liste exhaustive des achats immédiats.
-1. ZRO-EUR — MEILLEUR_ACHAT_IMMEDIAT — ACHETE_MAINTENANT — rank 8.304
-2. AAVE-EUR — MEILLEUR_PULLBACK_REENTRY — ATTENDS_REPRISE_OU_REENTREE — rank 8.294
-3. AZTEC-EUR — MEILLEUR_PULLBACK_REENTRY — ATTENDS_REPRISE_OU_REENTREE — rank 8.115
+1. ZRO-EUR — MEILLEUR_ACHAT_IMMEDIAT — ACHETE_MAINTENANT — rank 8.261
+2. HBAR-EUR — MEILLEUR_ACHAT_IMMEDIAT — ACHETE_MAINTENANT — rank 8.094
+3. DYDX-EUR — MEILLEUR_LATENT_ACCELERATOR — LATENT_ACCELERATOR — rank 8.068
 
 ## Accélération indépendante
 
-- NEIRO-EUR — CONFIRMED_ACCELERATION — score 8.914/10 — REQUIRES_FINAL_EXECUTION_VALIDATION
-- ICX-EUR — CONFIRMED_ACCELERATION — score 8.500/10 — DETECTED_BUT_TOO_LATE
-- ACT-EUR — CONFIRMED_ACCELERATION — score 7.996/10 — REQUIRES_FINAL_EXECUTION_VALIDATION
-- 2Z-EUR — CONFIRMED_ACCELERATION — score 7.648/10 — REQUIRES_FINAL_EXECUTION_VALIDATION
-- MET-EUR — CONFIRMED_ACCELERATION — score 7.094/10 — DETECTED_BUT_TOO_LATE
-- AAVE-EUR — CONFIRMED_ACCELERATION — score 7.090/10 — DETECTED_BUT_TOO_LATE
-- BOME-EUR — CONFIRMED_ACCELERATION — score 6.935/10 — DETECTED_BUT_TOO_LATE
-- WIF-EUR — BUILDING_ACCELERATION — score 6.039/10 — REQUIRES_FINAL_EXECUTION_VALIDATION
-- TRB-EUR — BUILDING_ACCELERATION — score 5.901/10 — REQUIRES_FINAL_EXECUTION_VALIDATION
-- KAITO-EUR — BUILDING_ACCELERATION — score 5.791/10 — DETECTED_BUT_TOO_LATE
+- EDGE-EUR — CONFIRMED_ACCELERATION — score 10.000/10 — DETECTED_BUT_TOO_LATE
+- ZIG-EUR — CONFIRMED_ACCELERATION — score 10.000/10 — DETECTED_BUT_TOO_LATE
+- APT-EUR — CONFIRMED_ACCELERATION — score 9.253/10 — DETECTED_BUT_TOO_LATE
+- OPEN-EUR — CONFIRMED_ACCELERATION — score 9.112/10 — DETECTED_BUT_TOO_LATE
+- GIGA-EUR — CONFIRMED_ACCELERATION — score 7.987/10 — DETECTED_BUT_TOO_LATE
+- TREAD-EUR — BUILDING_ACCELERATION — score 6.353/10 — REQUIRES_FINAL_EXECUTION_VALIDATION
+- REQ-EUR — BUILDING_ACCELERATION — score 6.263/10 — REQUIRES_FINAL_EXECUTION_VALIDATION
+- TRAC-EUR — BUILDING_ACCELERATION — score 6.159/10 — REQUIRES_FINAL_EXECUTION_VALIDATION
+- ZETA-EUR — BUILDING_ACCELERATION — score 6.076/10 — REQUIRES_FINAL_EXECUTION_VALIDATION
+- ARKM-EUR — BUILDING_ACCELERATION — score 5.817/10 — REQUIRES_FINAL_EXECUTION_VALIDATION
 
 ## Watchlist persistante 24–72 h
 
-- PEPE-EUR — ACTIVE_NOW — score mémoire 7.129/10 — sources ACCELERATION, DECISION_LAYER, V4 — BUYABLE_NOW
-- WIF-EUR — ACTIVE_NOW — score mémoire 6.947/10 — sources ACCELERATION, DECISION_LAYER, V4 — BUYABLE_NOW
+- ZRO-EUR — ACTIVE_NOW — score mémoire 8.261/10 — sources ACCELERATION, DECISION_LAYER, V4 — BUYABLE_NOW
+- ADA-EUR — ACTIVE_NOW — score mémoire 7.380/10 — sources ACCELERATION, DECISION_LAYER, V4 — BUYABLE_NOW
 - CPOOL-EUR — MEMORY_24H — score mémoire 10.000/10 — sources ACCELERATION, DECISION_LAYER, V4 — MEMORY_ONLY
-- NEIRO-EUR — ACTIVE_NOW — score mémoire 8.914/10 — sources ACCELERATION, DECISION_LAYER, V4 — WATCH_ONLY
+- EDGE-EUR — ACTIVE_NOW — score mémoire 10.000/10 — sources ACCELERATION, DECISION_LAYER, V4 — DETECTED_BUT_TOO_LATE
+- ZIG-EUR — ACTIVE_NOW — score mémoire 10.000/10 — sources ACCELERATION, DECISION_LAYER, V4 — DETECTED_BUT_TOO_LATE
+- APT-EUR — ACTIVE_NOW — score mémoire 9.253/10 — sources ACCELERATION, DECISION_LAYER, V4 — DETECTED_BUT_TOO_LATE
+- OPEN-EUR — ACTIVE_NOW — score mémoire 9.112/10 — sources ACCELERATION, V4 — DETECTED_BUT_TOO_LATE
+- NEIRO-EUR — MEMORY_24H — score mémoire 8.914/10 — sources ACCELERATION, DECISION_LAYER, V4 — MEMORY_ONLY
 - ZRC-EUR — MEMORY_24H — score mémoire 8.847/10 — sources ACCELERATION, V4 — MEMORY_ONLY
-- ICX-EUR — ACTIVE_NOW — score mémoire 8.500/10 — sources ACCELERATION, V4 — DETECTED_BUT_TOO_LATE
 - OSMO-EUR — MEMORY_24H — score mémoire 8.342/10 — sources ACCELERATION — MEMORY_ONLY
-- ZRO-EUR — ACTIVE_NOW — score mémoire 8.304/10 — sources ACCELERATION, DECISION_LAYER, V4 — WATCH_ONLY
-- AAVE-EUR — ACTIVE_NOW — score mémoire 8.294/10 — sources ACCELERATION, DECISION_LAYER, V4 — DETECTED_BUT_TOO_LATE
-- AGI-EUR — MEMORY_24H — score mémoire 8.119/10 — sources ACCELERATION, DECISION_LAYER, V4 — MEMORY_ONLY
 
 ## Audit des plus fortes hausses
 
-- SWEAT-EUR +120.88% — NOT_DETECTED — couche SCANNER_SCORING — action NOT_APPLICABLE
-- GTC-EUR +57.13% — DETECTED_EARLY — couche NONE — action ENTRY_TIMING_OR_EXECUTION
-- SCR-EUR +40.86% — DETECTED_EARLY — couche NONE — action INTERPRETATION
-- MOVR-EUR +24.40% — DETECTED_EARLY — couche NONE — action INTERPRETATION
-- CT-EUR +22.61% — DETECTED_EARLY — couche NONE — action INTERPRETATION
-- MEGA-EUR +22.54% — DETECTED_EARLY — couche NONE — action NONE
-- SYN-EUR +16.67% — DETECTED_EARLY — couche NONE — action INTERPRETATION
-- ALICE-EUR +16.40% — DETECTED_EARLY — couche NONE — action ENTRY_TIMING_OR_EXECUTION
-- SUPER-EUR +15.96% — DETECTED_EARLY — couche NONE — action ENTRY_TIMING_OR_EXECUTION
-- NOS-EUR +13.19% — DETECTED_EARLY — couche NONE — action ENTRY_TIMING_OR_EXECUTION
+- SWEAT-EUR +122.97% — NOT_DETECTED — couche SCANNER_SCORING — action NOT_APPLICABLE
+- GTC-EUR +55.42% — DETECTED_EARLY — couche NONE — action ENTRY_TIMING_OR_EXECUTION
+- SCR-EUR +40.64% — DETECTED_EARLY — couche NONE — action INTERPRETATION
+- CT-EUR +25.35% — DETECTED_EARLY — couche NONE — action INTERPRETATION
+- MEGA-EUR +20.56% — DETECTED_EARLY — couche NONE — action NONE
+- MOVR-EUR +19.06% — DETECTED_EARLY — couche NONE — action INTERPRETATION
+- ALICE-EUR +16.07% — DETECTED_EARLY — couche NONE — action ENTRY_TIMING_OR_EXECUTION
+- SUPER-EUR +15.37% — DETECTED_EARLY — couche NONE — action ENTRY_TIMING_OR_EXECUTION
+- SYN-EUR +14.33% — DETECTED_EARLY — couche NONE — action INTERPRETATION
+- AAVE-EUR +13.12% — DETECTED_EARLY — couche NONE — action ENTRY_TIMING_OR_EXECUTION
 
 ## Gestion des positions détenues
 
