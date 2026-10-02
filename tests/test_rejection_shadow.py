@@ -81,3 +81,12 @@ def test_rejection_shadow_uses_production_rejection_timestamp_and_explicit_incom
     assert "evaluate_closed_5m_path" in x
     assert "incomplete_rejection_evaluations" in x
     assert "incomplete_reentry_evaluations" in x
+
+
+def test_rejection_shadow_persists_blocked_alive_registry_without_sender_activation():
+    x=Path("scripts/update_rejection_shadow.py").read_text()
+    assert "production_recovery_registry_shadow.json" in x
+    assert "register_episode" in x
+    assert "observe_episode" in x
+    assert "SIGNAL_ABSENT_NOT_EVALUATED" in x
+    assert "recovery_registry" in x
