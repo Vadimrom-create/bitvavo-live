@@ -97,6 +97,42 @@ jobs:
           GMAIL_APP_PASSWORD: ${{ secrets.GMAIL_APP_PASSWORD }}
         run: python scripts/send_production_buy_alert.py
 
+      - name: Update final-gate rejection and recovery registry shadow
+        id: rejection_shadow
+        if: always()
+        continue-on-error: true
+        run: python scripts/update_rejection_shadow.py
+
+      - name: Persist alert and recovery state immediately
+        if: always()
+        continue-on-error: true
+        run: |
+          git config user.name 'bitvavo-live-bot'
+          git config user.email 'actions@users.noreply.github.com'
+          for file in \
+            production_alert_state.json \
+            production_alert_status.json \
+            production_all_actionable_shadow_journal.json \
+            production_all_actionable_shadow_status.json \
+            production_rejection_shadow_state.json \
+            production_rejection_shadow_journal.json \
+            production_rejection_shadow_status.json \
+            production_recovery_registry_shadow.json; do
+            if [ -e "$file" ]; then git add "$file"; fi
+          done
+          if git diff --cached --quiet; then exit 0; fi
+          git commit -m 'Persist alert and recovery shadow state'
+          for attempt in 1 2 3 4 5 6; do
+            git fetch origin main
+            if ! git rebase origin/main; then
+              git rebase --abort || true
+              exit 1
+            fi
+            if git push origin HEAD:main; then exit 0; fi
+            sleep $((attempt * 2))
+          done
+          exit 1
+
       - name: Run Solaire V3 prospective shadow
         id: solaire_v3_shadow
         if: always()
@@ -172,12 +208,6 @@ jobs:
         if: always()
         continue-on-error: true
         run: python scripts/update_breakout_risk_shadow.py
-
-      - name: Update final-gate rejection shadow
-        id: rejection_shadow
-        if: always()
-        continue-on-error: true
-        run: python scripts/update_rejection_shadow.py
 
       - name: Update exit-policy shadow
         id: exit_policy_shadow
