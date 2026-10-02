@@ -163,3 +163,16 @@ def test_production_workflow_persists_recovery_registry():
     assert "'research/recovery_registry.py'" in x
     assert "production_recovery_registry_shadow.json" in x
     assert "python scripts/update_rejection_shadow.py" in x
+
+
+def test_recovery_shadow_runs_before_heavy_v3_steps_and_is_persisted_immediately():
+    from pathlib import Path
+
+    x = Path(".github/workflows/production_scan.yml").read_text()
+    rejection = x.index("run: python scripts/update_rejection_shadow.py")
+    v3 = x.index("run: python scripts/solaire_v3_shadow.py")
+    assert rejection < v3
+    assert x.count("run: python scripts/update_rejection_shadow.py") == 1
+    assert "Persist alert and recovery state immediately" in x
+    assert "git commit -m 'Persist alert and recovery shadow state'" in x
+    assert "production_recovery_registry_shadow.json" in x
