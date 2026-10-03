@@ -176,3 +176,14 @@ def test_recovery_shadow_runs_before_heavy_v3_steps_and_is_persisted_immediately
     assert "Persist alert and recovery state immediately" in x
     assert "git commit -m 'Persist alert and recovery shadow state'" in x
     assert "production_recovery_registry_shadow.json" in x
+
+
+def test_incomplete_forward_evaluations_are_retried_and_stale_health_is_exposed():
+    from pathlib import Path
+
+    x = Path("scripts/update_rejection_shadow.py").read_text()
+    assert 'existing.get("status")=="INCOMPLETE"' in x
+    assert '"stale_incomplete_rejection_evaluations"' in x
+    assert '"stale_incomplete_reentry_evaluations"' in x
+    assert '"stale_incomplete_evaluations"' in x
+    assert "INCOMPLETE_GRACE_SECONDS=15*60" in x
