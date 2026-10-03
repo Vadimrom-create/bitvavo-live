@@ -24,16 +24,6 @@ on:
       - 'scripts/update_emerging_liquidity_shadow.py'
       - 'scripts/update_exit_policy_shadow.py'
       - 'scripts/check_production_health.py'
-      - 'scripts/solaire_v3_shadow.py'
-      - 'scripts/update_solaire_v3_evaluation.py'
-      - 'research/solaire_v3.py'
-      - 'scripts/solaire_v31_shadow.py'
-      - 'scripts/update_solaire_v31_evaluation.py'
-      - 'scripts/solaire_funnel_audit.py'
-      - 'research/solaire_funnel_audit.py'
-      - 'scripts/solaire_policy_challengers.py'
-      - 'scripts/update_solaire_policy_challengers_evaluation.py'
-      - 'research/solaire_v31.py'
       - 'research/features.py'
       - 'research/risk.py'
       - '.github/workflows/production_scan.yml'
@@ -196,7 +186,7 @@ jobs:
             if [ -e "$file" ]; then git add "$file"; fi
           done
           if git diff --cached --quiet; then exit 0; fi
-          git commit -m 'Persist Solaire V2, V3 and V3.1 runtime state'
+          git commit -m 'Persist Solaire production runtime state'
           for attempt in 1 2 3 4 5 6; do
             git fetch origin main
             if ! git rebase origin/main; then
