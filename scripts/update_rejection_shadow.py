@@ -33,6 +33,7 @@ TRACKED={"STRUCTURAL_RANGE_TOO_NARROW","SPREAD_TOO_WIDE","INSUFFICIENT_EXECUTION
 HORIZONS=(1,4,12,24)
 MAX_AGE=24*3600
 MAX_EVENTS=3000
+INCOMPLETE_GRACE_SECONDS=15*60
 
 def _event(journal,key):
     for e in reversed(journal.get("events",[])):
@@ -341,13 +342,19 @@ def main():
             rejected=finite(event.get("rejected_ts"))
             if rejected is not None:
                 for h in HORIZONS:
-                    if now>=rejected+h*3600 and str(h) not in event.setdefault("evaluations",{}):
+                    existing=event.setdefault("evaluations",{}).get(str(h))
+                    if now>=rejected+h*3600 and (
+                        existing is None or (isinstance(existing,dict) and existing.get("status")=="INCOMPLETE")
+                    ):
                         due.setdefault(event.get("market"),[]).append(("rejection",idx,h))
             snap=event.get("first_later_execution_valid_snapshot") or {}
             reentry_ts=_parse_ts(snap.get("at_utc"))
             if reentry_ts is not None:
                 for h in HORIZONS:
-                    if now>=reentry_ts+h*3600 and str(h) not in event.setdefault("execution_valid_evaluations",{}):
+                    existing=event.setdefault("execution_valid_evaluations",{}).get(str(h))
+                    if now>=reentry_ts+h*3600 and (
+                        existing is None or (isinstance(existing,dict) and existing.get("status")=="INCOMPLETE")
+                    ):
                         due.setdefault(event.get("market"),[]).append(("reentry",idx,h))
 
         for market,items in due.items():
@@ -479,6 +486,32 @@ def main():
         e for e in journal["events"]
         if "timeframe_confirmation_15m" in (e.get("first_later_execution_valid_snapshot") or {})
     ]
+
+    # Health counters distinguish normal near-horizon incompleteness from stale
+    # evaluations that should already have become COMPLETE. INCOMPLETE entries
+    # are retried above on every subsequent run until they complete.
+    stale_incomplete_rejection_evaluations=0
+    stale_incomplete_reentry_evaluations=0
+    for event in journal["events"]:
+        rejected=finite(event.get("rejected_ts"))
+        if rejected is not None:
+            for h in HORIZONS:
+                ev=(event.get("evaluations") or {}).get(str(h))
+                if (
+                    isinstance(ev,dict) and ev.get("status")=="INCOMPLETE"
+                    and now>=rejected+h*3600+INCOMPLETE_GRACE_SECONDS
+                ):
+                    stale_incomplete_rejection_evaluations+=1
+        snap=event.get("first_later_execution_valid_snapshot") or {}
+        reentry_ts=_parse_ts(snap.get("at_utc"))
+        if reentry_ts is not None:
+            for h in HORIZONS:
+                ev=(event.get("execution_valid_evaluations") or {}).get(str(h))
+                if (
+                    isinstance(ev,dict) and ev.get("status")=="INCOMPLETE"
+                    and now>=reentry_ts+h*3600+INCOMPLETE_GRACE_SECONDS
+                ):
+                    stale_incomplete_reentry_evaluations+=1
     state["updated_at_utc"]=utc(); journal["updated_at_utc"]=utc()
     status={
         "schema":"solaire_rejection_shadow_v8","checked_at_utc":utc(),
@@ -514,6 +547,11 @@ def main():
             ev.get("status")=="INCOMPLETE"
             for e in journal["events"] for ev in (e.get("execution_valid_evaluations") or {}).values()
             if isinstance(ev,dict)
+        ),
+        "stale_incomplete_rejection_evaluations":stale_incomplete_rejection_evaluations,
+        "stale_incomplete_reentry_evaluations":stale_incomplete_reentry_evaluations,
+        "stale_incomplete_evaluations":(
+            stale_incomplete_rejection_evaluations+stale_incomplete_reentry_evaluations
         ),
         "reentry_tier_cohorts":reentry_cohorts,
         "reentry_policy_cohorts":policy_cohorts,
