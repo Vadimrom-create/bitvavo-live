@@ -2,6 +2,20 @@ name: Solaire prospective shadow measurements
 
 on:
   workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'scripts/solaire_v3_shadow.py'
+      - 'scripts/update_solaire_v3_evaluation.py'
+      - 'research/solaire_v3.py'
+      - 'scripts/solaire_v31_shadow.py'
+      - 'scripts/update_solaire_v31_evaluation.py'
+      - 'research/solaire_v31.py'
+      - 'scripts/solaire_funnel_audit.py'
+      - 'research/solaire_funnel_audit.py'
+      - 'scripts/solaire_policy_challengers.py'
+      - 'scripts/update_solaire_policy_challengers_evaluation.py'
+      - '.github/workflows/solaire_prospective_shadows.yml'
   schedule:
     - cron: '3,18,33,48 * * * *'
 
