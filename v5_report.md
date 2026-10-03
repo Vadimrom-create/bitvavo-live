@@ -1,8 +1,8 @@
 # Bitvavo — V4 mesurée / infrastructure V5
 
-Scan UTC : 2026-10-03T03:19:23.661499+00:00
+Scan UTC : 2026-10-03T03:44:34.306121+00:00
 État : OK | marchés EUR : 426 | V4 : 399 | données valides : 426
-Récupération : 2026-10-03T03:18:21.825307+00:00 | âge ticker : 180.1 s | durée : 180.6 s
+Récupération : 2026-10-03T03:44:01.139252+00:00 | âge ticker : 146.2 s | durée : 148.8 s
 
 ## ACHÈTE — signal V4 et plan théorique
 
@@ -11,31 +11,32 @@ Bougies utilisables : 5 min 426/426 ; 15 min 426/426.
 Les intervalles sans transaction sont représentés explicitement à volume 0 ; aucune transaction n’est inventée.
 
 Achats bruts V4 bloqués avant alerte :
-- WLD-EUR : WICK_SETUP, STABILITY_HOLD, INSUFFICIENT_NET_RISK_REWARD
+- ORCA-EUR : INSUFFICIENT_NET_RISK_REWARD
+- WLD-EUR : STABILITY_HOLD, INSUFFICIENT_NET_RISK_REWARD
 
 ## SURVEILLE
 
-- AXS-EUR : 1.1172 € ; score 86.13/100 ; SURVEILLE ; seuil achat non atteint
-- ORCA-EUR : 1.58721 € ; score 84.24/100 ; SURVEILLE ; seuil achat non atteint
-- CHZ-EUR : 0.0153 € ; score 83.98/100 ; SURVEILLE ; seuil achat non atteint
-- MAGIC-EUR : 0.05277 € ; score 83.75/100 ; SURVEILLE ; SELLER_HEAVY_BOOK, WICK_SETUP
-- WLD-EUR : 0.50262 € ; score 83.60/100 ; SURVEILLE ; WICK_SETUP, STABILITY_HOLD, INSUFFICIENT_NET_RISK_REWARD
+- ALICE-EUR : 0.15981 € ; score 90.93/100 ; SURVEILLE ; seuil achat non atteint
+- SLP-EUR : 0.00064039 € ; score 85.40/100 ; SURVEILLE ; SELLER_HEAVY_BOOK
+- PARTI-EUR : 0.024767 € ; score 85.13/100 ; SURVEILLE ; SPREAD_RISK, SELLER_HEAVY_BOOK
+- ORCA-EUR : 1.58721 € ; score 83.88/100 ; SURVEILLE ; INSUFFICIENT_NET_RISK_REWARD
+- C-EUR : 0.085691 € ; score 83.71/100 ; SURVEILLE ; LOW_LIQUIDITY, WICK_SETUP
 
 ## Contrôle des hausses
 
 | Marché | Prix € | 24 h | Détection | Couche d’échec | Actionnabilité |
 |---|---:|---:|---|---|---|
-| SAND-EUR | 0.067556 | +69.42 % | DETECTED_EARLY | NONE | INTERPRETATION |
-| ENJ-EUR | 0.032646 | +20.75 % | DETECTED_EARLY | NONE | INTERPRETATION |
-| MANA-EUR | 0.093429 | +18.32 % | NOT_DETECTED | SCANNER_SCORING | NOT_APPLICABLE |
-| GALA-EUR | 0.002387 | +16.59 % | DETECTED_EARLY | NONE | ENTRY_TIMING_OR_EXECUTION |
-| ATH-EUR | 0.0060053 | +14.20 % | DETECTED_EARLY | NONE | INTERPRETATION |
-| BAT-EUR | 0.08904 | +11.65 % | NO_CONFIRMED_SHORT_TERM_EVENT | NOT_APPLICABLE | NOT_APPLICABLE |
-| APE-EUR | 0.14786 | +10.84 % | DETECTED_EARLY | NONE | INTERPRETATION |
-| TREAD-EUR | 0.82922 | +10.72 % | DETECTED_EARLY | NONE | INTERPRETATION |
-| WLD-EUR | 0.50262 | +10.62 % | DETECTED_EARLY | NONE | NONE |
-| AGI-EUR | 0.006219 | +9.68 % | NOT_DETECTED | SCANNER_SCORING | NOT_APPLICABLE |
+| SAND-EUR | 0.071649 | +80.05 % | DETECTED_EARLY | NONE | INTERPRETATION |
+| MANA-EUR | 0.095553 | +21.01 % | NOT_DETECTED | SCANNER_SCORING | NOT_APPLICABLE |
+| ENJ-EUR | 0.031912 | +18.16 % | DETECTED_EARLY | NONE | INTERPRETATION |
+| ATH-EUR | 0.00595 | +13.15 % | DETECTED_EARLY | NONE | INTERPRETATION |
+| GALA-EUR | 0.0023067 | +13.12 % | DETECTED_EARLY | NONE | ENTRY_TIMING_OR_EXECUTION |
+| CT-EUR | 0.49544 | +13.07 % | DETECTED_EARLY | NONE | INTERPRETATION |
+| APE-EUR | 0.15097 | +12.58 % | DETECTED_EARLY | NONE | INTERPRETATION |
+| AXS-EUR | 1.1432 | +12.17 % | DETECTED_EARLY | NONE | INTERPRETATION |
+| BAT-EUR | 0.08871 | +11.24 % | NO_CONFIRMED_SHORT_TERM_EVENT | NOT_APPLICABLE | NOT_APPLICABLE |
+| WLD-EUR | 0.50271 | +10.54 % | DETECTED_EARLY | NONE | NONE |
 
-Historique : 2024 scans ; 866210 observations ; 1592 épisodes d’achat évaluables.
+Historique : 2025 scans ; 866636 observations ; 1594 épisodes d’achat évaluables.
 V5 optimisée : aucune. Supériorité sur V4 : non démontrée. Probabilités : non calibrées.
 Le cash et le portefeuille du plan sont hypothétiques. Aucun ordre réel n’est envoyé.
