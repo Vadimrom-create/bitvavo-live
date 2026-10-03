@@ -1,0 +1,126 @@
+name: Solaire prospective shadow measurements
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'scripts/solaire_v3_shadow.py'
+      - 'scripts/update_solaire_v3_evaluation.py'
+      - 'research/solaire_v3.py'
+      - 'scripts/solaire_v31_shadow.py'
+      - 'scripts/update_solaire_v31_evaluation.py'
+      - 'research/solaire_v31.py'
+      - 'scripts/solaire_funnel_audit.py'
+      - 'research/solaire_funnel_audit.py'
+      - 'scripts/solaire_policy_challengers.py'
+      - 'scripts/update_solaire_policy_challengers_evaluation.py'
+      - '.github/workflows/solaire_prospective_shadows.yml'
+  schedule:
+    - cron: '3,18,33,48 * * * *'
+
+permissions:
+  contents: write
+
+concurrency:
+  group: solaire-prospective-shadow-measurements
+  cancel-in-progress: false
+
+env:
+  PYTHONHASHSEED: '0'
+
+jobs:
+  prospective-shadows:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Capture causal input revision
+        run: |
+          echo "SOLAIRE_INPUT_SHA=$(git rev-parse HEAD)" >> "$GITHUB_ENV"
+          echo "Causal input revision: $(git rev-parse HEAD)"
+
+      - name: Run Solaire V3 prospective shadow
+        continue-on-error: true
+        run: python scripts/solaire_v3_shadow.py
+
+      - name: Update Solaire V3 prospective evaluation
+        continue-on-error: true
+        run: python scripts/update_solaire_v3_evaluation.py
+
+      - name: Run Solaire V3.1 economic challenger shadow
+        continue-on-error: true
+        run: python scripts/solaire_v31_shadow.py
+
+      - name: Update Solaire V3.1 prospective evaluation
+        continue-on-error: true
+        run: python scripts/update_solaire_v31_evaluation.py
+
+      - name: Run Solaire full-funnel measurement audit
+        continue-on-error: true
+        run: python scripts/solaire_funnel_audit.py
+
+      - name: Run Solaire policy challenger shadows
+        continue-on-error: true
+        run: python scripts/solaire_policy_challengers.py
+
+      - name: Update Solaire policy challenger evaluation
+        continue-on-error: true
+        run: python scripts/update_solaire_policy_challengers_evaluation.py
+
+      - name: Persist prospective shadow state
+        if: always()
+        run: |
+          git config user.name 'bitvavo-live-bot'
+          git config user.email 'actions@users.noreply.github.com'
+          for file in \
+            solaire_v3_state.json \
+            solaire_v3_journal.json \
+            solaire_v3_status.json \
+            solaire_v3_candidates.json \
+            solaire_v3_theses.json \
+            solaire_v3_rotation_state.json \
+            solaire_v2_frozen_benchmark_journal.json \
+            solaire_v2_reference_outcomes.json \
+            solaire_v3_evaluation_status.json \
+            solaire_v3_comparison.json \
+            solaire_v31_state.json \
+            solaire_v31_journal.json \
+            solaire_v31_status.json \
+            solaire_v31_candidates.json \
+            solaire_v31_portfolio.json \
+            solaire_v31_portfolio_persist30.json \
+            solaire_v31_portfolio_pullback_reclaim.json \
+            solaire_v31_portfolio_raw.json \
+            solaire_v31_portfolio_reentry.json \
+            solaire_v31_evaluation_status.json \
+            solaire_v31_comparison.json \
+            solaire_funnel_audit_state.json \
+            solaire_funnel_audit_journal.json \
+            solaire_funnel_audit_report.json \
+            solaire_funnel_audit_status.json \
+            solaire_policy_challengers_journal.json \
+            solaire_policy_challengers_portfolios.json \
+            solaire_policy_challengers_status.json \
+            solaire_policy_challengers_comparison.json \
+            solaire_policy_challengers_evaluation_status.json; do
+            if [ -e "$file" ]; then git add "$file"; fi
+          done
+          if git diff --cached --quiet; then exit 0; fi
+          git commit -m "Persist prospective shadows from input ${SOLAIRE_INPUT_SHA}"
+          for attempt in 1 2 3 4 5 6; do
+            git fetch origin main
+            if ! git rebase origin/main; then
+              git rebase --abort || true
+              exit 1
+            fi
+            if git push origin HEAD:main; then exit 0; fi
+            sleep $((attempt * 2))
+          done
+          exit 1
