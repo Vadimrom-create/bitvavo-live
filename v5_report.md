@@ -1,44 +1,44 @@
 # Bitvavo — V4 mesurée / infrastructure V5
 
-Scan UTC : 2026-10-03T09:21:41.370288+00:00
-État : OK | marchés EUR : 426 | V4 : 398 | données valides : 426
-Récupération : 2026-10-03T09:21:05.017205+00:00 | âge ticker : 146.3 s | durée : 147.7 s
+Scan UTC : 2026-10-03T09:41:10.503378+00:00
+État : OK | marchés EUR : 426 | V4 : 399 | données valides : 426
+Récupération : 2026-10-03T09:40:10.559143+00:00 | âge ticker : 174.3 s | durée : 175.3 s
 
 ## ACHÈTE — signal V4 et plan théorique
 
+AUCUN ACHAT VALIDÉ — cette absence ne valide pas les marchés aux données insuffisantes.
 Bougies utilisables : 5 min 426/426 ; 15 min 426/426.
 Les intervalles sans transaction sont représentés explicitement à volume 0 ; aucune transaction n’est inventée.
 
 Achats bruts V4 bloqués avant alerte :
-- AAVE-EUR : WICK_SETUP, INSUFFICIENT_NET_RISK_REWARD
+- AAVE-EUR : STABILITY_HOLD, INSUFFICIENT_NET_RISK_REWARD
+- SUI-EUR : INSUFFICIENT_NET_RISK_REWARD
 - SUPER-EUR : INSUFFICIENT_NET_RISK_REWARD
-- WLD-EUR : 0.505 € | IGNITION | score 81.28/100 | entrée 7.05/10
-  Entrée 0.50495 € ; stop 0.48665 € ; TP1 0.54155 € ; TP2 0.55985 € ; montant 250.00 € ; risque théorique 10.78 € ; R/R net 1.51.
-  Chase risk : 0.963/10 (diagnostic non calibré). Probabilités +10/+20/+30/+40 % : indisponibles.
+- WLD-EUR : WICK_SETUP, INSUFFICIENT_NET_RISK_REWARD
 
 ## SURVEILLE
 
-- AAVE-EUR : 161 € ; score 83.97/100 ; SURVEILLE ; WICK_SETUP, INSUFFICIENT_NET_RISK_REWARD
-- SUPER-EUR : 0.21552 € ; score 83.70/100 ; SURVEILLE ; INSUFFICIENT_NET_RISK_REWARD
-- LDO-EUR : 0.39863 € ; score 83.13/100 ; SURVEILLE ; seuil achat non atteint
-- IMX-EUR : 0.1685 € ; score 83.04/100 ; SURVEILLE ; SELLER_HEAVY_BOOK
-- FLUID-EUR : 1.4702 € ; score 80.53/100 ; SURVEILLE ; seuil achat non atteint
+- HUMA-EUR : 0.028723 € ; score 90.77/100 ; SURVEILLE ; SPREAD_RISK
+- BAT-EUR : 0.08536 € ; score 88.86/100 ; SURVEILLE ; seuil achat non atteint
+- SUI-EUR : 1.04292 € ; score 87.99/100 ; SURVEILLE ; INSUFFICIENT_NET_RISK_REWARD
+- LDO-EUR : 0.40131 € ; score 86.25/100 ; SURVEILLE ; seuil achat non atteint
+- AKT-EUR : 0.57632 € ; score 86.07/100 ; SURVEILLE ; WICK_SETUP
 
 ## Contrôle des hausses
 
 | Marché | Prix € | 24 h | Détection | Couche d’échec | Actionnabilité |
 |---|---:|---:|---|---|---|
-| SAND-EUR | 0.065488 | +16.30 % | DETECTED_EARLY | NONE | INTERPRETATION |
-| ATH-EUR | 0.0062551 | +13.20 % | DETECTED_EARLY | NONE | INTERPRETATION |
-| FOLD-EUR | 0.065062 | +12.79 % | NOT_DETECTED | SCANNER_SCORING | NOT_APPLICABLE |
-| QNT-EUR | 233.293 | +11.52 % | DETECTED_EARLY | NONE | INTERPRETATION |
-| HFT-EUR | 0.006198 | +11.17 % | NOT_DETECTED | SCANNER_SCORING | NOT_APPLICABLE |
-| CAP-EUR | 0.0636159 | +7.81 % | NOT_DETECTED | SCANNER_SCORING | NOT_APPLICABLE |
-| SYN-EUR | 0.1668 | +7.63 % | DETECTED_EARLY | NONE | INTERPRETATION |
-| SUPER-EUR | 0.21552 | +7.61 % | NO_CONFIRMED_SHORT_TERM_EVENT | NOT_APPLICABLE | NOT_APPLICABLE |
-| WLD-EUR | 0.505 | +6.31 % | DETECTED_EARLY | NONE | NONE |
-| IMX-EUR | 0.1685 | +6.26 % | DETECTED_EARLY | NONE | ENTRY_TIMING_OR_EXECUTION |
+| HFT-EUR | 0.00719 | +28.97 % | NOT_DETECTED | SCANNER_SCORING | NOT_APPLICABLE |
+| SAND-EUR | 0.065786 | +16.94 % | DETECTED_EARLY | NONE | INTERPRETATION |
+| QNT-EUR | 234.269 | +12.88 % | DETECTED_EARLY | NONE | INTERPRETATION |
+| FOLD-EUR | 0.065 | +12.68 % | NOT_DETECTED | SCANNER_SCORING | NOT_APPLICABLE |
+| ATH-EUR | 0.0062877 | +12.63 % | DETECTED_EARLY | NONE | INTERPRETATION |
+| GRASS-EUR | 0.66556 | +8.06 % | NO_CONFIRMED_SHORT_TERM_EVENT | NOT_APPLICABLE | NOT_APPLICABLE |
+| GLMR-EUR | 0.008507 | +7.77 % | DETECTED_EARLY | NONE | ENTRY_TIMING_OR_EXECUTION |
+| SUPER-EUR | 0.2148 | +6.62 % | NO_CONFIRMED_SHORT_TERM_EVENT | NOT_APPLICABLE | NOT_APPLICABLE |
+| CAP-EUR | 0.0629748 | +6.36 % | NOT_DETECTED | SCANNER_SCORING | NOT_APPLICABLE |
+| INIT-EUR | 0.096255 | +5.47 % | NO_CONFIRMED_SHORT_TERM_EVENT | NOT_APPLICABLE | NOT_APPLICABLE |
 
-Historique : 2040 scans ; 873026 observations ; 1607 épisodes d’achat évaluables.
+Historique : 2041 scans ; 873452 observations ; 1608 épisodes d’achat évaluables.
 V5 optimisée : aucune. Supériorité sur V4 : non démontrée. Probabilités : non calibrées.
 Le cash et le portefeuille du plan sont hypothétiques. Aucun ordre réel n’est envoyé.
