@@ -134,12 +134,16 @@ def evaluate_closed_5m_path(
     *,
     stop_eur: float | None = None,
     tp1_eur: float | None = None,
+    fill_no_trade_gaps: bool = False,
 ) -> dict[str, Any]:
     """Causal 5m evaluator shared by production and measurement-only shadows.
 
     It only uses fully closed 5m bars strictly after the bar containing the
-    start timestamp. Missing intervals are explicit INCOMPLETE results rather
-    than being interpreted as flat prices or silently shortened horizons.
+    start timestamp. By default, missing intervals are explicit INCOMPLETE
+    results. For Bitvavo candle streams, callers may opt into causal sparse
+    reconstruction with fill_no_trade_gaps=True: Bitvavo documents that an
+    interval with zero trades produces zero candlesticks, so the last known
+    price is carried forward without inventing a trade.
 
     If both stop and TP1 occur inside the same 5m bar, the path result is
     conservative: STOP_SAME_BAR_CONSERVATIVE.
@@ -186,8 +190,11 @@ def evaluate_closed_5m_path(
 
     expected_starts = list(range(first_full_start, last_full_start + 1, 300_000))
     missing_starts = [start for start in expected_starts if start not in parsed]
-    if missing_starts:
-        present = len(expected_starts) - len(missing_starts)
+    present = len(expected_starts) - len(missing_starts)
+    source_coverage_ratio = (
+        round(present / len(expected_starts), 6) if expected_starts else 0.0
+    )
+    if missing_starts and not fill_no_trade_gaps:
         return {
             "status": "INCOMPLETE",
             "reason": "MISSING_CLOSED_5M_BARS",
@@ -195,15 +202,23 @@ def evaluate_closed_5m_path(
             "bars_used": present,
             "expected_bars": len(expected_starts),
             "missing_bars": len(missing_starts),
-            "coverage_ratio": round(present / len(expected_starts), 6)
-            if expected_starts
-            else 0.0,
+            "coverage_ratio": source_coverage_ratio,
             "first_expected_bar_start_ms": first_full_start,
             "last_expected_bar_start_ms": last_full_start,
             "method": "chronological_continuous_closed_5m_bars_after_decision_bar",
         }
 
-    bars = [parsed[start] for start in expected_starts]
+    synthetic_no_trade_bars = 0
+    bars = []
+    last_close = baseline
+    for start in expected_starts:
+        observed = parsed.get(start)
+        if observed is None:
+            synthetic_no_trade_bars += 1
+            bars.append((start, last_close, last_close, last_close))
+        else:
+            bars.append(observed)
+            last_close = observed[3]
     if not bars:
         return {
             "status": "INCOMPLETE",
@@ -254,6 +269,14 @@ def evaluate_closed_5m_path(
         "bars_used": len(bars),
         "expected_bars": len(expected_starts),
         "coverage_ratio": 1.0,
+        "source_coverage_ratio": source_coverage_ratio,
+        "observed_bars": present,
+        "synthetic_no_trade_bars": synthetic_no_trade_bars,
+        "gap_policy": (
+            "BITVAVO_ZERO_TRADE_FORWARD_FILL"
+            if fill_no_trade_gaps
+            else "REQUIRE_CONTINUOUS_CANDLES"
+        ),
         "first_bar_start_ms": bars[0][0],
         "last_bar_start_ms": bars[-1][0],
         "path_event_start_ms": path_event_ts,
