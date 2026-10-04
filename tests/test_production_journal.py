@@ -101,3 +101,43 @@ def test_shared_causal_evaluator_is_conservative_when_stop_and_tp_touch_same_bar
     assert result["status"] == "COMPLETE"
     assert result["result"] == "STOP_SAME_BAR_CONSERVATIVE"
     assert result["path_event_start_ms"] == starts[0]
+
+
+def test_shared_causal_evaluator_can_reconstruct_bitvavo_zero_trade_gaps():
+    decision_ts = 1_788_883_210.0
+    starts = _series(decision_ts)
+    bars = [_bar(ts, close=1.0) for ts in starts]
+    missing = starts[len(starts) // 2]
+    bars = [bar for bar in bars if bar[0] != missing]
+
+    result = evaluate_closed_5m_path(
+        bars,
+        decision_ts,
+        1.0,
+        1,
+        fill_no_trade_gaps=True,
+    )
+    assert result["status"] == "COMPLETE"
+    assert result["synthetic_no_trade_bars"] == 1
+    assert result["observed_bars"] == result["expected_bars"] - 1
+    assert result["source_coverage_ratio"] < 1.0
+    assert result["coverage_ratio"] == 1.0
+    assert result["gap_policy"] == "BITVAVO_ZERO_TRADE_FORWARD_FILL"
+
+
+def test_zero_trade_gap_reconstruction_is_seeded_only_from_known_baseline_or_prior_close():
+    decision_ts = 1_788_883_210.0
+    starts = _series(decision_ts)
+    bars = [_bar(starts[-1], high=1.05, low=0.98, close=1.03)]
+
+    result = evaluate_closed_5m_path(
+        bars,
+        decision_ts,
+        1.0,
+        1,
+        fill_no_trade_gaps=True,
+    )
+    assert result["status"] == "COMPLETE"
+    assert result["synthetic_no_trade_bars"] == result["expected_bars"] - 1
+    assert result["mfe_pct"] == 5.0
+    assert result["mae_pct"] == -2.0
