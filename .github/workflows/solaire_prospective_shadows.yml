@@ -68,6 +68,8 @@ jobs:
 
       - name: Run Solaire V3.1 economic challenger shadow
         continue-on-error: true
+        env:
+          SOLAIRE_V3_UNIVERSE_PATH: runtime/prospective_inputs/v3_universe.json
         run: python scripts/solaire_v31_shadow.py
 
       - name: Update Solaire V3.1 prospective evaluation
@@ -90,6 +92,8 @@ jobs:
 
       - name: Run Solaire policy challenger shadows
         continue-on-error: true
+        env:
+          SOLAIRE_V3_UNIVERSE_PATH: runtime/prospective_inputs/v3_universe.json
         run: python scripts/solaire_policy_challengers.py
 
       - name: Update Solaire policy challenger evaluation

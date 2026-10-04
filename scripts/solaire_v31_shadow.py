@@ -7,6 +7,7 @@ It does not add discovery/network work, alter V3, send mail, or submit orders.
 from __future__ import annotations
 
 import json
+import os
 import math
 import time
 from pathlib import Path
@@ -35,7 +36,7 @@ from research.solaire_v31 import (
 )
 
 V3_CANDIDATES = "solaire_v3_candidates.json"
-UNIVERSE = "production_universe_snapshot.json"
+UNIVERSE = os.environ.get("SOLAIRE_V3_UNIVERSE_PATH", "production_universe_snapshot.json")
 STATE = "solaire_v31_state.json"
 JOURNAL = "solaire_v31_journal.json"
 CANDIDATES = "solaire_v31_candidates.json"
