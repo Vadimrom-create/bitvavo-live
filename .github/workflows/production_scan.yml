@@ -27,8 +27,10 @@ on:
       - 'research/features.py'
       - 'research/risk.py'
       - '.github/workflows/production_scan.yml'
+  # Heavy production measurements run hourly; the lightweight heartbeat
+  # workflow below maintains the 5-minute direct-scan cadence between restarts.
   schedule:
-    - cron: '1-59/5 * * * *'
+    - cron: '50 * * * *'
 
 permissions:
   contents: write
@@ -43,7 +45,7 @@ env:
 jobs:
   scan-and-alert:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
         with:
