@@ -358,21 +358,47 @@ def main():
                         due.setdefault(event.get("market"),[]).append(("reentry",idx,h))
 
         for market,items in due.items():
-            try:
-                raw=client.get("/"+market+"/candles",{"interval":"5m","limit":400},cache=False)
-                for kind,idx,h in items:
-                    event=journal["events"][idx]
-                    result=_evaluate(event,raw,h) if kind=="rejection" else _evaluate_reentry(event,raw,h)
-                    if result is None:
-                        continue
-                    if kind=="rejection":
-                        event["evaluations"][str(h)]=result
-                        evaluated_horizons+=1
-                    else:
-                        event["execution_valid_evaluations"][str(h)]=result
-                        evaluated_reentry_horizons+=1
-            except (RuntimeError,ValueError,KeyError) as exc:
-                errors.append({"market":market,"reason":type(exc).__name__+":"+str(exc)})
+            # Fetch the historical candle window belonging to each episode.
+            # Using the latest 400 candles makes mature/older episodes
+            # permanently INCOMPLETE once their horizon falls outside ~33h.
+            groups={}
+            for kind,idx,h in items:
+                groups.setdefault((kind,idx),[]).append(h)
+            for (kind,idx),horizons in groups.items():
+                event=journal["events"][idx]
+                if kind=="rejection":
+                    start_ts=finite(event.get("rejected_ts"))
+                else:
+                    start_ts=_parse_ts(
+                        (event.get("first_later_execution_valid_snapshot") or {}).get("at_utc")
+                    )
+                if start_ts is None:
+                    continue
+                max_h=max(horizons)
+                start_ms=((int(start_ts*1000)//300_000)+1)*300_000
+                end_ms=int((start_ts+max_h*3600)*1000)
+                try:
+                    raw=client.get(
+                        "/"+market+"/candles",
+                        {"interval":"5m","limit":400,"start":start_ms,"end":end_ms},
+                        cache=False,
+                    )
+                    for h in horizons:
+                        result=_evaluate(event,raw,h) if kind=="rejection" else _evaluate_reentry(event,raw,h)
+                        if result is None:
+                            continue
+                        if kind=="rejection":
+                            event["evaluations"][str(h)]=result
+                            evaluated_horizons+=1
+                        else:
+                            event["execution_valid_evaluations"][str(h)]=result
+                            evaluated_reentry_horizons+=1
+                except (RuntimeError,ValueError,KeyError) as exc:
+                    errors.append({
+                        "market":market,
+                        "evaluation_kind":kind,
+                        "reason":type(exc).__name__+":"+str(exc),
+                    })
     except (RuntimeError,ValueError,KeyError) as exc:
         errors.append({"reason":type(exc).__name__+":"+str(exc)})
 
