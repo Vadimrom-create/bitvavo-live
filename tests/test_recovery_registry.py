@@ -207,3 +207,14 @@ def test_historical_candle_query_aligns_end_to_5m_boundary():
     assert "end_ms=last_full_start+300_000" in x
     assert '"incomplete_zero_bar_evaluations"' in x
     assert '"incomplete_partial_coverage_evaluations"' in x
+
+
+def test_delisted_market_horizons_are_censored_not_reported_as_api_failures():
+    from pathlib import Path
+
+    x = Path("scripts/update_rejection_shadow.py").read_text()
+    assert '"status":"CENSORED"' in x
+    assert '"reason":"MARKET_NOT_TRADING"' in x
+    assert '"method":"market_lifecycle_censoring"' in x
+    assert '"censored_market_inactive_evaluations"' in x
+    assert "market not in metadata and market in inactive_eur_markets" in x
