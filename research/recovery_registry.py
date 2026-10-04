@@ -135,6 +135,9 @@ def register_episode(
     record = {
         "event_id": event_id,
         "market": market,
+        "source_decision_id":event.get("source_decision_id"),
+        "source_episode_id":event.get("source_episode_id"),
+        "source_execution_observation_id":event.get("source_execution_observation_id"),
         "state": "BLOCKED_BUT_ALIVE",
         "registered_at_utc": utc(now),
         "registered_at_ts": now,

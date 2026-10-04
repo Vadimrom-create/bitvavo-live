@@ -37,6 +37,7 @@ if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
 from research.common import atomic_json, finite, read_json, utc
+from research.execution_observability import book_evidence,identity
 from research.features import closed_candles, describe
 from research.http import PublicClient
 from research.risk import structural_plan
@@ -757,12 +758,20 @@ def execution_check(
     """Validate an executable plan and retain causal timing + rejected-plan detail."""
     started_ts = time.time()
     market = row["market"]
+    observed_book = None
+    request_meta = {}
 
     def finish(payload: dict[str, Any], *, book_ts: float | None = None, structure_ts: float | None = None,
                book_snapshot: dict[str, Any] | None = None) -> dict[str, Any]:
         available_ts = time.time()
+        try:
+            costs=book_evidence(observed_book,request_meta,available_ts,(payload.get("plan") or {}).get("stop_eur"))
+        except Exception as exc:
+            costs={"status":"UNAVAILABLE","reason":type(exc).__name__,"c3_status":"UNKNOWN/NO_AUTHORIZATION"}
         return {
             **payload,
+            "execution_observation_id":identity("observation","V3",market,started_ts),
+            "execution_costs":costs,
             "check_started_ts": started_ts,
             "check_started_at_utc": utc(started_ts),
             "book_observed_ts": book_ts,
@@ -783,12 +792,22 @@ def execution_check(
     try:
         book = client.get("/" + market + "/book", {"depth": 25}, cache=False)
         book_ts = time.time()
+        observed_book = book
+        try:
+            request_meta = getattr(client,"metadata",lambda *_:{ })("/"+market+"/book",{"depth":25}) or {}
+        except Exception:
+            request_meta = {}
         bid = finite(book["bids"][0][0]) if book.get("bids") else None
         ask = finite(book["asks"][0][0]) if book.get("asks") else None
         snapshot = {
             "best_bid_eur": bid,
             "best_ask_eur": ask,
             "asks": (book.get("asks") or [])[:25],
+            "bids": (book.get("bids") or [])[:25],
+            "exchange_timestamp":book.get("timestamp"),
+            "nonce":book.get("nonce"),
+            "request_started_at_utc":request_meta.get("request_started_at_utc"),
+            "response_received_at_utc":request_meta.get("retrieved_at_utc"),
             "depth_levels": min(25, len(book.get("asks") or [])),
         }
         if bid is None or ask is None or not 0 < bid <= ask:

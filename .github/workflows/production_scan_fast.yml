@@ -70,6 +70,8 @@ jobs:
               if [ -e "${file}" ]; then git add "${file}"; fi
             done
 
+            if [ -d execution_observations ]; then git add execution_observations; fi
+
             if ! git diff --cached --quiet; then
               git commit -m "Record heartbeat production scan cycle ${cycle}"
               pushed=false

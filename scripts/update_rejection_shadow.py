@@ -180,6 +180,7 @@ def main():
 
     # A rejection event can only start from a production-confirmed candidate.
     for market,reason in current_rej.items():
+        rejection=next((r for r in (alert.get("rejections") or []) if r.get("market")==market),{})
         st=state["markets"].setdefault(market,{})
         active_key=st.get("active_event_id")
         active=_event(journal,active_key) if active_key else None
@@ -192,6 +193,9 @@ def main():
         event_id=f"{market}|{int(rejected_ts)}"
         event={
             "event_id":event_id,"market":market,
+            "source_decision_id":rejection.get("decision_id"),
+            "source_episode_id":rejection.get("episode_id"),
+            "source_execution_observation_id":rejection.get("execution_observation_id"),
             "first_rejection_reason":reason,
             "rejected_at_utc":rejected_at,
             "rejected_ts":rejected_ts,
