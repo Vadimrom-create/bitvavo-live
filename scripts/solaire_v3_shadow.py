@@ -119,6 +119,23 @@ GENERIC_SYMBOLS = {
 }
 
 
+def source_error(source: str, exc: Exception) -> dict:
+    code=getattr(exc,"code",None)
+    category=("TRANSIENT_EXTERNAL" if isinstance(code,int) and code>=500 else
+              "RATE_LIMITED" if code in {418,429} else
+              "ACCESS_OR_REGIONAL_POLICY" if code in {403,451} else
+              "AUTHENTICATION_OR_SOURCE_POLICY" if code==401 else
+              "ENDPOINT_NOT_FOUND" if code==404 else
+              "ENDPOINT_RETIRED" if code==410 else
+              "CLIENT_REQUEST_OR_CONFIGURATION" if code==400 else
+              "TIMEOUT_OR_NETWORK" if isinstance(exc,(TimeoutError,OSError)) else "UNCLASSIFIED")
+    url=getattr(exc,"url",None)
+    return {"source":source,"reason":type(exc).__name__,"http_status":code,"classification":category,
+            "endpoint":str(url).split("?",1)[0] if url else None,"observed_at_utc":utc(),
+            "retry_after":getattr(exc,"headers",{}).get("Retry-After") if getattr(exc,"headers",None) else None,
+            "mandatory_for_bitvavo_core":False,"permanent_unusability_proven":code==410}
+
+
 def _json_url(url: str, timeout: int = HTTP_TIMEOUT) -> Any:
     req = urllib.request.Request(
         url,
@@ -235,7 +252,7 @@ def build_full_universe_news_aliases(
         else:
             errors.append({"source": "bitvavo_assets", "reason": "UNEXPECTED_RESPONSE"})
     except Exception as exc:
-        errors.append({"source": "bitvavo_assets", "reason": type(exc).__name__})
+        errors.append(source_error("bitvavo_assets",exc))
 
     aliases = build_asset_aliases(universe_rows, asset_rows)
     asset_names = {
@@ -315,7 +332,7 @@ def _fetch_binance_official_news(
                 published=published, title=title, url=link, symbols=symbols,
             ))
     except Exception as exc:
-        errors.append({"source": "binance_official", "reason": type(exc).__name__})
+        errors.append(source_error("binance_official",exc))
     return items, errors
 
 
@@ -361,7 +378,7 @@ def fetch_official_page_deltas(
                     title=title, url=link, symbols=symbols,
                 ))
         except Exception as exc:
-            errors.append({"source": source, "reason": type(exc).__name__})
+            errors.append(source_error(source,exc))
     # Bound persistent state while keeping the full context window plus margin.
     keep_after = now - MAX_CONTEXT_AGE * 2
     seen = {k: v for k, v in seen.items() if finite(v, 0) >= keep_after}
@@ -399,7 +416,7 @@ def fetch_news(
                     url=row.get("url"), symbols=symbols,
                 ))
     except Exception as exc:
-        errors.append({"source": "cryptocompare", "reason": type(exc).__name__})
+        errors.append(source_error("cryptocompare",exc))
 
     for source, url, source_kind in NEWS_FEEDS:
         try:
@@ -419,7 +436,7 @@ def fetch_news(
                         published=published, title=title, url=link, symbols=symbols,
                     ))
         except Exception as exc:
-            errors.append({"source": source, "reason": type(exc).__name__})
+            errors.append(source_error(source,exc))
 
     dedup = {}
     for item in items:
@@ -473,7 +490,7 @@ def fetch_external_price_snapshot(
             if symbol in prices and px is not None and px > 0:
                 prices[symbol]["binance"] = px
     except Exception as exc:
-        errors.append({"source": "external_batch_binance", "reason": type(exc).__name__})
+        errors.append(source_error("external_batch_binance",exc))
 
     try:
         data = _json_url("https://api.bybit.com/v5/market/tickers?category=spot")
@@ -487,7 +504,7 @@ def fetch_external_price_snapshot(
             if symbol in prices and px is not None and px > 0:
                 prices[symbol]["bybit"] = px
     except Exception as exc:
-        errors.append({"source": "external_batch_bybit", "reason": type(exc).__name__})
+        errors.append(source_error("external_batch_bybit",exc))
 
     try:
         data = _json_url("https://www.okx.com/api/v5/market/tickers?instType=SPOT")
@@ -501,7 +518,7 @@ def fetch_external_price_snapshot(
             if symbol in prices and px is not None and px > 0:
                 prices[symbol]["okx"] = px
     except Exception as exc:
-        errors.append({"source": "external_batch_okx", "reason": type(exc).__name__})
+        errors.append(source_error("external_batch_okx",exc))
 
     try:
         pairs_data = _json_url("https://api.kraken.com/0/public/AssetPairs")
@@ -541,7 +558,7 @@ def fetch_external_price_snapshot(
                 if symbol in prices and px is not None and px > 0:
                     prices[symbol]["kraken"] = px
     except Exception as exc:
-        errors.append({"source": "external_batch_kraken", "reason": type(exc).__name__})
+        errors.append(source_error("external_batch_kraken",exc))
 
     return {k: v for k, v in prices.items() if v}, errors
 
@@ -1434,7 +1451,7 @@ def main() -> int:
             )
             source_errors.extend(trend_errors)
         except Exception as exc:
-            source_errors.append({"source": "long_trend", "reason": type(exc).__name__})
+            source_errors.append(source_error("long_trend",exc))
 
     for obs in thesis_observations:
         market = obs["market"]
