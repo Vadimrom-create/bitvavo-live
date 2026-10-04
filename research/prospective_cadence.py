@@ -90,7 +90,8 @@ def finish(state, attempt, now, outputs):
         'problems': problems,
         'recovery': 'LATE_CURRENT_CAPTURE_NO_BACKFILL' if complete and
                     (attempt['start_delay_seconds'] > GRACE or attempt['missed_slots_before']) else 'NONE',
-        'paired_c0_comparison_complete': bool(outputs.get('v3', {}).get('c0_pairing', {}).get('eligible')),
+        'paired_c0_comparison_complete': all(
+            bool(outputs.get(k, {}).get('c0_pairing', {}).get('eligible')) for k in ('v3', 'v31', 'policy')),
         'research_only': True, 'affects_email': False, 'orders_submitted': False,
     }
     return state, receipt, health(state, now)

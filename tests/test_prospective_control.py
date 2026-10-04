@@ -5,7 +5,7 @@ import unittest
 from pathlib import Path
 from unittest.mock import Mock, patch
 from research.common import atomic_json, utc
-from research.prospective_control import receipt, digest, tag_event, paired_groups
+from research.prospective_control import receipt, digest, tag_event, paired_groups, asof
 from scripts.prepare_v3_universe import prepare
 from scripts.update_solaire_v3_evaluation import _summary, paired_summary
 
@@ -65,6 +65,15 @@ class ContemporaryControlTests(unittest.TestCase):
         event={'event_type':'NEW'};tag_event(journal,event)
         self.assertNotIn('c0_pairing',old);self.assertFalse(event['c0_pairing']['eligible'])
 
+    def test_late_consumer_and_late_event_lose_comparison_eligibility(self):
+        u,c=self.inputs();n,p,m=prepare(u,Mock(),101,c,commit='c'*40)
+        pair=receipt(n,p,m,102)
+        self.assertTrue(asof(pair,200,n)['eligible'])
+        self.assertFalse(asof(pair,401,n)['eligible'])
+        e={'decision_ts':401};tag_event({'current_c0_pairing':pair},e)
+        self.assertEqual(e['c0_pairing']['status'],'UNKNOWN_STALE_CONTROL')
+        self.assertTrue(pair['eligible'])
+
     def test_workflow_has_one_lock_a_due_guard_and_no_self_trigger(self):
         s=Path('.github/workflows/solaire_prospective_shadows.yml').read_text()
         triggers=s.split('permissions:',1)[0]
@@ -74,3 +83,5 @@ class ContemporaryControlTests(unittest.TestCase):
         self.assertIn('cancel-in-progress: false',s)
         self.assertEqual(s.count("if: steps.cadence.outputs.collect == 'true'"),10)
         self.assertNotIn('send_production_buy_alert.py',s)
+        self.assertLess(s.index('run: python scripts/solaire_policy_challengers.py'),
+                        s.index('run: python scripts/update_solaire_v3_evaluation.py'))

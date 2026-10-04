@@ -48,8 +48,24 @@ def receipt(universe, control, manifest, now):
 def tag_event(journal, event):
     """Only new events acquire their actual cycle's receipt; no legacy backfill."""
     if 'current_c0_pairing' in journal:
-        event.setdefault('c0_pairing', copy.deepcopy(journal['current_c0_pairing']))
+        event.setdefault('c0_pairing', asof(journal['current_c0_pairing'], event.get('decision_ts')))
     return event
+
+
+def asof(pairing, now, universe=None):
+    """A valid upstream receipt is not a permanent freshness permission."""
+    result = copy.deepcopy(pairing or {'status':'UNKNOWN_UNPAIRED', 'eligible':False})
+    if now is not None:
+        result['validated_at_utc'] = utc(now)
+        try:
+            result['age_seconds'] = now - timestamp(result.get('generated_at_utc'))
+            if not 0 <= result['age_seconds'] <= MAX_AGE:
+                result.update(status='UNKNOWN_STALE_CONTROL', eligible=False)
+        except (ValueError, TypeError):
+            result.update(status='UNKNOWN_CONTROL_MISSING', eligible=False, age_seconds=None)
+    if universe is not None and result.get('universe_sha256') != digest(universe):
+        result.update(status='UNKNOWN_SNAPSHOT_MISMATCH', eligible=False)
+    return result
 
 
 def paired_groups(events):

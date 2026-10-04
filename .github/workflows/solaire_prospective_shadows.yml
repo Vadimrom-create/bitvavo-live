@@ -81,11 +81,6 @@ jobs:
           SOLAIRE_V3_UNIVERSE_PATH: runtime/prospective_inputs/v3_universe.json
         run: python scripts/solaire_v3_shadow.py
 
-      - name: Update Solaire V3 prospective evaluation
-        if: steps.cadence.outputs.collect == 'true'
-        continue-on-error: true
-        run: python scripts/update_solaire_v3_evaluation.py
-
       - name: Run Solaire V3.1 economic challenger shadow
         if: steps.cadence.outputs.collect == 'true'
         continue-on-error: true
@@ -93,10 +88,12 @@ jobs:
           SOLAIRE_V3_UNIVERSE_PATH: runtime/prospective_inputs/v3_universe.json
         run: python scripts/solaire_v31_shadow.py
 
-      - name: Update Solaire V3.1 prospective evaluation
+      - name: Run Solaire policy challenger shadows
         if: steps.cadence.outputs.collect == 'true'
         continue-on-error: true
-        run: python scripts/update_solaire_v31_evaluation.py
+        env:
+          SOLAIRE_V3_UNIVERSE_PATH: runtime/prospective_inputs/v3_universe.json
+        run: python scripts/solaire_policy_challengers.py
 
       - name: Capture Phase C execution costs independently from BUY validation
         if: steps.cadence.outputs.collect == 'true'
@@ -115,12 +112,15 @@ jobs:
           SOLAIRE_FUNNEL_PRICE_PATH: runtime/prospective_inputs/funnel_prices.json
         run: python scripts/solaire_funnel_audit.py
 
-      - name: Run Solaire policy challenger shadows
+      - name: Update Solaire V3 prospective evaluation
         if: steps.cadence.outputs.collect == 'true'
         continue-on-error: true
-        env:
-          SOLAIRE_V3_UNIVERSE_PATH: runtime/prospective_inputs/v3_universe.json
-        run: python scripts/solaire_policy_challengers.py
+        run: python scripts/update_solaire_v3_evaluation.py
+
+      - name: Update Solaire V3.1 prospective evaluation
+        if: steps.cadence.outputs.collect == 'true'
+        continue-on-error: true
+        run: python scripts/update_solaire_v31_evaluation.py
 
       - name: Update Solaire policy challenger evaluation
         if: steps.cadence.outputs.collect == 'true'

@@ -25,7 +25,7 @@ if str(ROOT) not in sys.path:
 
 from research.common import atomic_json, finite, read_json, utc
 from research.http import PublicClient
-from research.prospective_control import tag_event
+from research.prospective_control import tag_event, asof
 from research.solaire_v31 import (
     V31_ARCHITECTURE_VERSION,
     final_economic_score,
@@ -147,7 +147,7 @@ def main() -> int:
     journal.setdefault("started_ts", now)
     journal.setdefault("started_at_utc", utc(now))
     journal.setdefault("events", [])
-    journal["current_c0_pairing"] = copy.deepcopy(v3_doc.get("c0_pairing") or {"status":"UNKNOWN_UNPAIRED", "eligible":False})
+    journal["current_c0_pairing"] = asof(v3_doc.get("c0_pairing"), now, universe)
 
     universe_by_market = {
         x.get("market"): x for x in (universe.get("rows") or []) if x.get("market")

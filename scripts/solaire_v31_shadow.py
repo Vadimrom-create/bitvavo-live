@@ -20,7 +20,7 @@ if str(ROOT) not in sys.path:
 
 from research.common import atomic_json, finite, read_json, utc
 from research.http import PublicClient
-from research.prospective_control import tag_event
+from research.prospective_control import tag_event, asof
 from research.solaire_v31 import (
     FROZEN_V3_COMMIT,
     V31_ARCHITECTURE_VERSION,
@@ -465,7 +465,7 @@ def main() -> int:
     journal.setdefault("started_ts", state["started_ts"])
     journal.setdefault("started_at_utc", state["started_at_utc"])
     journal.setdefault("events", [])
-    journal["current_c0_pairing"] = copy.deepcopy(v3_doc.get("c0_pairing") or {"status":"UNKNOWN_UNPAIRED", "eligible":False})
+    journal["current_c0_pairing"] = asof(v3_doc.get("c0_pairing"), now, universe)
     for legacy_event in journal.get("events", []):
         legacy_event.setdefault("architecture_version", "legacy-pre-v3.1.1-unversioned")
         legacy_event.setdefault("upstream_v3_architecture_version", None)
