@@ -376,7 +376,12 @@ def main():
                     continue
                 max_h=max(horizons)
                 start_ms=((int(start_ts*1000)//300_000)+1)*300_000
-                end_ms=int((start_ts+max_h*3600)*1000)
+                horizon_end_ms=int((start_ts+max_h*3600)*1000)
+                last_full_start=((horizon_end_ms-300_000)//300_000)*300_000
+                # Bitvavo requires start/end to align exactly to the candle
+                # interval. Query through the close boundary of the last full
+                # candle; the evaluator still enforces the causal horizon.
+                end_ms=last_full_start+300_000
                 try:
                     raw=client.get(
                         "/"+market+"/candles",
@@ -538,6 +543,23 @@ def main():
                     and now>=reentry_ts+h*3600+INCOMPLETE_GRACE_SECONDS
                 ):
                     stale_incomplete_reentry_evaluations+=1
+    incomplete_reason_counts={}
+    incomplete_zero_bar_evaluations=0
+    incomplete_partial_coverage_evaluations=0
+    for event in journal["events"]:
+        for key in ("evaluations","execution_valid_evaluations"):
+            for ev in (event.get(key) or {}).values():
+                if not isinstance(ev,dict) or ev.get("status")!="INCOMPLETE":
+                    continue
+                reason=str(ev.get("reason") or "UNKNOWN")
+                incomplete_reason_counts[reason]=incomplete_reason_counts.get(reason,0)+1
+                bars_used=int(ev.get("bars_used") or 0)
+                expected=int(ev.get("expected_bars") or 0)
+                if bars_used==0 and expected>0:
+                    incomplete_zero_bar_evaluations+=1
+                elif expected>0 and bars_used<expected:
+                    incomplete_partial_coverage_evaluations+=1
+
     state["updated_at_utc"]=utc(); journal["updated_at_utc"]=utc()
     status={
         "schema":"solaire_rejection_shadow_v8","checked_at_utc":utc(),
@@ -579,6 +601,9 @@ def main():
         "stale_incomplete_evaluations":(
             stale_incomplete_rejection_evaluations+stale_incomplete_reentry_evaluations
         ),
+        "incomplete_reason_counts":incomplete_reason_counts,
+        "incomplete_zero_bar_evaluations":incomplete_zero_bar_evaluations,
+        "incomplete_partial_coverage_evaluations":incomplete_partial_coverage_evaluations,
         "reentry_tier_cohorts":reentry_cohorts,
         "reentry_policy_cohorts":policy_cohorts,
         "reentry_reason_cohorts":reason_cohorts,
