@@ -63,7 +63,7 @@ from research.solaire_v3 import (
     walk_asks,
 )
 
-UNIVERSE = "production_universe_snapshot.json"
+UNIVERSE = os.environ.get("SOLAIRE_V3_UNIVERSE_PATH", "production_universe_snapshot.json")
 V2_PAYLOAD = "production_alert_candidates.json"
 STATE = "solaire_v3_state.json"
 JOURNAL = "solaire_v3_journal.json"
@@ -2178,6 +2178,8 @@ def main() -> int:
         "frozen_v2_commit": FROZEN_V2_COMMIT,
         "narrative_rotations": rotations,
         "dynamic_rotation_mode": "DYNAMIC_FULL_UNIVERSE_MOMENTUM_COHORT",
+        "c0_payload_generated_at_utc": v2.get("generated_at_utc"),
+        "paired_c0_control_status": "CURRENT" if 0 <= now-(_parse_ts(v2.get("generated_at_utc")) or 0) <= 300 else "UNKNOWN_STALE_CONTROL",
         "news_items_considered": len(news),
         "news_mapping": news_mapping,
         "candidates": compact_candidates,
@@ -2268,6 +2270,11 @@ def main() -> int:
         "rotation_marked_value_eur": rotation.get("marked_value_eur"),
         "critical_error": critical_error,
         "source_errors": source_errors[:40],
+        "input_universe": {"path":UNIVERSE,"generated_at_utc":universe.get("generated_at_utc"),
+                           "provenance":universe.get("measurement_provenance"),
+                           "age_at_start_seconds":now-(_parse_ts(universe.get("generated_at_utc")) or 0)},
+        "c0_payload_generated_at_utc":v2.get("generated_at_utc"),
+        "paired_c0_control_status":"CURRENT" if 0<=now-(_parse_ts(v2.get("generated_at_utc")) or 0)<=300 else "UNKNOWN_STALE_CONTROL",
     }
 
     atomic_json(STATE, state)

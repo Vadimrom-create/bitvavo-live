@@ -10,6 +10,7 @@ This script changes no score, threshold, alert, order or portfolio decision.
 from __future__ import annotations
 
 import json
+import os
 import time
 from datetime import datetime
 from pathlib import Path
@@ -313,7 +314,8 @@ def main() -> int:
 
     v3_doc = read_json(V3_CANDIDATES, {}) or {}
     v31_doc = read_json(V31_CANDIDATES, {}) or {}
-    universe_doc = read_json(UNIVERSE, {}) or {}
+    universe_path = os.environ.get("SOLAIRE_FUNNEL_PRICE_PATH", UNIVERSE)
+    universe_doc = read_json(universe_path, {}) or {}
     v3_journal = read_json(V3_JOURNAL, {}) or {}
     v31_portfolio = read_json(V31_PORTFOLIO, {}) or {}
     prod_journal = read_json(PRODUCTION_JOURNAL, {}) or {}
@@ -334,6 +336,10 @@ def main() -> int:
         _source_health("UNIVERSE", universe_doc, now, rows_key="rows"),
     ]
     inputs_ok = all(x.get("ok") for x in health)
+    price_source_ok = health[2].get("ok", False)
+    # Never stamp an old checkout price with the current observation time.
+    if not price_source_ok:
+        universe_by_market = {}
 
     prior_version = state.get("architecture_version")
     rollover = prior_version != AUDIT_VERSION
@@ -370,6 +376,12 @@ def main() -> int:
         if key:
             event_keys.add(key)
 
+    if not inputs_ok:
+        append_event({"event_type":"FUNNEL_INPUT_GAP", "attempt_id":f"INPUT_GAP|{cycle_id}",
+                      "observed_at_utc":utc(now),"input_health":health,
+                      "input_revision":os.environ.get("SOLAIRE_INPUT_SHA"),
+                      "price_source_path":universe_path,"research_only":True})
+
     near_checks = _latest_near_miss_checks(v3_journal)
     opened_actions, rejected_actions, open_positions, closed_positions = _portfolio_actions(v31_portfolio)
     alerts_by_market = _alert_records(prod_journal, alert_status)
@@ -390,9 +402,10 @@ def main() -> int:
             episode["active"] = False
             episode["completed_ts"] = now
             episode["completed_at_utc"] = utc(now)
-            episode["fixed_horizon_complete"] = True
+            episode["fixed_horizon_complete"] = price is not None
+            episode["fixed_horizon_status"] = "SAMPLED_OBSERVED" if price is not None else "CENSORED_INPUT_GAP"
             episode["fixed_horizon_final_price_eur"] = price
-            episode["fixed_horizon_return_pct_scan_sampled"] = episode.get("current_return_from_origin_pct")
+            episode["fixed_horizon_return_pct_scan_sampled"] = episode.get("current_return_from_origin_pct") if price is not None else None
             state["active_by_key"].pop(key, None)
             completed_this_cycle += 1
 
@@ -412,7 +425,9 @@ def main() -> int:
             )
             if not snapshots:
                 continue
-            price = _candidate_price(v3, v31, universe)
+            price = finite(universe.get("price_eur"))
+            if price is None:
+                continue  # Missing fresh price is not an observation of the old candidate price.
 
             for snapshot in snapshots:
                 path = snapshot["path"]
@@ -582,6 +597,11 @@ def main() -> int:
             "MFE/MAE in this report are scan-sampled diagnostics, not candle-exact outcomes."
         ),
         "input_health": health,
+        "paired_c0_control_status": v3_doc.get("paired_c0_control_status", "UNKNOWN_UNINSTRUMENTED"),
+        "price_source_path": universe_path,
+        "price_source_generated_at_utc": universe_doc.get("generated_at_utc"),
+        "price_source_kind": universe_doc.get("source"),
+        "censored_input_gap_count": sum(e.get("fixed_horizon_status")=="CENSORED_INPUT_GAP" for e in episodes),
         "inputs_ok": inputs_ok,
         "source_v3_architecture_version": v3_doc.get("architecture_version"),
         "source_v31_architecture_version": v31_doc.get("architecture_version"),
@@ -612,6 +632,11 @@ def main() -> int:
         "architecture_version": AUDIT_VERSION,
         "mode": "MEASUREMENT_ONLY",
         "input_health": health,
+        "paired_c0_control_status": v3_doc.get("paired_c0_control_status", "UNKNOWN_UNINSTRUMENTED"),
+        "price_source_path": universe_path,
+        "price_source_generated_at_utc": universe_doc.get("generated_at_utc"),
+        "price_source_kind": universe_doc.get("source"),
+        "censored_input_gap_count": sum(e.get("fixed_horizon_status")=="CENSORED_INPUT_GAP" for e in episodes),
         "active_episode_count": len(active),
         "completed_fixed_4h_count": len(completed),
         "unresolved_actionable_count": len(unresolved),
