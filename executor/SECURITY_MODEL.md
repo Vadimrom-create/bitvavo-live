@@ -15,11 +15,17 @@ Bitvavo account WebSocket `order` and `fill` events return both fields. The sent
 
 ## Unknown activity response
 
+Manual SELL activity is an explicit exception: an unknown `sell` order or fill is treated as user-managed activity. It is logged as `MANUAL_SELL_DETECTED`, never activates `SECURITY_FREEZE`, and is never auto-canceled by the executor.
+
+For unknown BUY activity:
+
 1. Set `SECURITY_FREEZE` immediately.
 2. Stop new strategy orders.
 3. Publish a sanitized security event to GitHub so the existing Gmail alert infrastructure can notify the user.
-4. Once installation observation is complete, unknown still-open orders can be canceled automatically.
-5. Already executed fills cannot be canceled. Automatic reversal is deliberately disabled in the first production phase because an incorrect reversal can compound losses.
+4. Once installation observation is complete, unknown still-open BUY orders can be canceled automatically.
+5. Already executed fills cannot be canceled. Automatic reversal is deliberately disabled because an incorrect reversal can compound losses.
+
+On startup, a legacy freeze whose last triggering event was an unknown SELL is cleared automatically and marked as resolved under the manual-sell policy.
 
 ## GitHub compromise containment
 

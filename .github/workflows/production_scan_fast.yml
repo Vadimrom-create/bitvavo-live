@@ -1,0 +1,105 @@
+name: Solaire direct Bitvavo scan heartbeat
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'scripts/production_scan.py'
+      - 'scripts/send_production_buy_alert.py'
+      - 'research/production_gate.py'
+      - 'research/production_acceleration.py'
+      - 'research/production_alerts.py'
+      - 'research/production_context.py'
+      - '.github/workflows/production_scan_fast.yml'
+  # One scheduled restart launches three self-contained cycles spaced five minutes apart.
+  # This reduces dependence on GitHub delivering a brand-new cron event every five minutes.
+  schedule:
+    - cron: '4,19,34,49 * * * *'
+
+permissions:
+  contents: write
+
+concurrency:
+  group: bitvavo-production-heartbeat-v1
+  cancel-in-progress: false
+
+env:
+  PYTHONHASHSEED: '0'
+
+jobs:
+  scan-heartbeat:
+    runs-on: ubuntu-latest
+    timeout-minutes: 14
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Run three five-minute production cycles
+        env:
+          ALERT_GMAIL_USER: ${{ vars.ALERT_GMAIL_USER }}
+          ALERT_EMAIL_TO: bellonirom@gmail.com
+          GMAIL_APP_PASSWORD: ${{ secrets.GMAIL_APP_PASSWORD }}
+        run: |
+          set -euo pipefail
+
+          for cycle in 1 2 3; do
+            cycle_started="$(date +%s)"
+            echo "=== heartbeat cycle ${cycle}/3 ==="
+
+            if [ "${cycle}" -gt 1 ]; then
+              git fetch origin main
+              git rebase origin/main
+            fi
+
+            python scripts/production_scan.py
+            python scripts/send_production_buy_alert.py
+
+            git config user.name 'bitvavo-live-bot'
+            git config user.email 'actions@users.noreply.github.com'
+            for file in \
+              production_alert_candidates.json \
+              production_scan_status.json \
+              production_universe_snapshot.json \
+              production_alert_state.json \
+              production_alert_status.json; do
+              if [ -e "${file}" ]; then git add "${file}"; fi
+            done
+
+            if ! git diff --cached --quiet; then
+              git commit -m "Record heartbeat production scan cycle ${cycle}"
+              pushed=false
+              for attempt in 1 2 3 4 5 6; do
+                git fetch origin main
+                if ! git rebase origin/main; then
+                  git rebase --abort || true
+                  echo "Heartbeat publication conflict; refusing to publish stale state." >&2
+                  exit 1
+                fi
+                if git push origin HEAD:main; then
+                  pushed=true
+                  break
+                fi
+                sleep $((attempt * 2))
+              done
+              if [ "${pushed}" != "true" ]; then
+                echo "Heartbeat publication retries exhausted." >&2
+                exit 1
+              fi
+            fi
+
+            if [ "${cycle}" -lt 3 ]; then
+              elapsed=$(( $(date +%s) - cycle_started ))
+              sleep_for=$(( 300 - elapsed ))
+              if [ "${sleep_for}" -gt 0 ]; then
+                echo "Sleeping ${sleep_for}s to preserve five-minute start cadence."
+                sleep "${sleep_for}"
+              else
+                echo "Cycle exceeded five minutes; starting next cycle immediately."
+              fi
+            fi
+          done
