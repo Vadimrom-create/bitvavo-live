@@ -387,14 +387,14 @@ def main():
                 # A halted/delisted market cannot provide a causal full-horizon
                 # path after trading stops. This is censoring, not an API/data
                 # failure and must not be forward-filled as a zero-trade gap.
-                if market not in metadata and market in inactive_eur_markets:
+                if market not in metadata:
                     inactive=inactive_eur_markets.get(market) or {}
                     for h in horizons:
                         target[str(h)]={
                             "status":"CENSORED",
                             "reason":"MARKET_NOT_TRADING",
                             "horizon_hours":h,
-                            "market_status":inactive.get("status"),
+                            "market_status":inactive.get("status") or "UNLISTED_OR_REMOVED",
                             "method":"market_lifecycle_censoring",
                         }
                     continue
