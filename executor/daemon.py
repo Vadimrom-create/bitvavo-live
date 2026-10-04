@@ -75,6 +75,7 @@ class Executor:
         self.state = self._load_state()
         self.market_meta = self._load_market_meta()
         self.stop_event = threading.Event()
+        self._clear_manual_sell_false_positive_freeze()
 
     def _load_state(self) -> dict[str, Any]:
         default = {
@@ -135,6 +136,59 @@ class Executor:
         if r.status_code not in (200, 201):
             self._event("github_publish_error", path=path, status=r.status_code, response=r.text[:500])
 
+    def _clear_manual_sell_false_positive_freeze(self):
+        """Clear freezes created by the legacy policy for a manual SELL event."""
+        with self.lock:
+            last = self.state.get("last_security_event")
+            if not self.state.get("security_freeze") or not isinstance(last, dict):
+                return
+            if (
+                last.get("reason") != "UNKNOWN_OR_UNAUTHORIZED_BITVAVO_ACTIVITY"
+                or str(last.get("side", "")).lower() != "sell"
+            ):
+                return
+            resolved = dict(last)
+            actions = list(resolved.get("action_taken") or [])
+            if "SECURITY_FREEZE_CLEARED_MANUAL_SELL_POLICY" not in actions:
+                actions.append("SECURITY_FREEZE_CLEARED_MANUAL_SELL_POLICY")
+            resolved["action_taken"] = actions
+            resolved["resolution"] = "MANUAL_SELL_ALLOWED"
+            resolved["resolved_at_utc"] = iso_now()
+            self.state["security_freeze"] = False
+            self.state["last_security_event"] = resolved
+        self._save_state()
+        self._event(
+            "manual_sell_false_positive_freeze_cleared",
+            market=resolved.get("market"),
+            orderId=resolved.get("orderId"),
+        )
+
+    def manual_sell_event(self, event: dict[str, Any]):
+        """Treat unknown SELL events as user-managed activity, never as a freeze trigger."""
+        safe_event = {
+            "event_id": str(uuid.uuid4()),
+            "detected_at_utc": iso_now(),
+            "severity": "INFO",
+            "reason": "MANUAL_SELL_DETECTED",
+            "market": event.get("market"),
+            "event": event.get("event"),
+            "orderId": event.get("orderId"),
+            "clientOrderId": event.get("clientOrderId"),
+            "operatorId": event.get("operatorId"),
+            "side": event.get("side"),
+            "orderType": event.get("orderType"),
+            "status": event.get("status"),
+            "action_taken": ["NO_SECURITY_FREEZE", "NO_AUTO_CANCEL"],
+        }
+        with self.lock:
+            self.state["last_manual_sell_event"] = safe_event
+        self._save_state()
+        self._event("MANUAL_SELL_EVENT", **safe_event)
+        # Publishing order events is enough to expose the manual-sale state without
+        # creating a GitHub commit for every partial fill.
+        if event.get("event") == "order":
+            self.publish_status()
+
     def publish_status(self):
         with self.lock:
             safe = {
@@ -145,6 +199,7 @@ class Executor:
                 "security_freeze": bool(self.state.get("security_freeze")),
                 "auto_cancel_unknown_orders": self.auto_cancel_unknown,
                 "last_security_event": self.state.get("last_security_event"),
+                "last_manual_sell_event": self.state.get("last_manual_sell_event"),
                 "last_approval_result": self.state.get("last_approval_result"),
                 "authorized_open_order_count": sum(
                     1 for v in self.state.get("orders", {}).values()
@@ -202,6 +257,9 @@ class Executor:
         if event.get("event") not in {"order", "fill"}:
             return
         if not self.is_authorized_event(event):
+            if str(event.get("side", "")).lower() == "sell":
+                self.manual_sell_event(event)
+                return
             self.security_event("UNKNOWN_OR_UNAUTHORIZED_BITVAVO_ACTIVITY", event)
             return
         cid = event.get("clientOrderId")
