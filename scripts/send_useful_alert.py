@@ -20,6 +20,7 @@ from email_alert_v4 import select_events
 from monitoring.account import ReadOnlyAccount
 from monitoring.autoplan import automatic_plan, reconstruct_positions, update_transaction_ledger
 from monitoring.positions import BUY, HOLD, PLAN, management_event, mark_delivered, message, select_actions
+from monitoring.post_entry import assess_post_entry
 from monitoring.state import load_state, save_state
 from research.common import atomic_json, finite, freshness, read_json, utc
 from research.features import closed_candles, describe
@@ -50,6 +51,27 @@ def market_inputs(client, market, now):
         # A stop breach needs a fresh executable quote, not an ATR history.
         candles, features = [], {'valid': False}
     return quote, features, candles
+
+
+def post_entry_timeframes(client, market, now, features_15m):
+    """Fetch slower closed-candle context only for positions already held.
+
+    This path is intentionally separate from the fast BUY scanner so adding
+    1h/4h position context cannot slow or veto direct acceleration detection.
+    """
+    result = {'15m': features_15m}
+    for interval in ('1h', '4h'):
+        try:
+            raw = client.get('/' + market + '/candles', {'interval': interval, 'limit': 100}, cache=False)
+            candles = closed_candles(raw, interval, now)
+            result[interval] = describe(candles, interval)
+        except Exception as exc:
+            result[interval] = {
+                'valid': False,
+                'reasons': ['POST_ENTRY_' + interval.upper() + '_UNAVAILABLE'],
+                'error_type': type(exc).__name__,
+            }
+    return result
 
 
 def smtp_credentials():
@@ -303,8 +325,10 @@ def run(status):
             issues.append('HELD_MARKET_UNAVAILABLE')
             continue
         try:
-            quote, features, candles = market_inputs(client, market, time.time())
+            now_market = time.time()
+            quote, features, candles = market_inputs(client, market, now_market)
             inputs[market] = (quote, features, candles)
+            post_entry_tf = post_entry_timeframes(client, market, now_market, features)
 
             asset = market[:-4] if market.endswith('-EUR') else market
             inventory = inventories.get(asset)
@@ -397,10 +421,19 @@ def run(status):
 
             # Open-order details are intentionally unavailable: reading them would
             # require a Bitvavo trading permission. Management stays conservative.
-            event, reason = management_event(balance, p, quote, features, metadata[market], None, time.time())
+            event, reason = management_event(balance, p, quote, features, metadata[market], None, now_market)
             observed[market]['assessment'] = reason
             bid = finite(quote.get('bid'))
             row = wallet_by_market[market]
+            source_alert = (solaire_alert_state.get('markets') or {}).get(market) or {}
+            post_entry = assess_post_entry(
+                market=market,
+                bid=bid,
+                cost_basis_eur=finite(p.get('cost_basis_eur')),
+                stop_eur=finite(p.get('stop_eur')),
+                timeframes=post_entry_tf,
+                source_alert=source_alert,
+            )
             row.update({
                 'price_eur': bid,
                 'value_eur': (balance['amount'] * bid) if bid is not None else None,
@@ -415,6 +448,13 @@ def run(status):
                 'exit_policy': p.get('exit_policy'),
                 'assessment': reason,
                 'management_state': event['action'] if event else HOLD,
+                'thesis_status': post_entry.get('thesis_status'),
+                'management_outlook_24h': post_entry.get('management_outlook_24h'),
+                'management_outlook_48h': post_entry.get('management_outlook_48h'),
+                'management_outlook_72h': post_entry.get('management_outlook_72h'),
+                'outlook_labels': post_entry.get('outlook_labels'),
+                'outlook_method': post_entry.get('method'),
+                'post_entry_assessment': post_entry,
             })
             if event:
                 events.append(event)
