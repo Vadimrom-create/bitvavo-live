@@ -37,6 +37,7 @@ if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
 from research.common import atomic_json, finite, read_json, utc
+from research.execution_observability import book_evidence,identity
 from research.features import closed_candles, describe
 from research.http import PublicClient
 from research.risk import structural_plan
@@ -63,7 +64,7 @@ from research.solaire_v3 import (
     walk_asks,
 )
 
-UNIVERSE = "production_universe_snapshot.json"
+UNIVERSE = os.environ.get("SOLAIRE_V3_UNIVERSE_PATH", "production_universe_snapshot.json")
 V2_PAYLOAD = "production_alert_candidates.json"
 STATE = "solaire_v3_state.json"
 JOURNAL = "solaire_v3_journal.json"
@@ -117,6 +118,23 @@ GENERIC_SYMBOLS = {
     "G", "S", "ONE", "NEAR", "FLUX", "GRASS", "KERNEL", "ICON", "MET", "DATA",
     "MOVE", "SAFE", "MASK", "MAGIC", "SAGA",
 }
+
+
+def source_error(source: str, exc: Exception) -> dict:
+    code=getattr(exc,"code",None)
+    category=("TRANSIENT_EXTERNAL" if isinstance(code,int) and code>=500 else
+              "RATE_LIMITED" if code in {418,429} else
+              "ACCESS_OR_REGIONAL_POLICY" if code in {403,451} else
+              "AUTHENTICATION_OR_SOURCE_POLICY" if code==401 else
+              "ENDPOINT_NOT_FOUND" if code==404 else
+              "ENDPOINT_RETIRED" if code==410 else
+              "CLIENT_REQUEST_OR_CONFIGURATION" if code==400 else
+              "TIMEOUT_OR_NETWORK" if isinstance(exc,(TimeoutError,OSError)) else "UNCLASSIFIED")
+    url=getattr(exc,"url",None)
+    return {"source":source,"reason":type(exc).__name__,"http_status":code,"classification":category,
+            "endpoint":str(url).split("?",1)[0] if url else None,"observed_at_utc":utc(),
+            "retry_after":getattr(exc,"headers",{}).get("Retry-After") if getattr(exc,"headers",None) else None,
+            "mandatory_for_bitvavo_core":False,"permanent_unusability_proven":code==410}
 
 
 def _json_url(url: str, timeout: int = HTTP_TIMEOUT) -> Any:
@@ -235,7 +253,7 @@ def build_full_universe_news_aliases(
         else:
             errors.append({"source": "bitvavo_assets", "reason": "UNEXPECTED_RESPONSE"})
     except Exception as exc:
-        errors.append({"source": "bitvavo_assets", "reason": type(exc).__name__})
+        errors.append(source_error("bitvavo_assets",exc))
 
     aliases = build_asset_aliases(universe_rows, asset_rows)
     asset_names = {
@@ -315,7 +333,7 @@ def _fetch_binance_official_news(
                 published=published, title=title, url=link, symbols=symbols,
             ))
     except Exception as exc:
-        errors.append({"source": "binance_official", "reason": type(exc).__name__})
+        errors.append(source_error("binance_official",exc))
     return items, errors
 
 
@@ -361,7 +379,7 @@ def fetch_official_page_deltas(
                     title=title, url=link, symbols=symbols,
                 ))
         except Exception as exc:
-            errors.append({"source": source, "reason": type(exc).__name__})
+            errors.append(source_error(source,exc))
     # Bound persistent state while keeping the full context window plus margin.
     keep_after = now - MAX_CONTEXT_AGE * 2
     seen = {k: v for k, v in seen.items() if finite(v, 0) >= keep_after}
@@ -399,7 +417,7 @@ def fetch_news(
                     url=row.get("url"), symbols=symbols,
                 ))
     except Exception as exc:
-        errors.append({"source": "cryptocompare", "reason": type(exc).__name__})
+        errors.append(source_error("cryptocompare",exc))
 
     for source, url, source_kind in NEWS_FEEDS:
         try:
@@ -419,7 +437,7 @@ def fetch_news(
                         published=published, title=title, url=link, symbols=symbols,
                     ))
         except Exception as exc:
-            errors.append({"source": source, "reason": type(exc).__name__})
+            errors.append(source_error(source,exc))
 
     dedup = {}
     for item in items:
@@ -473,7 +491,7 @@ def fetch_external_price_snapshot(
             if symbol in prices and px is not None and px > 0:
                 prices[symbol]["binance"] = px
     except Exception as exc:
-        errors.append({"source": "external_batch_binance", "reason": type(exc).__name__})
+        errors.append(source_error("external_batch_binance",exc))
 
     try:
         data = _json_url("https://api.bybit.com/v5/market/tickers?category=spot")
@@ -487,7 +505,7 @@ def fetch_external_price_snapshot(
             if symbol in prices and px is not None and px > 0:
                 prices[symbol]["bybit"] = px
     except Exception as exc:
-        errors.append({"source": "external_batch_bybit", "reason": type(exc).__name__})
+        errors.append(source_error("external_batch_bybit",exc))
 
     try:
         data = _json_url("https://www.okx.com/api/v5/market/tickers?instType=SPOT")
@@ -501,7 +519,7 @@ def fetch_external_price_snapshot(
             if symbol in prices and px is not None and px > 0:
                 prices[symbol]["okx"] = px
     except Exception as exc:
-        errors.append({"source": "external_batch_okx", "reason": type(exc).__name__})
+        errors.append(source_error("external_batch_okx",exc))
 
     try:
         pairs_data = _json_url("https://api.kraken.com/0/public/AssetPairs")
@@ -541,7 +559,7 @@ def fetch_external_price_snapshot(
                 if symbol in prices and px is not None and px > 0:
                     prices[symbol]["kraken"] = px
     except Exception as exc:
-        errors.append({"source": "external_batch_kraken", "reason": type(exc).__name__})
+        errors.append(source_error("external_batch_kraken",exc))
 
     return {k: v for k, v in prices.items() if v}, errors
 
@@ -740,12 +758,20 @@ def execution_check(
     """Validate an executable plan and retain causal timing + rejected-plan detail."""
     started_ts = time.time()
     market = row["market"]
+    observed_book = None
+    request_meta = {}
 
     def finish(payload: dict[str, Any], *, book_ts: float | None = None, structure_ts: float | None = None,
                book_snapshot: dict[str, Any] | None = None) -> dict[str, Any]:
         available_ts = time.time()
+        try:
+            costs=book_evidence(observed_book,request_meta,available_ts,(payload.get("plan") or {}).get("stop_eur"))
+        except Exception as exc:
+            costs={"status":"UNAVAILABLE","reason":type(exc).__name__,"c3_status":"UNKNOWN/NO_AUTHORIZATION"}
         return {
             **payload,
+            "execution_observation_id":identity("observation","V3",market,started_ts),
+            "execution_costs":costs,
             "check_started_ts": started_ts,
             "check_started_at_utc": utc(started_ts),
             "book_observed_ts": book_ts,
@@ -766,12 +792,22 @@ def execution_check(
     try:
         book = client.get("/" + market + "/book", {"depth": 25}, cache=False)
         book_ts = time.time()
+        observed_book = book
+        try:
+            request_meta = getattr(client,"metadata",lambda *_:{ })("/"+market+"/book",{"depth":25}) or {}
+        except Exception:
+            request_meta = {}
         bid = finite(book["bids"][0][0]) if book.get("bids") else None
         ask = finite(book["asks"][0][0]) if book.get("asks") else None
         snapshot = {
             "best_bid_eur": bid,
             "best_ask_eur": ask,
             "asks": (book.get("asks") or [])[:25],
+            "bids": (book.get("bids") or [])[:25],
+            "exchange_timestamp":book.get("timestamp"),
+            "nonce":book.get("nonce"),
+            "request_started_at_utc":request_meta.get("request_started_at_utc"),
+            "response_received_at_utc":request_meta.get("retrieved_at_utc"),
             "depth_levels": min(25, len(book.get("asks") or [])),
         }
         if bid is None or ask is None or not 0 < bid <= ask:
@@ -1434,7 +1470,7 @@ def main() -> int:
             )
             source_errors.extend(trend_errors)
         except Exception as exc:
-            source_errors.append({"source": "long_trend", "reason": type(exc).__name__})
+            source_errors.append(source_error("long_trend",exc))
 
     for obs in thesis_observations:
         market = obs["market"]
@@ -2178,6 +2214,8 @@ def main() -> int:
         "frozen_v2_commit": FROZEN_V2_COMMIT,
         "narrative_rotations": rotations,
         "dynamic_rotation_mode": "DYNAMIC_FULL_UNIVERSE_MOMENTUM_COHORT",
+        "c0_payload_generated_at_utc": v2.get("generated_at_utc"),
+        "paired_c0_control_status": "CURRENT" if 0 <= now-(_parse_ts(v2.get("generated_at_utc")) or 0) <= 300 else "UNKNOWN_STALE_CONTROL",
         "news_items_considered": len(news),
         "news_mapping": news_mapping,
         "candidates": compact_candidates,
@@ -2268,6 +2306,11 @@ def main() -> int:
         "rotation_marked_value_eur": rotation.get("marked_value_eur"),
         "critical_error": critical_error,
         "source_errors": source_errors[:40],
+        "input_universe": {"path":UNIVERSE,"generated_at_utc":universe.get("generated_at_utc"),
+                           "provenance":universe.get("measurement_provenance"),
+                           "age_at_start_seconds":now-(_parse_ts(universe.get("generated_at_utc")) or 0)},
+        "c0_payload_generated_at_utc":v2.get("generated_at_utc"),
+        "paired_c0_control_status":"CURRENT" if 0<=now-(_parse_ts(v2.get("generated_at_utc")) or 0)<=300 else "UNKNOWN_STALE_CONTROL",
     }
 
     atomic_json(STATE, state)

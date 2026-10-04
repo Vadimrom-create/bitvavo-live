@@ -83,6 +83,7 @@ def record_cycle(
             rejected["market"],
             "REJECTED",
             str(rejected.get("reason") or "UNKNOWN"),
+            {k:rejected.get(k) for k in ("episode_id","decision_id","signal_id","execution_observation_id")},
         )
 
     if alert_status.get("email") == "DELIVERY_COMPLETED":
@@ -97,6 +98,7 @@ def record_cycle(
                 "BUY_SENT",
                 "DELIVERED",
                 {
+                    **{k:delivered.get(k) for k in ("episode_id","decision_id","signal_id","execution_observation_id","alert_id")},
                     "entry_eur": finite(delivered.get("entry_eur")),
                     "stop_eur": finite(delivered.get("stop_eur")),
                     "tp1_eur": finite(delivered.get("tp1_eur")),

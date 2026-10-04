@@ -12,6 +12,10 @@ on:
       - 'scripts/update_solaire_v31_evaluation.py'
       - 'research/solaire_v31.py'
       - 'scripts/solaire_funnel_audit.py'
+      - 'scripts/capture_funnel_prices.py'
+      - 'scripts/prepare_v3_universe.py'
+      - 'scripts/capture_phase_c_books.py'
+      - 'research/execution_observability.py'
       - 'research/solaire_funnel_audit.py'
       - 'scripts/solaire_policy_challengers.py'
       - 'scripts/update_solaire_policy_challengers_evaluation.py'
@@ -48,8 +52,14 @@ jobs:
           echo "SOLAIRE_INPUT_SHA=$(git rev-parse HEAD)" >> "$GITHUB_ENV"
           echo "Causal input revision: $(git rev-parse HEAD)"
 
+      - name: Prepare fresh neutral inputs without publishing production state
+        continue-on-error: true
+        run: python scripts/prepare_v3_universe.py
+
       - name: Run Solaire V3 prospective shadow
         continue-on-error: true
+        env:
+          SOLAIRE_V3_UNIVERSE_PATH: runtime/prospective_inputs/v3_universe.json
         run: python scripts/solaire_v3_shadow.py
 
       - name: Update Solaire V3 prospective evaluation
@@ -64,8 +74,18 @@ jobs:
         continue-on-error: true
         run: python scripts/update_solaire_v31_evaluation.py
 
+      - name: Capture Phase C execution costs independently from BUY validation
+        continue-on-error: true
+        run: python scripts/capture_phase_c_books.py
+
+      - name: Capture fresh Bitvavo prices for funnel measurements
+        continue-on-error: true
+        run: python scripts/capture_funnel_prices.py
+
       - name: Run Solaire full-funnel measurement audit
         continue-on-error: true
+        env:
+          SOLAIRE_FUNNEL_PRICE_PATH: runtime/prospective_inputs/funnel_prices.json
         run: python scripts/solaire_funnel_audit.py
 
       - name: Run Solaire policy challenger shadows
@@ -114,6 +134,10 @@ jobs:
             solaire_policy_challengers_evaluation_status.json; do
             if [ -e "$file" ]; then git add "$file"; fi
           done
+          if [ -d execution_observations ]; then git add execution_observations; fi
+          for file in phase_c_observation_state.json phase_c_observation_status.json; do
+            if [ -e "$file" ]; then git add "$file"; fi
+          done
           if git diff --cached --quiet; then exit 0; fi
           git commit -m "Persist prospective shadows from input ${SOLAIRE_INPUT_SHA}"
           for attempt in 1 2 3 4 5 6; do
@@ -126,3 +150,12 @@ jobs:
             sleep $((attempt * 2))
           done
           exit 1
+
+      - name: Preserve prospective input evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: prospective-inputs-${{ github.run_id }}-${{ github.run_attempt }}
+          retention-days: 90
+          path: runtime/prospective_inputs/
+          if-no-files-found: ignore

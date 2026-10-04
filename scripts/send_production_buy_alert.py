@@ -26,6 +26,7 @@ from research.features import closed_candles, describe
 from research.http import PublicClient
 from research.production_alerts import mark_sent, mark_suppressed, select_events
 from research.risk import structural_plan
+from research.execution_observability import capture_validation
 
 INPUT = "production_alert_candidates.json"
 STATE = "production_alert_state.json"
@@ -274,6 +275,7 @@ def delivery_record(validated: dict) -> dict:
     row = validated["row"]
     trade = validated["trade"]
     return {
+        **validated.get("execution_observability", {}),
         "market": row["market"],
         "price_drift_pct": validated.get("price_drift_pct"),
         "spread_pct": validated.get("spread_pct"),
@@ -329,7 +331,13 @@ def main() -> int:
         rejections = []
         for row in events:
             checked_at = time.time()
+            evidence_start = len(getattr(client, "records", []))
             validated, reason = validate(row, client, metadata, checked_at)
+            evidence = capture_validation(row, payload.get("generated_at_utc"), client, evidence_start,
+                                          validated, reason, checked_at)
+            status.setdefault("execution_observations", []).append(evidence)
+            if validated:
+                validated["execution_observability"] = evidence
             if validated:
                 thesis_active, thesis_status = prior_buy_thesis_active(
                     state, validated, checked_at
@@ -339,6 +347,7 @@ def main() -> int:
                         {
                             "market": row.get("market"),
                             "reason": thesis_status,
+                            **evidence,
                         }
                     )
                     state = mark_suppressed(
@@ -351,7 +360,7 @@ def main() -> int:
                 validated["prior_thesis_status"] = thesis_status
                 selected.append(validated)
                 continue
-            rejections.append({"market": row.get("market"), "reason": reason})
+            rejections.append({"market": row.get("market"), "reason": reason, **evidence})
         status["rejections"] = rejections
         atomic_json(STATE, state)
 
@@ -415,7 +424,7 @@ def main() -> int:
     for validated in selected:
         row = validated["row"]
         state = mark_sent(state, row, sent_at, validated["trade"])
-        deliveries.append(delivery_record(validated))
+        deliveries.append({**delivery_record(validated), "alert_id": state["markets"][row["market"]].get("alert_id")})
     atomic_json(STATE, state)
 
     primary_delivery = deliveries[0]
