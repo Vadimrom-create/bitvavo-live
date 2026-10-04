@@ -54,40 +54,16 @@ jobs:
         with:
           python-version: '3.12'
 
-      - name: Direct full-universe production scan
-        run: python scripts/production_scan.py
-
-      - name: Publish production scan state
-        id: publish_scan
-        continue-on-error: true
+      - name: Use latest heartbeat production state
         run: |
-          git config user.name 'bitvavo-live-bot'
-          git config user.email 'actions@users.noreply.github.com'
-          git add production_alert_candidates.json production_scan_status.json production_universe_snapshot.json
-          if git diff --cached --quiet; then exit 0; fi
-          git commit -m 'Record direct production scan'
-          for attempt in 1 2 3 4 5 6; do
-            git fetch origin main
-            if ! git rebase origin/main; then
-              git rebase --abort || true
-              exit 1
-            fi
-            if git push origin HEAD:main; then exit 0; fi
-            sleep $((attempt * 2))
-          done
-          exit 1
+          test -s production_alert_candidates.json
+          test -s production_scan_status.json
+          test -s production_universe_snapshot.json
 
       - name: Measure all simultaneously actionable candidates
         id: all_actionable_shadow
         continue-on-error: true
         run: python scripts/update_all_actionable_shadow.py
-
-      - name: Revalidate and send only actionable BUY
-        env:
-          ALERT_GMAIL_USER: ${{ vars.ALERT_GMAIL_USER }}
-          ALERT_EMAIL_TO: bellonirom@gmail.com
-          GMAIL_APP_PASSWORD: ${{ secrets.GMAIL_APP_PASSWORD }}
-        run: python scripts/send_production_buy_alert.py
 
       - name: Update final-gate rejection and recovery registry shadow
         id: rejection_shadow
@@ -168,7 +144,8 @@ jobs:
       - name: Check Solaire production health
         if: always()
         env:
-          SCAN_PUBLISH_OUTCOME: ${{ steps.publish_scan.outcome }}
+          # The fast heartbeat is the sole writer/publisher of direct production scan state.
+          SCAN_PUBLISH_OUTCOME: 'success'
           PERSISTENT_BUILDING_OUTCOME: ${{ steps.persistent_building.outcome }}
           EARLY_BUILDING_OUTCOME: ${{ steps.early_building_shadow.outcome }}
           V21_RANGE5_OUTCOME: ${{ steps.v21_range5_shadow.outcome }}
