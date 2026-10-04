@@ -197,3 +197,13 @@ def test_shadow_evaluations_fetch_the_episode_historical_window():
     assert '"end":end_ms' in x
     assert 'groups.setdefault((kind,idx),[]).append(h)' in x
     assert '{"interval":"5m","limit":400},cache=False' not in x
+
+
+def test_historical_candle_query_aligns_end_to_5m_boundary():
+    from pathlib import Path
+
+    x = Path("scripts/update_rejection_shadow.py").read_text()
+    assert "last_full_start=((horizon_end_ms-300_000)//300_000)*300_000" in x
+    assert "end_ms=last_full_start+300_000" in x
+    assert '"incomplete_zero_bar_evaluations"' in x
+    assert '"incomplete_partial_coverage_evaluations"' in x
