@@ -13,6 +13,7 @@ from __future__ import annotations
 
 import copy
 import json
+import os
 import time
 from pathlib import Path
 import sys
@@ -36,7 +37,7 @@ from scripts.solaire_v31_shadow import update_portfolio
 V3_CANDIDATES = "solaire_v3_candidates.json"
 V31_CANDIDATES = "solaire_v31_candidates.json"
 V31_PORTFOLIO = "solaire_v31_portfolio.json"
-UNIVERSE = "production_universe_snapshot.json"
+UNIVERSE = os.environ.get("SOLAIRE_V3_UNIVERSE_PATH", "production_universe_snapshot.json")
 JOURNAL = "solaire_policy_challengers_journal.json"
 PORTFOLIOS = "solaire_policy_challengers_portfolios.json"
 STATUS = "solaire_policy_challengers_status.json"
