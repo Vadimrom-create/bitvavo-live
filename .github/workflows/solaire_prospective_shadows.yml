@@ -16,8 +16,10 @@ on:
       - 'scripts/solaire_policy_challengers.py'
       - 'scripts/update_solaire_policy_challengers_evaluation.py'
       - '.github/workflows/solaire_prospective_shadows.yml'
+  # Prospective measurements can exceed 12 minutes; run every 30 minutes
+  # to avoid a permanent queue while keeping them independent from production.
   schedule:
-    - cron: '3,18,33,48 * * * *'
+    - cron: '13,43 * * * *'
 
 permissions:
   contents: write
@@ -32,7 +34,7 @@ env:
 jobs:
   prospective-shadows:
     runs-on: ubuntu-latest
-    timeout-minutes: 12
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
         with:
