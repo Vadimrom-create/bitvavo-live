@@ -14,6 +14,7 @@ on:
   # to rescue a stale direct scan even if a scheduled heartbeat was dropped.
   workflow_run:
     workflows:
+      - 'Solaire direct Bitvavo scan heartbeat'
       - 'Bitvavo live data + frozen V4 + measurement + useful alerts'
       - 'Solaire direct Bitvavo scan'
       - 'Solaire prospective shadow measurements'
