@@ -32,6 +32,24 @@ if not ex.dry_run:
 if ex.auto_cancel_unknown:
     raise SystemExit('Refusing security self-test because AUTO_CANCEL_UNKNOWN_ORDERS is true')
 
+manual_sell = {
+    'event': 'order',
+    'market': 'KAS-EUR',
+    'orderId': 'SECURITY-SELFTEST-MANUAL-SELL',
+    'clientOrderId': None,
+    'operatorId': 1,
+    'side': 'sell',
+    'orderType': 'limit',
+    'status': 'new',
+}
+
+ex.state['security_freeze'] = False
+ex._save_state()
+ex.handle_account_event(manual_sell)
+if ex.state.get('security_freeze'):
+    raise SystemExit('SELFTEST FAILED: manual SELL activated security_freeze')
+print('SECURITY_SELFTEST_MANUAL_SELL_NO_FREEZE_OK', flush=True)
+
 fake = {
     'event': 'order',
     'market': 'FET-EUR',
