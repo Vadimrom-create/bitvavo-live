@@ -187,3 +187,13 @@ def test_incomplete_forward_evaluations_are_retried_and_stale_health_is_exposed(
     assert '"stale_incomplete_reentry_evaluations"' in x
     assert '"stale_incomplete_evaluations"' in x
     assert "INCOMPLETE_GRACE_SECONDS=15*60" in x
+
+
+def test_shadow_evaluations_fetch_the_episode_historical_window():
+    from pathlib import Path
+
+    x = Path("scripts/update_rejection_shadow.py").read_text()
+    assert '"start":start_ms' in x
+    assert '"end":end_ms' in x
+    assert 'groups.setdefault((kind,idx),[]).append(h)' in x
+    assert '{"interval":"5m","limit":400},cache=False' not in x
