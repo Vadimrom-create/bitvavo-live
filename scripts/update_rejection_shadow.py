@@ -231,8 +231,13 @@ def main():
     validation_cache={}
     try:
         client.get("/time",cache=False)
-        metadata={m["market"]:m for m in client.get("/markets")
+        market_rows=client.get("/markets")
+        metadata={m["market"]:m for m in market_rows
                   if m.get("quote")=="EUR" and m.get("status")=="trading"}
+        inactive_eur_markets={
+            m.get("market"):m for m in market_rows
+            if m.get("quote")=="EUR" and m.get("market") and m.get("status")!="trading"
+        }
 
         # Revalidate against *tracking* rows, not only CONFIRMED watch rows.
         # This exposes windows where execution becomes clean while the detector
@@ -370,12 +375,30 @@ def main():
                 event=journal["events"][idx]
                 if kind=="rejection":
                     start_ts=finite(event.get("rejected_ts"))
+                    target=event.setdefault("evaluations",{})
                 else:
                     start_ts=_parse_ts(
                         (event.get("first_later_execution_valid_snapshot") or {}).get("at_utc")
                     )
+                    target=event.setdefault("execution_valid_evaluations",{})
                 if start_ts is None:
                     continue
+
+                # A halted/delisted market cannot provide a causal full-horizon
+                # path after trading stops. This is censoring, not an API/data
+                # failure and must not be forward-filled as a zero-trade gap.
+                if market not in metadata and market in inactive_eur_markets:
+                    inactive=inactive_eur_markets.get(market) or {}
+                    for h in horizons:
+                        target[str(h)]={
+                            "status":"CENSORED",
+                            "reason":"MARKET_NOT_TRADING",
+                            "horizon_hours":h,
+                            "market_status":inactive.get("status"),
+                            "method":"market_lifecycle_censoring",
+                        }
+                    continue
+
                 max_h=max(horizons)
                 start_ms=((int(start_ts*1000)//300_000)+1)*300_000
                 horizon_end_ms=int((start_ts+max_h*3600)*1000)
@@ -548,10 +571,16 @@ def main():
     incomplete_reason_counts={}
     incomplete_zero_bar_evaluations=0
     incomplete_partial_coverage_evaluations=0
+    censored_market_inactive_evaluations=0
     for event in journal["events"]:
         for key in ("evaluations","execution_valid_evaluations"):
             for ev in (event.get(key) or {}).values():
-                if not isinstance(ev,dict) or ev.get("status")!="INCOMPLETE":
+                if not isinstance(ev,dict):
+                    continue
+                if ev.get("status")=="CENSORED" and ev.get("reason")=="MARKET_NOT_TRADING":
+                    censored_market_inactive_evaluations+=1
+                    continue
+                if ev.get("status")!="INCOMPLETE":
                     continue
                 reason=str(ev.get("reason") or "UNKNOWN")
                 incomplete_reason_counts[reason]=incomplete_reason_counts.get(reason,0)+1
@@ -606,6 +635,7 @@ def main():
         "incomplete_reason_counts":incomplete_reason_counts,
         "incomplete_zero_bar_evaluations":incomplete_zero_bar_evaluations,
         "incomplete_partial_coverage_evaluations":incomplete_partial_coverage_evaluations,
+        "censored_market_inactive_evaluations":censored_market_inactive_evaluations,
         "reentry_tier_cohorts":reentry_cohorts,
         "reentry_policy_cohorts":policy_cohorts,
         "reentry_reason_cohorts":reason_cohorts,
