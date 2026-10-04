@@ -52,6 +52,7 @@ def _evaluate(event,raw_bars,hours):
         finite(event.get("rejected_ts")),
         finite(event.get("rejection_price_eur")),
         hours,
+        fill_no_trade_gaps=True,
     )
 
 def _evaluate_reentry(event,raw_bars,hours):
@@ -63,6 +64,7 @@ def _evaluate_reentry(event,raw_bars,hours):
         hours,
         stop_eur=finite(snap.get("stop_eur")),
         tp1_eur=finite(snap.get("tp1_eur")),
+        fill_no_trade_gaps=True,
     )
 
 def _reentry_tier(row):
