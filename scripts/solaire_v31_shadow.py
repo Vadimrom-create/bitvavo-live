@@ -20,6 +20,7 @@ if str(ROOT) not in sys.path:
 
 from research.common import atomic_json, finite, read_json, utc
 from research.http import PublicClient
+from research.prospective_control import tag_event
 from research.solaire_v31 import (
     FROZEN_V3_COMMIT,
     V31_ARCHITECTURE_VERSION,
@@ -66,6 +67,7 @@ def _event_key(event: dict[str, Any]) -> str:
 
 
 def _append_event(journal: dict[str, Any], event: dict[str, Any]) -> bool:
+    tag_event(journal, event)
     event.setdefault("architecture_version", V31_ARCHITECTURE_VERSION)
     keys = {_event_key(x) for x in journal.get("events", [])}
     if _event_key(event) in keys:
@@ -463,12 +465,14 @@ def main() -> int:
     journal.setdefault("started_ts", state["started_ts"])
     journal.setdefault("started_at_utc", state["started_at_utc"])
     journal.setdefault("events", [])
+    journal["current_c0_pairing"] = copy.deepcopy(v3_doc.get("c0_pairing") or {"status":"UNKNOWN_UNPAIRED", "eligible":False})
     for legacy_event in journal.get("events", []):
         legacy_event.setdefault("architecture_version", "legacy-pre-v3.1.1-unversioned")
         legacy_event.setdefault("upstream_v3_architecture_version", None)
 
     if not v3_candidates or not rows:
         status = {
+            "c0_pairing": journal.get("current_c0_pairing"),
             "schema": "solaire_v31_status_v1",
             "checked_at_utc": utc(now),
             "status": "DEGRADED_NONBLOCKING",
@@ -795,6 +799,7 @@ def main() -> int:
 
     unchecked = [x for x in ranked if not (x.get("execution") or {}).get("ready") and (x.get("execution") is None)]
     candidate_doc = {
+        "c0_pairing": journal.get("current_c0_pairing"),
         "schema": "solaire_v31_candidates_v1",
         "generated_at_utc": utc(now),
         "architecture_version": V31_ARCHITECTURE_VERSION,
@@ -814,6 +819,7 @@ def main() -> int:
         "candidates": ranked,
     }
     status = {
+        "c0_pairing": journal.get("current_c0_pairing"),
         "schema": "solaire_v31_status_v1",
         "checked_at_utc": utc(now),
         "status": "OK",

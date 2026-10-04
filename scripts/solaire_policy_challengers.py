@@ -25,6 +25,7 @@ if str(ROOT) not in sys.path:
 
 from research.common import atomic_json, finite, read_json, utc
 from research.http import PublicClient
+from research.prospective_control import tag_event
 from research.solaire_v31 import (
     V31_ARCHITECTURE_VERSION,
     final_economic_score,
@@ -58,6 +59,7 @@ def _event_key(event: dict[str, Any]) -> str:
 
 
 def _append_event(journal: dict[str, Any], event: dict[str, Any]) -> bool:
+    tag_event(journal, event)
     keys = {_event_key(x) for x in journal.get("events", [])}
     if _event_key(event) in keys:
         return False
@@ -145,6 +147,7 @@ def main() -> int:
     journal.setdefault("started_ts", now)
     journal.setdefault("started_at_utc", utc(now))
     journal.setdefault("events", [])
+    journal["current_c0_pairing"] = copy.deepcopy(v3_doc.get("c0_pairing") or {"status":"UNKNOWN_UNPAIRED", "eligible":False})
 
     universe_by_market = {
         x.get("market"): x for x in (universe.get("rows") or []) if x.get("market")
@@ -250,6 +253,7 @@ def main() -> int:
     portfolios["hold_no_score_rotation"] = hold
 
     status = {
+        "c0_pairing": journal.get("current_c0_pairing"),
         "schema": "solaire_policy_challengers_status_v1",
         "checked_at_utc": utc(now),
         "status": "OK",

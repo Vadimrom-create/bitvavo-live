@@ -38,6 +38,7 @@ if str(ROOT) not in sys.path:
 
 from research.common import atomic_json, finite, read_json, utc
 from research.execution_observability import book_evidence,identity
+from research.prospective_control import receipt, tag_event, digest
 from research.features import closed_candles, describe
 from research.http import PublicClient
 from research.risk import structural_plan
@@ -65,7 +66,7 @@ from research.solaire_v3 import (
 )
 
 UNIVERSE = os.environ.get("SOLAIRE_V3_UNIVERSE_PATH", "production_universe_snapshot.json")
-V2_PAYLOAD = "production_alert_candidates.json"
+V2_PAYLOAD = os.environ.get("SOLAIRE_C0_CONTROL_PATH", "production_alert_candidates.json")
 STATE = "solaire_v3_state.json"
 JOURNAL = "solaire_v3_journal.json"
 STATUS = "solaire_v3_status.json"
@@ -88,7 +89,7 @@ MAX_DEPTH_SLIPPAGE_PCT = 0.50
 MAX_STOP_DISTANCE_PCT = 10.0
 MIN_NET_RR = 1.5
 HTTP_TIMEOUT = 5
-RUNTIME_COMMIT = os.environ.get("GITHUB_SHA") or "LOCAL_OR_UNKNOWN"
+RUNTIME_COMMIT = os.environ.get("SOLAIRE_INPUT_SHA") or os.environ.get("GITHUB_SHA") or "LOCAL_OR_UNKNOWN"
 
 TIMING_PERSIST_MIN_SECONDS = 30 * 60
 TIMING_PERSIST_MIN_DRIFT_PCT = -2.0
@@ -924,6 +925,7 @@ def _event_key(event: dict[str, Any]) -> str:
 
 
 def _append_event(journal: dict[str, Any], event: dict[str, Any]) -> bool:
+    tag_event(journal, event)
     event.setdefault("architecture_version", V3_ARCHITECTURE_VERSION)
     event.setdefault("runtime_commit", RUNTIME_COMMIT)
     keys = {_event_key(x) for x in journal.get("events", [])}
@@ -1099,6 +1101,10 @@ def main() -> int:
     universe = read_json(UNIVERSE, {}) or {}
     rows = universe.get("rows") or []
     v2 = read_json(V2_PAYLOAD, {}) or {}
+    c0_pairing = receipt(universe, v2, read_json(os.environ.get("SOLAIRE_C0_MANIFEST_PATH", "runtime/prospective_inputs/c0_manifest.json"), {}) or {}, now)
+    # An old payload must not affect this cycle or be restamped as a new control.
+    if not c0_pairing["eligible"]:
+        v2 = {}
     state = read_json(STATE, {}) or {}
     journal = read_json(JOURNAL, {}) or {}
     rotation = read_json(ROTATION, {}) or {}
@@ -1128,6 +1134,7 @@ def main() -> int:
     journal.setdefault("started_ts", state["started_ts"])
     journal.setdefault("started_at_utc", state["started_at_utc"])
     journal.setdefault("events", [])
+    journal["current_c0_pairing"] = c0_pairing
     for legacy_event in journal.get("events", []):
         legacy_event.setdefault("architecture_version", "legacy-pre-v3.2-unversioned")
         legacy_event.setdefault("runtime_commit", None)
@@ -2132,7 +2139,9 @@ def main() -> int:
             ms["ended_ts"] = now
             ms["ended_at_utc"] = utc(now)
 
-    benchmark = update_v2_benchmark(v2, benchmark, now)
+    # Keep recomputed detector controls out of the historical production reference.
+    if c0_pairing['eligible'] and c0_pairing['kind'] == 'PRODUCTION_OBSERVED':
+        benchmark = update_v2_benchmark(v2, benchmark, now)
     universe_by_market = {x.get("market"): x for x in rows if x.get("market")}
     candidates_by_market = {x["market"]: x for x in candidates}
     rotation = update_rotation(rotation, rotation_ready_events, universe_by_market, candidates_by_market, now)
@@ -2214,8 +2223,9 @@ def main() -> int:
         "frozen_v2_commit": FROZEN_V2_COMMIT,
         "narrative_rotations": rotations,
         "dynamic_rotation_mode": "DYNAMIC_FULL_UNIVERSE_MOMENTUM_COHORT",
-        "c0_payload_generated_at_utc": v2.get("generated_at_utc"),
-        "paired_c0_control_status": "CURRENT" if 0 <= now-(_parse_ts(v2.get("generated_at_utc")) or 0) <= 300 else "UNKNOWN_STALE_CONTROL",
+        "c0_payload_generated_at_utc": c0_pairing.get("generated_at_utc"),
+        "paired_c0_control_status": c0_pairing["status"],
+        "c0_pairing": c0_pairing,
         "news_items_considered": len(news),
         "news_mapping": news_mapping,
         "candidates": compact_candidates,
@@ -2309,12 +2319,19 @@ def main() -> int:
         "input_universe": {"path":UNIVERSE,"generated_at_utc":universe.get("generated_at_utc"),
                            "provenance":universe.get("measurement_provenance"),
                            "age_at_start_seconds":now-(_parse_ts(universe.get("generated_at_utc")) or 0)},
-        "c0_payload_generated_at_utc":v2.get("generated_at_utc"),
-        "paired_c0_control_status":"CURRENT" if 0<=now-(_parse_ts(v2.get("generated_at_utc")) or 0)<=300 else "UNKNOWN_STALE_CONTROL",
+        "c0_payload_generated_at_utc": c0_pairing.get("generated_at_utc"),
+        "paired_c0_control_status":c0_pairing["status"],
+        "c0_pairing": c0_pairing,
     }
 
     atomic_json(STATE, state)
     atomic_json(JOURNAL, journal)
+    cycle_key = os.environ.get('GITHUB_RUN_ID', str(int(now*1000))) + '_' + os.environ.get('GITHUB_RUN_ATTEMPT', '1')
+    atomic_json('prospective_controls/' + cycle_key + '.json', {
+        'c0_pairing': c0_pairing, 'control_payload': v2 if c0_pairing['eligible'] else None,
+        'challenger_candidates_sha256': digest(candidate_doc), 'input_revision': os.environ.get('SOLAIRE_INPUT_SHA'),
+        'comparison_complete': c0_pairing['eligible'], 'research_only': True,
+        'affects_email': False, 'orders_submitted': False})
     atomic_json(CANDIDATES, candidate_doc)
     atomic_json(THESES, thesis_doc)
     atomic_json(ROTATION, rotation)

@@ -17,7 +17,7 @@ from research.common import atomic_json, finite, read_json, utc
 from research.http import PublicClient
 from research.solaire_v3 import HORIZONS_HOURS, V3_ARCHITECTURE_VERSION
 from research.solaire_v31 import FROZEN_V3_COMMIT, V31_ARCHITECTURE_VERSION, V3_TIMING_LAB_COMMIT
-from scripts.update_solaire_v3_evaluation import _evaluate_event_collection, _summary
+from scripts.update_solaire_v3_evaluation import _evaluate_event_collection, _summary, paired_summary
 
 V31_JOURNAL = "solaire_v31_journal.json"
 V3_JOURNAL = "solaire_v3_journal.json"
@@ -205,6 +205,8 @@ def main() -> int:
         "method": "factorial shadow: V3 raw/persist/reclaim crossed with unchanged V3.1 economic gate; strict complete horizons",
         "horizons_hours": list(HORIZONS_HOURS),
         "summary": summary,
+        "summary_role": "LEGACY_DESCRIPTIVE_UNPAIRED_NOT_CAUSAL_C0_C1_C2",
+        "paired_c0_summary": paired_summary(current_events),
         "near_miss_funnel": _selectable_recovery_summary(current_events),
         "score_calibration": {
             "raw": {str(h): _score_bins(raw_qualified, h) for h in (4, 24, 48, 96)},

@@ -21,6 +21,7 @@ if str(ROOT) not in sys.path:
 
 from research.common import INTERVAL_MS, atomic_json, finite, read_json, utc
 from research.http import PublicClient
+from research.prospective_control import paired_groups
 from research.solaire_v3 import FROZEN_V2_COMMIT, HORIZONS_HOURS, V3_ARCHITECTURE_VERSION, evaluate_candles_strict
 
 V3_JOURNAL = "solaire_v3_journal.json"
@@ -30,6 +31,20 @@ V2_OUTCOMES = "solaire_v2_reference_outcomes.json"
 STATUS = "solaire_v3_evaluation_status.json"
 COMPARISON = "solaire_v3_comparison.json"
 MAX_NEW_EVALUATIONS_PER_RUN = 40
+
+
+def paired_summary(events):
+    groups = paired_groups(events)
+    return {
+        'scope': 'MATCHED_DETECTOR_INPUT_ONLY_NOT_EXECUTED_BUY_PNL',
+        'legacy_or_invalid_excluded': sum(not (e.get('c0_pairing') or {}).get('eligible') for e in events),
+        'by_control_kind': {
+            kind: {typ: {str(h): _summary(rows, typ, h) for h in (4,24)}
+                   for typ in sorted({e.get('event_type') for e in rows if e.get('event_type')})}
+            for kind, rows in groups.items()
+        },
+        'production_buy_references_must_remain_separate': True,
+    }
 
 
 def _interval_for_horizon(hours: int) -> str:
@@ -149,6 +164,8 @@ def _summary(
 ) -> dict[str, Any]:
     rows = []
     for event in events:
+        if "c0_pairing" in event and not event["c0_pairing"].get("eligible"):
+            continue
         if event.get("event_type") != event_type or event.get("left_censored_at_v3_t0"):
             continue
         if architecture_version is not None and event.get("architecture_version") != architecture_version:
@@ -525,6 +542,8 @@ def main() -> int:
         "method": "same-market prospective events; strict chronological complete horizons; 0.70% round-trip cost estimate",
         "horizons_hours": list(HORIZONS_HOURS),
         "summary": summary,
+        "summary_role": "LEGACY_DESCRIPTIVE_UNPAIRED_NOT_CAUSAL_C0_C1_C2",
+        "paired_c0_summary": paired_summary(current_v3_events),
         "opportunity_recovery": _opportunity_recovery_summary(current_v3_events, now),
         "prewatch_vs_v2_detection": {
             "paired_n": len(leads),

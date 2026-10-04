@@ -15,7 +15,7 @@ if str(ROOT) not in sys.path:
 from research.common import atomic_json, finite, read_json, utc
 from research.http import PublicClient
 from research.solaire_v3 import HORIZONS_HOURS
-from scripts.update_solaire_v3_evaluation import _evaluate_event_collection, _summary
+from scripts.update_solaire_v3_evaluation import _evaluate_event_collection, _summary, paired_summary
 
 JOURNAL = "solaire_policy_challengers_journal.json"
 PORTFOLIOS = "solaire_policy_challengers_portfolios.json"
@@ -119,6 +119,8 @@ def main() -> int:
         ),
         "horizons_hours": list(HORIZONS_HOURS),
         "summary": summary,
+        "summary_role": "LEGACY_DESCRIPTIVE_UNPAIRED_NOT_CAUSAL_C0_C1_C2",
+        "paired_c0_summary": paired_summary(current),
         "portfolios": {
             "baseline_v31_rotation": _portfolio_summary(baseline),
             "hold_no_score_rotation": _portfolio_summary(hold),
