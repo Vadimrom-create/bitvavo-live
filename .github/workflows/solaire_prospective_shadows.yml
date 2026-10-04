@@ -2,6 +2,13 @@ name: Solaire prospective shadow measurements
 
 on:
   workflow_dispatch:
+  # Independent opportunities to notice a missing cron, without a dispatch loop.
+  workflow_run:
+    workflows:
+      - 'Solaire direct Bitvavo scan heartbeat'
+      - 'Solaire direct Bitvavo scan'
+      - 'Bitvavo live data + frozen V4 + measurement + useful alerts'
+    types: [completed]
   push:
     branches: [main]
     paths:
@@ -14,6 +21,9 @@ on:
       - 'scripts/solaire_funnel_audit.py'
       - 'scripts/capture_funnel_prices.py'
       - 'scripts/prepare_v3_universe.py'
+      - 'scripts/prospective_cycle.py'
+      - 'research/prospective_cadence.py'
+      - 'research/prospective_control.py'
       - 'scripts/capture_phase_c_books.py'
       - 'research/execution_observability.py'
       - 'research/solaire_funnel_audit.py'
@@ -37,6 +47,7 @@ env:
 
 jobs:
   prospective-shadows:
+    if: github.event_name != 'workflow_run' || github.event.workflow_run.head_branch == 'main'
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
@@ -52,53 +63,73 @@ jobs:
           echo "SOLAIRE_INPUT_SHA=$(git rev-parse HEAD)" >> "$GITHUB_ENV"
           echo "Causal input revision: $(git rev-parse HEAD)"
 
+      - name: Check collection window and report missed slots
+        id: cadence
+        run: python scripts/prospective_cycle.py begin
+
       - name: Prepare fresh neutral inputs without publishing production state
+        if: steps.cadence.outputs.collect == 'true'
         continue-on-error: true
         run: python scripts/prepare_v3_universe.py
 
       - name: Run Solaire V3 prospective shadow
+        if: steps.cadence.outputs.collect == 'true'
         continue-on-error: true
         env:
+          SOLAIRE_C0_CONTROL_PATH: runtime/prospective_inputs/c0_control.json
+          SOLAIRE_C0_MANIFEST_PATH: runtime/prospective_inputs/c0_manifest.json
           SOLAIRE_V3_UNIVERSE_PATH: runtime/prospective_inputs/v3_universe.json
         run: python scripts/solaire_v3_shadow.py
 
-      - name: Update Solaire V3 prospective evaluation
-        continue-on-error: true
-        run: python scripts/update_solaire_v3_evaluation.py
-
       - name: Run Solaire V3.1 economic challenger shadow
+        if: steps.cadence.outputs.collect == 'true'
         continue-on-error: true
         env:
           SOLAIRE_V3_UNIVERSE_PATH: runtime/prospective_inputs/v3_universe.json
         run: python scripts/solaire_v31_shadow.py
 
-      - name: Update Solaire V3.1 prospective evaluation
-        continue-on-error: true
-        run: python scripts/update_solaire_v31_evaluation.py
-
-      - name: Capture Phase C execution costs independently from BUY validation
-        continue-on-error: true
-        run: python scripts/capture_phase_c_books.py
-
-      - name: Capture fresh Bitvavo prices for funnel measurements
-        continue-on-error: true
-        run: python scripts/capture_funnel_prices.py
-
-      - name: Run Solaire full-funnel measurement audit
-        continue-on-error: true
-        env:
-          SOLAIRE_FUNNEL_PRICE_PATH: runtime/prospective_inputs/funnel_prices.json
-        run: python scripts/solaire_funnel_audit.py
-
       - name: Run Solaire policy challenger shadows
+        if: steps.cadence.outputs.collect == 'true'
         continue-on-error: true
         env:
           SOLAIRE_V3_UNIVERSE_PATH: runtime/prospective_inputs/v3_universe.json
         run: python scripts/solaire_policy_challengers.py
 
+      - name: Capture Phase C execution costs independently from BUY validation
+        if: steps.cadence.outputs.collect == 'true'
+        continue-on-error: true
+        run: python scripts/capture_phase_c_books.py
+
+      - name: Capture fresh Bitvavo prices for funnel measurements
+        if: steps.cadence.outputs.collect == 'true'
+        continue-on-error: true
+        run: python scripts/capture_funnel_prices.py
+
+      - name: Run Solaire full-funnel measurement audit
+        if: steps.cadence.outputs.collect == 'true'
+        continue-on-error: true
+        env:
+          SOLAIRE_FUNNEL_PRICE_PATH: runtime/prospective_inputs/funnel_prices.json
+        run: python scripts/solaire_funnel_audit.py
+
+      - name: Update Solaire V3 prospective evaluation
+        if: steps.cadence.outputs.collect == 'true'
+        continue-on-error: true
+        run: python scripts/update_solaire_v3_evaluation.py
+
+      - name: Update Solaire V3.1 prospective evaluation
+        if: steps.cadence.outputs.collect == 'true'
+        continue-on-error: true
+        run: python scripts/update_solaire_v31_evaluation.py
+
       - name: Update Solaire policy challenger evaluation
+        if: steps.cadence.outputs.collect == 'true'
         continue-on-error: true
         run: python scripts/update_solaire_policy_challengers_evaluation.py
+
+      - name: Record actual cycle coverage
+        if: always() && steps.cadence.outputs.collect == 'true'
+        run: python scripts/prospective_cycle.py finish
 
       - name: Persist prospective shadow state
         if: always()
@@ -139,6 +170,11 @@ jobs:
             if [ -e "$file" ]; then git add "$file"; fi
           done
           if [ -d execution_observations ]; then git add execution_observations; fi
+          if [ -d prospective_cycle_receipts ]; then git add prospective_cycle_receipts; fi
+          if [ -d prospective_controls ]; then git add prospective_controls; fi
+          for file in prospective_collection_state.json prospective_collection_health.json; do
+            if [ -e "$file" ]; then git add "$file"; fi
+          done
           for file in phase_c_observation_state.json phase_c_observation_status.json; do
             if [ -e "$file" ]; then git add "$file"; fi
           done
