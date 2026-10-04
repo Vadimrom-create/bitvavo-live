@@ -23,7 +23,7 @@ jobs:
         with:
           python-version: '3.12'
       - run: python -m pip install -r requirements-monitoring.txt
-      - run: python -m unittest discover -s tests -v
+      - run: python scripts/run_all_tests.py
         name: Critical tests
       - name: Validate direct Solaire production sources
         run: |

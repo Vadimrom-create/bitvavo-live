@@ -170,8 +170,12 @@ def test_recovery_shadow_runs_before_heavy_v3_steps_and_is_persisted_immediately
 
     x = Path(".github/workflows/production_scan.yml").read_text()
     rejection = x.index("run: python scripts/update_rejection_shadow.py")
-    v3 = x.index("run: python scripts/solaire_v3_shadow.py")
-    assert rejection < v3
+    persist = x.index("- name: Persist alert and recovery state immediately")
+    evaluation = x.index("run: python scripts/update_production_evaluation.py")
+    assert rejection < persist < evaluation
+    # Heavy V3 collection now has its own workflow; keep it off this path.
+    assert "run: python scripts/solaire_v3_shadow.py" not in x
+    assert "scripts/solaire_v3_shadow.py" in Path(".github/workflows/solaire_prospective_shadows.yml").read_text()
     assert x.count("run: python scripts/update_rejection_shadow.py") == 1
     assert "Persist alert and recovery state immediately" in x
     assert "git commit -m 'Persist alert and recovery shadow state'" in x
@@ -187,7 +191,6 @@ def test_incomplete_forward_evaluations_are_retried_and_stale_health_is_exposed(
     assert '"stale_incomplete_reentry_evaluations"' in x
     assert '"stale_incomplete_evaluations"' in x
     assert "INCOMPLETE_GRACE_SECONDS=15*60" in x
-
 
 def test_shadow_evaluations_fetch_the_episode_historical_window():
     from pathlib import Path
