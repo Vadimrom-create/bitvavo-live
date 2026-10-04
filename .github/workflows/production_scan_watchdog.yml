@@ -1,0 +1,139 @@
+name: Solaire production stale-scan watchdog
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/production_scan_watchdog.yml'
+  # Independent lightweight fallback. It normally exits without scanning.
+  # Offsetting it from the heartbeat reduces correlated GitHub schedule delays.
+  schedule:
+    - cron: '2-59/5 * * * *'
+  # Any successful/failed heavy production activity is also an opportunity
+  # to rescue a stale direct scan even if a scheduled heartbeat was dropped.
+  workflow_run:
+    workflows:
+      - 'Bitvavo live data + frozen V4 + measurement + useful alerts'
+      - 'Solaire direct Bitvavo scan'
+      - 'Solaire prospective shadow measurements'
+    types: [completed]
+
+permissions:
+  contents: write
+
+# Share the exact publisher lock with the heartbeat. A rescue scan can never
+# publish production scan state concurrently with the normal heartbeat.
+concurrency:
+  group: bitvavo-production-heartbeat-v1
+  cancel-in-progress: false
+
+env:
+  PYTHONHASHSEED: '0'
+  MAX_SCAN_AGE_SECONDS: '720'
+
+jobs:
+  rescue-if-stale:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Decide whether production scan is stale
+        id: freshness
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY' >> "$GITHUB_OUTPUT"
+          import json
+          import os
+          from datetime import datetime, timezone
+
+          path = "production_scan_status.json"
+          max_age = int(os.environ["MAX_SCAN_AGE_SECONDS"])
+          stale = True
+          reason = "MISSING_STATUS"
+          age = -1
+
+          try:
+              with open(path, "r", encoding="utf-8") as fh:
+                  status = json.load(fh)
+              stamp = status.get("checked_at_utc") or status.get("signal_at_utc")
+              if not stamp:
+                  reason = "MISSING_TIMESTAMP"
+              else:
+                  dt = datetime.fromisoformat(stamp.replace("Z", "+00:00"))
+                  age = max(0, int((datetime.now(timezone.utc) - dt).total_seconds()))
+                  stale = age > max_age
+                  reason = "STALE" if stale else "FRESH"
+          except Exception as exc:
+              reason = f"STATUS_READ_ERROR_{type(exc).__name__}"
+
+          print(f"stale={'true' if stale else 'false'}")
+          print(f"age_seconds={age}")
+          print(f"reason={reason}")
+          PY
+
+      - name: Report freshness decision
+        run: |
+          echo "Watchdog decision: ${{ steps.freshness.outputs.reason }}"
+          echo "Last production scan age: ${{ steps.freshness.outputs.age_seconds }}s"
+          echo "Rescue threshold: ${MAX_SCAN_AGE_SECONDS}s"
+
+      - name: Run one rescue production scan
+        if: steps.freshness.outputs.stale == 'true'
+        env:
+          ALERT_GMAIL_USER: ${{ vars.ALERT_GMAIL_USER }}
+          ALERT_EMAIL_TO: bellonirom@gmail.com
+          GMAIL_APP_PASSWORD: ${{ secrets.GMAIL_APP_PASSWORD }}
+        run: |
+          set -euo pipefail
+          python scripts/production_scan.py
+          python scripts/send_production_buy_alert.py
+
+      - name: Persist rescued production state
+        if: steps.freshness.outputs.stale == 'true'
+        run: |
+          set -euo pipefail
+          git config user.name 'bitvavo-live-bot'
+          git config user.email 'actions@users.noreply.github.com'
+
+          for file in \
+            production_alert_candidates.json \
+            production_scan_status.json \
+            production_universe_snapshot.json \
+            production_alert_state.json \
+            production_alert_status.json; do
+            if [ -e "${file}" ]; then git add "${file}"; fi
+          done
+
+          if [ -d execution_observations ]; then git add execution_observations; fi
+
+          if git diff --cached --quiet; then
+            echo "Rescue scan produced no publishable changes."
+            exit 0
+          fi
+
+          git commit -m 'Watchdog rescue stale production scan'
+
+          for attempt in 1 2 3 4 5 6; do
+            git fetch origin main
+            if ! git rebase origin/main; then
+              git rebase --abort || true
+              echo "Watchdog publication conflict; refusing stale publication." >&2
+              exit 1
+            fi
+            if git push origin HEAD:main; then
+              exit 0
+            fi
+            sleep $((attempt * 2))
+          done
+
+          echo "Watchdog publication retries exhausted." >&2
+          exit 1
