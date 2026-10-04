@@ -217,4 +217,5 @@ def test_delisted_market_horizons_are_censored_not_reported_as_api_failures():
     assert '"reason":"MARKET_NOT_TRADING"' in x
     assert '"method":"market_lifecycle_censoring"' in x
     assert '"censored_market_inactive_evaluations"' in x
-    assert "market not in metadata and market in inactive_eur_markets" in x
+    assert "if market not in metadata:" in x
+    assert '"UNLISTED_OR_REMOVED"' in x
