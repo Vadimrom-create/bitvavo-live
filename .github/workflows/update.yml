@@ -40,6 +40,41 @@ jobs:
       - uses: actions/checkout@v4
         with:
           ref: main
+          # actions/checkout automatically fetches with blob:none when
+          # sparse-checkout is configured. Keep every non-archive directory;
+          # only history/ and decision_history/ are bounded below.
+          sparse-checkout: |
+            .github
+            baseline
+            docs
+            execution_observations
+            executor
+            github
+            monitoring
+            oracle
+            prospective_controls
+            prospective_cycle_receipts
+            prospective_wakeup_receipts
+            research
+            scripts
+            tests
+          sparse-checkout-cone-mode: true
+      - name: Hydrate bounded live journals
+        shell: bash
+        run: |
+          set -euo pipefail
+          live_paths=()
+          for spec in '3 days ago' '2 days ago' '1 day ago' 'today' 'tomorrow'; do
+            day="$(date -u -d "$spec" +%F)"
+            live_paths+=("history/$day")
+          done
+          for spec in 'yesterday' 'today' 'tomorrow'; do
+            day="$(date -u -d "$spec" +%F)"
+            live_paths+=("decision_history/$day")
+          done
+          git sparse-checkout add "${live_paths[@]}"
+          echo "Hydrated bounded live journals:"
+          printf '  %s\n' "${live_paths[@]}"
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
