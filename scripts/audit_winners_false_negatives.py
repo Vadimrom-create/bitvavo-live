@@ -218,6 +218,28 @@ def _event(snapshot: dict[str, Any], row: dict[str, Any]) -> dict[str, Any]:
     }
 
 
+def _advance_acceleration_milestones(
+    first_building: dict[str, Any] | None,
+    first_confirmed: dict[str, Any] | None,
+    first_acceleration: dict[str, Any] | None,
+    state: str | None,
+    event: dict[str, Any],
+) -> tuple[dict[str, Any] | None, dict[str, Any] | None, dict[str, Any] | None]:
+    if first_acceleration is None and state in {"BUILDING_ACCELERATION", "CONFIRMED_ACCELERATION"}:
+        first_acceleration = event
+    # BUILDING is only a pre-confirmation milestone. A later downgrade from
+    # CONFIRMED back to BUILDING must not be misreported as "first BUILDING".
+    if (
+        first_building is None
+        and first_confirmed is None
+        and state == "BUILDING_ACCELERATION"
+    ):
+        first_building = event
+    if first_confirmed is None and state == "CONFIRMED_ACCELERATION":
+        first_confirmed = event
+    return first_building, first_confirmed, first_acceleration
+
+
 def _pct(a: float | None, b: float | None) -> float | None:
     a = finite(a)
     b = finite(b)
@@ -477,17 +499,16 @@ def build_audit(hours: int = DEFAULT_HOURS, top_n: int = DEFAULT_TOP_N) -> dict[
 
         for idx, (snap, row) in enumerate(timeline):
             state = _acc_state(row)
+            event = _event(snap, row)
             if first_accel_idx is None and state in {"BUILDING_ACCELERATION", "CONFIRMED_ACCELERATION"}:
                 first_accel_idx = idx
-                first_acceleration = _event(snap, row)
-            if (
-                first_building is None
-                and first_confirmed is None
-                and state == "BUILDING_ACCELERATION"
-            ):
-                first_building = _event(snap, row)
-            if first_confirmed is None and state == "CONFIRMED_ACCELERATION":
-                first_confirmed = _event(snap, row)
+            first_building, first_confirmed, first_acceleration = _advance_acceleration_milestones(
+                first_building,
+                first_confirmed,
+                first_acceleration,
+                state,
+                event,
+            )
 
             for gate in _extract_gate(snap["alert_status"], market):
                 event = dict(gate)
