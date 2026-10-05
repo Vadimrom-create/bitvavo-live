@@ -1,0 +1,89 @@
+name: Solaire winners false-negative audit
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'scripts/audit_winners_false_negatives.py'
+      - 'tests/test_winners_false_negative_audit.py'
+      - '.github/workflows/solaire_winners_false_negative_audit.yml'
+
+permissions:
+  contents: write
+
+env:
+  PYTHONHASHSEED: '0'
+  WINNERS_AUDIT_HOURS: '24'
+  WINNERS_AUDIT_TOP_N: '20'
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Compile audit
+        run: python -m py_compile scripts/audit_winners_false_negatives.py
+
+      - name: Run causal winners audit
+        run: python scripts/audit_winners_false_negatives.py
+
+      - name: Validate measurement-only contract
+        run: |
+          python - <<'PY'
+          import json
+          p=json.load(open('research/winners_false_negative_audit_latest.json'))
+          assert p['measurement_only'] is True, p
+          assert p['affects_detection'] is False, p
+          assert p['affects_buy_gate'] is False, p
+          assert p['affects_email'] is False, p
+          assert p['affects_orders'] is False, p
+          assert p['causality']['endpoint_ranking_used_only_for_cohort_selection'] is True, p
+          assert p['causality']['decision_reconstruction_from_committed_snapshots_only'] is True, p
+          assert p['winners'], p
+          PY
+
+      - name: Persist audit report
+        run: |
+          set -euo pipefail
+          git config user.name 'bitvavo-live-bot'
+          git config user.email 'actions@users.noreply.github.com'
+          git add research/winners_false_negative_audit_latest.json research/winners_false_negative_audit_latest.md
+          if git diff --cached --quiet; then
+            echo "Audit report unchanged."
+            exit 0
+          fi
+          git commit -m 'Update winners false-negative audit'
+          for attempt in 1 2 3 4 5 6; do
+            git fetch origin main
+            if ! git rebase origin/main; then
+              git rebase --abort || true
+              echo "Audit report rebase conflict." >&2
+              exit 1
+            fi
+            if git push origin HEAD:main; then
+              exit 0
+            fi
+            sleep $((attempt * 2))
+          done
+          echo "Audit report publication retries exhausted." >&2
+          exit 1
+
+      - name: Upload audit artifact
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: winners-false-negative-audit
+          retention-days: 30
+          path: |
+            research/winners_false_negative_audit_latest.json
+            research/winners_false_negative_audit_latest.md
