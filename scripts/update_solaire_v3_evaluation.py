@@ -209,7 +209,7 @@ def _evaluate_event_collection(
     # Oldest due decisions first so long-horizon cohorts cannot be starved.
     ordered = sorted(events, key=lambda x: finite(x.get("decision_ts"), now))
     for event in ordered:
-        if completed >= success_budget or attempted >= attempt_budget:
+        if completed >= success_budget:
             break
         if event.get("evaluation_excluded"):
             continue
