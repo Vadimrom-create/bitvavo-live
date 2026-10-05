@@ -201,7 +201,6 @@ def _evaluate_event_collection(
     events: list[dict[str, Any]],
     now: float,
     success_budget: int,
-    attempt_budget: int,
     errors: list[dict[str, Any]],
     telemetry: dict[str, Any],
 ) -> tuple[int, int]:
@@ -210,7 +209,7 @@ def _evaluate_event_collection(
     # Oldest due decisions first so long-horizon cohorts cannot be starved.
     ordered = sorted(events, key=lambda x: finite(x.get("decision_ts"), now))
     for event in ordered:
-        if completed >= success_budget or attempted >= attempt_budget:
+        if completed >= success_budget:
             break
         if event.get("evaluation_excluded"):
             continue
@@ -220,7 +219,7 @@ def _evaluate_event_collection(
         if baseline is None or decision_ts is None or not market:
             continue
         for horizon in _due(event, now):
-            if completed >= success_budget or attempted >= attempt_budget:
+            if completed >= success_budget:
                 break
             attempted += 1
             telemetry["logical_attempts"] += 1
@@ -236,6 +235,17 @@ def _evaluate_event_collection(
                     telemetry["complete_results"] += 1
                 else:
                     telemetry["incomplete_results"] += 1
+                    market_counts = telemetry["incomplete_market_counts"]
+                    market_counts[market] = market_counts.get(market, 0) + 1
+                    horizon_counts = telemetry["incomplete_horizon_counts"]
+                    horizon_key = str(horizon)
+                    horizon_counts[horizon_key] = horizon_counts.get(horizon_key, 0) + 1
+                    if len(telemetry["incomplete_samples"]) < 20:
+                        telemetry["incomplete_samples"].append({
+                            "market": market,
+                            "event_type": event.get("event_type"),
+                            "horizon": horizon,
+                        })
             except Exception as exc:
                 telemetry["fetch_wall_seconds"] += time.monotonic() - started
                 counts = telemetry["error_market_counts"]
@@ -523,6 +533,9 @@ def main() -> int:
         "fetch_wall_seconds": 0.0,
         "complete_results": 0,
         "incomplete_results": 0,
+        "incomplete_market_counts": {},
+        "incomplete_horizon_counts": {},
+        "incomplete_samples": [],
         "error_market_counts": {},
     }
     event_groups = [
@@ -536,17 +549,15 @@ def main() -> int:
     try:
         client.get("/time", cache=False)
         success_budget = MAX_NEW_EVALUATIONS_PER_RUN
-        attempt_budget = MAX_EVALUATION_ATTEMPTS_PER_RUN
         for events in event_groups:
-            if success_budget <= 0 or attempt_budget <= 0:
+            if success_budget <= 0:
                 break
             added, attempted = _evaluate_event_collection(
-                client, events, now, success_budget, attempt_budget, errors, telemetry
+                client, events, now, success_budget, errors, telemetry
             )
             total_new += added
             total_attempted += attempted
             success_budget -= added
-            attempt_budget -= attempted
     except Exception as exc:
         critical = type(exc).__name__ + ":" + str(exc)
     evaluation_wall_seconds = time.monotonic() - evaluation_started
@@ -612,15 +623,20 @@ def main() -> int:
         "frozen_v2_commit": FROZEN_V2_COMMIT,
         "new_complete_evaluations": total_new,
         "evaluation_budget_per_run": MAX_NEW_EVALUATIONS_PER_RUN,
-        "evaluation_attempt_budget_per_run": MAX_EVALUATION_ATTEMPTS_PER_RUN,
+        "evaluation_attempt_budget_per_run": None,
+        "attempt_budget_enforced": False,
         "logical_evaluation_attempts": total_attempted,
-        "attempt_budget_exhausted": total_attempted >= MAX_EVALUATION_ATTEMPTS_PER_RUN and due_after > 0,
+        "attempt_budget_exhausted": False,
         "due_horizons_before": due_before,
         "due_horizons_after": due_after,
         "evaluation_wall_seconds": round(evaluation_wall_seconds, 6),
         "evaluation_fetch_wall_seconds": round(telemetry["fetch_wall_seconds"], 6),
         "complete_fetch_results": telemetry["complete_results"],
         "incomplete_fetch_results": telemetry["incomplete_results"],
+        "unique_incomplete_markets": len(telemetry["incomplete_market_counts"]),
+        "incomplete_market_counts": dict(sorted(telemetry["incomplete_market_counts"].items(), key=lambda item: (-item[1], item[0]))[:30]),
+        "incomplete_horizon_counts": dict(sorted(telemetry["incomplete_horizon_counts"].items(), key=lambda item: int(item[0]))),
+        "incomplete_samples": telemetry["incomplete_samples"],
         "unique_failed_markets": len(telemetry["error_market_counts"]),
         "repeated_failed_market_attempts": sum(max(0, n - 1) for n in telemetry["error_market_counts"].values()),
         "error_market_counts": dict(sorted(telemetry["error_market_counts"].items())),
