@@ -24,19 +24,13 @@ on:
 permissions:
   contents: write
 
-# Share the exact publisher lock with the heartbeat. A rescue scan can never
-# publish production scan state concurrently with the normal heartbeat.
-concurrency:
-  group: bitvavo-production-heartbeat-v1
-  cancel-in-progress: false
-
 env:
   PYTHONHASHSEED: '0'
   MAX_SCAN_AGE_SECONDS: '720'
 
 jobs:
-  # Separate read-only observer: a failure cannot affect the production rescue.
-  # Never listens to the prospective workflow via dispatch: root events only.
+  # Read-only prospective observer. It never participates in the production
+  # publisher lock and cannot delay the heartbeat.
   prospective-wakeup:
     if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' || github.event_name == 'push'
     runs-on: ubuntu-latest
@@ -53,19 +47,23 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: python scripts/prospective_wakeup.py
 
-  rescue-if-stale:
+  # First check is deliberately outside the production publisher lock.
+  # A FRESH watchdog run must never queue ahead of a useful heartbeat.
+  production-freshness:
     runs-on: ubuntu-latest
-    timeout-minutes: 8
+    timeout-minutes: 2
+    permissions:
+      contents: read
+    outputs:
+      stale: ${{ steps.freshness.outputs.stale }}
+      age_seconds: ${{ steps.freshness.outputs.age_seconds }}
+      reason: ${{ steps.freshness.outputs.reason }}
     steps:
       - uses: actions/checkout@v4
         with:
           ref: main
 
-      - uses: actions/setup-python@v5
-        with:
-          python-version: '3.12'
-
-      - name: Decide whether production scan is stale
+      - name: Observe production scan freshness
         id: freshness
         shell: bash
         run: |
@@ -100,14 +98,79 @@ jobs:
           print(f"reason={reason}")
           PY
 
-      - name: Report freshness decision
+      - name: Report freshness observation
         run: |
           echo "Watchdog decision: ${{ steps.freshness.outputs.reason }}"
           echo "Last production scan age: ${{ steps.freshness.outputs.age_seconds }}s"
           echo "Rescue threshold: ${MAX_SCAN_AGE_SECONDS}s"
 
+  # Only a genuinely stale observation is allowed to enter the exact heartbeat
+  # publisher lock. A second freshness check happens after the lock is acquired:
+  # if a heartbeat refreshed production while the rescue was queued, no scan,
+  # email or publication is performed.
+  rescue-if-stale:
+    needs: production-freshness
+    if: needs.production-freshness.outputs.stale == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    concurrency:
+      group: bitvavo-production-heartbeat-v1
+      cancel-in-progress: false
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Recheck freshness under publisher lock
+        id: recheck
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch origin main
+          git reset --hard origin/main
+          python - <<'PY' >> "$GITHUB_OUTPUT"
+          import json
+          import os
+          from datetime import datetime, timezone
+
+          path = "production_scan_status.json"
+          max_age = int(os.environ["MAX_SCAN_AGE_SECONDS"])
+          stale = True
+          reason = "MISSING_STATUS"
+          age = -1
+
+          try:
+              with open(path, "r", encoding="utf-8") as fh:
+                  status = json.load(fh)
+              stamp = status.get("checked_at_utc") or status.get("signal_at_utc")
+              if not stamp:
+                  reason = "MISSING_TIMESTAMP"
+              else:
+                  dt = datetime.fromisoformat(stamp.replace("Z", "+00:00"))
+                  age = max(0, int((datetime.now(timezone.utc) - dt).total_seconds()))
+                  stale = age > max_age
+                  reason = "STALE" if stale else "FRESH_AFTER_LOCK"
+          except Exception as exc:
+              reason = f"STATUS_READ_ERROR_{type(exc).__name__}"
+
+          print(f"stale={'true' if stale else 'false'}")
+          print(f"age_seconds={age}")
+          print(f"reason={reason}")
+          PY
+
+      - name: Report locked freshness decision
+        run: |
+          echo "Locked watchdog decision: ${{ steps.recheck.outputs.reason }}"
+          echo "Production scan age under lock: ${{ steps.recheck.outputs.age_seconds }}s"
+          echo "Initial observer decision: ${{ needs.production-freshness.outputs.reason }}"
+          echo "Initial observer age: ${{ needs.production-freshness.outputs.age_seconds }}s"
+
       - name: Run one rescue production scan
-        if: steps.freshness.outputs.stale == 'true'
+        if: steps.recheck.outputs.stale == 'true'
         env:
           ALERT_GMAIL_USER: ${{ vars.ALERT_GMAIL_USER }}
           ALERT_EMAIL_TO: bellonirom@gmail.com
@@ -118,7 +181,7 @@ jobs:
           python scripts/send_production_buy_alert.py
 
       - name: Persist rescued production state
-        if: steps.freshness.outputs.stale == 'true'
+        if: steps.recheck.outputs.stale == 'true'
         run: |
           set -euo pipefail
           git config user.name 'bitvavo-live-bot'
