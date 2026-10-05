@@ -219,7 +219,7 @@ def _evaluate_event_collection(
         if baseline is None or decision_ts is None or not market:
             continue
         for horizon in _due(event, now):
-            if completed >= success_budget or attempted >= attempt_budget:
+            if completed >= success_budget:
                 break
             attempted += 1
             telemetry["logical_attempts"] += 1
