@@ -1,43 +1,39 @@
 # Bitvavo — V4 mesurée / infrastructure V5
 
-Scan UTC : 2026-10-05T15:32:06.086616+00:00
-État : OK | marchés EUR : 427 | V4 : 365 | données valides : 426
-Récupération : 2026-10-05T15:31:32.912896+00:00 | âge ticker : 156.2 s | durée : 157.2 s
+Scan UTC : 2026-10-05T15:56:34.657091+00:00
+État : OK | marchés EUR : 427 | V4 : 366 | données valides : 426
+Récupération : 2026-10-05T15:56:01.918929+00:00 | âge ticker : 147.8 s | durée : 148.5 s
 
 ## ACHÈTE — signal V4 et plan théorique
 
 Bougies utilisables : 5 min 427/427 ; 15 min 426/427.
 Les intervalles sans transaction sont représentés explicitement à volume 0 ; aucune transaction n’est inventée.
-
-Achats bruts V4 bloqués avant alerte :
-- AVNT-EUR : STABILITY_HOLD, INSUFFICIENT_NET_RISK_REWARD
-- SENT-EUR : WICK_SETUP, STABILITY_HOLD, INSUFFICIENT_NET_RISK_REWARD
-- ICP-EUR : 3.1089 € | IGNITION | score 83.49/100 | entrée 7.50/10
-  Entrée 3.1099 € ; stop 2.973 € ; TP1 3.3837 € ; TP2 3.5206 € ; montant 235.91 € ; risque théorique 12.00 € ; R/R net 1.59.
-  Chase risk : 4.606/10 (diagnostic non calibré). Probabilités +10/+20/+30/+40 % : indisponibles.
+- ICP-EUR : 3.1005 € | IGNITION | score 88.66/100 | entrée 6.75/10
+  Entrée 3.1028 € ; stop 2.9721 € ; TP1 3.3641 € ; TP2 3.4948 € ; montant 245.02 € ; risque théorique 12.00 € ; R/R net 1.57.
+  Chase risk : 3.353/10 (diagnostic non calibré). Probabilités +10/+20/+30/+40 % : indisponibles.
 
 ## SURVEILLE
 
-- WELL-EUR : 0.0021294 € ; score 88.82/100 ; SURVEILLE ; LOW_LIQUIDITY, SELLER_HEAVY_BOOK
-- PLUME-EUR : 0.0175613 € ; score 86.86/100 ; SURVEILLE ; WICK_SETUP
-- ZAMA-EUR : 0.074909 € ; score 85.37/100 ; SURVEILLE ; SELLER_HEAVY_BOOK, WICK_SETUP
-- YGG-EUR : 0.02574 € ; score 82.44/100 ; SURVEILLE ; SPREAD_RISK, WICK_SETUP
-- BAT-EUR : 0.09281 € ; score 82.14/100 ; SURVEILLE ; WICK_SETUP
+- CAP-EUR : 0.0619201 € ; score 83.00/100 ; SURVEILLE ; SPREAD_RISK, SELLER_HEAVY_BOOK
+- BAT-EUR : 0.09333 € ; score 82.80/100 ; SURVEILLE ; WICK_SETUP
+- MAGIC-EUR : 0.05528 € ; score 80.52/100 ; SURVEILLE ; seuil achat non atteint
+- HOT-EUR : 0.00040537 € ; score 80.28/100 ; SURVEILLE ; SELLER_HEAVY_BOOK
+- WLD-EUR : 0.50567 € ; score 78.96/100 ; SURVEILLE ; WICK_SETUP
 
 ## Contrôle des hausses
 
 | Marché | Prix € | 24 h | Détection | Couche d’échec | Actionnabilité |
 |---|---:|---:|---|---|---|
-| GTC-EUR | 0.192955 | +80.32 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
-| RLC-EUR | 0.50848 | +57.55 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
-| PNT-EUR | 0.070833 | +43.69 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
-| FLUID-EUR | 1.8677 | +21.12 % | DETECTED_EARLY | NONE | INTERPRETATION |
-| MOVR-EUR | 1.8798 | +19.46 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
-| CARV-EUR | 0.046612 | +16.78 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
-| SCR-EUR | 0.025911 | +16.22 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
-| NIL-EUR | 0.091586 | +15.92 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
-| PARTI-EUR | 0.027592 | +13.51 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
-| EDU-EUR | 0.0526 | +13.24 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
+| GTC-EUR | 0.191282 | +76.51 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
+| RLC-EUR | 0.515 | +59.78 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
+| PNT-EUR | 0.069821 | +41.64 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
+| FLUID-EUR | 1.9075 | +22.99 % | DETECTED_EARLY | NONE | INTERPRETATION |
+| ZEUS-EUR | 0.0024855 | +22.73 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
+| SCR-EUR | 0.025947 | +16.38 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
+| CARV-EUR | 0.046134 | +15.83 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
+| RAD-EUR | 0.27294 | +15.56 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
+| MOVR-EUR | 1.8063 | +14.66 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
+| NIL-EUR | 0.090587 | +13.91 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
 
 Historique (snapshot asynchrone) : 2076 scans ; 888368 observations ; 1639 épisodes d’achat évaluables.
 V5 optimisée : aucune. Supériorité sur V4 : non démontrée. Probabilités : non calibrées.
