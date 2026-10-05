@@ -85,3 +85,41 @@ def test_forward_metrics_use_future_bars_only():
 def test_consumed_share_is_descriptive_not_boolean_veto():
     share = MOD._consumed_share(100.0, 110.0, 120.0)
     assert round(share, 6) == 50.0
+
+
+def test_confirmed_before_building_does_not_create_fake_first_building():
+    building = confirmed = first = None
+    confirmed_event = {"price_eur": 1.0, "state": "CONFIRMED_ACCELERATION"}
+    building, confirmed, first = MOD._advance_acceleration_milestones(
+        building, confirmed, first, "CONFIRMED_ACCELERATION", confirmed_event
+    )
+    assert confirmed is confirmed_event
+    assert first is confirmed_event
+    assert building is None
+
+    later_building = {"price_eur": 0.98, "state": "BUILDING_ACCELERATION"}
+    building, confirmed, first = MOD._advance_acceleration_milestones(
+        building, confirmed, first, "BUILDING_ACCELERATION", later_building
+    )
+    assert building is None
+    assert confirmed is confirmed_event
+    assert first is confirmed_event
+
+
+def test_building_before_confirmed_preserves_true_order():
+    building = confirmed = first = None
+    building_event = {"price_eur": 0.9, "state": "BUILDING_ACCELERATION"}
+    building, confirmed, first = MOD._advance_acceleration_milestones(
+        building, confirmed, first, "BUILDING_ACCELERATION", building_event
+    )
+    assert building is building_event
+    assert first is building_event
+    assert confirmed is None
+
+    confirmed_event = {"price_eur": 1.0, "state": "CONFIRMED_ACCELERATION"}
+    building, confirmed, first = MOD._advance_acceleration_milestones(
+        building, confirmed, first, "CONFIRMED_ACCELERATION", confirmed_event
+    )
+    assert building is building_event
+    assert confirmed is confirmed_event
+    assert first is building_event
