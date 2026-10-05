@@ -332,6 +332,22 @@ def run(status):
 
             asset = market[:-4] if market.endswith('-EUR') else market
             inventory = inventories.get(asset)
+
+            # Wallet valuation must not depend on management-plan availability.
+            # A newly bought position can therefore appear in the private
+            # snapshot immediately, even before its plan is reconstructed.
+            bid = finite(quote.get('bid'))
+            row = wallet_by_market[market]
+            row.update({
+                'price_eur': bid,
+                'value_eur': (balance['amount'] * bid) if bid is not None else None,
+                'pnl_pct': (
+                    round((bid / finite(inventory.get('avg_cost_eur')) - 1) * 100, 3)
+                    if bid is not None and inventory and finite(inventory.get('avg_cost_eur')) not in (None, 0)
+                    else None
+                ),
+            })
+
             current_plan = plans.get(market)
             rebuilt = automatic_plan(
                 market,
@@ -486,6 +502,16 @@ def run(status):
         'wallet_value_eur': round(cash_eur + positions_value_eur, 2),
         'positions': wallet_rows,
     })
+
+    if os.getenv('WALLET_SUMMARY_ONLY') == 'true':
+        status.update(
+            status='PARTIAL' if issues else 'OK',
+            reason='WALLET_SUMMARY_ONLY_WITH_PARTIAL_POSITION_DATA' if issues else 'WALLET_SUMMARY_ONLY',
+            position_actions='DISABLED_WALLET_SUMMARY_ONLY',
+            buy_alerts='DISABLED_WALLET_SUMMARY_ONLY',
+            email='DISABLED_WALLET_SUMMARY_ONLY',
+        )
+        return 0
 
     if not freshness(now=time.time(), retrieved=account['retrieved_at_utc'], max_retrieval_age=120)['ok']:
         events = []
