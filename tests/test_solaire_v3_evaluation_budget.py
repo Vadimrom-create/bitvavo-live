@@ -37,7 +37,7 @@ class V3EvaluationBudgetTests(unittest.TestCase):
 
         with patch.object(evaluator, "_fetch_evaluation", side_effect=RuntimeError("source unavailable")) as fetch:
             completed, attempted = evaluator._evaluate_event_collection(
-                object(), events, now, success_budget=40, attempt_budget=80,
+                object(), events, now, success_budget=40,
                 errors=errors, telemetry=telemetry,
             )
 
@@ -57,7 +57,7 @@ class V3EvaluationBudgetTests(unittest.TestCase):
 
         with patch.object(evaluator, "_fetch_evaluation", return_value={"complete_horizon": True}) as fetch:
             completed, attempted = evaluator._evaluate_event_collection(
-                object(), events, now, success_budget=2, attempt_budget=80,
+                object(), events, now, success_budget=2,
                 errors=errors, telemetry=telemetry,
             )
 
@@ -74,7 +74,7 @@ class V3EvaluationBudgetTests(unittest.TestCase):
 
         with patch.object(evaluator, "_fetch_evaluation", return_value={"complete_horizon": False}):
             completed, attempted = evaluator._evaluate_event_collection(
-                object(), [event], now, success_budget=40, attempt_budget=80,
+                object(), [event], now, success_budget=40,
                 errors=[], telemetry=telemetry,
             )
 
@@ -86,25 +86,6 @@ class V3EvaluationBudgetTests(unittest.TestCase):
         self.assertEqual(telemetry["incomplete_samples"][0]["market"], "QUIET-EUR")
         self.assertEqual(len(evaluator._due(event, now)), 1)
 
-
-    def test_attempt_budget_bounds_repeated_failures_without_marking_due_horizons_complete(self):
-        now = 1_000_000.0 + 5 * 3600
-        events = [_event("DEAD-EUR", 1_000_000.0 - i) for i in range(6)]
-        errors = []
-        telemetry = _telemetry()
-
-        with patch.object(evaluator, "_fetch_evaluation", side_effect=RuntimeError("source unavailable")) as fetch:
-            completed, attempted = evaluator._evaluate_event_collection(
-                object(), events, now, success_budget=40, attempt_budget=3,
-                errors=errors, telemetry=telemetry,
-            )
-
-        self.assertEqual(completed, 0)
-        self.assertEqual(attempted, 3)
-        self.assertEqual(fetch.call_count, 3)
-        self.assertEqual(len(errors), 3)
-        self.assertTrue(all(event["evaluations"] == {} for event in events))
-        self.assertGreater(evaluator._due_horizon_count([events], now), 0)
 
     def test_public_client_diagnostics_classify_transport_errors_without_changing_client_state(self):
         client = PublicClient()
