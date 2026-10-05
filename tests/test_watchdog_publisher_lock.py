@@ -68,6 +68,24 @@ def test_heartbeat_keeps_same_single_publisher_lock():
     assert "cancel-in-progress: false" in text
 
 
+def test_prospective_wakeup_sparse_checkout_has_only_required_files():
+    block = _job_block(_text(WATCHDOG), "prospective-wakeup")
+    checkout = block.split("Reevaluate prospective health", 1)[0]
+    required = [
+        "scripts/prospective_wakeup.py",
+        "research/__init__.py",
+        "research/common.py",
+        "research/prospective_cadence.py",
+        "prospective_collection_state.json",
+        "prospective_collection_health.json",
+    ]
+    for path in required:
+        assert path in checkout
+    assert "sparse-checkout-cone-mode: false" in checkout
+    assert "history/" not in checkout
+    assert "decision_history/" not in checkout
+
+
 def test_watchdog_keeps_prospective_anti_recursion_barrier():
     block = _job_block(_text(WATCHDOG), "prospective-wakeup")
     assert "github.event_name == 'schedule'" in block
