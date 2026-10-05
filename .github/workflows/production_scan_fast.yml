@@ -12,13 +12,14 @@ on:
       - 'research/production_alerts.py'
       - 'research/production_context.py'
       - '.github/workflows/production_scan_fast.yml'
-  # One scheduled restart launches three self-contained cycles spaced five minutes apart.
-  # This reduces dependence on GitHub delivering a brand-new cron event every five minutes.
+  # Cold-start fallback only. Normal cadence is self-chained through
+  # workflow_dispatch, so a missed GitHub schedule event cannot stop scanning.
   schedule:
-    - cron: '4,19,34,49 * * * *'
+    - cron: '4 * * * *'
 
 permissions:
   contents: write
+  actions: write
 
 concurrency:
   group: bitvavo-production-heartbeat-v1
@@ -30,7 +31,7 @@ env:
 jobs:
   scan-heartbeat:
     runs-on: ubuntu-latest
-    timeout-minutes: 14
+    timeout-minutes: 16
     steps:
       - uses: actions/checkout@v4
         with:
@@ -105,3 +106,27 @@ jobs:
               fi
             fi
           done
+
+      - name: Hand off to next heartbeat run
+        if: success()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+
+          active=0
+          for status in queued in_progress; do
+            count="$(
+              gh api                 -H 'Accept: application/vnd.github+json'                 -H 'X-GitHub-Api-Version: 2022-11-28'                 "/repos/${GITHUB_REPOSITORY}/actions/workflows/production_scan_fast.yml/runs?status=${status}&per_page=50"                 --jq "[.workflow_runs[] | select(.id != ${GITHUB_RUN_ID})] | length"
+            )"
+            active=$((active + count))
+          done
+
+          if [ "${active}" -gt 0 ]; then
+            echo "Another heartbeat is already queued/in progress; no duplicate handoff."
+            exit 0
+          fi
+
+          gh api             --method POST             -H 'Accept: application/vnd.github+json'             -H 'X-GitHub-Api-Version: 2022-11-28'             "/repos/${GITHUB_REPOSITORY}/actions/workflows/production_scan_fast.yml/dispatches"             -f ref=main
+
+          echo "Next heartbeat dispatched through workflow_dispatch."
