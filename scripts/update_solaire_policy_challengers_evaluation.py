@@ -27,6 +27,26 @@ CHALLENGER_VERSION = "solaire-policy-challengers-v2-baseline-aligned-20260924"
 MAX_NEW_EVALUATIONS_PER_RUN = 24
 
 
+
+def _evaluation_runtime_context() -> tuple[dict[str, Any], dict[str, Any]]:
+    """Ephemeral compatibility context for the shared V3 evaluator helper.
+
+    V3.1/policy keep their pre-#113 retry semantics: no persisted cooldown state.
+    """
+    telemetry = {
+        "logical_attempts": 0,
+        "fetch_wall_seconds": 0.0,
+        "complete_results": 0,
+        "incomplete_results": 0,
+        "incomplete_market_counts": {},
+        "incomplete_horizon_counts": {},
+        "incomplete_samples": [],
+        "error_market_counts": {},
+        "cooldown_skipped": 0,
+    }
+    return telemetry, {"entries": {}}
+
+
 def _events(events: list[dict[str, Any]], prefix: str, suffix: str) -> list[dict[str, Any]]:
     wanted = prefix + suffix
     return [
@@ -76,8 +96,9 @@ def main() -> int:
     try:
         client = PublicClient(timeout=10, retries=2, requests_per_second=8)
         client.get("/time", cache=False)
-        total_new = _evaluate_event_collection(
-            client, current, now, MAX_NEW_EVALUATIONS_PER_RUN, errors
+        telemetry, retry_state = _evaluation_runtime_context()
+        total_new, _ = _evaluate_event_collection(
+            client, current, now, MAX_NEW_EVALUATIONS_PER_RUN, errors, telemetry, retry_state
         )
     except Exception as exc:
         critical = type(exc).__name__ + ":" + str(exc)

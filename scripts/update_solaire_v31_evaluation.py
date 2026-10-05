@@ -26,6 +26,26 @@ COMPARISON = "solaire_v31_comparison.json"
 MAX_NEW_EVALUATIONS_PER_RUN = 24
 
 
+
+def _evaluation_runtime_context() -> tuple[dict[str, Any], dict[str, Any]]:
+    """Ephemeral compatibility context for the shared V3 evaluator helper.
+
+    V3.1/policy keep their pre-#113 retry semantics: no persisted cooldown state.
+    """
+    telemetry = {
+        "logical_attempts": 0,
+        "fetch_wall_seconds": 0.0,
+        "complete_results": 0,
+        "incomplete_results": 0,
+        "incomplete_market_counts": {},
+        "incomplete_horizon_counts": {},
+        "incomplete_samples": [],
+        "error_market_counts": {},
+        "cooldown_skipped": 0,
+    }
+    return telemetry, {"entries": {}}
+
+
 def _eligible(events: list[dict[str, Any]], event_type: str, start_ts: float | None = None) -> list[dict[str, Any]]:
     out = []
     for event in events:
@@ -139,11 +159,16 @@ def main() -> int:
         client = PublicClient(timeout=10, retries=2, requests_per_second=8)
         client.get("/time", cache=False)
         budget = MAX_NEW_EVALUATIONS_PER_RUN
-        added = _evaluate_event_collection(client, current_events, now, budget, errors)
+        telemetry, retry_state = _evaluation_runtime_context()
+        added, _ = _evaluate_event_collection(
+            client, current_events, now, budget, errors, telemetry, retry_state
+        )
         total_new += added
         budget -= added
         if budget > 0:
-            added = _evaluate_event_collection(client, legacy_events, now, budget, errors)
+            added, _ = _evaluate_event_collection(
+                client, legacy_events, now, budget, errors, telemetry, retry_state
+            )
             total_new += added
     except Exception as exc:
         critical = type(exc).__name__ + ":" + str(exc)
