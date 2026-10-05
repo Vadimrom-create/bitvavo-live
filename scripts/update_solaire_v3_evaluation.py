@@ -201,6 +201,7 @@ def _evaluate_event_collection(
     events: list[dict[str, Any]],
     now: float,
     success_budget: int,
+    attempt_budget: int,
     errors: list[dict[str, Any]],
     telemetry: dict[str, Any],
 ) -> tuple[int, int]:
@@ -209,7 +210,7 @@ def _evaluate_event_collection(
     # Oldest due decisions first so long-horizon cohorts cannot be starved.
     ordered = sorted(events, key=lambda x: finite(x.get("decision_ts"), now))
     for event in ordered:
-        if completed >= success_budget:
+        if completed >= success_budget or attempted >= attempt_budget:
             break
         if event.get("evaluation_excluded"):
             continue
@@ -219,7 +220,7 @@ def _evaluate_event_collection(
         if baseline is None or decision_ts is None or not market:
             continue
         for horizon in _due(event, now):
-            if completed >= success_budget:
+            if completed >= success_budget or attempted >= attempt_budget:
                 break
             attempted += 1
             telemetry["logical_attempts"] += 1
@@ -549,15 +550,17 @@ def main() -> int:
     try:
         client.get("/time", cache=False)
         success_budget = MAX_NEW_EVALUATIONS_PER_RUN
+        attempt_budget = MAX_EVALUATION_ATTEMPTS_PER_RUN
         for events in event_groups:
-            if success_budget <= 0:
+            if success_budget <= 0 or attempt_budget <= 0:
                 break
             added, attempted = _evaluate_event_collection(
-                client, events, now, success_budget, errors, telemetry
+                client, events, now, success_budget, attempt_budget, errors, telemetry
             )
             total_new += added
             total_attempted += attempted
             success_budget -= added
+            attempt_budget -= attempted
     except Exception as exc:
         critical = type(exc).__name__ + ":" + str(exc)
     evaluation_wall_seconds = time.monotonic() - evaluation_started
@@ -623,10 +626,10 @@ def main() -> int:
         "frozen_v2_commit": FROZEN_V2_COMMIT,
         "new_complete_evaluations": total_new,
         "evaluation_budget_per_run": MAX_NEW_EVALUATIONS_PER_RUN,
-        "evaluation_attempt_budget_per_run": None,
-        "attempt_budget_enforced": False,
+        "evaluation_attempt_budget_per_run": MAX_EVALUATION_ATTEMPTS_PER_RUN,
+        "attempt_budget_enforced": True,
         "logical_evaluation_attempts": total_attempted,
-        "attempt_budget_exhausted": False,
+        "attempt_budget_exhausted": total_attempted >= MAX_EVALUATION_ATTEMPTS_PER_RUN and due_after > 0,
         "due_horizons_before": due_before,
         "due_horizons_after": due_after,
         "evaluation_wall_seconds": round(evaluation_wall_seconds, 6),
