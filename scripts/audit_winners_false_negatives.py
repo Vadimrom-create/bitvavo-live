@@ -167,16 +167,19 @@ def _read_execution_evidence(ref: str, event: dict[str, Any]) -> dict[str, Any]:
     costs = doc.get("execution_costs") or {}
     plan = doc.get("plan") or {}
     spread = finite(costs.get("spread"))
+    best_bid = finite(costs.get("best_bid_eur"))
+    best_ask = finite(costs.get("best_ask_eur"))
+    book_checked = bool(costs.get("raw_book")) or best_bid is not None or best_ask is not None
     return {
         "execution_pass": doc.get("execution_pass"),
         "execution_reason": doc.get("execution_reason"),
-        "best_bid_eur": finite(costs.get("best_bid_eur")),
-        "best_ask_eur": finite(costs.get("best_ask_eur")),
+        "best_bid_eur": best_bid,
+        "best_ask_eur": best_ask,
         "spread_pct": spread * 100.0 if spread is not None else finite(event.get("spread_pct")),
         "bid_depth_eur": finite(costs.get("bid_depth_eur")),
         "ask_depth_eur": finite(costs.get("ask_depth_eur")),
         "book_valid": costs.get("book_valid"),
-        "book_checked": bool(costs.get("raw_book")) or costs.get("book_valid") is not None,
+        "book_checked": book_checked,
         "stop_distance_pct": finite(plan.get("stop_distance_pct"), finite(event.get("stop_distance_pct"))),
         "entry_eur": finite(plan.get("entry_eur"), finite(event.get("entry_eur"))),
         "stop_eur": finite(plan.get("stop_eur"), finite(event.get("stop_eur"))),
@@ -468,17 +471,23 @@ def build_audit(hours: int = DEFAULT_HOURS, top_n: int = DEFAULT_TOP_N) -> dict[
         end_price = _price(endpoint)
         first_building = None
         first_confirmed = None
+        first_acceleration = None
         first_accel_idx = None
         gate_events: list[dict[str, Any]] = []
 
         for idx, (snap, row) in enumerate(timeline):
             state = _acc_state(row)
-            if first_building is None and state == "BUILDING_ACCELERATION":
+            if first_accel_idx is None and state in {"BUILDING_ACCELERATION", "CONFIRMED_ACCELERATION"}:
+                first_accel_idx = idx
+                first_acceleration = _event(snap, row)
+            if (
+                first_building is None
+                and first_confirmed is None
+                and state == "BUILDING_ACCELERATION"
+            ):
                 first_building = _event(snap, row)
             if first_confirmed is None and state == "CONFIRMED_ACCELERATION":
                 first_confirmed = _event(snap, row)
-            if first_accel_idx is None and state in {"BUILDING_ACCELERATION", "CONFIRMED_ACCELERATION"}:
-                first_accel_idx = idx
 
             for gate in _extract_gate(snap["alert_status"], market):
                 event = dict(gate)
@@ -521,6 +530,7 @@ def build_audit(hours: int = DEFAULT_HOURS, top_n: int = DEFAULT_TOP_N) -> dict[
             "window_first_at_utc": base_snap["at_utc"],
             "window_first_price_eur": _price(base_row),
             "before_first_acceleration": before,
+            "first_acceleration": first_acceleration,
             "first_building": first_building,
             "first_confirmed": first_confirmed,
             "gate_events": gate_events,
