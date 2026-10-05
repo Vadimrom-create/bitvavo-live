@@ -340,6 +340,57 @@ def _primary_cause(result: dict[str, Any]) -> str:
     return "DETECTOR_NEVER_BUILDING"
 
 
+def _late_entry_diagnostic(result: dict[str, Any]) -> dict[str, Any] | None:
+    buy = result.get("first_buy_sent")
+    if not buy:
+        return None
+    buy_ts = finite(buy.get("ts"))
+    buy_price = finite(buy.get("entry_eur"), finite(buy.get("scan_price_eur")))
+    if buy_ts is None or buy_price is None:
+        return None
+
+    prior_rejections = [
+        ev
+        for ev in (result.get("gate_events") or [])
+        if ev.get("outcome") == "REJECTED"
+        and finite(ev.get("ts")) is not None
+        and finite(ev.get("ts")) < buy_ts
+    ]
+    if not prior_rejections:
+        return None
+
+    first_rejection = prior_rejections[0]
+    first_rejection_price = finite(first_rejection.get("scan_price_eur"))
+    first_confirmed_price = finite((result.get("first_confirmed") or {}).get("price_eur"))
+    premium_vs_rejection = _pct(first_rejection_price, buy_price)
+    premium_vs_confirmed = _pct(first_confirmed_price, buy_price)
+    delay_minutes = (buy_ts - finite(first_rejection.get("ts"))) / 60.0
+
+    reasons = []
+    for ev in prior_rejections:
+        reason = str(ev.get("reason") or "UNKNOWN")
+        if reason not in reasons:
+            reasons.append(reason)
+
+    return {
+        "market": result.get("market"),
+        "first_rejection_at_utc": first_rejection.get("at_utc"),
+        "first_rejection_reason": first_rejection.get("reason"),
+        "first_rejection_price_eur": first_rejection_price,
+        "first_confirmed_price_eur": first_confirmed_price,
+        "buy_at_utc": buy.get("at_utc"),
+        "buy_entry_eur": buy_price,
+        "delay_first_rejection_to_buy_minutes": round(delay_minutes, 3),
+        "buy_premium_vs_first_rejection_pct": premium_vs_rejection,
+        "buy_premium_vs_first_confirmed_pct": premium_vs_confirmed,
+        "prior_rejection_reasons": reasons,
+        "late_entry_flag": bool(
+            (premium_vs_rejection is not None and premium_vs_rejection >= 5.0)
+            or (premium_vs_confirmed is not None and premium_vs_confirmed >= 5.0)
+        ),
+    }
+
+
 def _fmt(value: Any, digits: int = 2) -> str:
     value = finite(value)
     return "—" if value is None else f"{value:.{digits}f}"
@@ -402,6 +453,20 @@ def _markdown(payload: dict[str, Any]) -> str:
         for item in rows:
             lines.append(
                 f"- **{item['market']}** — `{item['primary_cause']}`; 4h MFE {_fmt(item['mfe_4h_pct'])}% / MAE {_fmt(item['mae_4h_pct'])}%."
+            )
+
+    lines.extend(["", "## Late entries after prior rejection", ""])
+    late_entries = payload.get("late_entry_candidates") or []
+    if not late_entries:
+        lines.append("- No buy was delayed by >=5% after an earlier gate rejection in this cohort.")
+    else:
+        for item in late_entries:
+            lines.append(
+                f"- **{item['market']}** — first rejected at {_fmt(item.get('first_rejection_price_eur'), 8)} "
+                f"(`{item.get('first_rejection_reason')}`), later BUY at {_fmt(item.get('buy_entry_eur'), 8)}; "
+                f"premium vs first rejection **{_fmt(item.get('buy_premium_vs_first_rejection_pct'))}%**, "
+                f"vs first CONFIRMED **{_fmt(item.get('buy_premium_vs_first_confirmed_pct'))}%**, "
+                f"delay {_fmt(item.get('delay_first_rejection_to_buy_minutes'))} min."
             )
 
     lines.extend(["", "## Detector misses / late-stage diagnostics", ""])
@@ -566,6 +631,7 @@ def build_audit(hours: int = DEFAULT_HOURS, top_n: int = DEFAULT_TOP_N) -> dict[
             ),
         }
         result["primary_cause"] = _primary_cause(result)
+        result["late_entry_after_rejection"] = _late_entry_diagnostic(result)
 
         base_price = result["window_first_price_eur"]
         result["move_consumed_to_building_pct"] = _consumed_share(
@@ -604,6 +670,11 @@ def build_audit(hours: int = DEFAULT_HOURS, top_n: int = DEFAULT_TOP_N) -> dict[
         results.append(result)
 
     cause_counts = Counter(row["primary_cause"] for row in results)
+    late_entry_candidates = [
+        row["late_entry_after_rejection"]
+        for row in results
+        if (row.get("late_entry_after_rejection") or {}).get("late_entry_flag")
+    ]
     gate_false_negative_candidates = []
     for row in results:
         if not row["primary_cause"].startswith("GATE_"):
@@ -655,6 +726,7 @@ def build_audit(hours: int = DEFAULT_HOURS, top_n: int = DEFAULT_TOP_N) -> dict[
             3,
         ),
         "cause_counts": dict(cause_counts),
+        "late_entry_candidates": late_entry_candidates,
         "gate_false_negative_candidates": gate_false_negative_candidates,
         "winners": results,
         "errors": list(client.errors),
@@ -674,6 +746,7 @@ def main() -> int:
                 "anchor_at_utc": payload["anchor_at_utc"],
                 "snapshot_count": payload["snapshot_count"],
                 "cause_counts": payload["cause_counts"],
+                "late_entry_candidates": payload["late_entry_candidates"],
                 "gate_false_negative_candidates": payload[
                     "gate_false_negative_candidates"
                 ],
