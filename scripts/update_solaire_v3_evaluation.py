@@ -170,6 +170,10 @@ def _retry_key(event: dict[str, Any], horizon: int) -> str:
         "cycle_id": event.get("cycle_id"),
         "decision_id": event.get("decision_id"),
         "source_decision_id": event.get("source_decision_id"),
+        "entry_eur": finite(event.get("entry_eur")),
+        "price_eur": finite(event.get("price_eur")),
+        "signal_price_eur": finite(event.get("signal_price_eur")),
+        "stop_eur": finite(event.get("stop_eur")),
         "horizon": horizon,
     }
     raw = json.dumps(identity, sort_keys=True, separators=(",", ":"), ensure_ascii=False)
