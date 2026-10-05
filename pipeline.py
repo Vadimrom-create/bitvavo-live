@@ -289,7 +289,11 @@ def run():
     universe = collect_universe(client, markets, tickers, baseline_ts)
     finish = time.time()
     ticker_at = client.metadata('/ticker/24h')['retrieved_at_utc']
+    phase_seconds = {}
+    phase_started = time.monotonic()
     db = rebuild('history', connect())
+    phase_seconds['history_rebuild'] = round(time.monotonic() - phase_started, 6)
+    phase_started = time.monotonic()
     observations, candles5 = [], {}
     for meta in markets:
         name = meta['market']
@@ -361,7 +365,9 @@ def run():
         obs['acceleration'] = acceleration_signal(obs)
         observations.append(obs)
         candles5[name] = m5.get('candles', [])
+    phase_seconds['observation_build'] = round(time.monotonic() - phase_started, 6)
     # Portfolio limits apply cumulatively to the same theoretical order batch.
+    phase_started = time.monotonic()
     buys, used = [], {'exposure': 0, 'risk': 0, 'positions': 0}
     for obs in sorted(observations, key=lambda o: (o.get('baseline') or {}).get('opportunity_score', 0), reverse=True):
         if not (obs.get('baseline') or {}).get('buy_ready') or not obs['data_quality']['ok']:
@@ -390,6 +396,7 @@ def run():
         used['exposure'] += p['stake_eur']; used['risk'] += p['theoretical_loss_eur']; used['positions'] += 1
         obs['decision'] = 'ACHÈTE'
         buys.append(obs)
+    phase_seconds['portfolio_selection'] = round(time.monotonic() - phase_started, 6)
     health = {'status': 'OK', 'universe': len(markets), 'baseline_analyzed': len(captured['rows']),
               'valid_markets': sum(o['data_quality']['ok'] for o in observations),
               'valid_5m': sum(bool((o['features'].get('5m') or {}).get('valid')) for o in observations),
@@ -412,12 +419,18 @@ def run():
             'observations': observations, 'candles_5m': new_candles(db, candles5),
             'candle_storage': 'FIRST_SEEN_DELTA_REBUILD_ALL_JOURNALS',
             'health': health, 'baseline_input_policy': 'legacy includes forming candles; closed diagnostics never change V4 scoring'}
+    phase_started = time.monotonic()
     journal = save_scan('history', scan)
     ingest(db, scan)
+    phase_seconds['history_save_ingest'] = round(time.monotonic() - phase_started, 6)
+    phase_started = time.monotonic()
     evaluation = evaluate(db)
+    phase_seconds['full_history_evaluation'] = round(time.monotonic() - phase_started, 6)
     candles15 = {name: data['timeframes'].get('15m', {}).get('candles', [])
                  for name, data in universe.items()}
+    phase_started = time.monotonic()
     control = market_control(db, observations, baseline_ts, candles15)
+    phase_seconds['market_control'] = round(time.monotonic() - phase_started, 6)
     watch = sorted([o for o in observations if o['decision'] == 'SURVEILLE'],
                    key=lambda o: (o.get('baseline') or {}).get('opportunity_score', 0), reverse=True)[:5]
     funnel = {
@@ -470,6 +483,7 @@ def run():
     if os.getenv('GITHUB_STEP_SUMMARY'):
         with open(os.environ['GITHUB_STEP_SUMMARY'], 'a', encoding='utf-8') as f:
             f.write(text)
+    print('PIPELINE_PHASE_TIMING ' + json.dumps(phase_seconds, sort_keys=True), flush=True)
     print(json.dumps({'scan_id': scan_id, 'health': health['status'], 'markets': len(markets),
                       'buys': [r['market'] for r in buys], 'journal': str(journal)}, ensure_ascii=False), flush=True)
     print(text, flush=True)
