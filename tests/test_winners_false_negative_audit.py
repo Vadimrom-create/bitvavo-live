@@ -123,3 +123,47 @@ def test_building_before_confirmed_preserves_true_order():
     assert building is building_event
     assert confirmed is confirmed_event
     assert first is building_event
+
+
+def test_late_entry_diagnostic_flags_buy_after_rejection_with_price_premium():
+    row = {
+        "market": "ORCA-EUR",
+        "first_confirmed": {"price_eur": 1.86261},
+        "first_buy_sent": {
+            "ts": 2000.0,
+            "at_utc": "2026-10-05T22:15:00+00:00",
+            "entry_eur": 2.07231,
+            "outcome": "BUY_SENT",
+        },
+        "gate_events": [
+            {
+                "ts": 1000.0,
+                "at_utc": "2026-10-05T18:33:00+00:00",
+                "outcome": "REJECTED",
+                "reason": "STRUCTURAL_RANGE_TOO_NARROW",
+                "scan_price_eur": 1.86261,
+            },
+            {
+                "ts": 2000.0,
+                "at_utc": "2026-10-05T22:15:00+00:00",
+                "outcome": "BUY_SENT",
+                "reason": "DELIVERED",
+                "entry_eur": 2.07231,
+            },
+        ],
+    }
+    out = MOD._late_entry_diagnostic(row)
+    assert out is not None
+    assert out["late_entry_flag"] is True
+    assert round(out["buy_premium_vs_first_rejection_pct"], 2) == 11.26
+    assert round(out["buy_premium_vs_first_confirmed_pct"], 2) == 11.26
+
+
+def test_late_entry_diagnostic_ignores_buy_without_prior_rejection():
+    row = {
+        "market": "FIL-EUR",
+        "first_confirmed": {"price_eur": 1.0},
+        "first_buy_sent": {"ts": 1000.0, "entry_eur": 1.01, "outcome": "BUY_SENT"},
+        "gate_events": [{"ts": 1000.0, "outcome": "BUY_SENT", "reason": "DELIVERED"}],
+    }
+    assert MOD._late_entry_diagnostic(row) is None
