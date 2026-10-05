@@ -74,3 +74,18 @@ def test_watchdog_keeps_prospective_anti_recursion_barrier():
     assert "github.event_name == 'workflow_dispatch'" in block
     assert "github.event_name == 'push'" in block
     assert "workflow_run" not in block
+
+
+def test_prospective_wakeup_sparse_checkout_only_includes_runtime_dependencies():
+    block = _job_block(_text(WATCHDOG), "prospective-wakeup")
+    assert "sparse-checkout:" in block
+    for path in (
+        "scripts/prospective_wakeup.py",
+        "research/common.py",
+        "research/prospective_cadence.py",
+        "prospective_collection_state.json",
+        "prospective_collection_health.json",
+    ):
+        assert path in block
+    assert "history/" not in block
+    assert "decision_history/" not in block
