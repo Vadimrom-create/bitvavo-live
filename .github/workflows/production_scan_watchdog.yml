@@ -6,6 +6,7 @@ on:
     branches: [main]
     paths:
       - '.github/workflows/production_scan_watchdog.yml'
+      - 'scripts/prospective_wakeup.py'
   # Independent lightweight fallback. It normally exits without scanning.
   # Offsetting it from the heartbeat reduces correlated GitHub schedule delays.
   schedule:
@@ -34,6 +35,24 @@ env:
   MAX_SCAN_AGE_SECONDS: '720'
 
 jobs:
+  # Separate read-only observer: a failure cannot affect the production rescue.
+  # Never listens to the prospective workflow via dispatch: root events only.
+  prospective-wakeup:
+    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' || github.event_name == 'push'
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    permissions:
+      contents: read
+      actions: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - name: Reevaluate prospective health and request one bounded wakeup
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: python scripts/prospective_wakeup.py
+
   rescue-if-stale:
     runs-on: ubuntu-latest
     timeout-minutes: 8

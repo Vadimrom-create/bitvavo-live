@@ -81,7 +81,7 @@ class ContemporaryControlTests(unittest.TestCase):
         self.assertNotIn('workflow_dispatches',s)
         self.assertIn('group: solaire-prospective-shadow-measurements',s)
         self.assertIn('cancel-in-progress: false',s)
-        self.assertEqual(s.count("if: steps.cadence.outputs.collect == 'true'"),10)
+        self.assertEqual(s.count("if: steps.cadence.outputs.collect == 'true'"),11)
         self.assertNotIn('send_production_buy_alert.py',s)
         self.assertLess(s.index('run: python scripts/solaire_policy_challengers.py'),
                         s.index('run: python scripts/update_solaire_v3_evaluation.py'))
