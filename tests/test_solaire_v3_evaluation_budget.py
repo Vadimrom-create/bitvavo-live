@@ -88,6 +88,13 @@ class V3EvaluationBudgetTests(unittest.TestCase):
         self.assertEqual(len(evaluator._due(event, now)), 1)
 
 
+    def test_retry_key_distinguishes_same_market_time_with_different_price(self):
+        left = _event("SAME-EUR")
+        right = _event("SAME-EUR")
+        left["price_eur"] = 1.0
+        right["price_eur"] = 1.01
+        self.assertNotEqual(evaluator._retry_key(left, 4), evaluator._retry_key(right, 4))
+
     def test_incomplete_horizon_is_cooled_down_but_remains_due(self):
         now = 1_000_000.0 + 5 * 3600
         event = _event("QUIET-EUR")
