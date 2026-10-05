@@ -94,10 +94,8 @@ jobs:
           if ! git show origin/main:production_scan_status.json > /tmp/production_scan_status.json; then
             echo "stale=true" >> "$GITHUB_OUTPUT"
             echo "age_seconds=-1" >> "$GITHUB_OUTPUT"
-            echo "reason=MISSING_STATUS" >> "$GITHUB_OUTPUT"
             exit 0
           fi
-
           python - <<'PY' >> "$GITHUB_OUTPUT"
           import json
           import os
@@ -111,13 +109,11 @@ jobs:
           if not stamp:
               print('stale=true')
               print('age_seconds=-1')
-              print('reason=MISSING_TIMESTAMP')
           else:
               dt = datetime.fromisoformat(stamp.replace('Z', '+00:00'))
               age = max(0, int((datetime.now(timezone.utc) - dt).total_seconds()))
               print(f"stale={'true' if age > max_age else 'false'}")
               print(f'age_seconds={age}')
-              print(f"reason={'STALE' if age > max_age else 'FRESH'}")
           PY
 
       - name: Recover stale production heartbeat
@@ -127,13 +123,35 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          echo "Production scan stale: age=${{ steps.production_freshness.outputs.age_seconds }}s reason=${{ steps.production_freshness.outputs.reason }}"
+          echo "Production scan stale: age=${{ steps.production_freshness.outputs.age_seconds }}s"
 
-          now="$(date +%s)"
-          recent_active=0
-
+          active=0
           for status in queued in_progress; do
-            while IFS=      - name: Preserve five-minute cadence
+            count="$(
+              gh api \
+                -H 'Accept: application/vnd.github+json' \
+                -H 'X-GitHub-Api-Version: 2022-11-28' \
+                "/repos/${GITHUB_REPOSITORY}/actions/workflows/production_scan_fast.yml/runs?status=${status}&per_page=50" \
+                --jq '[.workflow_runs[]] | length'
+            )"
+            active=$((active + count))
+          done
+
+          if [ "${active}" -gt 0 ]; then
+            echo "A production heartbeat is already queued/in progress; no duplicate recovery dispatch."
+            exit 0
+          fi
+
+          gh api \
+            --method POST \
+            -H 'Accept: application/vnd.github+json' \
+            -H 'X-GitHub-Api-Version: 2022-11-28' \
+            "/repos/${GITHUB_REPOSITORY}/actions/workflows/production_scan_fast.yml/dispatches" \
+            -f ref=main
+
+          echo "Stale production heartbeat recovery dispatched from private wallet domain."
+
+      - name: Preserve five-minute cadence
         run: |
           set -euo pipefail
           elapsed=$(( $(date +%s) - WALLET_CYCLE_STARTED ))
@@ -168,69 +186,6 @@ jobs:
           if [ "${{ job.status }}" != "success" ]; then
             echo "Private wallet job ended with status ${{ job.status }}; delaying recovery handoff."
             sleep 300
-          fi
-
-          gh api             --method POST             -H 'Accept: application/vnd.github+json'             -H 'X-GitHub-Api-Version: 2022-11-28'             "/repos/${GITHUB_REPOSITORY}/actions/workflows/private_wallet_refresh.yml/dispatches"             -f ref=main
-
-          echo "Next private wallet refresh dispatched."
-\t' read -r run_id created_at; do
-              [ -n "${run_id}" ] || continue
-              created_epoch="$(date -u -d "${created_at}" +%s)"
-              run_age=$(( now - created_epoch ))
-
-              if [ "${run_age}" -lt "${MAX_PRODUCTION_SCAN_AGE_SECONDS}" ]; then
-                echo "Recent heartbeat ${run_id} is ${status} (${run_age}s); giving it time to publish."
-                recent_active=1
-                continue
-              fi
-
-              echo "Cancelling stale ${status} heartbeat ${run_id} (${run_age}s old)."
-              gh api                 --method POST                 -H 'Accept: application/vnd.github+json'                 -H 'X-GitHub-Api-Version: 2022-11-28'                 "/repos/${GITHUB_REPOSITORY}/actions/runs/${run_id}/cancel" >/dev/null 2>&1 || true
-            done < <(
-              gh api                 -H 'Accept: application/vnd.github+json'                 -H 'X-GitHub-Api-Version: 2022-11-28'                 "/repos/${GITHUB_REPOSITORY}/actions/workflows/production_scan_fast.yml/runs?status=${status}&per_page=50"                 --jq '.workflow_runs[] | [.id, .created_at] | @tsv'
-            )
-          done
-
-          if [ "${recent_active}" -gt 0 ]; then
-            echo "A recent production heartbeat is already active; no duplicate recovery dispatch."
-            exit 0
-          fi
-
-          sleep 2
-          gh api             --method POST             -H 'Accept: application/vnd.github+json'             -H 'X-GitHub-Api-Version: 2022-11-28'             "/repos/${GITHUB_REPOSITORY}/actions/workflows/production_scan_fast.yml/dispatches"             -f ref=main
-
-          echo "Stale production heartbeat recovery dispatched from private wallet domain."
-
-      - name: Preserve five-minute cadence
-        run: |
-          set -euo pipefail
-          elapsed=$(( $(date +%s) - WALLET_CYCLE_STARTED ))
-          sleep_for=$(( 300 - elapsed ))
-          if [ "${sleep_for}" -gt 0 ]; then
-            echo "Sleeping ${sleep_for}s before handoff."
-            sleep "${sleep_for}"
-          else
-            echo "Wallet refresh exceeded five minutes; handing off immediately."
-          fi
-
-      - name: Hand off to next private wallet refresh
-        if: success()
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          set -euo pipefail
-
-          active=0
-          for status in queued in_progress; do
-            count="$(
-              gh api                 -H 'Accept: application/vnd.github+json'                 -H 'X-GitHub-Api-Version: 2022-11-28'                 "/repos/${GITHUB_REPOSITORY}/actions/workflows/private_wallet_refresh.yml/runs?status=${status}&per_page=50"                 --jq "[.workflow_runs[] | select(.id != ${GITHUB_RUN_ID})] | length"
-            )"
-            active=$((active + count))
-          done
-
-          if [ "${active}" -gt 0 ]; then
-            echo "Another private wallet refresh is already queued/in progress; no duplicate handoff."
-            exit 0
           fi
 
           gh api             --method POST             -H 'Accept: application/vnd.github+json'             -H 'X-GitHub-Api-Version: 2022-11-28'             "/repos/${GITHUB_REPOSITORY}/actions/workflows/private_wallet_refresh.yml/dispatches"             -f ref=main
