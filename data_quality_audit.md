@@ -1,28 +1,33 @@
 # Audit qualité des données Bitvavo
 
-Scan : 2026-10-05T11:47:34.616203+00:00 (20261005T114604Z-960cedbe)
-Univers : 426 | strategy-grade : 426 | rejetés : 0
+Scan : 2026-10-05T12:28:27.145345+00:00 (20261005T122657Z-345af8e2)
+Univers : 427 | strategy-grade : 426 | rejetés : 1
 5m valides : 426 | 15m valides : 426 | deux intervalles valides : 426
 
 ## Causes de rejet globales
 
 | Cause | Marchés |
 |---|---:|
+| INVALID_15M | 1 |
+| INVALID_5M | 1 |
 
 ## Causes intrinsèques 5m
 
 | Cause | Marchés |
 |---|---:|
+| INSUFFICIENT_CLOSED_CANDLES | 1 |
 
 ## Causes intrinsèques 15m
 
 | Cause | Marchés |
 |---|---:|
+| INSUFFICIENT_CLOSED_CANDLES | 1 |
 
 ## Marchés rejetés les plus liquides
 
 | Marché | Vol. 24h € | 24h | Causes | 5m bars/gaps manquants | 15m bars/gaps manquants |
 |---|---:|---:|---|---:|---:|
+| PNT-EUR | 111293 | +12.89% | INVALID_15M, INVALID_5M | 5/0 | 1/0 |
 
 Lecture : bars/gaps manquants = nombre de bougies closes reçues / nombre d’intervalles sans bougie à l’intérieur des 25 dernières bougies observées.
 Ce fichier est purement diagnostique : aucune règle de trading n’est modifiée.
