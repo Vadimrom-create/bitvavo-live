@@ -31,7 +31,7 @@ env:
 jobs:
   scan-heartbeat:
     runs-on: ubuntu-latest
-    timeout-minutes: 16
+    timeout-minutes: 66
     steps:
       - uses: actions/checkout@v4
         with:
@@ -40,7 +40,7 @@ jobs:
         with:
           python-version: '3.12'
 
-      - name: Run three five-minute production cycles
+      - name: Run twelve five-minute production cycles
         env:
           ALERT_GMAIL_USER: ${{ vars.ALERT_GMAIL_USER }}
           ALERT_EMAIL_TO: bellonirom@gmail.com
@@ -48,9 +48,9 @@ jobs:
         run: |
           set -euo pipefail
 
-          for cycle in 1 2 3; do
+          for cycle in $(seq 1 12); do
             cycle_started="$(date +%s)"
-            echo "=== heartbeat cycle ${cycle}/3 ==="
+            echo "=== heartbeat cycle ${cycle}/12 ==="
 
             if [ "${cycle}" -gt 1 ]; then
               git fetch origin main
@@ -95,7 +95,7 @@ jobs:
               fi
             fi
 
-            if [ "${cycle}" -lt 3 ]; then
+            if [ "${cycle}" -lt 12 ]; then
               elapsed=$(( $(date +%s) - cycle_started ))
               sleep_for=$(( 300 - elapsed ))
               if [ "${sleep_for}" -gt 0 ]; then
@@ -108,7 +108,7 @@ jobs:
           done
 
       - name: Hand off to next heartbeat run
-        if: success()
+        if: always()
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
@@ -125,6 +125,13 @@ jobs:
           if [ "${active}" -gt 0 ]; then
             echo "Another heartbeat is already queued/in progress; no duplicate handoff."
             exit 0
+          fi
+
+          # A failed production step must not break the cadence chain. Avoid a
+          # tight retry loop if a deterministic failure happens immediately.
+          if [ "${{ job.status }}" != "success" ]; then
+            echo "Heartbeat job ended with status ${{ job.status }}; delaying recovery handoff."
+            sleep 60
           fi
 
           gh api             --method POST             -H 'Accept: application/vnd.github+json'             -H 'X-GitHub-Api-Version: 2022-11-28'             "/repos/${GITHUB_REPOSITORY}/actions/workflows/production_scan_fast.yml/dispatches"             -f ref=main
