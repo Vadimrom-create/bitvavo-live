@@ -7,6 +7,7 @@ from __future__ import annotations
 
 import json
 import sqlite3
+from datetime import datetime, timezone
 from pathlib import Path
 
 from research.common import atomic_json, read_json
@@ -62,6 +63,20 @@ def ingest(db, scan):
 def rebuild(root, db):
     for path in sorted(Path(root).glob('*/*.json.gz')):
         ingest(db, read_json(path))
+    return db
+
+
+def rebuild_since(root, db, min_ts):
+    """Rebuild only journals whose scan timestamp is at or after min_ts."""
+    cutoff_day = datetime.fromtimestamp(min_ts, timezone.utc).date().isoformat()
+    for path in sorted(Path(root).glob('*/*.json.gz')):
+        if path.parent.name < cutoff_day:
+            continue
+        scan = read_json(path)
+        ts = scan.get('scan_ts')
+        if ts is None or ts < min_ts:
+            continue
+        ingest(db, scan)
     return db
 
 

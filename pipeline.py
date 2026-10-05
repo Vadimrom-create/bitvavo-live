@@ -22,7 +22,7 @@ from research.common import INTERVAL_MS, atomic_json, finite, freshness, read_js
 from research.evaluation import evaluate, market_control
 from research.feedback_loop import acceleration_signal
 from research.features import category, chase_risk, closed_candles, describe, nil_match, score_components, wick_setup
-from research.history import connect, ingest, new_candles, rebuild, recurrent, save_scan
+from research.history import connect, ingest, new_candles, rebuild, rebuild_since, recurrent, save_scan
 from research.http import PublicClient
 from research.risk import correlation, plan, proposed_order
 from research.production_gate import build_alert_payload
@@ -31,6 +31,7 @@ POLICY = 'V4_FROZEN_20260908'
 OPERATIONAL_POLICY = 'V4_BENCHMARK+FULL_UNIVERSE_DIRECT_GATE_V1+TREND_GUARD_V1'
 STATE_FILES = ['scan_history.json', 'signal_log.json', 'v4_history.json', 'v4_signal_log.json',
                'v4_trend_cache.json', 'v4_stability_state.json', 'v4_config.json']
+LIVE_HISTORY_WINDOW_SECONDS = 72 * 3600
 
 
 def load_collector():
@@ -212,7 +213,7 @@ def report_text(report):
     for r in report['market_control'][:10]:
         lines.append(f"| {r['market']} | {r['price_eur']:.8g} | {r['change_24h_pct']:+.2f} % | {r['detection_state']} | {r['failure_layer']} | {r['actionability_layer']} |")
     ev = report['evaluation']
-    lines += ['', f"Historique : {ev['scan_count']} scans ; {ev['observation_count']} observations ; {ev['complete_buy_episodes']} épisodes d’achat évaluables.",
+    lines += ['', f"Historique (snapshot asynchrone) : {ev['scan_count']} scans ; {ev['observation_count']} observations ; {ev['complete_buy_episodes']} épisodes d’achat évaluables.",
               'V5 optimisée : aucune. Supériorité sur V4 : non démontrée. Probabilités : non calibrées.',
               'Le cash et le portefeuille du plan sont hypothétiques. Aucun ordre réel n’est envoyé.', '']
     return '\n'.join(lines)
@@ -291,8 +292,8 @@ def run():
     ticker_at = client.metadata('/ticker/24h')['retrieved_at_utc']
     phase_seconds = {}
     phase_started = time.monotonic()
-    db = rebuild('history', connect())
-    phase_seconds['history_rebuild'] = round(time.monotonic() - phase_started, 6)
+    db = rebuild_since('history', connect(), baseline_ts - LIVE_HISTORY_WINDOW_SECONDS)
+    phase_seconds['recent_history_rebuild'] = round(time.monotonic() - phase_started, 6)
     phase_started = time.monotonic()
     observations, candles5 = [], {}
     for meta in markets:
@@ -406,7 +407,9 @@ def run():
               'duration_seconds': finish - start, 'api_error_count': len(client.errors),
               'api_errors': client.errors, 'exchange_clock_offset_seconds': client.server_offset,
               'trend_cache_guard': trend_guard,
-              'ignored_markets': [{'market': m['market'], 'reason': m.get('status')} for m in markets_raw if m.get('quote') == 'EUR' and m.get('status') != 'trading']}
+              'ignored_markets': [{'market': m['market'], 'reason': m.get('status')} for m in markets_raw if m.get('quote') == 'EUR' and m.get('status') != 'trading'],
+              'live_history_window_hours': LIVE_HISTORY_WINDOW_SECONDS / 3600,
+              'full_history_evaluation_mode': 'ASYNC_SNAPSHOT'}
     if health['ticker_age_seconds'] > 300 or not markets or len(captured['rows']) < .5 * len(markets):
         health['status'] = 'DEGRADED'
         for obs in buys:
@@ -417,15 +420,17 @@ def run():
             'policy': POLICY, 'operational_policy': OPERATIONAL_POLICY,
             'source_commit': os.getenv('GITHUB_SHA'), 'source': 'live',
             'observations': observations, 'candles_5m': new_candles(db, candles5),
-            'candle_storage': 'FIRST_SEEN_DELTA_REBUILD_ALL_JOURNALS',
+            'candle_storage': 'FIRST_SEEN_DELTA_RECENT_LIVE_WINDOW_FULL_HISTORY_ASYNC',
             'health': health, 'baseline_input_policy': 'legacy includes forming candles; closed diagnostics never change V4 scoring'}
     phase_started = time.monotonic()
     journal = save_scan('history', scan)
     ingest(db, scan)
     phase_seconds['history_save_ingest'] = round(time.monotonic() - phase_started, 6)
-    phase_started = time.monotonic()
-    evaluation = evaluate(db)
-    phase_seconds['full_history_evaluation'] = round(time.monotonic() - phase_started, 6)
+    evaluation = read_json('evaluation.json', {}) or {
+        'scan_count': 0, 'observation_count': 0, 'complete_buy_episodes': 0,
+        'status': 'NO_PUBLISHED_FULL_HISTORY_EVALUATION',
+    }
+    phase_seconds['full_history_evaluation'] = 0.0
     candles15 = {name: data['timeframes'].get('15m', {}).get('candles', [])
                  for name, data in universe.items()}
     phase_started = time.monotonic()
@@ -469,7 +474,6 @@ def run():
     data_quality_audit = build_data_quality_audit(observations, universe, scan_id, utc(baseline_ts))
     atomic_json('data_quality_audit.json', data_quality_audit)
     Path('data_quality_audit.md').write_text(data_quality_audit_text(data_quality_audit), encoding='utf-8')
-    atomic_json('evaluation.json', evaluation)
     atomic_json('proposed_orders.json', {'dry_run': True, 'orders': report['orders']})
     # Research pipeline exports the same pure Solaire acceleration candidates.
     # V4/research output cannot add, remove or veto production candidates.
@@ -499,7 +503,9 @@ def main():
     parser.add_argument('--evaluate-only', action='store_true')
     args = parser.parse_args()
     if args.evaluate_only:
-        atomic_json('evaluation.json', evaluate(rebuild('history', connect())))
+        full_evaluation = evaluate(rebuild('history', connect()))
+        full_evaluation['checked_at_utc'] = utc()
+        atomic_json('evaluation.json', full_evaluation)
         return 0
     try:
         return run()

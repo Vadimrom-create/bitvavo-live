@@ -1,0 +1,62 @@
+name: Solaire full-history evaluation
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '28 * * * *'
+
+permissions:
+  contents: write
+
+concurrency:
+  group: solaire-full-history-evaluation-v1
+  cancel-in-progress: false
+
+env:
+  PYTHONHASHSEED: '0'
+
+jobs:
+  evaluate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Rebuild complete history and update research evaluation
+        run: python pipeline.py --evaluate-only
+
+      - name: Persist full-history evaluation only
+        run: |
+          set -euo pipefail
+          git config user.name 'bitvavo-live-bot'
+          git config user.email 'actions@users.noreply.github.com'
+          git add evaluation.json
+
+          if git diff --cached --quiet; then
+            echo "No full-history evaluation change."
+            exit 0
+          fi
+
+          git commit -m 'Refresh full-history evaluation'
+
+          for attempt in 1 2 3 4 5 6; do
+            git fetch origin main
+            if ! git rebase origin/main; then
+              git rebase --abort || true
+              echo "Historical evaluation publication conflict." >&2
+              exit 1
+            fi
+            if git push origin HEAD:main; then
+              exit 0
+            fi
+            sleep $((attempt * 2))
+          done
+
+          echo "Historical evaluation publication retries exhausted." >&2
+          exit 1
