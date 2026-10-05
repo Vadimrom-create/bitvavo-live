@@ -122,6 +122,17 @@ class PublicClient:
     def diagnostics(self):
         """Return additive transport telemetry without changing request behavior."""
         with self.lock:
+            http_status_counts = {}
+            error_type_counts = {}
+            error_path_counts = {}
+            for row in self.errors:
+                status = row.get('http_status')
+                status_key = 'NONE' if status is None else str(status)
+                http_status_counts[status_key] = http_status_counts.get(status_key, 0) + 1
+                error_type = row.get('error') or 'UNKNOWN'
+                error_type_counts[error_type] = error_type_counts.get(error_type, 0) + 1
+                path = row.get('path') or 'UNKNOWN'
+                error_path_counts[path] = error_path_counts.get(path, 0) + 1
             return {
                 **self.metrics,
                 'pace_wait_seconds': round(self.metrics['pace_wait_seconds'], 6),
@@ -129,6 +140,9 @@ class PublicClient:
                 'retry_backoff_seconds': round(self.metrics['retry_backoff_seconds'], 6),
                 'record_count': len(self.records),
                 'error_attempt_count': len(self.errors),
+                'http_status_counts': dict(sorted(http_status_counts.items())),
+                'error_type_counts': dict(sorted(error_type_counts.items())),
+                'error_path_counts': dict(sorted(error_path_counts.items())),
             }
 
 
