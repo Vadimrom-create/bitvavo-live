@@ -7,6 +7,7 @@ strict start/end horizon coverage and no premature "complete" horizon.
 """
 from __future__ import annotations
 
+import hashlib
 import json
 import math
 import statistics
@@ -30,8 +31,11 @@ V2_DECISIONS = "production_decision_journal.json"
 V2_OUTCOMES = "solaire_v2_reference_outcomes.json"
 STATUS = "solaire_v3_evaluation_status.json"
 COMPARISON = "solaire_v3_comparison.json"
+RETRY_STATE = "solaire_v3_evaluation_retry_state.json"
 MAX_NEW_EVALUATIONS_PER_RUN = 40
-MAX_EVALUATION_ATTEMPTS_PER_RUN = 80
+INCOMPLETE_RETRY_BASE_SECONDS = 6 * 3600
+ERROR_RETRY_BASE_SECONDS = 30 * 60
+MAX_RETRY_SECONDS = 24 * 3600
 
 
 def paired_summary(events):
@@ -156,6 +160,61 @@ def _due(event: dict[str, Any], now: float) -> list[int]:
     ]
 
 
+def _retry_key(event: dict[str, Any], horizon: int) -> str:
+    identity = {
+        "architecture_version": event.get("architecture_version"),
+        "event_type": event.get("event_type"),
+        "market": event.get("market"),
+        "decision_ts": finite(event.get("decision_ts")),
+        "episode": event.get("episode"),
+        "cycle_id": event.get("cycle_id"),
+        "decision_id": event.get("decision_id"),
+        "source_decision_id": event.get("source_decision_id"),
+        "entry_eur": finite(event.get("entry_eur")),
+        "price_eur": finite(event.get("price_eur")),
+        "signal_price_eur": finite(event.get("signal_price_eur")),
+        "stop_eur": finite(event.get("stop_eur")),
+        "horizon": horizon,
+    }
+    raw = json.dumps(identity, sort_keys=True, separators=(",", ":"), ensure_ascii=False)
+    return hashlib.sha256(raw.encode("utf-8")).hexdigest()
+
+
+def _retry_ready(retry_state: dict[str, Any], event: dict[str, Any], horizon: int, now: float) -> bool:
+    entry = (retry_state.get("entries") or {}).get(_retry_key(event, horizon)) or {}
+    next_retry = finite(entry.get("next_retry_ts"))
+    return next_retry is None or now >= next_retry
+
+
+def _record_retry(
+    retry_state: dict[str, Any],
+    event: dict[str, Any],
+    horizon: int,
+    now: float,
+    status: str,
+) -> None:
+    entries = retry_state.setdefault("entries", {})
+    key = _retry_key(event, horizon)
+    previous = entries.get(key) or {}
+    attempts = int(previous.get("attempts") or 0) + 1
+    base = INCOMPLETE_RETRY_BASE_SECONDS if status == "INCOMPLETE_SOURCE" else ERROR_RETRY_BASE_SECONDS
+    delay = min(MAX_RETRY_SECONDS, base * (2 ** min(attempts - 1, 4)))
+    entries[key] = {
+        "market": event.get("market"),
+        "event_type": event.get("event_type"),
+        "decision_ts": finite(event.get("decision_ts")),
+        "horizon": horizon,
+        "last_status": status,
+        "attempts": attempts,
+        "last_attempt_ts": now,
+        "next_retry_ts": now + delay,
+    }
+
+
+def _clear_retry(retry_state: dict[str, Any], event: dict[str, Any], horizon: int) -> None:
+    (retry_state.get("entries") or {}).pop(_retry_key(event, horizon), None)
+
+
 def _summary(
     events: list[dict[str, Any]],
     event_type: str,
@@ -203,6 +262,7 @@ def _evaluate_event_collection(
     success_budget: int,
     errors: list[dict[str, Any]],
     telemetry: dict[str, Any],
+    retry_state: dict[str, Any],
 ) -> tuple[int, int]:
     completed = 0
     attempted = 0
@@ -221,6 +281,9 @@ def _evaluate_event_collection(
         for horizon in _due(event, now):
             if completed >= success_budget:
                 break
+            if not _retry_ready(retry_state, event, horizon, now):
+                telemetry["cooldown_skipped"] += 1
+                continue
             attempted += 1
             telemetry["logical_attempts"] += 1
             started = time.monotonic()
@@ -231,10 +294,12 @@ def _evaluate_event_collection(
                 telemetry["fetch_wall_seconds"] += time.monotonic() - started
                 if result is not None and result.get("complete_horizon"):
                     event.setdefault("evaluations", {})[str(horizon)] = result
+                    _clear_retry(retry_state, event, horizon)
                     completed += 1
                     telemetry["complete_results"] += 1
                 else:
                     telemetry["incomplete_results"] += 1
+                    _record_retry(retry_state, event, horizon, now, "INCOMPLETE_SOURCE")
                     market_counts = telemetry["incomplete_market_counts"]
                     market_counts[market] = market_counts.get(market, 0) + 1
                     horizon_counts = telemetry["incomplete_horizon_counts"]
@@ -248,6 +313,7 @@ def _evaluate_event_collection(
                         })
             except Exception as exc:
                 telemetry["fetch_wall_seconds"] += time.monotonic() - started
+                _record_retry(retry_state, event, horizon, now, "ERROR")
                 counts = telemetry["error_market_counts"]
                 counts[market] = counts.get(market, 0) + 1
                 errors.append({
@@ -511,6 +577,9 @@ def main() -> int:
     benchmark = read_json(V2_BENCHMARK, {}) or {}
     decisions = read_json(V2_DECISIONS, {}) or {}
     outcomes = read_json(V2_OUTCOMES, {}) or {}
+    retry_state = read_json(RETRY_STATE, {}) or {}
+    retry_state.setdefault("schema", "solaire_v3_evaluation_retry_state_v1")
+    retry_state.setdefault("entries", {})
     errors: list[dict[str, Any]] = []
 
     v3_start = finite(v3.get("started_ts"), now)
@@ -537,6 +606,7 @@ def main() -> int:
         "incomplete_horizon_counts": {},
         "incomplete_samples": [],
         "error_market_counts": {},
+        "cooldown_skipped": 0,
     }
     event_groups = [
         current_v3_events,
@@ -553,7 +623,7 @@ def main() -> int:
             if success_budget <= 0:
                 break
             added, attempted = _evaluate_event_collection(
-                client, events, now, success_budget, errors, telemetry
+                client, events, now, success_budget, errors, telemetry, retry_state
             )
             total_new += added
             total_attempted += attempted
@@ -640,6 +710,11 @@ def main() -> int:
         "unique_failed_markets": len(telemetry["error_market_counts"]),
         "repeated_failed_market_attempts": sum(max(0, n - 1) for n in telemetry["error_market_counts"].values()),
         "error_market_counts": dict(sorted(telemetry["error_market_counts"].items())),
+        "cooldown_skipped_horizons": telemetry["cooldown_skipped"],
+        "retry_state_entries": len(retry_state.get("entries") or {}),
+        "incomplete_retry_base_seconds": INCOMPLETE_RETRY_BASE_SECONDS,
+        "error_retry_base_seconds": ERROR_RETRY_BASE_SECONDS,
+        "max_retry_seconds": MAX_RETRY_SECONDS,
         "http_transport": client.diagnostics(),
         "script_wall_seconds": round(time.monotonic() - script_started, 6),
         "v3_events": len(v3.get("events", [])),
@@ -655,7 +730,9 @@ def main() -> int:
     atomic_json(V3_JOURNAL, v3)
     atomic_json(V2_BENCHMARK, benchmark)
     atomic_json(V2_OUTCOMES, outcomes)
+    retry_state["updated_at_utc"] = utc(now)
     atomic_json(COMPARISON, comparison)
+    atomic_json(RETRY_STATE, retry_state)
     atomic_json(STATUS, status)
     print("SOLAIRE_V3_EVALUATION " + json.dumps(status, ensure_ascii=False))
     return 0

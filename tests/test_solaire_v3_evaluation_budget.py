@@ -25,6 +25,7 @@ def _telemetry():
         "incomplete_horizon_counts": {},
         "incomplete_samples": [],
         "error_market_counts": {},
+        "cooldown_skipped": 0,
     }
 
 
@@ -38,7 +39,7 @@ class V3EvaluationBudgetTests(unittest.TestCase):
         with patch.object(evaluator, "_fetch_evaluation", side_effect=RuntimeError("source unavailable")) as fetch:
             completed, attempted = evaluator._evaluate_event_collection(
                 object(), events, now, success_budget=40,
-                errors=errors, telemetry=telemetry,
+                errors=errors, telemetry=telemetry, retry_state={"entries": {}},
             )
 
         self.assertEqual(completed, 0)
@@ -58,7 +59,7 @@ class V3EvaluationBudgetTests(unittest.TestCase):
         with patch.object(evaluator, "_fetch_evaluation", return_value={"complete_horizon": True}) as fetch:
             completed, attempted = evaluator._evaluate_event_collection(
                 object(), events, now, success_budget=2,
-                errors=errors, telemetry=telemetry,
+                errors=errors, telemetry=telemetry, retry_state={"entries": {}},
             )
 
         self.assertEqual(completed, 2)
@@ -75,7 +76,7 @@ class V3EvaluationBudgetTests(unittest.TestCase):
         with patch.object(evaluator, "_fetch_evaluation", return_value={"complete_horizon": False}):
             completed, attempted = evaluator._evaluate_event_collection(
                 object(), [event], now, success_budget=40,
-                errors=[], telemetry=telemetry,
+                errors=[], telemetry=telemetry, retry_state={"entries": {}},
             )
 
         self.assertEqual((completed, attempted), (0, 1))
@@ -86,6 +87,80 @@ class V3EvaluationBudgetTests(unittest.TestCase):
         self.assertEqual(telemetry["incomplete_samples"][0]["market"], "QUIET-EUR")
         self.assertEqual(len(evaluator._due(event, now)), 1)
 
+
+    def test_retry_key_distinguishes_same_market_time_with_different_price(self):
+        left = _event("SAME-EUR")
+        right = _event("SAME-EUR")
+        left["price_eur"] = 1.0
+        right["price_eur"] = 1.01
+        self.assertNotEqual(evaluator._retry_key(left, 4), evaluator._retry_key(right, 4))
+
+    def test_incomplete_horizon_is_cooled_down_but_remains_due(self):
+        now = 1_000_000.0 + 5 * 3600
+        event = _event("QUIET-EUR")
+        telemetry = _telemetry()
+        retry_state = {"entries": {}}
+
+        with patch.object(evaluator, "_fetch_evaluation", return_value={"complete_horizon": False}) as fetch:
+            completed, attempted = evaluator._evaluate_event_collection(
+                object(), [event], now, success_budget=40,
+                errors=[], telemetry=telemetry, retry_state=retry_state,
+            )
+            completed2, attempted2 = evaluator._evaluate_event_collection(
+                object(), [event], now + 60, success_budget=40,
+                errors=[], telemetry=telemetry, retry_state=retry_state,
+            )
+
+        self.assertEqual((completed, attempted), (0, 1))
+        self.assertEqual((completed2, attempted2), (0, 0))
+        self.assertEqual(fetch.call_count, 1)
+        self.assertEqual(telemetry["cooldown_skipped"], 1)
+        self.assertEqual(event["evaluations"], {})
+        self.assertEqual(len(evaluator._due(event, now + 60)), 1)
+        self.assertEqual(len(retry_state["entries"]), 1)
+
+    def test_incomplete_horizon_retries_after_cooldown_and_can_complete(self):
+        now = 1_000_000.0 + 5 * 3600
+        event = _event("QUIET-EUR")
+        telemetry = _telemetry()
+        retry_state = {"entries": {}}
+
+        with patch.object(
+            evaluator,
+            "_fetch_evaluation",
+            side_effect=[{"complete_horizon": False}, {"complete_horizon": True}],
+        ) as fetch:
+            evaluator._evaluate_event_collection(
+                object(), [event], now, success_budget=40,
+                errors=[], telemetry=telemetry, retry_state=retry_state,
+            )
+            completed, attempted = evaluator._evaluate_event_collection(
+                object(), [event], now + evaluator.INCOMPLETE_RETRY_BASE_SECONDS + 1,
+                success_budget=40, errors=[], telemetry=telemetry, retry_state=retry_state,
+            )
+
+        self.assertEqual((completed, attempted), (1, 1))
+        self.assertEqual(fetch.call_count, 2)
+        self.assertIn("4", event["evaluations"])
+        self.assertEqual(retry_state["entries"], {})
+
+    def test_error_uses_shorter_retry_without_blacklisting_market(self):
+        now = 1_000_000.0 + 5 * 3600
+        event = _event("FLAKY-EUR")
+        telemetry = _telemetry()
+        retry_state = {"entries": {}}
+
+        with patch.object(evaluator, "_fetch_evaluation", side_effect=RuntimeError("temporary")):
+            evaluator._evaluate_event_collection(
+                object(), [event], now, success_budget=40,
+                errors=[], telemetry=telemetry, retry_state=retry_state,
+            )
+
+        entry = next(iter(retry_state["entries"].values()))
+        self.assertEqual(entry["last_status"], "ERROR")
+        self.assertEqual(entry["next_retry_ts"] - now, evaluator.ERROR_RETRY_BASE_SECONDS)
+        self.assertEqual(event["evaluations"], {})
+        self.assertEqual(len(evaluator._due(event, now)), 1)
 
     def test_public_client_diagnostics_classify_transport_errors_without_changing_client_state(self):
         client = PublicClient()
