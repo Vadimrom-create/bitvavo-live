@@ -1,8 +1,8 @@
 # Bitvavo — V4 mesurée / infrastructure V5
 
-Scan UTC : 2026-10-05T10:47:35.903405+00:00
+Scan UTC : 2026-10-05T11:35:06.913857+00:00
 État : OK | marchés EUR : 426 | V4 : 356 | données valides : 426
-Récupération : 2026-10-05T10:46:30.016101+00:00 | âge ticker : 176.1 s | durée : 177.5 s
+Récupération : 2026-10-05T11:34:28.919968+00:00 | âge ticker : 151.5 s | durée : 152.5 s
 
 ## ACHÈTE — signal V4 et plan théorique
 
@@ -12,27 +12,27 @@ Les intervalles sans transaction sont représentés explicitement à volume 0 ; 
 
 ## SURVEILLE
 
-- SKY-EUR : 0.084493 € ; score 78.97/100 ; SURVEILLE ; seuil achat non atteint
-- HUMA-EUR : 0.031305 € ; score 78.67/100 ; SURVEILLE ; seuil achat non atteint
-- KSM-EUR : 4.6399 € ; score 77.67/100 ; SURVEILLE ; SELLER_HEAVY_BOOK
-- AKT-EUR : 0.69777 € ; score 77.64/100 ; SURVEILLE ; seuil achat non atteint
-- BAT-EUR : 0.09221 € ; score 77.10/100 ; SURVEILLE ; seuil achat non atteint
+- SKY-EUR : 0.087067 € ; score 82.14/100 ; SURVEILLE ; seuil achat non atteint
+- KAIA-EUR : 0.035658 € ; score 78.03/100 ; SURVEILLE ; seuil achat non atteint
+- MANA-EUR : 0.092336 € ; score 77.62/100 ; SURVEILLE ; seuil achat non atteint
+- ALICE-EUR : 0.16225 € ; score 77.01/100 ; SURVEILLE ; WICK_SETUP
+- SENT-EUR : 0.02095 € ; score 76.63/100 ; SURVEILLE ; WICK_SETUP
 
 ## Contrôle des hausses
 
 | Marché | Prix € | 24 h | Détection | Couche d’échec | Actionnabilité |
 |---|---:|---:|---|---|---|
-| GTC-EUR | 0.198 | +76.73 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
-| MOVR-EUR | 2.0633 | +26.25 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
-| SCR-EUR | 0.027959 | +25.91 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
-| RLC-EUR | 0.40055 | +24.87 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
-| CARV-EUR | 0.047089 | +17.38 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
-| ZEUS-EUR | 0.0023244 | +14.84 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
-| ADA-EUR | 0.24374 | +11.77 % | DETECTED_EARLY | NONE | INTERPRETATION |
-| PARTI-EUR | 0.027482 | +11.75 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
-| NIL-EUR | 0.086329 | +11.47 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
-| FET-EUR | 0.23169 | +11.35 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
+| GTC-EUR | 0.1925 | +75.70 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
+| RLC-EUR | 0.42063 | +30.42 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
+| SCR-EUR | 0.027811 | +25.50 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
+| MOVR-EUR | 1.9827 | +20.86 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
+| FLUID-EUR | 1.7761 | +17.04 % | NO_CONFIRMED_SHORT_TERM_EVENT | NOT_APPLICABLE | NOT_APPLICABLE |
+| CARV-EUR | 0.047031 | +17.02 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
+| ZEUS-EUR | 0.0022955 | +13.41 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
+| PARTI-EUR | 0.027705 | +12.54 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
+| FET-EUR | 0.23206 | +11.92 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
+| ADA-EUR | 0.24373 | +11.85 % | DETECTED_EARLY | NONE | INTERPRETATION |
 
-Historique : 2068 scans ; 884954 observations ; 1638 épisodes d’achat évaluables.
+Historique : 2069 scans ; 885380 observations ; 1639 épisodes d’achat évaluables.
 V5 optimisée : aucune. Supériorité sur V4 : non démontrée. Probabilités : non calibrées.
 Le cash et le portefeuille du plan sont hypothétiques. Aucun ordre réel n’est envoyé.
