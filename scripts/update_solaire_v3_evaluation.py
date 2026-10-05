@@ -31,6 +31,7 @@ V2_OUTCOMES = "solaire_v2_reference_outcomes.json"
 STATUS = "solaire_v3_evaluation_status.json"
 COMPARISON = "solaire_v3_comparison.json"
 MAX_NEW_EVALUATIONS_PER_RUN = 40
+MAX_EVALUATION_ATTEMPTS_PER_RUN = 80
 
 
 def paired_summary(events):
@@ -199,14 +200,17 @@ def _evaluate_event_collection(
     client: PublicClient,
     events: list[dict[str, Any]],
     now: float,
-    budget: int,
+    success_budget: int,
+    attempt_budget: int,
     errors: list[dict[str, Any]],
-) -> int:
+    telemetry: dict[str, Any],
+) -> tuple[int, int]:
     completed = 0
+    attempted = 0
     # Oldest due decisions first so long-horizon cohorts cannot be starved.
     ordered = sorted(events, key=lambda x: finite(x.get("decision_ts"), now))
     for event in ordered:
-        if completed >= budget:
+        if completed >= success_budget or attempted >= attempt_budget:
             break
         if event.get("evaluation_excluded"):
             continue
@@ -216,21 +220,43 @@ def _evaluate_event_collection(
         if baseline is None or decision_ts is None or not market:
             continue
         for horizon in _due(event, now):
-            if completed >= budget:
+            if completed >= success_budget or attempted >= attempt_budget:
                 break
+            attempted += 1
+            telemetry["logical_attempts"] += 1
+            started = time.monotonic()
             try:
                 result = _fetch_evaluation(
                     client, market, baseline, decision_ts, horizon, finite(event.get("stop_eur"))
                 )
+                telemetry["fetch_wall_seconds"] += time.monotonic() - started
                 if result is not None and result.get("complete_horizon"):
                     event.setdefault("evaluations", {})[str(horizon)] = result
                     completed += 1
+                    telemetry["complete_results"] += 1
+                else:
+                    telemetry["incomplete_results"] += 1
             except Exception as exc:
+                telemetry["fetch_wall_seconds"] += time.monotonic() - started
+                counts = telemetry["error_market_counts"]
+                counts[market] = counts.get(market, 0) + 1
                 errors.append({
                     "market": market, "event_type": event.get("event_type"),
                     "horizon": horizon, "reason": type(exc).__name__ + ":" + str(exc),
                 })
-    return completed
+    return completed, attempted
+
+
+def _due_horizon_count(event_groups: list[list[dict[str, Any]]], now: float) -> int:
+    total = 0
+    for events in event_groups:
+        for event in events:
+            if event.get("evaluation_excluded"):
+                continue
+            if _baseline_for_event(event) is None or finite(event.get("decision_ts")) is None or not event.get("market"):
+                continue
+            total += len(_due(event, now))
+    return total
 
 
 def _v2_buy_reference(decisions: dict[str, Any], outcomes: dict[str, Any], v3_start: float) -> list[dict[str, Any]]:
@@ -469,6 +495,7 @@ def _opportunity_recovery_summary(events: list[dict[str, Any]], now: float) -> d
     }
 
 def main() -> int:
+    script_started = time.monotonic()
     now = time.time()
     v3 = read_json(V3_JOURNAL, {}) or {}
     benchmark = read_json(V2_BENCHMARK, {}) or {}
@@ -490,25 +517,40 @@ def main() -> int:
     client = PublicClient(timeout=10, retries=2, requests_per_second=8)
     critical = None
     total_new = 0
+    total_attempted = 0
+    telemetry: dict[str, Any] = {
+        "logical_attempts": 0,
+        "fetch_wall_seconds": 0.0,
+        "complete_results": 0,
+        "incomplete_results": 0,
+        "error_market_counts": {},
+    }
+    event_groups = [
+        current_v3_events,
+        legacy_v3_events,
+        benchmark.get("events", []),
+        v2_buy_events,
+    ]
+    due_before = _due_horizon_count(event_groups, now)
+    evaluation_started = time.monotonic()
     try:
         client.get("/time", cache=False)
-        budget = MAX_NEW_EVALUATIONS_PER_RUN
-        added = _evaluate_event_collection(client, current_v3_events, now, budget, errors)
-        total_new += added
-        budget -= added
-        if budget > 0:
-            added = _evaluate_event_collection(client, legacy_v3_events, now, budget, errors)
+        success_budget = MAX_NEW_EVALUATIONS_PER_RUN
+        attempt_budget = MAX_EVALUATION_ATTEMPTS_PER_RUN
+        for events in event_groups:
+            if success_budget <= 0 or attempt_budget <= 0:
+                break
+            added, attempted = _evaluate_event_collection(
+                client, events, now, success_budget, attempt_budget, errors, telemetry
+            )
             total_new += added
-            budget -= added
-        if budget > 0:
-            added = _evaluate_event_collection(client, benchmark.get("events", []), now, budget, errors)
-            total_new += added
-            budget -= added
-        if budget > 0:
-            added = _evaluate_event_collection(client, v2_buy_events, now, budget, errors)
-            total_new += added
+            total_attempted += attempted
+            success_budget -= added
+            attempt_budget -= attempted
     except Exception as exc:
         critical = type(exc).__name__ + ":" + str(exc)
+    evaluation_wall_seconds = time.monotonic() - evaluation_started
+    due_after = _due_horizon_count(event_groups, now)
 
     v3["updated_at_utc"] = utc(now)
     benchmark["updated_at_utc"] = utc(now)
@@ -570,6 +612,20 @@ def main() -> int:
         "frozen_v2_commit": FROZEN_V2_COMMIT,
         "new_complete_evaluations": total_new,
         "evaluation_budget_per_run": MAX_NEW_EVALUATIONS_PER_RUN,
+        "evaluation_attempt_budget_per_run": MAX_EVALUATION_ATTEMPTS_PER_RUN,
+        "logical_evaluation_attempts": total_attempted,
+        "attempt_budget_exhausted": total_attempted >= MAX_EVALUATION_ATTEMPTS_PER_RUN and due_after > 0,
+        "due_horizons_before": due_before,
+        "due_horizons_after": due_after,
+        "evaluation_wall_seconds": round(evaluation_wall_seconds, 6),
+        "evaluation_fetch_wall_seconds": round(telemetry["fetch_wall_seconds"], 6),
+        "complete_fetch_results": telemetry["complete_results"],
+        "incomplete_fetch_results": telemetry["incomplete_results"],
+        "unique_failed_markets": len(telemetry["error_market_counts"]),
+        "repeated_failed_market_attempts": sum(max(0, n - 1) for n in telemetry["error_market_counts"].values()),
+        "error_market_counts": dict(sorted(telemetry["error_market_counts"].items())),
+        "http_transport": client.diagnostics(),
+        "script_wall_seconds": round(time.monotonic() - script_started, 6),
         "v3_events": len(v3.get("events", [])),
         "v2_benchmark_events": len(benchmark.get("events", [])),
         "v2_buy_reference_events": len(v2_buy_events),

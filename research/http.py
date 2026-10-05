@@ -24,6 +24,16 @@ class PublicClient:
         self.cache = {}
         self.errors = []
         self.server_offset = 0.0
+        # Additive transport telemetry only: these counters never alter pacing,
+        # retry, caching or error semantics.
+        self.metrics = {
+            'request_attempts': 0,
+            'successful_responses': 0,
+            'pace_wait_seconds': 0.0,
+            'rate_limit_wait_seconds': 0.0,
+            'retry_backoff_seconds': 0.0,
+            'rate_limit_resets_seen': 0,
+        }
 
     @staticmethod
     def key(path, params):
@@ -32,9 +42,13 @@ class PublicClient:
     def pace(self):
         with self.lock:
             now = time.monotonic()
-            scheduled = max(now, self.next_request, self.pause_until)
+            normal_schedule = max(now, self.next_request)
+            scheduled = max(normal_schedule, self.pause_until)
             self.next_request = scheduled + self.spacing
-        delay = scheduled - now
+            delay = max(0.0, scheduled - now)
+            rate_limit_delay = max(0.0, scheduled - normal_schedule)
+            self.metrics['pace_wait_seconds'] += delay
+            self.metrics['rate_limit_wait_seconds'] += rate_limit_delay
         if delay > 0:
             time.sleep(delay)
 
@@ -49,6 +63,8 @@ class PublicClient:
             return copy.deepcopy(cached['data'])
         for attempt in range(retries or self.retries):
             self.pace()
+            with self.lock:
+                self.metrics['request_attempts'] += 1
             started = time.time()
             try:
                 req = urllib.request.Request('https://api.bitvavo.com/v2' + key,
@@ -65,6 +81,7 @@ class PublicClient:
                     wait = max(0, float(reset) / 1000 - received + 1)
                     with self.lock:
                         self.pause_until = max(self.pause_until, time.monotonic() + wait)
+                        self.metrics['rate_limit_resets_seen'] += 1
                 record = {'path': path, 'params': params or {}, 'request_started_at_utc': utc(started),
                           'retrieved_at_utc': utc(received), 'server_http_date': headers.get('Date'), 'data': data}
                 if path == '/time':
@@ -72,6 +89,7 @@ class PublicClient:
                 with self.lock:
                     self.records.append(record)
                     self.cache[key] = record
+                    self.metrics['successful_responses'] += 1
                 return copy.deepcopy(data)
             except (urllib.error.URLError, TimeoutError, ValueError) as exc:
                 code = getattr(exc, 'code', None)
@@ -92,11 +110,26 @@ class PublicClient:
                 elif code is not None and 400 <= code < 500:
                     break
                 if attempt + 1 < (retries or self.retries):
-                    time.sleep(min(8, 2 ** attempt))
+                    backoff = min(8, 2 ** attempt)
+                    with self.lock:
+                        self.metrics['retry_backoff_seconds'] += backoff
+                    time.sleep(backoff)
         raise RuntimeError('public_api_failed:' + path)
 
     def metadata(self, path, params=None):
         return self.cache.get(self.key(path, params), {})
+
+    def diagnostics(self):
+        """Return additive transport telemetry without changing request behavior."""
+        with self.lock:
+            return {
+                **self.metrics,
+                'pace_wait_seconds': round(self.metrics['pace_wait_seconds'], 6),
+                'rate_limit_wait_seconds': round(self.metrics['rate_limit_wait_seconds'], 6),
+                'retry_backoff_seconds': round(self.metrics['retry_backoff_seconds'], 6),
+                'record_count': len(self.records),
+                'error_attempt_count': len(self.errors),
+            }
 
 
 class ReplayClient:
