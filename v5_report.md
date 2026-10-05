@@ -1,8 +1,8 @@
 # Bitvavo — V4 mesurée / infrastructure V5
 
-Scan UTC : 2026-10-05T12:43:18.014383+00:00
+Scan UTC : 2026-10-05T12:55:20.827920+00:00
 État : OK | marchés EUR : 427 | V4 : 362 | données valides : 426
-Récupération : 2026-10-05T12:42:40.920979+00:00 | âge ticker : 164.7 s | durée : 165.6 s
+Récupération : 2026-10-05T12:54:19.378062+00:00 | âge ticker : 178.0 s | durée : 180.0 s
 
 ## ACHÈTE — signal V4 et plan théorique
 
@@ -10,34 +10,36 @@ Bougies utilisables : 5 min 426/427 ; 15 min 426/427.
 Les intervalles sans transaction sont représentés explicitement à volume 0 ; aucune transaction n’est inventée.
 
 Achats bruts V4 bloqués avant alerte :
-- ICP-EUR : INSUFFICIENT_NET_RISK_REWARD
-- PENDLE-EUR : 2.2986 € | IGNITION | score 75.00/100 | entrée 5.95/10
-  Entrée 2.2981 € ; stop 2.2002 € ; TP1 2.4938 € ; TP2 2.5917 € ; montant 242.66 € ; risque théorique 12.00 € ; R/R net 1.57.
-  Chase risk : 4.516/10 (diagnostic non calibré). Probabilités +10/+20/+30/+40 % : indisponibles.
+- ICP-EUR : STABILITY_HOLD, INSUFFICIENT_NET_RISK_REWARD
+- ORCA-EUR : INSUFFICIENT_NET_RISK_REWARD
+- PENDLE-EUR : SELLER_HEAVY_BOOK, STABILITY_HOLD, INSUFFICIENT_NET_RISK_REWARD
+- QNT-EUR : 234.301 € | IGNITION | score 89.71/100 | entrée 7.50/10
+  Entrée 234.526 € ; stop 222.41 € ; TP1 258.758 € ; TP2 270.874 € ; montant 205.20 € ; risque théorique 12.00 € ; R/R net 1.64.
+  Chase risk : 1.731/10 (diagnostic non calibré). Probabilités +10/+20/+30/+40 % : indisponibles.
 
 ## SURVEILLE
 
-- RSR-EUR : 0.0016318 € ; score 90.33/100 ; SURVEILLE ; seuil achat non atteint
-- KAIA-EUR : 0.036091 € ; score 90.03/100 ; SURVEILLE ; seuil achat non atteint
-- COMP-EUR : 22.156 € ; score 89.38/100 ; SURVEILLE ; LOW_LIQUIDITY
-- ENS-EUR : 6.1672 € ; score 85.79/100 ; SURVEILLE ; seuil achat non atteint
-- DRV-EUR : 0.36312 € ; score 84.50/100 ; SURVEILLE ; LOW_LIQUIDITY
+- BAT-EUR : 0.09224 € ; score 93.17/100 ; SURVEILLE ; WICK_SETUP
+- ORCA-EUR : 1.778 € ; score 90.77/100 ; SURVEILLE ; INSUFFICIENT_NET_RISK_REWARD
+- SYRUP-EUR : 0.22643 € ; score 89.39/100 ; SURVEILLE ; seuil achat non atteint
+- YGG-EUR : 0.025403 € ; score 89.10/100 ; SURVEILLE ; SELLER_HEAVY_BOOK
+- PEPE-EUR : 3.9891e-06 € ; score 87.85/100 ; SURVEILLE ; WICK_SETUP
 
 ## Contrôle des hausses
 
 | Marché | Prix € | 24 h | Détection | Couche d’échec | Actionnabilité |
 |---|---:|---:|---|---|---|
-| GTC-EUR | 0.196433 | +78.25 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
-| RLC-EUR | 0.49302 | +52.66 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
-| PNT-EUR | 0.065466 | +32.81 % | NO_CONFIRMED_SHORT_TERM_EVENT | NOT_APPLICABLE | NOT_APPLICABLE |
-| FLUID-EUR | 1.9418 | +26.27 % | DETECTED_EARLY | NONE | INTERPRETATION |
-| UMA-EUR | 0.43045 | +19.64 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
-| SCR-EUR | 0.026088 | +16.27 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
-| CARV-EUR | 0.046003 | +14.47 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
-| PARTI-EUR | 0.027457 | +11.43 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
-| ADA-EUR | 0.24242 | +11.21 % | DETECTED_EARLY | NONE | INTERPRETATION |
-| ZEUS-EUR | 0.0022539 | +10.80 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
+| GTC-EUR | 0.203139 | +78.78 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
+| PNT-EUR | 0.080588 | +63.48 % | NO_CONFIRMED_SHORT_TERM_EVENT | NOT_APPLICABLE | NOT_APPLICABLE |
+| RLC-EUR | 0.50003 | +54.83 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
+| FLUID-EUR | 1.98 | +28.76 % | DETECTED_EARLY | NONE | INTERPRETATION |
+| SCR-EUR | 0.02695 | +19.80 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
+| CARV-EUR | 0.046183 | +14.91 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
+| MOVR-EUR | 1.8254 | +12.39 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
+| UMA-EUR | 0.40136 | +11.55 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
+| PARTI-EUR | 0.027474 | +11.50 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
+| ADA-EUR | 0.24279 | +11.44 % | DETECTED_EARLY | NONE | INTERPRETATION |
 
-Historique : 2072 scans ; 886660 observations ; 1639 épisodes d’achat évaluables.
+Historique : 2073 scans ; 887087 observations ; 1639 épisodes d’achat évaluables.
 V5 optimisée : aucune. Supériorité sur V4 : non démontrée. Probabilités : non calibrées.
 Le cash et le portefeuille du plan sont hypothétiques. Aucun ordre réel n’est envoyé.
