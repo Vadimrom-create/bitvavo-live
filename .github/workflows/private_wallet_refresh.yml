@@ -1,0 +1,121 @@
+name: Solaire private wallet heartbeat
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'scripts/send_useful_alert.py'
+      - '.github/workflows/private_wallet_refresh.yml'
+  # Cold-start fallback only. Normal cadence is self-chained through
+  # workflow_dispatch, so missed GitHub schedule events cannot stale WALLET.
+  schedule:
+    - cron: '9 * * * *'
+
+permissions:
+  contents: read
+  actions: write
+
+concurrency:
+  group: bitvavo-private-wallet-heartbeat-v1
+  cancel-in-progress: false
+
+env:
+  PYTHONHASHSEED: '0'
+
+jobs:
+  refresh-private-wallet:
+    runs-on: ubuntu-latest
+    timeout-minutes: 9
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Record cycle start
+        run: echo "WALLET_CYCLE_STARTED=$(date +%s)" >> "$GITHUB_ENV"
+
+      - name: Install monitoring dependencies
+        run: python -m pip install -r requirements-monitoring.txt
+
+      - name: Build read-only private wallet summary
+        env:
+          BITVAVO_READ_API_KEY: ${{ secrets.BITVAVO_READ_API_KEY }}
+          BITVAVO_READ_API_SECRET: ${{ secrets.BITVAVO_READ_API_SECRET }}
+          POSITION_STATE_KEY: ${{ secrets.POSITION_STATE_KEY }}
+          WALLET_SUMMARY_ONLY: 'true'
+          ALLOW_BUY_ALERTS: 'false'
+        run: python scripts/send_useful_alert.py
+
+      - name: Verify private wallet artifact
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          path = Path('wallet_private_summary.json')
+          if not path.exists():
+              raise SystemExit('wallet_private_summary.json missing')
+
+          payload = json.loads(path.read_text())
+          required = {'generated_at_utc', 'cash_eur', 'positions_value_eur', 'wallet_value_eur', 'positions'}
+          missing = sorted(required - payload.keys())
+          if missing:
+              raise SystemExit(f'missing wallet fields: {missing}')
+          if not isinstance(payload['positions'], list):
+              raise SystemExit('positions must be a list')
+          print(
+              'PRIVATE_WALLET_OK',
+              payload['generated_at_utc'],
+              payload['wallet_value_eur'],
+              [row.get('market') for row in payload['positions']],
+          )
+          PY
+
+      - name: Upload private wallet summary
+        uses: actions/upload-artifact@v4
+        with:
+          name: private-wallet-summary-${{ github.run_id }}-${{ github.run_attempt }}
+          retention-days: 1
+          if-no-files-found: error
+          path: wallet_private_summary.json
+
+      - name: Preserve five-minute cadence
+        run: |
+          set -euo pipefail
+          elapsed=$(( $(date +%s) - WALLET_CYCLE_STARTED ))
+          sleep_for=$(( 300 - elapsed ))
+          if [ "${sleep_for}" -gt 0 ]; then
+            echo "Sleeping ${sleep_for}s before handoff."
+            sleep "${sleep_for}"
+          else
+            echo "Wallet refresh exceeded five minutes; handing off immediately."
+          fi
+
+      - name: Hand off to next private wallet refresh
+        if: success()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+
+          active=0
+          for status in queued in_progress; do
+            count="$(
+              gh api                 -H 'Accept: application/vnd.github+json'                 -H 'X-GitHub-Api-Version: 2022-11-28'                 "/repos/${GITHUB_REPOSITORY}/actions/workflows/private_wallet_refresh.yml/runs?status=${status}&per_page=50"                 --jq "[.workflow_runs[] | select(.id != ${GITHUB_RUN_ID})] | length"
+            )"
+            active=$((active + count))
+          done
+
+          if [ "${active}" -gt 0 ]; then
+            echo "Another private wallet refresh is already queued/in progress; no duplicate handoff."
+            exit 0
+          fi
+
+          gh api             --method POST             -H 'Accept: application/vnd.github+json'             -H 'X-GitHub-Api-Version: 2022-11-28'             "/repos/${GITHUB_REPOSITORY}/actions/workflows/private_wallet_refresh.yml/dispatches"             -f ref=main
+
+          echo "Next private wallet refresh dispatched."
