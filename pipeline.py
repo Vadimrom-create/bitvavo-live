@@ -407,7 +407,9 @@ def run():
               'duration_seconds': finish - start, 'api_error_count': len(client.errors),
               'api_errors': client.errors, 'exchange_clock_offset_seconds': client.server_offset,
               'trend_cache_guard': trend_guard,
-              'ignored_markets': [{'market': m['market'], 'reason': m.get('status')} for m in markets_raw if m.get('quote') == 'EUR' and m.get('status') != 'trading']}
+              'ignored_markets': [{'market': m['market'], 'reason': m.get('status')} for m in markets_raw if m.get('quote') == 'EUR' and m.get('status') != 'trading'],
+              'live_history_window_hours': LIVE_HISTORY_WINDOW_SECONDS / 3600,
+              'full_history_evaluation_mode': 'ASYNC_SNAPSHOT'}
     if health['ticker_age_seconds'] > 300 or not markets or len(captured['rows']) < .5 * len(markets):
         health['status'] = 'DEGRADED'
         for obs in buys:
@@ -418,7 +420,7 @@ def run():
             'policy': POLICY, 'operational_policy': OPERATIONAL_POLICY,
             'source_commit': os.getenv('GITHUB_SHA'), 'source': 'live',
             'observations': observations, 'candles_5m': new_candles(db, candles5),
-            'candle_storage': 'FIRST_SEEN_DELTA_REBUILD_ALL_JOURNALS',
+            'candle_storage': 'FIRST_SEEN_DELTA_RECENT_LIVE_WINDOW_FULL_HISTORY_ASYNC',
             'health': health, 'baseline_input_policy': 'legacy includes forming candles; closed diagnostics never change V4 scoring'}
     phase_started = time.monotonic()
     journal = save_scan('history', scan)
@@ -501,7 +503,9 @@ def main():
     parser.add_argument('--evaluate-only', action='store_true')
     args = parser.parse_args()
     if args.evaluate_only:
-        atomic_json('evaluation.json', evaluate(rebuild('history', connect())))
+        full_evaluation = evaluate(rebuild('history', connect()))
+        full_evaluation['checked_at_utc'] = utc()
+        atomic_json('evaluation.json', full_evaluation)
         return 0
     try:
         return run()
