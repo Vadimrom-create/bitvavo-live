@@ -34,6 +34,16 @@ def test_freshness_observer_never_takes_heartbeat_lock():
     assert "stale:" in block
 
 
+def test_freshness_observer_sparse_checkout_only_reads_status_file():
+    block = _job_block(_text(WATCHDOG), "production-freshness")
+    assert "sparse-checkout:" in block
+    assert "production_scan_status.json" in block
+    assert "sparse-checkout-cone-mode: false" in block
+    assert "scripts/" not in block.split("Observe production scan freshness", 1)[0]
+    assert "history/" not in block
+    assert "decision_history/" not in block
+
+
 def test_only_stale_rescue_enters_heartbeat_publisher_lock():
     block = _job_block(_text(WATCHDOG), "rescue-if-stale")
     assert "needs: production-freshness" in block
