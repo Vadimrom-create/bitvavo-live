@@ -68,6 +68,37 @@ def test_heartbeat_keeps_same_single_publisher_lock():
     assert "cancel-in-progress: false" in text
 
 
+def test_heartbeat_primary_cadence_self_chains_without_cron():
+    text = _text(HEARTBEAT)
+    assert "workflow_dispatch:" in text
+    assert "actions: write" in text
+    assert "Hand off to next heartbeat run" in text
+    assert "/actions/workflows/production_scan_fast.yml/dispatches" in text
+    assert "-f ref=main" in text
+    assert "Another heartbeat is already queued/in progress" in text
+    # Cron remains only as a coarse cold-start fallback, not the 5-minute driver.
+    assert "cron: '4 * * * *'" in text
+    assert "4,19,34,49" not in text
+
+
+def test_watchdog_restarts_failed_heartbeat_outside_schedule_domain():
+    text = _text(WATCHDOG)
+    assert "workflow_run:" in text
+    assert "'Solaire direct Bitvavo scan heartbeat'" in text
+    block = _job_block(text, "restart-heartbeat-chain")
+    assert "github.event_name == 'workflow_run'" in block
+    assert "github.event.workflow_run.conclusion != 'success'" in block
+    assert "actions: write" in block
+    assert "/actions/workflows/production_scan_fast.yml/dispatches" in block
+    assert "Heartbeat already queued/in progress" in block
+
+
+def test_watchdog_stale_observation_can_restart_chain():
+    block = _job_block(_text(WATCHDOG), "restart-heartbeat-chain")
+    assert "needs: production-freshness" in block
+    assert "needs.production-freshness.outputs.stale == 'true'" in block
+
+
 def test_watchdog_keeps_prospective_anti_recursion_barrier():
     block = _job_block(_text(WATCHDOG), "prospective-wakeup")
     assert "github.event_name == 'schedule'" in block
