@@ -131,6 +131,20 @@ def register_episode(
     if event_id in registry["episodes"]:
         return registry
 
+    # The heartbeat and the heavier measurement workflow may observe the same
+    # production veto at different wall-clock times. Deduplicate on the stable
+    # production episode/decision identity so they cannot create parallel
+    # BLOCKED_BUT_ALIVE records for one rejection episode.
+    source_episode_id = event.get("source_episode_id")
+    source_decision_id = event.get("source_decision_id")
+    for existing in registry["episodes"].values():
+        if existing.get("market") != market:
+            continue
+        if source_episode_id and existing.get("source_episode_id") == source_episode_id:
+            return registry
+        if source_decision_id and existing.get("source_decision_id") == source_decision_id:
+            return registry
+
     rejected_ts = finite(event.get("rejected_ts"), now)
     record = {
         "event_id": event_id,
