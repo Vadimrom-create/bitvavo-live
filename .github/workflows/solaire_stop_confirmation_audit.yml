@@ -17,7 +17,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          fetch-depth: 0
+          fetch-depth: 1
 
       - uses: actions/setup-python@v5
         with:
@@ -33,7 +33,7 @@ jobs:
           git config user.name github-actions
           git config user.email github-actions@github.com
           for attempt in 1 2 3 4 5 6; do
-            git fetch origin main
+            git fetch --depth=1 origin main
             git reset --hard origin/main
             cp /tmp/result.json research/stop_confirmation_audit_20261006.json
             cp /tmp/result.md research/stop_confirmation_audit_20261006.md
