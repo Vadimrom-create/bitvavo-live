@@ -29,7 +29,11 @@ class NonRegressionTests(unittest.TestCase):
             if name=='body':continue
             self.assertEqual(functions[name],body,name)
         constants={n.targets[0].id:ast.dump(n.value,include_attributes=False) for n in mod.body if isinstance(n,ast.Assign) and isinstance(n.targets[0],ast.Name)}
-        self.assertEqual(constants,f['constants'])
+        # Protect every frozen execution constant, while allowing unrelated
+        # constants added by later production features.
+        for name,value in f['constants'].items():
+            self.assertIn(name,constants,name)
+            self.assertEqual(constants[name],value,name)
     def test_observer_disk_failure_changes_neither_email_nor_buy_plan(self):
         class Client:
             server_offset=0
