@@ -343,10 +343,20 @@ def _catalyst_signal(
         cues.append("explicit_time")
 
     _, direction, categories = _classify(text, age_seconds, 1.0)
-    # Teasing can be meaningful without naming the exact product. For roadmap
-    # only, require a material product/category cue to avoid generic corporate
-    # copy becoming a permanent prewatch.
+    event_words = (
+        "announcement", "annonce", "launch", "lancement", "release",
+        "mainnet", "testnet", "listing", "cotation", "upgrade", "mise a jour",
+        "stablecoin", "product", "produit", "partnership", "partenariat",
+        "integration", "tokenomics", "buyback", "rachat", "burn", "airdrop",
+        "vote", "proposal", "proposition",
+    )
+    has_event_word = any(_plain(term) in normalized for term in event_words)
+    # Generic calendar/social chatter ("community call tomorrow") is not a
+    # tradable catalyst. Levels 2/3 require either a material category or an
+    # explicit event/announcement word. Roadmap requires a material category.
     if level == 1 and not categories:
+        return None
+    if level >= 2 and not categories and not has_event_word:
         return None
 
     base_score = {1: 4.8, 2: 6.8, 3: 8.4}[level]
@@ -686,24 +696,7 @@ def collect_news_context(
                 continue
             source_kind = item.get("source_kind") or source_kinds.get(item.get("source"), "media")
             source_weight = float(item.get("source_weight") or weights.get(item.get("source"), 0.9))
-            if age <= NEWS_LOOKBACK_SECONDS:
-                score, direction, groups = _classify(raw_text, age, source_weight)
-                matches.append(
-                    {
-                        "news_id": item["id"],
-                        "source": item["source"],
-                        "source_kind": source_kind,
-                        "title": item["title"],
-                        "url": item.get("url"),
-                        "published_at_utc": item.get("published_at_utc"),
-                        "timestamp_semantics": item.get("timestamp_semantics", "PUBLISHED_AT"),
-                        "age_minutes": round(age / 60.0, 1),
-                        "score": score,
-                        "direction": direction,
-                        "categories": groups,
-                        "official_direct_match": direct,
-                    }
-                )
+            catalyst = None
             if source_kind == "official_project" and age <= CATALYST_LOOKBACK_SECONDS:
                 catalyst = _catalyst_signal(
                     raw_text,
@@ -727,6 +720,28 @@ def collect_news_context(
                             **catalyst,
                         }
                     )
+            # A future-looking official announcement is PREWATCH, not realised
+            # NEWS. Once the project publishes the actual launch/update without
+            # future timing language it naturally moves into NEWS_WATCH.
+            is_future_prewatch = bool(catalyst and catalyst.get("prewatch_trigger"))
+            if age <= NEWS_LOOKBACK_SECONDS and not is_future_prewatch:
+                score, direction, groups = _classify(raw_text, age, source_weight)
+                matches.append(
+                    {
+                        "news_id": item["id"],
+                        "source": item["source"],
+                        "source_kind": source_kind,
+                        "title": item["title"],
+                        "url": item.get("url"),
+                        "published_at_utc": item.get("published_at_utc"),
+                        "timestamp_semantics": item.get("timestamp_semantics", "PUBLISHED_AT"),
+                        "age_minutes": round(age / 60.0, 1),
+                        "score": score,
+                        "direction": direction,
+                        "categories": groups,
+                        "official_direct_match": direct,
+                    }
+                )
         if not matches and not catalyst_matches:
             continue
         matches.sort(
