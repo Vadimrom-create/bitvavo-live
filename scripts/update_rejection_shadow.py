@@ -653,7 +653,10 @@ def main():
         "errors":errors,
         "affects_detection":False,"affects_buy_gate":False,"affects_email":False,
     }
-    atomic_json(STATE,state); atomic_json(JOURNAL,journal); atomic_json(REGISTRY,registry); atomic_json(STATUS,status)
+    # The five-minute heartbeat is the sole persistent writer of the recovery
+    # registry. The heavy shadow may simulate registry transitions for its own
+    # status summary, but must not overwrite the fresher heartbeat-owned file.
+    atomic_json(STATE,state); atomic_json(JOURNAL,journal); atomic_json(STATUS,status)
     print("SOLAIRE_REJECTION_SHADOW "+json.dumps(status,ensure_ascii=False))
     return 0
 
