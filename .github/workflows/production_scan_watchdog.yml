@@ -27,6 +27,7 @@ permissions:
 env:
   PYTHONHASHSEED: '0'
   MAX_SCAN_AGE_SECONDS: '720'
+  MAX_RECOVERY_REGISTRY_AGE_SECONDS: '900'
 
 jobs:
   # Read-only prospective observer. It never participates in the production
@@ -65,12 +66,16 @@ jobs:
       stale: ${{ steps.freshness.outputs.stale }}
       age_seconds: ${{ steps.freshness.outputs.age_seconds }}
       reason: ${{ steps.freshness.outputs.reason }}
+      registry_stale: ${{ steps.freshness.outputs.registry_stale }}
+      registry_age_seconds: ${{ steps.freshness.outputs.registry_age_seconds }}
+      registry_reason: ${{ steps.freshness.outputs.registry_reason }}
     steps:
       - uses: actions/checkout@v4
         with:
           ref: main
           sparse-checkout: |
             production_scan_status.json
+            production_recovery_registry_status.json
           sparse-checkout-cone-mode: false
 
       - name: Observe production scan freshness
@@ -83,29 +88,40 @@ jobs:
           import os
           from datetime import datetime, timezone
 
-          path = "production_scan_status.json"
-          max_age = int(os.environ["MAX_SCAN_AGE_SECONDS"])
-          stale = True
-          reason = "MISSING_STATUS"
-          age = -1
+          def freshness(path, max_age):
+              stale = True
+              reason = "MISSING_STATUS"
+              age = -1
+              try:
+                  with open(path, "r", encoding="utf-8") as fh:
+                      status = json.load(fh)
+                  stamp = status.get("checked_at_utc") or status.get("signal_at_utc")
+                  if not stamp:
+                      reason = "MISSING_TIMESTAMP"
+                  else:
+                      dt = datetime.fromisoformat(stamp.replace("Z", "+00:00"))
+                      age = max(0, int((datetime.now(timezone.utc) - dt).total_seconds()))
+                      stale = age > max_age
+                      reason = "STALE" if stale else "FRESH"
+              except Exception as exc:
+                  reason = f"STATUS_READ_ERROR_{type(exc).__name__}"
+              return stale, age, reason
 
-          try:
-              with open(path, "r", encoding="utf-8") as fh:
-                  status = json.load(fh)
-              stamp = status.get("checked_at_utc") or status.get("signal_at_utc")
-              if not stamp:
-                  reason = "MISSING_TIMESTAMP"
-              else:
-                  dt = datetime.fromisoformat(stamp.replace("Z", "+00:00"))
-                  age = max(0, int((datetime.now(timezone.utc) - dt).total_seconds()))
-                  stale = age > max_age
-                  reason = "STALE" if stale else "FRESH"
-          except Exception as exc:
-              reason = f"STATUS_READ_ERROR_{type(exc).__name__}"
+          stale, age, reason = freshness(
+              "production_scan_status.json",
+              int(os.environ["MAX_SCAN_AGE_SECONDS"]),
+          )
+          registry_stale, registry_age, registry_reason = freshness(
+              "production_recovery_registry_status.json",
+              int(os.environ["MAX_RECOVERY_REGISTRY_AGE_SECONDS"]),
+          )
 
           print(f"stale={'true' if stale else 'false'}")
           print(f"age_seconds={age}")
           print(f"reason={reason}")
+          print(f"registry_stale={'true' if registry_stale else 'false'}")
+          print(f"registry_age_seconds={registry_age}")
+          print(f"registry_reason={registry_reason}")
           PY
 
       - name: Report freshness observation
@@ -113,6 +129,9 @@ jobs:
           echo "Watchdog decision: ${{ steps.freshness.outputs.reason }}"
           echo "Last production scan age: ${{ steps.freshness.outputs.age_seconds }}s"
           echo "Rescue threshold: ${MAX_SCAN_AGE_SECONDS}s"
+          echo "Recovery registry decision: ${{ steps.freshness.outputs.registry_reason }}"
+          echo "Recovery registry age: ${{ steps.freshness.outputs.registry_age_seconds }}s"
+          echo "Recovery registry threshold: ${MAX_RECOVERY_REGISTRY_AGE_SECONDS}s"
 
   # Restart the cadence chain if the last heartbeat itself failed, or whenever
   # any watchdog wake-up proves the scan is stale. This dispatch uses the
@@ -124,6 +143,7 @@ jobs:
       always() &&
       (
         needs.production-freshness.outputs.stale == 'true' ||
+        needs.production-freshness.outputs.registry_stale == 'true' ||
         (
           github.event_name == 'workflow_run' &&
           github.event.workflow_run.name == 'Solaire direct Bitvavo scan heartbeat' &&
