@@ -147,7 +147,10 @@ def run() -> dict:
         ],
         key=lambda m: m["market"],
     )
-    news_context = collect_news_context(markets, signal_ts)
+    asset_rows = client.get("/assets")
+    if not isinstance(asset_rows, list):
+        asset_rows = []
+    news_context = collect_news_context(markets, signal_ts, asset_rows)
     atomic_json(NEWS_CONTEXT, news_context)
 
     ticker_rows = client.get("/ticker/24h")
@@ -243,6 +246,10 @@ def run() -> dict:
         "news_watch_markets": [r["market"] for r in (payload.get("news_watch") or [])[:20]],
         "news_sources_ok": sum(1 for row in (news_context.get("sources") or []) if row.get("ok")),
         "news_sources_total": len(news_context.get("sources") or []),
+        "official_source_registry": (news_context.get("official_sources") or {}).get("registry_coverage", {}),
+        "official_pages_registered": (news_context.get("official_sources") or {}).get("registered_official_pages", 0),
+        "official_pages_polled": (news_context.get("official_sources") or {}).get("polled_official_pages", 0),
+        "official_x_handles_registered": (news_context.get("official_sources") or {}).get("registered_x_handles", 0),
         "alert_candidates": len(payload["watch"]),
         "candidate_markets": [r["market"] for r in payload["watch"][:20]],
         "universe_snapshot_rows": len(universe_snapshot["rows"]),
