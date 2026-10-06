@@ -270,7 +270,7 @@ def _market_match(raw_text: str, normalized: str, base: str, project_name: str |
         alias_plain = _plain(alias)
         if len(alias_plain) < 4 or alias_plain == base.lower():
             continue
-        if alias_plain in normalized:
+        if re.search(rf"(?<![a-z0-9]){re.escape(alias_plain)}(?![a-z0-9])", normalized):
             return True
     return False
 
