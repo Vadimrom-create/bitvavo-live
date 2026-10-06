@@ -377,6 +377,7 @@ def _catalyst_signal(
         "timing_cues": sorted(set(cues)),
         "categories": categories,
         "prewatch_trigger": level >= 2 and score >= CATALYST_PREWATCH_MIN,
+        "speculative_review": level == 3 and direction == "POSITIVE",
     }
 
 
