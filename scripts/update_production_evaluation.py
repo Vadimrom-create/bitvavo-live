@@ -18,6 +18,7 @@ from research.production_journal import due_horizons, evaluate_bars, record_cycl
 PAYLOAD = "production_alert_candidates.json"
 ALERT_STATUS = "production_alert_status.json"
 JOURNAL = "production_decision_journal.json"
+DIRECT_JOURNAL = "production_direct_decision_journal.json"
 STATUS = "production_evaluation_status.json"
 
 
@@ -26,6 +27,39 @@ def main() -> int:
     payload = read_json(PAYLOAD, {})
     alert_status = read_json(ALERT_STATUS, {})
     journal = record_cycle(payload, alert_status, read_json(JOURNAL, {}))
+
+    # The fast heartbeat owns direct email delivery and writes a dedicated
+    # decision journal. Merge those causal records here, in the hourly
+    # measurement path, so the canonical prospective journal eventually
+    # contains every delivered BUY without making the five-minute heartbeat
+    # run horizon evaluation or contend on this large file.
+    direct = read_json(DIRECT_JOURNAL, {})
+    existing = {
+        (
+            str(e.get("cycle_id") or ""),
+            str(e.get("market") or ""),
+            str(e.get("decision_type") or ""),
+            str(e.get("reason") or ""),
+        )
+        for e in journal.get("entries", [])
+        if isinstance(e, dict)
+    }
+    merged_direct = 0
+    for entry in direct.get("entries", []) or []:
+        if not isinstance(entry, dict):
+            continue
+        key = (
+            str(entry.get("cycle_id") or ""),
+            str(entry.get("market") or ""),
+            str(entry.get("decision_type") or ""),
+            str(entry.get("reason") or ""),
+        )
+        if key in existing:
+            continue
+        journal.setdefault("entries", []).append(dict(entry))
+        existing.add(key)
+        merged_direct += 1
+    journal["entries"] = journal.get("entries", [])[-4000:]
 
     due = {}
     for idx, entry in enumerate(journal.get("entries", [])):
@@ -38,6 +72,8 @@ def main() -> int:
         "status": "OK",
         "blocking": False,
         "recorded_entries": len(journal.get("entries", [])),
+        "direct_journal_entries_merged": merged_direct,
+        "direct_journal_available": Path(DIRECT_JOURNAL).exists(),
         "due_entries": len(due),
         "evaluated_horizons": 0,
         "errors": [],
