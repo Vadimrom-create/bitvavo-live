@@ -780,6 +780,7 @@ def collect_news_context(
                     "score": top_catalyst["score"],
                     "direction": top_catalyst["direction"],
                     "prewatch_trigger": top_catalyst["prewatch_trigger"],
+                    "speculative_review": top_catalyst.get("speculative_review", False),
                     "weight_in_composite": CATALYST_WEIGHT,
                     "top": top_catalyst,
                     "items": catalyst_matches[:8],
