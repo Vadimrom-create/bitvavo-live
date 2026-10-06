@@ -25,12 +25,14 @@ from research.common import atomic_json, finite, freshness, read_json, utc
 from research.features import closed_candles, describe
 from research.http import PublicClient
 from research.production_alerts import mark_sent, mark_suppressed, select_events
+from research.production_journal import record_cycle
 from research.risk import structural_plan
 from research.execution_observability import capture_validation
 
 INPUT = "production_alert_candidates.json"
 STATE = "production_alert_state.json"
 STATUS = "production_alert_status.json"
+DIRECT_DECISION_JOURNAL = "production_direct_decision_journal.json"
 MIN_QUOTE_VOLUME_EUR = 75_000.0
 MAX_SPREAD = 0.005
 MAX_STOP_DISTANCE_PCT = 10.0
@@ -464,6 +466,18 @@ def main() -> int:
         stake_eur=primary_delivery.get("stake_eur"),
         market_context=primary_delivery.get("market_context") or {},
     )
+    # Persist the exact delivered direct BUY into a dedicated causal journal.
+    # This is local-only measurement state: it cannot alter detection, gating,
+    # email selection or execution. The hourly shadow consumes this journal so
+    # direct-heartbeat BUYs are no longer invisible to exit-policy studies.
+    direct_journal = record_cycle(
+        payload,
+        status,
+        read_json(DIRECT_DECISION_JOURNAL, {}),
+    )
+    direct_journal["updated_at_utc"] = utc(sent_at)
+    atomic_json(DIRECT_DECISION_JOURNAL, direct_journal)
+
     atomic_json(STATUS, status)
     print("SOLAIRE_ALERT " + json.dumps(status))
     return 0
