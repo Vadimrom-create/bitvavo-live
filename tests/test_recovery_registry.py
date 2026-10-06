@@ -156,30 +156,33 @@ def test_prior_thesis_block_prevents_shadow_candidate():
     assert record["proposal_count"] == 0
 
 
-def test_production_workflow_persists_recovery_registry():
+def test_heartbeat_is_sole_persistent_recovery_registry_writer():
     from pathlib import Path
 
-    x = Path(".github/workflows/production_scan.yml").read_text()
-    assert "'research/recovery_registry.py'" in x
-    assert "production_recovery_registry_shadow.json" in x
-    assert "python scripts/update_rejection_shadow.py" in x
+    fast = Path(".github/workflows/production_scan_fast.yml").read_text()
+    heavy = Path(".github/workflows/production_scan.yml").read_text()
+    rejection = Path("scripts/update_rejection_shadow.py").read_text()
+
+    assert "python scripts/update_recovery_registry_heartbeat.py" in fast
+    assert "production_recovery_registry_shadow.json" in fast
+    assert "production_recovery_registry_status.json" in fast
+    assert "production_recovery_registry_shadow.json" not in heavy
+    assert "atomic_json(REGISTRY,registry)" not in rejection
 
 
-def test_recovery_shadow_runs_before_heavy_v3_steps_and_is_persisted_immediately():
+def test_recovery_registry_heartbeat_exposes_freshness_and_frozen_invariants():
     from pathlib import Path
 
-    x = Path(".github/workflows/production_scan.yml").read_text()
-    rejection = x.index("run: python scripts/update_rejection_shadow.py")
-    persist = x.index("- name: Persist alert and recovery state immediately")
-    evaluation = x.index("run: python scripts/update_production_evaluation.py")
-    assert rejection < persist < evaluation
-    # Heavy V3 collection now has its own workflow; keep it off this path.
-    assert "run: python scripts/solaire_v3_shadow.py" not in x
-    assert "scripts/solaire_v3_shadow.py" in Path(".github/workflows/solaire_prospective_shadows.yml").read_text()
-    assert x.count("run: python scripts/update_rejection_shadow.py") == 1
-    assert "Persist alert and recovery state immediately" in x
-    assert "git commit -m 'Persist alert and recovery shadow state'" in x
-    assert "production_recovery_registry_shadow.json" in x
+    x = Path("scripts/update_recovery_registry_heartbeat.py").read_text()
+    assert "FRESHNESS_LIMIT_SECONDS = 15 * 60" in x
+    assert '"previous_registry_was_stale"' in x
+    assert '"policy_drift_detected_before_normalization"' in x
+    assert '"policy_frozen"' in x
+    assert '"invariant_flags_ok"' in x
+    assert '"affects_detection": False' in x
+    assert '"affects_buy_gate": False' in x
+    assert '"affects_email": False' in x
+    assert '"affects_orders": False' in x
 
 
 def test_incomplete_forward_evaluations_are_retried_and_stale_health_is_exposed():
@@ -222,3 +225,18 @@ def test_delisted_market_horizons_are_censored_not_reported_as_api_failures():
     assert '"censored_market_inactive_evaluations"' in x
     assert "if market not in metadata:" in x
     assert '"UNLISTED_OR_REMOVED"' in x
+
+
+def test_registry_deduplicates_same_production_episode_identity():
+    event1 = _event()
+    event1["source_episode_id"] = "episode_same"
+    event1["source_decision_id"] = "decision_one"
+    registry = register_episode(new_registry(), event1, _row(), 1001.0)
+
+    event2 = dict(event1)
+    event2["event_id"] = "ABC-EUR|1005"
+    event2["source_decision_id"] = "decision_two"
+    registry = register_episode(registry, event2, _row(), 1005.0)
+
+    assert len(registry["episodes"]) == 1
+    assert "ABC-EUR|1000" in registry["episodes"]
