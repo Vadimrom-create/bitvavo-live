@@ -7,6 +7,7 @@ on:
     paths:
       - 'scripts/production_scan.py'
       - 'scripts/send_production_buy_alert.py'
+      - 'scripts/send_catalyst_prewatch_alert.py'
       - 'research/production_gate.py'
       - 'research/production_acceleration.py'
       - 'research/production_alerts.py'
@@ -62,6 +63,7 @@ jobs:
             fi
 
             python scripts/production_scan.py
+            python scripts/send_catalyst_prewatch_alert.py
             python scripts/send_production_buy_alert.py
             python scripts/update_recovery_registry_heartbeat.py
 
@@ -75,6 +77,8 @@ jobs:
               production_official_news_state.json \
               production_alert_state.json \
               production_alert_status.json \
+              production_catalyst_alert_state.json \
+              production_catalyst_alert_status.json \
               production_direct_decision_journal.json \
               production_recovery_registry_shadow.json \
               production_recovery_registry_status.json; do

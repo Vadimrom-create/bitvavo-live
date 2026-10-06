@@ -37,8 +37,8 @@ def main() -> int:
     if not isinstance(assets,list):
         raise RuntimeError("BITVAVO_ASSETS_INVALID")
     registry=ensure_universe_entries(load_registry(),markets,assets)
-    raw=os.getenv("OFFICIAL_SOURCE_MAX_DETAILS","").strip()
-    max_details=None if not raw else int(raw)
+    raw=os.getenv("OFFICIAL_SOURCE_MAX_DETAILS","40").strip()
+    max_details=40 if not raw else int(raw)
     registry=discover_official_links(registry,max_details=max_details)
     save_registry(registry)
     coverage=registry.get("coverage") or {}

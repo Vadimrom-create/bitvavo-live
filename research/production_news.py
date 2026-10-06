@@ -27,8 +27,11 @@ from typing import Any
 from urllib.request import Request, urlopen
 
 NEWS_LOOKBACK_SECONDS = 18 * 3600
+CATALYST_LOOKBACK_SECONDS = 7 * 24 * 3600
 NEWS_WATCH_MIN = 6.5
+CATALYST_PREWATCH_MIN = 6.5
 NEWS_WEIGHT = 0.35
+CATALYST_WEIGHT = 0.20
 MAX_ITEMS_PER_SOURCE = 80
 FETCH_TIMEOUT_SECONDS = 5
 OFFICIAL_POLL_LIMIT = 160
@@ -92,6 +95,26 @@ NEGATIVE_GROUPS = (
     ("SHUTDOWN", ("shutdown", "wind-down", "fermeture", "cessation")),
     ("REGULATORY_NEGATIVE", ("lawsuit", "proces", "ban", "interdiction", "sanction")),
     ("SOLVENCY", ("insolven", "bankrupt", "faillite", "default", "defaut")),
+)
+
+CATALYST_LEVEL_3 = (
+    "tomorrow", "demain", "later today", "ce soir", "cet apres-midi",
+    "in a few hours", "dans quelques heures", "in 1 hour", "in 2 hours",
+    "in 3 hours", "in 4 hours", "countdown", "goes live today",
+    "launching today", "launching tomorrow", "announcement tomorrow",
+    "annonce demain", "lancement demain",
+)
+CATALYST_LEVEL_2 = (
+    "coming soon", "bientot", "this week", "cette semaine", "next week",
+    "la semaine prochaine", "stay tuned", "restez connectes", "upcoming",
+    "will announce", "will launch", "we are launching", "prepare for",
+    "save the date", "vote ends", "voting ends", "proposal ends",
+    "mainnet soon", "testnet soon", "launch soon", "announcement soon",
+)
+CATALYST_LEVEL_1 = (
+    "roadmap", "planned", "we plan to", "will support", "future support",
+    "next phase", "coming months", "prochains mois", "a venir",
+    "native stablecoin support", "future integration",
 )
 
 
@@ -212,10 +235,11 @@ def _load_official_state() -> dict[str, Any]:
             data.setdefault("sources", {})
             data.setdefault("x_last_checked", {})
             data.setdefault("x_seen", {})
+            data.setdefault("recent_items", {})
             return data
     except Exception:
         pass
-    return {"schema": "solaire_official_news_state_v1", "sources": {}, "x_last_checked": {}, "x_seen": {}}
+    return {"schema": "solaire_official_news_state_v2", "sources": {}, "x_last_checked": {}, "x_seen": {}, "recent_items": {}}
 
 
 def _save_official_state(state: dict[str, Any]) -> None:
@@ -234,7 +258,10 @@ def _asset_names(asset_rows: list[dict[str, Any]] | None) -> dict[str, str]:
 
 
 def _market_match(raw_text: str, normalized: str, base: str, project_name: str | None = None) -> bool:
-    if re.search(rf"(?<![A-Z0-9]){re.escape(base)}(?![A-Z0-9])", raw_text):
+    # Very short tickers (C, S, OP, etc.) collide constantly with ordinary
+    # language. They may match only through a project name/alias or an explicit
+    # official direct-market attribution.
+    if len(base) >= 3 and re.search(rf"(?<![A-Z0-9]){re.escape(base)}(?![A-Z0-9])", raw_text):
         return True
     aliases = list(ALIASES.get(base, ()))
     if project_name:
@@ -243,7 +270,7 @@ def _market_match(raw_text: str, normalized: str, base: str, project_name: str |
         alias_plain = _plain(alias)
         if len(alias_plain) < 4 or alias_plain == base.lower():
             continue
-        if alias_plain in normalized:
+        if re.search(rf"(?<![a-z0-9]){re.escape(alias_plain)}(?![a-z0-9])", normalized):
             return True
     return False
 
@@ -277,12 +304,94 @@ def _classify(text: str, age_seconds: float, source_weight: float) -> tuple[floa
     return round(max(0.0, min(10.0, score)), 3), direction, sorted(set(groups))
 
 
+def _catalyst_signal(
+    text: str,
+    age_seconds: float,
+    source_weight: float,
+    *,
+    official_direct: bool,
+) -> dict[str, Any] | None:
+    normalized = " " + _plain(text) + " "
+    level = 0
+    label = None
+    cues: list[str] = []
+
+    def matched(terms: tuple[str, ...]) -> list[str]:
+        return [term for term in terms if _plain(term) in normalized]
+
+    l3 = matched(CATALYST_LEVEL_3)
+    l2 = matched(CATALYST_LEVEL_2)
+    l1 = matched(CATALYST_LEVEL_1)
+    # Explicit clock/date language raises an already future-looking item to
+    # imminent. It cannot create a catalyst by itself.
+    explicit_time = bool(
+        re.search(r"\b(?:[01]?\d|2[0-3])[:h][0-5]\d\b", normalized)
+        or re.search(r"\b(?:utc|cet|cest)\b", normalized)
+        or re.search(r"\b(?:monday|tuesday|wednesday|thursday|friday|saturday|sunday|lundi|mardi|mercredi|jeudi|vendredi|samedi|dimanche)\b", normalized)
+    )
+
+    if l3:
+        level, label, cues = 3, "IMMINENT", l3
+    elif l2:
+        level, label, cues = 2, "UPCOMING", l2
+    elif l1:
+        level, label, cues = 1, "ROADMAP", l1
+    else:
+        return None
+    if explicit_time and level >= 2:
+        level, label = 3, "IMMINENT"
+        cues.append("explicit_time")
+
+    _, direction, categories = _classify(text, age_seconds, 1.0)
+    event_words = (
+        "announcement", "annonce", "launch", "lancement", "release",
+        "mainnet", "testnet", "listing", "cotation", "upgrade", "mise a jour",
+        "stablecoin", "product", "produit", "partnership", "partenariat",
+        "integration", "tokenomics", "buyback", "rachat", "burn", "airdrop",
+        "vote", "proposal", "proposition",
+    )
+    has_event_word = any(_plain(term) in normalized for term in event_words)
+    # Generic calendar/social chatter ("community call tomorrow") is not a
+    # tradable catalyst. Levels 2/3 require either a material category or an
+    # explicit event/announcement word. Roadmap requires a material category.
+    if level == 1 and not categories:
+        return None
+    if level >= 2 and not categories and not has_event_word:
+        return None
+
+    base_score = {1: 4.8, 2: 6.8, 3: 8.4}[level]
+    score = base_score
+    score += 0.45 if official_direct else 0.20
+    score += min(0.6, 0.2 * len(categories))
+    if age_seconds > 72 * 3600:
+        score -= 0.8
+    elif age_seconds > 24 * 3600:
+        score -= 0.35
+    score *= min(1.30, max(0.8, source_weight))
+
+    return {
+        "level": level,
+        "label": label,
+        "score": round(max(0.0, min(10.0, score)), 3),
+        "direction": direction if direction != "NEUTRAL" else "UNKNOWN",
+        "timing_cues": sorted(set(cues)),
+        "categories": categories,
+        "prewatch_trigger": level >= 2 and score >= CATALYST_PREWATCH_MIN,
+        "speculative_review": level == 3 and direction == "POSITIVE",
+    }
+
+
 def _official_sources(registry: dict[str, Any]) -> list[dict[str, Any]]:
     rows = []
     for market, entry in (registry.get("markets") or {}).items():
         if not isinstance(entry, dict) or not entry.get("active_on_bitvavo", True):
             continue
         urls = []
+        # Always keep one canonical project homepage in the rotation. Some
+        # directory "forum" links are merely social profiles and should not
+        # displace the project's own site.
+        for url in (entry.get("homepage") or [])[:1]:
+            urls.append((url, "OFFICIAL_HOMEPAGE"))
         for key, kind in (
             ("announcement_urls", "OFFICIAL_ANNOUNCEMENTS"),
             ("official_forum_urls", "OFFICIAL_GOVERNANCE"),
@@ -290,9 +399,6 @@ def _official_sources(registry: dict[str, Any]) -> list[dict[str, Any]]:
         ):
             for url in entry.get(key) or []:
                 urls.append((url, kind))
-        if not urls:
-            for url in (entry.get("homepage") or [])[:1]:
-                urls.append((url, "OFFICIAL_HOMEPAGE"))
         for url, kind in urls:
             if str(url).startswith(("https://", "http://")):
                 rows.append({"market": market, "url": str(url), "kind": kind})
@@ -331,7 +437,7 @@ def _poll_official_page(source: dict[str, Any], prior: dict[str, Any], now_ts: f
                 if published_ts is None:
                     continue
                 age = now_ts - published_ts
-                if -300 <= age <= NEWS_LOOKBACK_SECONDS:
+                if -300 <= age <= CATALYST_LOOKBACK_SECONDS:
                     row["direct_markets"] = [market]
                     row["source_kind"] = "official_project"
                     row["source_weight"] = 1.25
@@ -490,7 +596,25 @@ def _collect_official_items(registry: dict[str, Any], now_ts: float) -> tuple[li
     x_items, x_status = _collect_x_items(registry, state, now_ts)
     items.extend(x_items)
     statuses.extend(x_status)
+
+    # Official sources are event-driven. Persist recently observed official
+    # items so a teaser/news item remains visible across later 5-minute cycles
+    # instead of disappearing immediately after its first observation.
+    stored = dict(state.get("recent_items") or {})
+    for item in items:
+        item_id = str(item.get("id") or "")
+        published_ts = item.get("published_ts")
+        if item_id and published_ts is not None:
+            stored[item_id] = item
+    stored = {
+        item_id: item
+        for item_id, item in stored.items()
+        if item.get("published_ts") is not None
+        and -300 <= now_ts - float(item.get("published_ts")) <= CATALYST_LOOKBACK_SECONDS
+    }
+    state["recent_items"] = stored
     _save_official_state(state)
+    items = list(stored.values())
     diagnostics = {
         "registered_official_pages": len(sources),
         "polled_official_pages": len(selected),
@@ -540,7 +664,12 @@ def collect_news_context(
         if published_ts is None:
             continue
         age = now_ts - published_ts
-        if age < -300 or age > NEWS_LOOKBACK_SECONDS:
+        max_age = (
+            CATALYST_LOOKBACK_SECONDS
+            if item.get("source_kind") == "official_project"
+            else NEWS_LOOKBACK_SECONDS
+        )
+        if age < -300 or age > max_age:
             continue
         active.append((item, max(0.0, age)))
 
@@ -559,31 +688,62 @@ def collect_news_context(
             continue
         project_name = asset_names.get(base) or registry_names.get(base)
         matches = []
+        catalyst_matches = []
         for item, age in active:
             raw_text = f"{item.get('title','')} {item.get('description','')}"
             normalized = _plain(raw_text)
             direct = market in (item.get("direct_markets") or [])
             if not direct and not _market_match(raw_text, normalized, base, project_name):
                 continue
+            source_kind = item.get("source_kind") or source_kinds.get(item.get("source"), "media")
             source_weight = float(item.get("source_weight") or weights.get(item.get("source"), 0.9))
-            score, direction, groups = _classify(raw_text, age, source_weight)
-            matches.append(
-                {
-                    "news_id": item["id"],
-                    "source": item["source"],
-                    "source_kind": item.get("source_kind") or source_kinds.get(item.get("source"), "media"),
-                    "title": item["title"],
-                    "url": item.get("url"),
-                    "published_at_utc": item.get("published_at_utc"),
-                    "timestamp_semantics": item.get("timestamp_semantics", "PUBLISHED_AT"),
-                    "age_minutes": round(age / 60.0, 1),
-                    "score": score,
-                    "direction": direction,
-                    "categories": groups,
-                    "official_direct_match": direct,
-                }
-            )
-        if not matches:
+            catalyst = None
+            if source_kind == "official_project" and age <= CATALYST_LOOKBACK_SECONDS:
+                catalyst = _catalyst_signal(
+                    raw_text,
+                    age,
+                    source_weight,
+                    official_direct=direct,
+                )
+                if catalyst:
+                    catalyst_matches.append(
+                        {
+                            "catalyst_id": item["id"],
+                            "source": item["source"],
+                            "source_kind": source_kind,
+                            "source_role": "PROJECT" if direct else "PARTNER",
+                            "title": item["title"],
+                            "url": item.get("url"),
+                            "published_at_utc": item.get("published_at_utc"),
+                            "timestamp_semantics": item.get("timestamp_semantics", "PUBLISHED_AT"),
+                            "age_minutes": round(age / 60.0, 1),
+                            "official_direct_match": direct,
+                            **catalyst,
+                        }
+                    )
+            # A future-looking official announcement is PREWATCH, not realised
+            # NEWS. Once the project publishes the actual launch/update without
+            # future timing language it naturally moves into NEWS_WATCH.
+            is_future_prewatch = bool(catalyst and catalyst.get("prewatch_trigger"))
+            if age <= NEWS_LOOKBACK_SECONDS and not is_future_prewatch:
+                score, direction, groups = _classify(raw_text, age, source_weight)
+                matches.append(
+                    {
+                        "news_id": item["id"],
+                        "source": item["source"],
+                        "source_kind": source_kind,
+                        "title": item["title"],
+                        "url": item.get("url"),
+                        "published_at_utc": item.get("published_at_utc"),
+                        "timestamp_semantics": item.get("timestamp_semantics", "PUBLISHED_AT"),
+                        "age_minutes": round(age / 60.0, 1),
+                        "score": score,
+                        "direction": direction,
+                        "categories": groups,
+                        "official_direct_match": direct,
+                    }
+                )
+        if not matches and not catalyst_matches:
             continue
         matches.sort(
             key=lambda row: (
@@ -594,23 +754,51 @@ def collect_news_context(
             ),
             reverse=True,
         )
-        top = matches[0]
+        top = matches[0] if matches else None
+        catalyst_matches.sort(
+            key=lambda row: (
+                row.get("level", 0),
+                row.get("score", 0),
+                row.get("official_direct_match", False),
+                -row.get("age_minutes", 0),
+            ),
+            reverse=True,
+        )
+        top_catalyst = catalyst_matches[0] if catalyst_matches else None
         by_market[market] = {
-            "score": top["score"],
-            "direction": top["direction"],
-            "watch_trigger": top["direction"] != "NEUTRAL" and top["score"] >= NEWS_WATCH_MIN,
+            "score": top["score"] if top else 0.0,
+            "direction": top["direction"] if top else "NEUTRAL",
+            "watch_trigger": bool(top) and top["direction"] != "NEUTRAL" and top["score"] >= NEWS_WATCH_MIN,
             "weight_in_composite": NEWS_WEIGHT,
             "top": top,
             "items": matches[:8],
             "official_items": sum(row.get("source_kind") == "official_project" for row in matches),
+            "catalyst": (
+                {
+                    "level": top_catalyst["level"],
+                    "label": top_catalyst["label"],
+                    "score": top_catalyst["score"],
+                    "direction": top_catalyst["direction"],
+                    "prewatch_trigger": top_catalyst["prewatch_trigger"],
+                    "speculative_review": top_catalyst.get("speculative_review", False),
+                    "weight_in_composite": CATALYST_WEIGHT,
+                    "top": top_catalyst,
+                    "items": catalyst_matches[:8],
+                }
+                if top_catalyst
+                else {}
+            ),
         }
 
     return {
-        "schema": "solaire_production_news_v2_official_first",
+        "schema": "solaire_production_news_v3_catalyst_prewatch",
         "generated_at_utc": datetime.fromtimestamp(now_ts, timezone.utc).isoformat(),
         "lookback_hours": NEWS_LOOKBACK_SECONDS / 3600,
         "news_weight": NEWS_WEIGHT,
         "news_watch_min": NEWS_WATCH_MIN,
+        "catalyst_lookback_hours": CATALYST_LOOKBACK_SECONDS / 3600,
+        "catalyst_prewatch_min": CATALYST_PREWATCH_MIN,
+        "catalyst_weight": CATALYST_WEIGHT,
         "source_priority": ["OFFICIAL_PROJECT", "OFFICIAL_PARTNER", "MEDIA_FALLBACK"],
         "official_sources": official_diag,
         "sources": sorted(source_status, key=lambda row: str(row.get("source"))),
@@ -630,10 +818,24 @@ def composite_score(quant_score: Any, news: dict[str, Any] | None) -> float:
     except (TypeError, ValueError):
         news_score = 0.0
     direction = news.get("direction")
+    catalyst = news.get("catalyst") or {}
+    try:
+        catalyst_score = max(0.0, min(10.0, float(catalyst.get("score", 0.0))))
+    except (TypeError, ValueError):
+        catalyst_score = 0.0
+    catalyst_direction = catalyst.get("direction")
+
+    # A realised/material NEWS item has priority. A PREWATCH catalyst contributes
+    # less (20%) and only while no material directional NEWS is already doing so,
+    # preventing the same official post from being double-counted.
     if direction == "POSITIVE":
         result = quant + NEWS_WEIGHT * max(0.0, news_score - quant)
     elif direction == "NEGATIVE":
         result = quant * (1.0 - NEWS_WEIGHT * news_score / 10.0)
+    elif catalyst_direction == "POSITIVE":
+        result = quant + CATALYST_WEIGHT * max(0.0, catalyst_score - quant)
+    elif catalyst_direction == "NEGATIVE":
+        result = quant * (1.0 - CATALYST_WEIGHT * catalyst_score / 10.0)
     else:
         result = quant
     return round(max(0.0, min(10.0, result)), 3)
