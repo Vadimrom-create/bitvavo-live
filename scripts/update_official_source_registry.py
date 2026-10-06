@@ -2,8 +2,10 @@
 """Build/refresh official source links for the active Bitvavo EUR universe."""
 from __future__ import annotations
 
+import json
 import os
 import sys
+import urllib.request
 from pathlib import Path
 
 ROOT=Path(__file__).resolve().parents[1]
@@ -26,7 +28,12 @@ def main() -> int:
         row for row in client.get("/markets")
         if row.get("quote")=="EUR" and row.get("status")=="trading"
     ]
-    assets=client.get("/assets")
+    req=urllib.request.Request(
+        "https://api.bitvavo.com/v2/assets",
+        headers={"Accept":"application/json","User-Agent":"SolaireOfficialSources/1.0"},
+    )
+    with urllib.request.urlopen(req,timeout=15) as response:
+        assets=json.loads(response.read().decode("utf-8"))
     if not isinstance(assets,list):
         raise RuntimeError("BITVAVO_ASSETS_INVALID")
     registry=ensure_universe_entries(load_registry(),markets,assets)
