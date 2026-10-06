@@ -166,10 +166,11 @@ def _stop_summary(rows,h):
     }
 
 def _row_key(r):
+    # Market + decision timestamp is stable across canonical/direct journal
+    # representations; alert_id may be absent on older retained rows.
     return "|".join([
         str(r.get("market") or ""),
         str(round(finite(r.get("decision_ts"),0),3)),
-        str(r.get("alert_id") or ""),
     ])
 
 def _summary(rows,policy,h):
