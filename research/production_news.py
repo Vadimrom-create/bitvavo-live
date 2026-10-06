@@ -33,7 +33,7 @@ MAX_ITEMS_PER_SOURCE = 80
 FETCH_TIMEOUT_SECONDS = 5
 OFFICIAL_POLL_LIMIT = 160
 OFFICIAL_WORKERS = 32
-X_HANDLES_PER_CYCLE = 80
+X_HANDLES_PER_CYCLE = 500
 X_HANDLES_PER_QUERY = 20
 
 REGISTRY_PATH = Path("official_source_registry.json")
@@ -573,6 +573,7 @@ def collect_news_context(
             continue
         matches.sort(
             key=lambda row: (
+                row.get("direction") != "NEUTRAL",
                 row.get("source_kind") == "official_project",
                 row["score"],
                 -row["age_minutes"],
@@ -583,7 +584,7 @@ def collect_news_context(
         by_market[market] = {
             "score": top["score"],
             "direction": top["direction"],
-            "watch_trigger": top["score"] >= NEWS_WATCH_MIN,
+            "watch_trigger": top["direction"] != "NEUTRAL" and top["score"] >= NEWS_WATCH_MIN,
             "weight_in_composite": NEWS_WEIGHT,
             "top": top,
             "items": matches[:8],
