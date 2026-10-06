@@ -11,6 +11,7 @@ on:
       - 'research/production_acceleration.py'
       - 'research/production_alerts.py'
       - 'research/production_context.py'
+      - 'research/production_news.py'
       - 'research/recovery_registry.py'
       - 'scripts/update_recovery_registry_heartbeat.py'
       - '.github/workflows/production_scan_fast.yml'
@@ -69,6 +70,7 @@ jobs:
               production_alert_candidates.json \
               production_scan_status.json \
               production_universe_snapshot.json \
+              production_news_context.json \
               production_alert_state.json \
               production_alert_status.json \
               production_recovery_registry_shadow.json \
