@@ -26,10 +26,12 @@ from research.http import PublicClient
 from research.production_acceleration import acceleration_signal
 from research.production_context import build_market_context, candidate_context
 from research.production_gate import build_alert_payload
+from research.production_news import collect_news_context
 
 CANDIDATES = "production_alert_candidates.json"
 STATUS = "production_scan_status.json"
 UNIVERSE_SNAPSHOT = "production_universe_snapshot.json"
+NEWS_CONTEXT = "production_news_context.json"
 INTERVALS = ("5m", "15m")
 
 
@@ -73,6 +75,7 @@ def observation(
     ticker: dict,
     signal_ts: float,
     ticker_retrieved_at: str,
+    news: dict | None = None,
 ) -> dict:
     market = data["meta"]["market"]
     last, open24 = finite(ticker.get("last")), finite(ticker.get("open"))
@@ -114,6 +117,7 @@ def observation(
         "change_24h_pct": change24,
         "quote_volume_24h_eur": volume,
         "features": {"5m": f5, "15m": f15},
+        "news": news or {},
         "data_quality": quality,
         "timestamps": {
             "scan_at_utc": utc(signal_ts),
@@ -143,6 +147,9 @@ def run() -> dict:
         ],
         key=lambda m: m["market"],
     )
+    news_context = collect_news_context(markets, signal_ts)
+    atomic_json(NEWS_CONTEXT, news_context)
+
     ticker_rows = client.get("/ticker/24h")
     tickers = {r["market"]: r for r in ticker_rows if r.get("market")}
     ticker_retrieved_at = client.metadata("/ticker/24h").get("retrieved_at_utc")
@@ -156,6 +163,7 @@ def run() -> dict:
             tickers.get(m["market"], {}),
             signal_ts,
             ticker_retrieved_at,
+            (news_context.get("markets") or {}).get(m["market"], {}),
         )
         for m in markets
     ]
@@ -164,12 +172,13 @@ def run() -> dict:
     # exact same Bitvavo observations as V2 and therefore adds no market-data
     # requests and cannot alter the frozen V2 decision path.
     universe_snapshot = {
-        "schema": "solaire_neutral_universe_snapshot_v1",
+        "schema": "solaire_production_universe_snapshot_v2_news",
         "generated_at_utc": utc(signal_ts),
-        "source": "same_direct_bitvavo_scan",
-        "affects_v2": False,
-        "affects_detection": False,
-        "affects_buy_gate": False,
+        "source": "same_direct_bitvavo_scan+public_news",
+        "affects_v2": True,
+        "affects_detection": True,
+        "affects_buy_gate": True,
+        "news_policy": {"production": True, "watch_before_quant": True, "news_alone_can_buy": False, "weight_in_composite": 0.35},
         "market_context": market_context,
         "rows": [
             {
@@ -179,6 +188,7 @@ def run() -> dict:
                 "quote_volume_24h_eur": obs.get("quote_volume_24h_eur"),
                 "features": obs.get("features") or {},
                 "acceleration": obs.get("acceleration") or {},
+                "news": obs.get("news") or {},
                 "data_quality": obs.get("data_quality") or {},
                 "timestamps": obs.get("timestamps") or {},
                 "context": (
@@ -229,6 +239,10 @@ def run() -> dict:
         "quality_failure_counts": dict(quality_failures.most_common()),
         "building_accelerations": len(building),
         "confirmed_accelerations": len(confirmed),
+        "news_watch_count": len(payload.get("news_watch") or []),
+        "news_watch_markets": [r["market"] for r in (payload.get("news_watch") or [])[:20]],
+        "news_sources_ok": sum(1 for row in (news_context.get("sources") or []) if row.get("ok")),
+        "news_sources_total": len(news_context.get("sources") or []),
         "alert_candidates": len(payload["watch"]),
         "candidate_markets": [r["market"] for r in payload["watch"][:20]],
         "universe_snapshot_rows": len(universe_snapshot["rows"]),
@@ -264,22 +278,37 @@ def main() -> int:
         atomic_json(
             UNIVERSE_SNAPSHOT,
             {
-                "schema": "solaire_neutral_universe_snapshot_v1",
+                "schema": "solaire_production_universe_snapshot_v2_news",
                 "generated_at_utc": utc(),
-                "source": "same_direct_bitvavo_scan",
-                "affects_v2": False,
-                "affects_detection": False,
-                "affects_buy_gate": False,
+                "source": "same_direct_bitvavo_scan+public_news",
+                "affects_v2": True,
+                "affects_detection": True,
+                "affects_buy_gate": True,
                 "market_context": {},
                 "rows": [],
             },
         )
         atomic_json(
+            NEWS_CONTEXT,
+            {
+                "schema": "solaire_production_news_v1",
+                "generated_at_utc": utc(),
+                "lookback_hours": 18,
+                "news_weight": 0.35,
+                "news_watch_min": 6.5,
+                "sources": [],
+                "items_with_known_recent_time": 0,
+                "markets": {},
+                "status": "UNAVAILABLE",
+            },
+        )
+        atomic_json(
             CANDIDATES,
             {
-                "schema": "production_alert_candidates_v4",
+                "schema": "production_alert_candidates_v5_news",
                 "generated_at_utc": utc(),
-                "policy": "SOLAIRE_FULL_UNIVERSE_DIRECT_ACCELERATION",
+                "policy": "SOLAIRE_NEWS_PLUS_DIRECT_ACCELERATION",
+                "news_policy": {"production": True, "watch_before_quant": True, "news_alone_can_buy": False, "weight_in_composite": 0.35},
                 "oracle_required": False,
                 "hosted_probe_required": False,
                 "v4_required": False,
@@ -290,6 +319,7 @@ def main() -> int:
                     "affects_detection": False,
                     "affects_buy_gate": False,
                 },
+                "news_watch": [],
                 "tracking": [],
                 "watch": [],
             },
