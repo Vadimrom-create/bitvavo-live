@@ -75,6 +75,7 @@ jobs:
               production_official_news_state.json \
               production_alert_state.json \
               production_alert_status.json \
+              production_direct_decision_journal.json \
               production_recovery_registry_shadow.json \
               production_recovery_registry_status.json; do
               if [ -e "${file}" ]; then git add "${file}"; fi
