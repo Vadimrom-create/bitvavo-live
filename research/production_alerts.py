@@ -1,6 +1,6 @@
 """Solaire alert episode policy with trajectory memory.
 
-NEWS_WATCH, BUILDING and CONFIRMED states belong to the same opportunity episode.
+CATALYST_PREWATCH, NEWS_WATCH, BUILDING and CONFIRMED states belong to the same opportunity episode.
 This prevents score oscillations from creating fake new opportunities and
 lets the alert layer measure how far price has already travelled before the
 first actionable confirmation.
@@ -15,7 +15,17 @@ from typing import Any
 
 MAX_SNAPSHOT_AGE = 15 * 60
 ACTIONABLE_STATUSES = {"ACCELERATION_READY"}
-TRACKED_STATES = {"BUILDING_ACCELERATION", "CONFIRMED_ACCELERATION", "NEWS_WATCH_POSITIVE", "NEWS_WATCH_NEGATIVE", "NEWS_WATCH_MIXED", "NEWS_WATCH_NEUTRAL"}
+TRACKED_STATES = {
+    "BUILDING_ACCELERATION",
+    "CONFIRMED_ACCELERATION",
+    "NEWS_WATCH_POSITIVE",
+    "NEWS_WATCH_NEGATIVE",
+    "NEWS_WATCH_MIXED",
+    "NEWS_WATCH_NEUTRAL",
+    "CATALYST_PREWATCH_ROADMAP",
+    "CATALYST_PREWATCH_UPCOMING",
+    "CATALYST_PREWATCH_IMMINENT",
+}
 
 
 def _ts(value: Any) -> float | None:
