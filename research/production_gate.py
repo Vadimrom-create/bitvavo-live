@@ -13,12 +13,17 @@ from typing import Any
 
 from research.common import finite
 from research.production_context import candidate_context
-from research.production_news import NEWS_WATCH_MIN, composite_score
+from research.production_news import CATALYST_PREWATCH_MIN, NEWS_WATCH_MIN, composite_score
 
 ACCELERATION_ACTION = "ACCELERATION_READY"
 ACTIONABLE_STATUSES = {ACCELERATION_ACTION}
 TRACKED_ACCELERATION_STATES = {"BUILDING_ACCELERATION", "CONFIRMED_ACCELERATION"}
 NEWS_TRACKED_STATES = {"NEWS_WATCH_POSITIVE", "NEWS_WATCH_NEGATIVE", "NEWS_WATCH_MIXED", "NEWS_WATCH_NEUTRAL"}
+CATALYST_TRACKED_STATES = {
+    "CATALYST_PREWATCH_ROADMAP",
+    "CATALYST_PREWATCH_UPCOMING",
+    "CATALYST_PREWATCH_IMMINENT",
+}
 MIN_ACCELERATION_SCORE = 6.50
 MIN_ACCELERATION_EVIDENCE = 3
 MIN_COMPOSITE_SCORE = 6.50
@@ -36,6 +41,13 @@ def _news_state(news: dict[str, Any]) -> str:
     return "NEWS_WATCH_" + direction
 
 
+def _catalyst_state(catalyst: dict[str, Any]) -> str:
+    label = str(catalyst.get("label") or "ROADMAP").upper()
+    if label not in {"ROADMAP", "UPCOMING", "IMMINENT"}:
+        label = "ROADMAP"
+    return "CATALYST_PREWATCH_" + label
+
+
 def _tracking_row(
     obs: dict[str, Any],
     market_context: dict[str, Any] | None = None,
@@ -43,12 +55,21 @@ def _tracking_row(
     quality = obs.get("data_quality") or {}
     acceleration = obs.get("acceleration") or {}
     news = obs.get("news") or {}
+    catalyst = news.get("catalyst") or {}
     acceleration_state = acceleration.get("state")
     news_watch = bool(news.get("watch_trigger")) and _n(news.get("score")) >= NEWS_WATCH_MIN
+    catalyst_watch = (
+        bool(catalyst.get("prewatch_trigger"))
+        and _n(catalyst.get("score")) >= CATALYST_PREWATCH_MIN
+    )
 
     if not quality.get("ok"):
         return None
-    if acceleration_state not in TRACKED_ACCELERATION_STATES and not news_watch:
+    if (
+        acceleration_state not in TRACKED_ACCELERATION_STATES
+        and not news_watch
+        and not catalyst_watch
+    ):
         return None
 
     market = obs.get("market")
@@ -62,11 +83,17 @@ def _tracking_row(
         acceleration_state
         if acceleration_state in TRACKED_ACCELERATION_STATES
         else _news_state(news)
+        if news_watch
+        else _catalyst_state(catalyst)
     )
     if news_watch and acceleration_state in TRACKED_ACCELERATION_STATES:
         source = "NEWS_PLUS_DIRECT_ACCELERATION"
+    elif catalyst_watch and acceleration_state in TRACKED_ACCELERATION_STATES:
+        source = "CATALYST_PLUS_DIRECT_ACCELERATION"
     elif news_watch:
         source = "NEWS"
+    elif catalyst_watch:
+        source = "CATALYST_PREWATCH"
     else:
         source = "DIRECT_ACCELERATION"
 
@@ -78,6 +105,8 @@ def _tracking_row(
         "signal_score": final_score,
         "quant_score": quant_score,
         "news_score": _n(news.get("score")),
+        "catalyst_score": _n(catalyst.get("score")),
+        "catalyst_level": int(_n(catalyst.get("level"))),
         "signal_state": signal_state,
         "data_quality": copy.deepcopy(quality),
         "acceleration": copy.deepcopy(acceleration),
@@ -144,6 +173,21 @@ def build_alert_payload(
         reverse=True,
     )
 
+    catalyst_prewatch = [
+        row
+        for row in tracking
+        if ((row.get("news") or {}).get("catalyst") or {}).get("prewatch_trigger")
+    ]
+    catalyst_prewatch.sort(
+        key=lambda row: (
+            _n(row.get("catalyst_level")),
+            _n(row.get("catalyst_score")),
+            _n(row.get("signal_score")),
+            _n(row.get("quote_volume_24h_eur")),
+        ),
+        reverse=True,
+    )
+
     watch = [
         row
         for obs in observations
@@ -158,7 +202,7 @@ def build_alert_payload(
         reverse=True,
     )
     return {
-        "schema": "production_alert_candidates_v5_news",
+        "schema": "production_alert_candidates_v6_catalyst",
         "generated_at_utc": generated_at_utc,
         "policy": "SOLAIRE_NEWS_PLUS_DIRECT_ACCELERATION",
         "news_policy": {
@@ -167,6 +211,9 @@ def build_alert_payload(
             "news_alone_can_buy": False,
             "weight_in_composite": 0.35,
             "news_watch_min": NEWS_WATCH_MIN,
+            "catalyst_prewatch": True,
+            "catalyst_prewatch_min": CATALYST_PREWATCH_MIN,
+            "catalyst_alone_can_buy": False,
         },
         "oracle_required": False,
         "hosted_probe_required": False,
@@ -174,6 +221,7 @@ def build_alert_payload(
         "decision_layer_required": False,
         "actionable_statuses": sorted(ACTIONABLE_STATUSES),
         "market_context": copy.deepcopy(market_context or {}),
+        "catalyst_prewatch": catalyst_prewatch,
         "news_watch": news_watch,
         "tracking": tracking,
         "watch": watch,
