@@ -48,6 +48,7 @@ jobs:
           ALERT_GMAIL_USER: ${{ vars.ALERT_GMAIL_USER }}
           ALERT_EMAIL_TO: bellonirom@gmail.com
           GMAIL_APP_PASSWORD: ${{ secrets.GMAIL_APP_PASSWORD }}
+          X_BEARER_TOKEN: ${{ secrets.X_BEARER_TOKEN }}
         run: |
           set -euo pipefail
 
@@ -71,6 +72,7 @@ jobs:
               production_scan_status.json \
               production_universe_snapshot.json \
               production_news_context.json \
+              production_official_news_state.json \
               production_alert_state.json \
               production_alert_status.json \
               production_recovery_registry_shadow.json \
