@@ -7,13 +7,15 @@ def _quality():
 
 
 def test_ethfi_news_opens_watch_before_quant():
-    original = news._fetch_source
+    original_fetch = news._fetch_source
+    original_official = news._collect_official_items
     try:
         def fake_fetch(source):
-            name, _, weight = source
+            name, _, weight, kind = source
             return (
                 name,
                 weight,
+                kind,
                 [
                     {
                         "id": "ethfi-stablecoin",
@@ -28,12 +30,20 @@ def test_ethfi_news_opens_watch_before_quant():
                 None,
             )
         news._fetch_source = fake_fetch
+        news._collect_official_items = lambda registry, now_ts: ([], [], {
+            "registered_official_pages": 0,
+            "polled_official_pages": 0,
+            "registered_x_handles": 0,
+            "registry_coverage": {},
+        })
         context = news.collect_news_context(
             [{"market": "ETHFI-EUR", "base": "ETHFI"}],
             now_ts=1100.0,
+            asset_rows=[{"symbol": "ETHFI", "name": "Ether.fi"}],
         )
     finally:
-        news._fetch_source = original
+        news._fetch_source = original_fetch
+        news._collect_official_items = original_official
 
     signal = context["markets"]["ETHFI-EUR"]
     assert signal["watch_trigger"] is True
@@ -58,6 +68,49 @@ def test_ethfi_news_opens_watch_before_quant():
     assert payload["news_watch"][0]["market"] == "ETHFI-EUR"
     assert payload["news_watch"][0]["signal_state"] == "NEWS_WATCH_POSITIVE"
     assert payload["news_watch"][0]["signal_source"] == "NEWS"
+
+
+def test_official_project_news_has_priority_over_media():
+    original_fetch = news._fetch_source
+    original_official = news._collect_official_items
+    try:
+        news._fetch_source = lambda source: (source[0], source[2], source[3], [], None)
+        news._collect_official_items = lambda registry, now_ts: (
+            [{
+                "id": "x-etherfi",
+                "source": "OFFICIAL_X:@ether_fi",
+                "source_kind": "official_project",
+                "source_weight": 1.30,
+                "title": "Introducing ether.fi USD, our own stablecoin powered by Ethena",
+                "description": "",
+                "url": "https://x.com/ether_fi/status/1",
+                "published_at_utc": "2026-10-06T12:01:00+00:00",
+                "published_ts": 1000.0,
+                "direct_markets": ["ETHFI-EUR"],
+                "timestamp_semantics": "X_CREATED_AT",
+            }],
+            [{"source": "X_OFFICIAL", "ok": True}],
+            {
+                "registered_official_pages": 1,
+                "polled_official_pages": 1,
+                "registered_x_handles": 1,
+                "registry_coverage": {"active_markets": 1, "with_any_official_source": 1},
+            },
+        )
+        context = news.collect_news_context(
+            [{"market": "ETHFI-EUR", "base": "ETHFI"}],
+            now_ts=1100.0,
+            asset_rows=[{"symbol": "ETHFI", "name": "Ether.fi"}],
+        )
+    finally:
+        news._fetch_source = original_fetch
+        news._collect_official_items = original_official
+
+    signal = context["markets"]["ETHFI-EUR"]
+    assert signal["top"]["source_kind"] == "official_project"
+    assert signal["top"]["official_direct_match"] is True
+    assert signal["top"]["timestamp_semantics"] == "X_CREATED_AT"
+    assert signal["score"] >= news.NEWS_WATCH_MIN
 
 
 def test_positive_news_materially_boosts_score_but_cannot_buy_without_confirmation():
