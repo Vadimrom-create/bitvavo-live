@@ -32,7 +32,6 @@ from research.execution_observability import capture_validation
 INPUT = "production_alert_candidates.json"
 STATE = "production_alert_state.json"
 STATUS = "production_alert_status.json"
-DIRECT_DECISION_JOURNAL = "production_direct_decision_journal.json"
 MIN_QUOTE_VOLUME_EUR = 75_000.0
 MAX_SPREAD = 0.005
 MAX_STOP_DISTANCE_PCT = 10.0
@@ -473,10 +472,10 @@ def main() -> int:
     direct_journal = record_cycle(
         payload,
         status,
-        read_json(DIRECT_DECISION_JOURNAL, {}),
+        read_json("production_direct_decision_journal.json", {}),
     )
     direct_journal["updated_at_utc"] = utc(sent_at)
-    atomic_json(DIRECT_DECISION_JOURNAL, direct_journal)
+    atomic_json("production_direct_decision_journal.json", direct_journal)
 
     atomic_json(STATUS, status)
     print("SOLAIRE_ALERT " + json.dumps(status))
