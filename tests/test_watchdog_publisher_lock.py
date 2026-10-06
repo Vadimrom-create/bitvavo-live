@@ -34,10 +34,11 @@ def test_freshness_observer_never_takes_heartbeat_lock():
     assert "stale:" in block
 
 
-def test_freshness_observer_sparse_checkout_only_reads_status_file():
+def test_freshness_observer_sparse_checkout_only_reads_status_files():
     block = _job_block(_text(WATCHDOG), "production-freshness")
     assert "sparse-checkout:" in block
     assert "production_scan_status.json" in block
+    assert "production_recovery_registry_status.json" in block
     assert "sparse-checkout-cone-mode: false" in block
     assert "scripts/" not in block.split("Observe production scan freshness", 1)[0]
     assert "history/" not in block
@@ -97,6 +98,8 @@ def test_watchdog_stale_observation_can_restart_chain():
     block = _job_block(_text(WATCHDOG), "restart-heartbeat-chain")
     assert "needs: production-freshness" in block
     assert "needs.production-freshness.outputs.stale == 'true'" in block
+    assert "needs.production-freshness.outputs.registry_stale == 'true'" in block
+    assert "MAX_RECOVERY_REGISTRY_AGE_SECONDS: '900'" in _text(WATCHDOG)
 
 
 def test_watchdog_keeps_prospective_anti_recursion_barrier():
