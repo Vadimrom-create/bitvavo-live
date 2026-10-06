@@ -325,9 +325,9 @@ def _catalyst_signal(
     # Explicit clock/date language raises an already future-looking item to
     # imminent. It cannot create a catalyst by itself.
     explicit_time = bool(
-        re.search(r"\\b(?:[01]?\\d|2[0-3])[:h][0-5]\\d\\b", normalized)
-        or re.search(r"\\b(?:utc|cet|cest)\\b", normalized)
-        or re.search(r"\\b(?:monday|tuesday|wednesday|thursday|friday|saturday|sunday|lundi|mardi|mercredi|jeudi|vendredi|samedi|dimanche)\\b", normalized)
+        re.search(r"\b(?:[01]?\d|2[0-3])[:h][0-5]\d\b", normalized)
+        or re.search(r"\b(?:utc|cet|cest)\b", normalized)
+        or re.search(r"\b(?:monday|tuesday|wednesday|thursday|friday|saturday|sunday|lundi|mardi|mercredi|jeudi|vendredi|samedi|dimanche)\b", normalized)
     )
 
     if l3:
