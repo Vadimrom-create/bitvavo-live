@@ -72,7 +72,16 @@ jobs:
           assert payload['hosted_probe_required'] is False
           universe = json.load(open('production_universe_snapshot.json'))
           assert len(universe['rows']) == status['active_eur_markets'], (len(universe['rows']), status)
-          assert universe['affects_v2'] is False
+          assert universe['affects_v2'] is True
+          assert universe['affects_detection'] is True
+          assert universe['affects_buy_gate'] is True
+          assert universe['news_policy']['production'] is True
+          assert universe['news_policy']['watch_before_quant'] is True
+          assert universe['news_policy']['news_alone_can_buy'] is False
+          news = json.load(open('production_news_context.json'))
+          assert news['news_weight'] == 0.35, news
+          assert news['news_watch_min'] == 6.5, news
+          assert len(news['sources']) == 4, news
           PY
       - name: Run Solaire V3 live prospective shadow, no email or order
         run: |
@@ -167,6 +176,7 @@ jobs:
             production_scan_status.json
             production_alert_candidates.json
             production_universe_snapshot.json
+            production_news_context.json
             solaire_v3_status.json
             solaire_v3_candidates.json
             solaire_v3_theses.json
