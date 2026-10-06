@@ -70,7 +70,7 @@ jobs:
         continue-on-error: true
         run: python scripts/update_rejection_shadow.py
 
-      - name: Persist alert and recovery state immediately
+      - name: Persist rejection shadow state immediately
         if: always()
         continue-on-error: true
         run: |
@@ -83,12 +83,11 @@ jobs:
             production_all_actionable_shadow_status.json \
             production_rejection_shadow_state.json \
             production_rejection_shadow_journal.json \
-            production_rejection_shadow_status.json \
-            production_recovery_registry_shadow.json; do
+            production_rejection_shadow_status.json \; do
             if [ -e "$file" ]; then git add "$file"; fi
           done
           if git diff --cached --quiet; then exit 0; fi
-          git commit -m 'Persist alert and recovery shadow state'
+          git commit -m 'Persist rejection shadow state'
           for attempt in 1 2 3 4 5 6; do
             git fetch origin main
             if ! git rebase origin/main; then
