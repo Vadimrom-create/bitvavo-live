@@ -334,3 +334,16 @@ def test_short_ticker_and_project_substring_do_not_hijack_unrelated_news():
     assert "THE-EUR" not in context["markets"]
     assert "ETHFI-EUR" in context["markets"]
     assert "ENA-EUR" in context["markets"]
+
+
+def test_official_html_future_teaser_survives_anchor_filter():
+    payload = b"""
+    <html><body>
+      <a href="/announcement">Major stablecoin launch tomorrow at 14:00 UTC - save the date</a>
+      <a href="/community">Join our community call tomorrow</a>
+    </body></html>
+    """
+    rows = news._material_anchor_titles(payload)
+    titles = [title for _, title in rows]
+    assert "Major stablecoin launch tomorrow at 14:00 UTC - save the date" in titles
+    assert "Join our community call tomorrow" not in titles

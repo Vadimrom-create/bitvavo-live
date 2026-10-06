@@ -414,7 +414,19 @@ def _material_anchor_titles(payload: bytes) -> list[tuple[str, str]]:
         if not (14 <= len(title) <= 260):
             continue
         score, direction, _ = _classify(title, 0, 1.25)
-        if direction == "NEUTRAL" or score < NEWS_WATCH_MIN:
+        catalyst = _catalyst_signal(
+            title,
+            age_seconds=0,
+            source_weight=1.25,
+            official_direct=True,
+        )
+        # Keep either a realised material headline OR a credible future-looking
+        # catalyst teaser. This is what lets "launch tomorrow"/"save the date"
+        # reach CATALYST_PREWATCH before the realised NEWS exists.
+        if (
+            (direction == "NEUTRAL" or score < NEWS_WATCH_MIN)
+            and catalyst is None
+        ):
             continue
         result.append((href, title))
     dedup = {}
