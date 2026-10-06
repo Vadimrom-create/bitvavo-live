@@ -11,6 +11,8 @@ on:
       - 'research/production_acceleration.py'
       - 'research/production_alerts.py'
       - 'research/production_context.py'
+      - 'research/recovery_registry.py'
+      - 'scripts/update_recovery_registry_heartbeat.py'
       - '.github/workflows/production_scan_fast.yml'
   # Cold-start fallback only. Normal cadence is self-chained through
   # workflow_dispatch, so a missed GitHub schedule event cannot stop scanning.
@@ -59,6 +61,7 @@ jobs:
 
             python scripts/production_scan.py
             python scripts/send_production_buy_alert.py
+            python scripts/update_recovery_registry_heartbeat.py
 
             git config user.name 'bitvavo-live-bot'
             git config user.email 'actions@users.noreply.github.com'
@@ -67,7 +70,9 @@ jobs:
               production_scan_status.json \
               production_universe_snapshot.json \
               production_alert_state.json \
-              production_alert_status.json; do
+              production_alert_status.json \
+              production_recovery_registry_shadow.json \
+              production_recovery_registry_status.json; do
               if [ -e "${file}" ]; then git add "${file}"; fi
             done
 
