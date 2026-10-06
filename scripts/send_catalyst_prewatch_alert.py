@@ -98,7 +98,12 @@ def section(row: dict) -> str:
     top = catalyst.get("top") or {}
     accel = row.get("acceleration") or {}
     direction = str(catalyst.get("direction") or "UNKNOWN")
-    if direction == "POSITIVE":
+    if catalyst.get("speculative_review"):
+        interpretation = (
+            "Catalyseur positif IMMINENT : candidat à une petite entrée spéculative "
+            "à évaluer manuellement avant l'annonce, avec risque strictement borné."
+        )
+    elif direction == "POSITIVE":
         interpretation = "Catalyseur potentiellement haussier à surveiller AVANT l'annonce effective."
     elif direction == "NEGATIVE":
         interpretation = "Catalyseur potentiellement négatif : vigilance, pas de position longue anticipée sur ce seul signal."
