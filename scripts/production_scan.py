@@ -12,6 +12,7 @@ from __future__ import annotations
 import json
 import sys
 import time
+import urllib.request
 from collections import Counter
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
@@ -33,6 +34,20 @@ STATUS = "production_scan_status.json"
 UNIVERSE_SNAPSHOT = "production_universe_snapshot.json"
 NEWS_CONTEXT = "production_news_context.json"
 INTERVALS = ("5m", "15m")
+
+
+def fetch_public_asset_names() -> list[dict]:
+    """Best-effort NEWS enrichment; never allowed to degrade the core scan."""
+    try:
+        req = urllib.request.Request(
+            "https://api.bitvavo.com/v2/assets",
+            headers={"Accept": "application/json", "User-Agent": "SolaireNews/2.0"},
+        )
+        with urllib.request.urlopen(req, timeout=8) as response:
+            rows = json.loads(response.read().decode("utf-8"))
+        return rows if isinstance(rows, list) else []
+    except Exception:
+        return []
 
 
 def collect_market(client: PublicClient, meta: dict, signal_ts: float):
@@ -147,9 +162,7 @@ def run() -> dict:
         ],
         key=lambda m: m["market"],
     )
-    asset_rows = client.get("/assets")
-    if not isinstance(asset_rows, list):
-        asset_rows = []
+    asset_rows = fetch_public_asset_names()
     news_context = collect_news_context(markets, signal_ts, asset_rows)
     atomic_json(NEWS_CONTEXT, news_context)
 
