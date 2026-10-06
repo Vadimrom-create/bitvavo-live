@@ -402,13 +402,27 @@ def _collect_x_items(registry: dict[str, Any], state: dict[str, Any], now_ts: fl
     for offset in range(0, len(selected), X_HANDLES_PER_QUERY):
         batch = selected[offset:offset + X_HANDLES_PER_QUERY]
         query = "(" + " OR ".join("from:" + h for h in batch) + ") -is:retweet"
+        previous_checks = [
+            float((state.get("x_last_checked") or {}).get(handle, 0) or 0)
+            for handle in batch
+        ]
+        known_checks = [ts for ts in previous_checks if ts > 0]
+        # First subscription pass looks back across the normal NEWS window.
+        # Later passes only revisit a two-minute overlap from the oldest
+        # handle checkpoint in the batch, preventing high-volume accounts from
+        # crowding material posts out of max_results=100.
+        start_ts = (
+            max(now_ts - NEWS_LOOKBACK_SECONDS, min(known_checks) - 120)
+            if len(known_checks) == len(batch)
+            else now_ts - NEWS_LOOKBACK_SECONDS
+        )
         params = urllib.parse.urlencode({
             "query": query,
             "max_results": 100,
             "tweet.fields": "created_at,author_id",
             "expansions": "author_id",
             "user.fields": "username",
-            "start_time": datetime.fromtimestamp(now_ts - NEWS_LOOKBACK_SECONDS, timezone.utc).isoformat().replace("+00:00", "Z"),
+            "start_time": datetime.fromtimestamp(start_ts, timezone.utc).isoformat().replace("+00:00", "Z"),
         })
         url = "https://api.x.com/2/tweets/search/recent?" + params
         try:
