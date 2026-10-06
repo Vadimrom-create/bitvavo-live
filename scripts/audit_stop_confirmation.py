@@ -204,6 +204,7 @@ def analyze_case(case, bars, not_before, source):
         }
 
     hard_grid = {}
+    policy_grid = {}
     for hard_r in HARD_R_GRID:
         hstop = hard_stop(entry, stop, hard_r)
         hit = False
@@ -216,6 +217,10 @@ def analyze_case(case, bars, not_before, source):
                 hit_ts = bar_close_ts(bar)
                 break
         hard_grid[str(hard_r)] = {"hard_stop_eur": hstop, "hit": hit, "hit_ts": hit_ts}
+        policy_grid[str(hard_r)] = {
+            name: policy_exit(bars, touch_idx, stop, entry, name, hard_r=hard_r)
+            for name in POLICIES
+        }
 
     actual_exit = finite(case.get("actual_exit_eur"))
     actual_slippage = None
@@ -238,6 +243,7 @@ def analyze_case(case, bars, not_before, source):
         "marks_after_touch": marks,
         "policies": policies,
         "hard_stop_sensitivity": hard_grid,
+        "policy_hard_stop_grid": policy_grid,
         "wick_reclaim_15m": bool(
             marks["15"]["close_eur"] is not None
             and marks["15"]["close_eur"] > stop
@@ -259,6 +265,7 @@ def aggregate(rows):
         "recovered_above_stop_240m": sum(bool(r.get("recovered_above_stop_240m")) for r in rows),
         "policies": {},
         "hard_stop_sensitivity": {},
+        "policy_hard_stop_matrix": {},
     }
     for policy in POLICIES:
         exits = [r["policies"][policy] for r in rows if r.get("policies", {}).get(policy)]
@@ -285,6 +292,32 @@ def aggregate(rows):
             "hit": sum(bool(x.get("hit")) for x in vals),
             "not_hit": sum(not bool(x.get("hit")) for x in vals),
         }
+        out["policy_hard_stop_matrix"][key] = {}
+        for policy in ("close_5m", "close_2x5m", "close_15m"):
+            exits = []
+            deltas = []
+            for r in rows:
+                p = r.get("policy_hard_stop_grid", {}).get(key, {}).get(policy)
+                touch = r.get("policies", {}).get("touch")
+                if not p or not touch:
+                    continue
+                exits.append(p)
+                if p.get("exit_eur") is not None and touch.get("exit_eur") is not None:
+                    deltas.append((p["exit_eur"] / r["entry_eur"] - touch["exit_eur"] / r["entry_eur"]) * 100)
+            eps = 1e-12
+            out["policy_hard_stop_matrix"][key][policy] = {
+                "n": len(exits),
+                "triggered": sum(bool(x.get("triggered")) for x in exits),
+                "hard_stop_exits": sum(x.get("reason") == "HARD_STOP" for x in exits),
+                "held_to_4h": sum(x.get("reason") == "HELD_TO_HORIZON" for x in exits),
+                "improved_vs_touch": sum(x > eps for x in deltas),
+                "worsened_vs_touch": sum(x < -eps for x in deltas),
+                "ties": sum(abs(x) <= eps for x in deltas),
+                "mean_delta_vs_touch_pct_points": mean(deltas),
+                "median_delta_vs_touch_pct_points": median(deltas),
+                "best_delta_pct_points": round(max(deltas), 5) if deltas else None,
+                "worst_delta_pct_points": round(min(deltas), 5) if deltas else None,
+            }
     return out
 
 
@@ -321,6 +354,23 @@ def markdown(report):
     for hard_r in HARD_R_GRID:
         x = s["hard_stop_sensitivity"][str(hard_r)]
         lines.append(f"| {hard_r}R | {x['hit']} | {x['not_hit']} |")
+
+    lines += [
+        "",
+        "## Confirmation × hard-stop matrix",
+        "",
+        "| Hard stop | Policy | Improved | Worsened | Held 4h | Hard exits | Mean delta (pp) | Median delta (pp) | Worst (pp) | Best (pp) |",
+        "|---|---|---:|---:|---:|---:|---:|---:|---:|---:|",
+    ]
+    for hard_r in HARD_R_GRID:
+        key = str(hard_r)
+        for policy in ("close_5m", "close_2x5m", "close_15m"):
+            x = s["policy_hard_stop_matrix"][key][policy]
+            lines.append(
+                f"| {hard_r}R | {policy} | {x['improved_vs_touch']} | {x['worsened_vs_touch']} | "
+                f"{x['held_to_4h']} | {x['hard_stop_exits']} | {x['mean_delta_vs_touch_pct_points']} | "
+                f"{x['median_delta_vs_touch_pct_points']} | {x['worst_delta_pct_points']} | {x['best_delta_pct_points']} |"
+            )
 
     manual = [r for r in report["cases"] if r.get("source") == "manual_reference"]
     if manual:
@@ -397,7 +447,9 @@ def main():
             try:
                 event_ts = ts(case["event_at_utc"])
                 bars = fetch_bars(client, case["market"], event_ts - 1800, min(now, event_ts + (POST_TOUCH_HOURS + 1) * 3600), now)
-                row, err = analyze_case(case, bars, event_ts - 900, "manual_reference")
+                # Anchor the manual case to the actual execution timestamp. Do
+                # not let an earlier touch of the reference stop redefine the event.
+                row, err = analyze_case(case, bars, event_ts, "manual_reference")
                 if row:
                     rows.append(row)
                 else:
