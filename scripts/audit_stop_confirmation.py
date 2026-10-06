@@ -34,7 +34,9 @@ WINDOW_START = "2026-09-21T00:00:00+00:00"
 MAX_ENTRY_TO_TOUCH_HOURS = 12
 POST_TOUCH_HOURS = 4
 HARD_R_DEFAULT = 1.50
-HARD_R_GRID = (1.25, 1.50, 1.75)
+HARD_R_GRID = (1.25, 1.50, 1.75, 2.00)
+DEPTH_R_GRID = (0.25, 0.50, 0.75)
+DEPTH_TIMEFRAMES = ("5m", "15m")
 POLICIES = ("touch", "close_5m", "close_2x5m", "close_15m")
 
 
@@ -176,6 +178,66 @@ def policy_exit(bars, touch_idx, stop, entry, policy, hard_r=HARD_R_DEFAULT, hor
         "hard_stop_eur": hstop,
     }
 
+def depth_confirm_exit(
+    bars,
+    touch_idx,
+    stop,
+    entry,
+    timeframe,
+    depth_r,
+    hard_r,
+    horizon_hours=POST_TOUCH_HOURS,
+):
+    """Confirm invalidation only after a close materially below the soft stop.
+
+    threshold = original stop - depth_r * original R.
+    A deeper intrabar catastrophe stop remains active at entry - hard_r * R.
+    """
+    if touch_idx is None:
+        return None
+    risk = entry - stop
+    if risk <= 0:
+        return None
+    threshold = stop - depth_r * risk
+    hstop = hard_stop(entry, stop, hard_r)
+    touch_ts = bar_close_ts(bars[touch_idx])
+    horizon = touch_ts + horizon_hours * 3600
+
+    for bar in bars[touch_idx:]:
+        t, o, h, l, c, v = bar
+        close_ts = bar_close_ts(bar)
+        if close_ts > horizon:
+            break
+        if hstop is not None and l <= hstop:
+            return {
+                "triggered": True,
+                "reason": "HARD_STOP",
+                "exit_ts": close_ts,
+                "exit_eur": hstop,
+                "hard_stop_eur": hstop,
+                "confirmation_threshold_eur": threshold,
+            }
+        aligned = timeframe == "5m" or ((t // 300_000) % 3 == 2)
+        if aligned and c <= threshold:
+            return {
+                "triggered": True,
+                "reason": f"CLOSE_{timeframe.upper()}_DEPTH_{depth_r}R",
+                "exit_ts": close_ts,
+                "exit_eur": c,
+                "hard_stop_eur": hstop,
+                "confirmation_threshold_eur": threshold,
+            }
+
+    final = mark_close(bars[touch_idx:], horizon)
+    return {
+        "triggered": False,
+        "reason": "HELD_TO_HORIZON",
+        "exit_ts": horizon,
+        "exit_eur": final,
+        "hard_stop_eur": hstop,
+        "confirmation_threshold_eur": threshold,
+    }
+
 
 def analyze_case(case, bars, not_before, source):
     entry = finite(case.get("entry_eur"))
@@ -222,6 +284,17 @@ def analyze_case(case, bars, not_before, source):
             for name in POLICIES
         }
 
+    depth_policy_grid = {}
+    for hard_r in HARD_R_GRID:
+        hard_key = str(hard_r)
+        depth_policy_grid[hard_key] = {}
+        for timeframe in DEPTH_TIMEFRAMES:
+            depth_policy_grid[hard_key][timeframe] = {}
+            for depth_r in DEPTH_R_GRID:
+                depth_policy_grid[hard_key][timeframe][str(depth_r)] = depth_confirm_exit(
+                    bars, touch_idx, stop, entry, timeframe, depth_r, hard_r
+                )
+
     actual_exit = finite(case.get("actual_exit_eur"))
     actual_slippage = None
     if actual_exit is not None:
@@ -244,6 +317,7 @@ def analyze_case(case, bars, not_before, source):
         "policies": policies,
         "hard_stop_sensitivity": hard_grid,
         "policy_hard_stop_grid": policy_grid,
+        "depth_policy_grid": depth_policy_grid,
         "wick_reclaim_15m": bool(
             marks["15"]["close_eur"] is not None
             and marks["15"]["close_eur"] > stop
@@ -266,6 +340,7 @@ def aggregate(rows):
         "policies": {},
         "hard_stop_sensitivity": {},
         "policy_hard_stop_matrix": {},
+        "depth_policy_matrix": {},
     }
     for policy in POLICIES:
         exits = [r["policies"][policy] for r in rows if r.get("policies", {}).get(policy)]
@@ -318,6 +393,37 @@ def aggregate(rows):
                 "best_delta_pct_points": round(max(deltas), 5) if deltas else None,
                 "worst_delta_pct_points": round(min(deltas), 5) if deltas else None,
             }
+    for hard_r in HARD_R_GRID:
+        hard_key = str(hard_r)
+        out["depth_policy_matrix"][hard_key] = {}
+        for timeframe in DEPTH_TIMEFRAMES:
+            out["depth_policy_matrix"][hard_key][timeframe] = {}
+            for depth_r in DEPTH_R_GRID:
+                depth_key = str(depth_r)
+                exits = []
+                deltas = []
+                for r in rows:
+                    p = r.get("depth_policy_grid", {}).get(hard_key, {}).get(timeframe, {}).get(depth_key)
+                    touch = r.get("policies", {}).get("touch")
+                    if not p or not touch:
+                        continue
+                    exits.append(p)
+                    if p.get("exit_eur") is not None and touch.get("exit_eur") is not None:
+                        deltas.append((p["exit_eur"] / r["entry_eur"] - touch["exit_eur"] / r["entry_eur"]) * 100)
+                eps = 1e-12
+                out["depth_policy_matrix"][hard_key][timeframe][depth_key] = {
+                    "n": len(exits),
+                    "triggered": sum(bool(x.get("triggered")) for x in exits),
+                    "hard_stop_exits": sum(x.get("reason") == "HARD_STOP" for x in exits),
+                    "held_to_4h": sum(x.get("reason") == "HELD_TO_HORIZON" for x in exits),
+                    "improved_vs_touch": sum(x > eps for x in deltas),
+                    "worsened_vs_touch": sum(x < -eps for x in deltas),
+                    "ties": sum(abs(x) <= eps for x in deltas),
+                    "mean_delta_vs_touch_pct_points": mean(deltas),
+                    "median_delta_vs_touch_pct_points": median(deltas),
+                    "best_delta_pct_points": round(max(deltas), 5) if deltas else None,
+                    "worst_delta_pct_points": round(min(deltas), 5) if deltas else None,
+                }
     return out
 
 
@@ -371,6 +477,24 @@ def markdown(report):
                 f"{x['held_to_4h']} | {x['hard_stop_exits']} | {x['mean_delta_vs_touch_pct_points']} | "
                 f"{x['median_delta_vs_touch_pct_points']} | {x['worst_delta_pct_points']} | {x['best_delta_pct_points']} |"
             )
+
+    lines += [
+        "",
+        "## Depth-confirmation matrix",
+        "",
+        "| Hard stop | TF | Depth | Improved | Worsened | Held 4h | Hard exits | Mean delta (pp) | Median delta (pp) | Worst (pp) | Best (pp) |",
+        "|---|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|",
+    ]
+    for hard_r in HARD_R_GRID:
+        hard_key = str(hard_r)
+        for timeframe in DEPTH_TIMEFRAMES:
+            for depth_r in DEPTH_R_GRID:
+                x = s["depth_policy_matrix"][hard_key][timeframe][str(depth_r)]
+                lines.append(
+                    f"| {hard_r}R | {timeframe} | {depth_r}R | {x['improved_vs_touch']} | {x['worsened_vs_touch']} | "
+                    f"{x['held_to_4h']} | {x['hard_stop_exits']} | {x['mean_delta_vs_touch_pct_points']} | "
+                    f"{x['median_delta_vs_touch_pct_points']} | {x['worst_delta_pct_points']} | {x['best_delta_pct_points']} |"
+                )
 
     manual = [r for r in report["cases"] if r.get("source") == "manual_reference"]
     if manual:
@@ -471,6 +595,8 @@ def main():
         "post_touch_hours": POST_TOUCH_HOURS,
         "hard_r_default": HARD_R_DEFAULT,
         "hard_r_grid": list(HARD_R_GRID),
+        "depth_r_grid": list(DEPTH_R_GRID),
+        "depth_timeframes": list(DEPTH_TIMEFRAMES),
         "source_buy_count": len(buys),
         "summary": summary,
         "cases": rows,
