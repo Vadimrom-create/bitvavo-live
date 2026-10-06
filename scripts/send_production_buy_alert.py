@@ -201,12 +201,23 @@ def body(validated: dict) -> str:
     row = validated["row"]
     trade = validated["trade"]
     accel = row.get("acceleration") or {}
+    news = row.get("news") or {}
+    top_news = news.get("top") or {}
+    news_lines = []
+    if news.get("score"):
+        news_lines = [
+            f"NEWS : {str(news.get('direction') or 'n/a')} — {finite(news.get('score'), 0):.2f}/10",
+            f"Source NEWS : {top_news.get('source', 'n/a')} — {top_news.get('title', 'n/a')}",
+            f"Âge NEWS : {finite(top_news.get('age_minutes'), 0):.1f} min",
+        ]
     return "\n".join(
         [
             "ACHÈTE — signal Solaire validé",
             "",
             f"Marché : {row['market']}",
             f"Score signal : {finite(row.get('signal_score'), 0):.2f}/10",
+            f"Score quant brut : {finite(row.get('quant_score'), finite((row.get('acceleration') or {}).get('score'), 0)):.2f}/10",
+            *news_lines,
             f"Accélération : {accel.get('state', 'n/a')} — preuves {accel.get('evidence_count', 'n/a')}",
             f"Portée confirmation : {accel.get('confirmation_scope', 'n/a')} — 15 min {'OUI' if accel.get('timeframe_confirmation_15m') else 'NON'} ({finite((accel.get('components') or {}).get('confirmation_15m'), 0):.2f}/10)",
             f"Prix signal : {finite(row.get('last'), 0):.8g} €",
@@ -294,6 +305,7 @@ def delivery_record(validated: dict) -> dict:
         "profit_management_policy": trade.get("profit_management_policy"),
         "stake_eur": trade.get("stake_eur"),
         "market_context": row.get("context") or {},
+        "news": row.get("news") or {},
     }
 
 
