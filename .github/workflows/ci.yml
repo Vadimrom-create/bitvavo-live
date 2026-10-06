@@ -27,8 +27,8 @@ jobs:
         name: Critical tests
       - name: Validate direct Solaire production sources
         run: |
-          python -m py_compile research/production_gate.py research/production_acceleration.py research/production_alerts.py research/production_context.py research/production_news.py research/solaire_v3.py research/solaire_v31.py research/solaire_funnel_audit.py research/features.py research/risk.py
-          python -m py_compile scripts/production_scan.py scripts/send_production_buy_alert.py scripts/solaire_v3_shadow.py scripts/update_solaire_v3_evaluation.py scripts/solaire_v31_shadow.py scripts/update_solaire_v31_evaluation.py scripts/solaire_funnel_audit.py scripts/solaire_memory_entry_challenger.py scripts/update_early_building_shadow.py scripts/update_v21_range5_shadow.py scripts/update_rejection_shadow.py scripts/check_production_health.py
+          python -m py_compile research/production_gate.py research/production_acceleration.py research/production_alerts.py research/production_context.py research/production_news.py research/official_source_registry.py research/solaire_v3.py research/solaire_v31.py research/solaire_funnel_audit.py research/features.py research/risk.py
+          python -m py_compile scripts/production_scan.py scripts/send_production_buy_alert.py scripts/update_official_source_registry.py scripts/solaire_v3_shadow.py scripts/update_solaire_v3_evaluation.py scripts/solaire_v31_shadow.py scripts/update_solaire_v31_evaluation.py scripts/solaire_funnel_audit.py scripts/solaire_memory_entry_challenger.py scripts/update_early_building_shadow.py scripts/update_v21_range5_shadow.py scripts/update_rejection_shadow.py scripts/check_production_health.py
           python -m py_compile executor/daemon.py executor/bitvavo_client.py executor/security_selftest.py
           python - <<'PY'
           import pathlib
@@ -72,7 +72,18 @@ jobs:
           assert payload['hosted_probe_required'] is False
           universe = json.load(open('production_universe_snapshot.json'))
           assert len(universe['rows']) == status['active_eur_markets'], (len(universe['rows']), status)
-          assert universe['affects_v2'] is False
+          assert universe['affects_v2'] is True
+          assert universe['affects_detection'] is True
+          assert universe['affects_buy_gate'] is True
+          assert universe['news_policy']['production'] is True
+          assert universe['news_policy']['watch_before_quant'] is True
+          assert universe['news_policy']['news_alone_can_buy'] is False
+          news = json.load(open('production_news_context.json'))
+          assert news['news_weight'] == 0.35, news
+          assert news['news_watch_min'] == 6.5, news
+          assert news['source_priority'][0] == 'OFFICIAL_PROJECT', news
+          assert any(row.get('source') == 'JOURNAL_DU_COIN' for row in news['sources']), news
+          assert news['official_sources']['registered_x_handles'] >= 1, news
           PY
       - name: Run Solaire V3 live prospective shadow, no email or order
         run: |
@@ -167,6 +178,9 @@ jobs:
             production_scan_status.json
             production_alert_candidates.json
             production_universe_snapshot.json
+            production_news_context.json
+            production_official_news_state.json
+            official_source_registry.json
             solaire_v3_status.json
             solaire_v3_candidates.json
             solaire_v3_theses.json

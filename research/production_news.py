@@ -1,21 +1,28 @@
 """Production NEWS signal for Solaire.
 
-Fresh public crypto news is fetched on every production heartbeat. A material
-headline can create an early NEWS_WATCH before price acceleration appears.
-NEWS is intentionally unable to authorize a BUY on its own: market confirmation
-and the normal execution gate remain mandatory.
+Priority:
+1. official project sources (website/blog/forum/X);
+2. official partner/project sources mentioning the asset;
+3. crypto media feeds as a fallback.
+
+A material NEWS item can open NEWS_WATCH before price acceleration. NEWS is a
+material part of scoring but cannot authorize a BUY by itself.
 """
 from __future__ import annotations
 
 import hashlib
 import html
+import json
+import os
 import re
 import time
 import unicodedata
+import urllib.parse
 import xml.etree.ElementTree as ET
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import datetime, timezone
 from email.utils import parsedate_to_datetime
+from pathlib import Path
 from typing import Any
 from urllib.request import Request, urlopen
 
@@ -23,17 +30,22 @@ NEWS_LOOKBACK_SECONDS = 18 * 3600
 NEWS_WATCH_MIN = 6.5
 NEWS_WEIGHT = 0.35
 MAX_ITEMS_PER_SOURCE = 80
-FETCH_TIMEOUT_SECONDS = 8
+FETCH_TIMEOUT_SECONDS = 5
+OFFICIAL_POLL_LIMIT = 160
+OFFICIAL_WORKERS = 32
+X_HANDLES_PER_CYCLE = 500
+X_HANDLES_PER_QUERY = 20
+
+REGISTRY_PATH = Path("official_source_registry.json")
+OFFICIAL_STATE_PATH = Path("production_official_news_state.json")
 
 SOURCES = (
-    ("JOURNAL_DU_COIN", "https://journalducoin.com/feed/", 1.00),
-    ("COINDESK", "https://www.coindesk.com/arc/outboundfeeds/rss/?outputType=xml", 1.00),
-    ("DECRYPT", "https://decrypt.co/feed", 0.95),
-    ("COINTELEGRAPH", "https://cointelegraph.com/rss", 0.90),
+    ("JOURNAL_DU_COIN", "https://journalducoin.com/feed/", 1.00, "media"),
+    ("COINDESK", "https://www.coindesk.com/arc/outboundfeeds/rss/?outputType=xml", 1.00, "media"),
+    ("DECRYPT", "https://decrypt.co/feed", 0.95, "media"),
+    ("COINTELEGRAPH", "https://cointelegraph.com/rss", 0.90, "media"),
 )
 
-# Project/name aliases for symbols whose ticker alone is insufficient or ambiguous.
-# The generic ticker itself is also matched case-sensitively in headlines/bodies.
 ALIASES = {
     "ETHFI": ("ether.fi", "etherfi", "ether fi"),
     "AAVE": ("aave",),
@@ -63,23 +75,23 @@ ALIASES = {
 }
 
 POSITIVE_GROUPS = (
-    ("LAUNCH", (" launch", "launches", "launched", "lance", "lancement", "dévoile", "unveils")),
+    ("LAUNCH", (" launch", "launches", "launched", "lance", "lancement", "devoile", "unveils", "introducing")),
     ("PARTNERSHIP", ("partnership", "partners with", "partenariat", "collaboration")),
-    ("INTEGRATION", ("integration", "integrates", "intègre", "powered by", "infrastructure")),
-    ("LISTING", ("listing", "listed on", "liste ", "coté", "cotation")),
-    ("TOKENOMICS", ("buyback", "rachat", "burn", "brûl", "tokenomics")),
-    ("GROWTH", ("tvl", "deposits", "dépôts", "revenue", "revenus", "milestone", "record")),
-    ("INSTITUTIONAL", ("treasury", "trésorerie", "institutional", "blackrock", "allocation")),
-    ("PRODUCT", ("stablecoin", "mainnet", "collateral", "collatéral", "credit", "carte", "card")),
-    ("REGULATORY_POSITIVE", ("approved", "approval", "approuvé", "licence", "license")),
+    ("INTEGRATION", ("integration", "integrates", "integre", "powered by", "infrastructure")),
+    ("LISTING", ("listing", "listed on", "liste ", "cote", "cotation")),
+    ("TOKENOMICS", ("buyback", "rachat", "burn", "brul", "tokenomics")),
+    ("GROWTH", ("tvl", "deposits", "depots", "revenue", "revenus", "milestone", "record")),
+    ("INSTITUTIONAL", ("treasury", "tresorerie", "institutional", "blackrock", "allocation")),
+    ("PRODUCT", ("stablecoin", "mainnet", "collateral", "collateral", "credit", "carte", "card")),
+    ("REGULATORY_POSITIVE", ("approved", "approval", "approuve", "licence", "license")),
 )
 
 NEGATIVE_GROUPS = (
     ("SECURITY", ("hack", "exploit", "breach", "attaque", "pirat")),
-    ("DELIST", ("delist", "delisting", "retiré de la cote", "retrait de cotation")),
+    ("DELIST", ("delist", "delisting", "retire de la cote", "retrait de cotation")),
     ("SHUTDOWN", ("shutdown", "wind-down", "fermeture", "cessation")),
-    ("REGULATORY_NEGATIVE", ("lawsuit", "procès", "ban", "interdiction", "sanction")),
-    ("SOLVENCY", ("insolven", "bankrupt", "faillite", "default", "défaut")),
+    ("REGULATORY_NEGATIVE", ("lawsuit", "proces", "ban", "interdiction", "sanction")),
+    ("SOLVENCY", ("insolven", "bankrupt", "faillite", "default", "defaut")),
 )
 
 
@@ -144,6 +156,7 @@ def parse_feed(payload: bytes, source: str) -> list[dict[str, Any]]:
         link = _link(node)
         if not title:
             continue
+        published_ts = _published_ts(published)
         fingerprint = hashlib.sha256(
             (source + "\n" + title.strip().lower() + "\n" + link).encode("utf-8")
         ).hexdigest()[:20]
@@ -155,48 +168,90 @@ def parse_feed(payload: bytes, source: str) -> list[dict[str, Any]]:
                 "description": description.strip(),
                 "url": link,
                 "published_at_utc": (
-                    datetime.fromtimestamp(_published_ts(published), timezone.utc).isoformat()
-                    if _published_ts(published) is not None
-                    else None
+                    datetime.fromtimestamp(published_ts, timezone.utc).isoformat()
+                    if published_ts is not None else None
                 ),
-                "published_ts": _published_ts(published),
+                "published_ts": published_ts,
             }
         )
     return rows
 
 
-def _fetch_source(source: tuple[str, str, float]) -> tuple[str, float, list[dict], str | None]:
-    name, url, weight = source
+def _fetch_bytes(url: str, *, headers: dict[str, str] | None = None) -> bytes:
+    default_headers = {
+        "User-Agent": "Mozilla/5.0 SolaireNews/2.0",
+        "Accept": "application/rss+xml, application/atom+xml, application/xml, text/xml, text/html, */*",
+    }
+    default_headers.update(headers or {})
+    req = Request(url, headers=default_headers)
+    with urlopen(req, timeout=FETCH_TIMEOUT_SECONDS) as response:
+        return response.read(2_000_000)
+
+
+def _fetch_source(source: tuple[str, str, float, str]) -> tuple[str, float, str, list[dict], str | None]:
+    name, url, weight, source_kind = source
     try:
-        req = Request(
-            url,
-            headers={
-                "User-Agent": "Mozilla/5.0 SolaireNews/1.0",
-                "Accept": "application/rss+xml, application/atom+xml, application/xml, text/xml, */*",
-            },
-        )
-        with urlopen(req, timeout=FETCH_TIMEOUT_SECONDS) as response:
-            payload = response.read(2_000_000)
-        return name, weight, parse_feed(payload, name), None
+        payload = _fetch_bytes(url)
+        return name, weight, source_kind, parse_feed(payload, name), None
     except Exception as exc:
-        return name, weight, [], f"{type(exc).__name__}: {exc}"
+        return name, weight, source_kind, [], f"{type(exc).__name__}: {exc}"
 
 
-def _market_match(raw_text: str, normalized: str, base: str) -> bool:
-    # Explicit ticker mention is strong and case-sensitive enough to avoid many
-    # common-word collisions (e.g. LINK, SAND).
+def _load_registry() -> dict[str, Any]:
+    try:
+        data = json.loads(REGISTRY_PATH.read_text(encoding="utf-8"))
+        return data if isinstance(data, dict) else {}
+    except Exception:
+        return {}
+
+
+def _load_official_state() -> dict[str, Any]:
+    try:
+        data = json.loads(OFFICIAL_STATE_PATH.read_text(encoding="utf-8"))
+        if isinstance(data, dict):
+            data.setdefault("sources", {})
+            data.setdefault("x_last_checked", {})
+            data.setdefault("x_seen", {})
+            return data
+    except Exception:
+        pass
+    return {"schema": "solaire_official_news_state_v1", "sources": {}, "x_last_checked": {}, "x_seen": {}}
+
+
+def _save_official_state(state: dict[str, Any]) -> None:
+    state["updated_at_utc"] = datetime.now(timezone.utc).isoformat()
+    tmp = OFFICIAL_STATE_PATH.with_suffix(".json.tmp")
+    tmp.write_text(json.dumps(state, ensure_ascii=False, separators=(",", ":")), encoding="utf-8")
+    tmp.replace(OFFICIAL_STATE_PATH)
+
+
+def _asset_names(asset_rows: list[dict[str, Any]] | None) -> dict[str, str]:
+    return {
+        str(row.get("symbol") or "").upper(): str(row.get("name") or "").strip()
+        for row in (asset_rows or [])
+        if row.get("symbol") and row.get("name")
+    }
+
+
+def _market_match(raw_text: str, normalized: str, base: str, project_name: str | None = None) -> bool:
     if re.search(rf"(?<![A-Z0-9]){re.escape(base)}(?![A-Z0-9])", raw_text):
         return True
-    for alias in ALIASES.get(base, ()):
-        if _plain(alias) in normalized:
+    aliases = list(ALIASES.get(base, ()))
+    if project_name:
+        aliases.append(project_name)
+    for alias in aliases:
+        alias_plain = _plain(alias)
+        if len(alias_plain) < 4 or alias_plain == base.lower():
+            continue
+        if alias_plain in normalized:
             return True
     return False
 
 
 def _classify(text: str, age_seconds: float, source_weight: float) -> tuple[float, str, list[str]]:
-    normalized = _plain(text)
-    positive = [label for label, terms in POSITIVE_GROUPS if any(term in normalized for term in terms)]
-    negative = [label for label, terms in NEGATIVE_GROUPS if any(term in normalized for term in terms)]
+    normalized = " " + _plain(text) + " "
+    positive = [label for label, terms in POSITIVE_GROUPS if any(_plain(term) in normalized for term in terms)]
+    negative = [label for label, terms in NEGATIVE_GROUPS if any(_plain(term) in normalized for term in terms)]
 
     if positive and not negative:
         direction = "POSITIVE"
@@ -222,22 +277,257 @@ def _classify(text: str, age_seconds: float, source_weight: float) -> tuple[floa
     return round(max(0.0, min(10.0, score)), 3), direction, sorted(set(groups))
 
 
-def collect_news_context(markets: list[dict], now_ts: float | None = None) -> dict[str, Any]:
+def _official_sources(registry: dict[str, Any]) -> list[dict[str, Any]]:
+    rows = []
+    for market, entry in (registry.get("markets") or {}).items():
+        if not isinstance(entry, dict) or not entry.get("active_on_bitvavo", True):
+            continue
+        urls = []
+        for key, kind in (
+            ("announcement_urls", "OFFICIAL_ANNOUNCEMENTS"),
+            ("official_forum_urls", "OFFICIAL_GOVERNANCE"),
+            ("medium", "OFFICIAL_MEDIUM"),
+        ):
+            for url in entry.get(key) or []:
+                urls.append((url, kind))
+        if not urls:
+            for url in (entry.get("homepage") or [])[:1]:
+                urls.append((url, "OFFICIAL_HOMEPAGE"))
+        for url, kind in urls:
+            if str(url).startswith(("https://", "http://")):
+                rows.append({"market": market, "url": str(url), "kind": kind})
+    return rows
+
+
+def _material_anchor_titles(payload: bytes) -> list[tuple[str, str]]:
+    text = payload.decode("utf-8", errors="replace")
+    result = []
+    for href, inner in re.findall(r"<a[^>]+href=['\"]([^'\"]+)['\"][^>]*>(.*?)</a>", text, flags=re.I | re.S):
+        title = html.unescape(re.sub(r"<[^>]+>", " ", inner))
+        title = re.sub(r"\s+", " ", title).strip()
+        if not (14 <= len(title) <= 260):
+            continue
+        score, direction, _ = _classify(title, 0, 1.25)
+        if direction == "NEUTRAL" or score < NEWS_WATCH_MIN:
+            continue
+        result.append((href, title))
+    dedup = {}
+    for href, title in result:
+        dedup[title.lower()] = (href, title)
+    return list(dedup.values())[:80]
+
+
+def _poll_official_page(source: dict[str, Any], prior: dict[str, Any], now_ts: float) -> tuple[list[dict], dict[str, Any], dict[str, Any]]:
+    url = source["url"]
+    market = source["market"]
+    kind = source["kind"]
+    try:
+        payload = _fetch_bytes(url)
+        stripped = payload.lstrip().lower()
+        items = []
+        if stripped.startswith(b"<?xml") or b"<rss" in stripped[:1000] or b"<feed" in stripped[:1000]:
+            for row in parse_feed(payload, "OFFICIAL:" + url):
+                published_ts = row.get("published_ts")
+                if published_ts is None:
+                    continue
+                age = now_ts - published_ts
+                if -300 <= age <= NEWS_LOOKBACK_SECONDS:
+                    row["direct_markets"] = [market]
+                    row["source_kind"] = "official_project"
+                    row["source_weight"] = 1.25
+                    items.append(row)
+            new_prior = {"last_checked_ts": now_ts, "initialized": True, "seen": prior.get("seen", {})}
+            return items, new_prior, {"source": url, "kind": kind, "ok": True, "items": len(items)}
+
+        anchors = _material_anchor_titles(payload)
+        old_seen = dict(prior.get("seen") or {})
+        initialized = bool(prior.get("initialized"))
+        emitted = []
+        for href, title in anchors:
+            fingerprint = hashlib.sha256((url + "\n" + title.lower()).encode("utf-8")).hexdigest()[:20]
+            if fingerprint not in old_seen:
+                old_seen[fingerprint] = now_ts
+                if initialized:
+                    absolute = urllib.parse.urljoin(url, href)
+                    emitted.append({
+                        "id": fingerprint,
+                        "source": "OFFICIAL:" + kind,
+                        "source_kind": "official_project",
+                        "source_weight": 1.25,
+                        "title": title,
+                        "description": "",
+                        "url": absolute,
+                        "published_at_utc": datetime.fromtimestamp(now_ts, timezone.utc).isoformat(),
+                        "published_ts": now_ts,
+                        "direct_markets": [market],
+                        "timestamp_semantics": "FIRST_SEEN_ON_OFFICIAL_PAGE",
+                    })
+        # bound page fingerprints
+        old_seen = dict(sorted(old_seen.items(), key=lambda kv: kv[1], reverse=True)[:200])
+        new_prior = {"last_checked_ts": now_ts, "initialized": True, "seen": old_seen}
+        return emitted, new_prior, {"source": url, "kind": kind, "ok": True, "items": len(emitted)}
+    except Exception as exc:
+        new_prior = dict(prior)
+        new_prior["last_checked_ts"] = now_ts
+        return [], new_prior, {"source": url, "kind": kind, "ok": False, "items": 0, "error": f"{type(exc).__name__}: {exc}"}
+
+
+def _collect_x_items(registry: dict[str, Any], state: dict[str, Any], now_ts: float) -> tuple[list[dict], list[dict]]:
+    token = os.getenv("X_BEARER_TOKEN", "").strip()
+    handles = []
+    handle_markets: dict[str, list[str]] = {}
+    for market, entry in (registry.get("markets") or {}).items():
+        if not isinstance(entry, dict) or not entry.get("active_on_bitvavo", True):
+            continue
+        handle = str(entry.get("x_handle") or "").strip().lstrip("@")
+        if not handle:
+            continue
+        key = handle.lower()
+        handle_markets.setdefault(key, []).append(market)
+    handles = sorted(handle_markets, key=lambda h: float((state.get("x_last_checked") or {}).get(h, 0)))
+    selected = handles[:X_HANDLES_PER_CYCLE]
+    if not token:
+        return [], [{
+            "source": "X_OFFICIAL",
+            "ok": False,
+            "configured": False,
+            "registered_handles": len(handles),
+            "polled_handles": 0,
+            "error": "X_BEARER_TOKEN_NOT_CONFIGURED",
+        }]
+
+    items = []
+    statuses = []
+    x_seen = dict(state.get("x_seen") or {})
+    for offset in range(0, len(selected), X_HANDLES_PER_QUERY):
+        batch = selected[offset:offset + X_HANDLES_PER_QUERY]
+        query = "(" + " OR ".join("from:" + h for h in batch) + ") -is:retweet"
+        previous_checks = [
+            float((state.get("x_last_checked") or {}).get(handle, 0) or 0)
+            for handle in batch
+        ]
+        known_checks = [ts for ts in previous_checks if ts > 0]
+        # First subscription pass looks back across the normal NEWS window.
+        # Later passes only revisit a two-minute overlap from the oldest
+        # handle checkpoint in the batch, preventing high-volume accounts from
+        # crowding material posts out of max_results=100.
+        start_ts = (
+            max(now_ts - NEWS_LOOKBACK_SECONDS, min(known_checks) - 120)
+            if len(known_checks) == len(batch)
+            else now_ts - NEWS_LOOKBACK_SECONDS
+        )
+        params = urllib.parse.urlencode({
+            "query": query,
+            "max_results": 100,
+            "tweet.fields": "created_at,author_id",
+            "expansions": "author_id",
+            "user.fields": "username",
+            "start_time": datetime.fromtimestamp(start_ts, timezone.utc).isoformat().replace("+00:00", "Z"),
+        })
+        url = "https://api.x.com/2/tweets/search/recent?" + params
+        try:
+            payload = json.loads(_fetch_bytes(url, headers={"Authorization": "Bearer " + token, "Accept": "application/json"}))
+            users = {
+                str(row.get("id")): str(row.get("username") or "").lower()
+                for row in ((payload.get("includes") or {}).get("users") or [])
+            }
+            for tweet in payload.get("data") or []:
+                tweet_id = str(tweet.get("id") or "")
+                if not tweet_id or tweet_id in x_seen:
+                    continue
+                handle = users.get(str(tweet.get("author_id") or ""), "")
+                direct = handle_markets.get(handle, [])
+                if not direct:
+                    continue
+                published_ts = _published_ts(str(tweet.get("created_at") or ""))
+                if published_ts is None:
+                    continue
+                x_seen[tweet_id] = published_ts
+                items.append({
+                    "id": "x-" + tweet_id,
+                    "source": "OFFICIAL_X:@" + handle,
+                    "source_kind": "official_project",
+                    "source_weight": 1.30,
+                    "title": str(tweet.get("text") or "").strip(),
+                    "description": "",
+                    "url": "https://x.com/" + handle + "/status/" + tweet_id,
+                    "published_at_utc": datetime.fromtimestamp(published_ts, timezone.utc).isoformat(),
+                    "published_ts": published_ts,
+                    "direct_markets": direct,
+                    "timestamp_semantics": "X_CREATED_AT",
+                })
+            statuses.append({"source": "X_OFFICIAL", "ok": True, "configured": True, "polled_handles": len(batch)})
+        except Exception as exc:
+            statuses.append({"source": "X_OFFICIAL", "ok": False, "configured": True, "polled_handles": len(batch), "error": f"{type(exc).__name__}: {exc}"})
+        for handle in batch:
+            state.setdefault("x_last_checked", {})[handle] = now_ts
+    state["x_seen"] = dict(sorted(x_seen.items(), key=lambda kv: kv[1], reverse=True)[:3000])
+    return items, statuses
+
+
+def _collect_official_items(registry: dict[str, Any], now_ts: float) -> tuple[list[dict], list[dict], dict[str, Any]]:
+    state = _load_official_state()
+    sources = _official_sources(registry)
+    sources.sort(key=lambda s: float((state.get("sources", {}).get(s["url"], {}) or {}).get("last_checked_ts", 0)))
+    selected = sources[:OFFICIAL_POLL_LIMIT]
+
+    items = []
+    statuses = []
+    updates: dict[str, dict[str, Any]] = {}
+    with ThreadPoolExecutor(max_workers=min(OFFICIAL_WORKERS, max(1, len(selected)))) as pool:
+        future_map = {}
+        for source in selected:
+            prior = (state.get("sources") or {}).get(source["url"], {})
+            future = pool.submit(_poll_official_page, source, prior, now_ts)
+            future_map[future] = source["url"]
+        for future in as_completed(future_map):
+            page_items, new_prior, status = future.result()
+            items.extend(page_items)
+            statuses.append(status)
+            updates[future_map[future]] = new_prior
+    state.setdefault("sources", {}).update(updates)
+
+    x_items, x_status = _collect_x_items(registry, state, now_ts)
+    items.extend(x_items)
+    statuses.extend(x_status)
+    _save_official_state(state)
+    diagnostics = {
+        "registered_official_pages": len(sources),
+        "polled_official_pages": len(selected),
+        "registered_x_handles": sum(bool((row or {}).get("x_handle")) for row in (registry.get("markets") or {}).values() if isinstance(row, dict)),
+        "registry_coverage": registry.get("coverage") or {},
+    }
+    return items, statuses, diagnostics
+
+
+def collect_news_context(
+    markets: list[dict],
+    now_ts: float | None = None,
+    asset_rows: list[dict[str, Any]] | None = None,
+) -> dict[str, Any]:
     now_ts = time.time() if now_ts is None else now_ts
-    fetched: list[tuple[str, float, list[dict], str | None]] = []
+    registry = _load_registry()
+    official_items, official_status, official_diag = _collect_official_items(registry, now_ts)
+
+    fetched: list[tuple[str, float, str, list[dict], str | None]] = []
     with ThreadPoolExecutor(max_workers=len(SOURCES)) as pool:
         futures = [pool.submit(_fetch_source, source) for source in SOURCES]
         for future in as_completed(futures):
             fetched.append(future.result())
 
-    source_status = []
-    items = []
+    source_status = list(official_status)
+    items = list(official_items)
     weights = {}
-    for name, weight, rows, error in fetched:
+    source_kinds = {}
+    for name, weight, source_kind, rows, error in fetched:
         weights[name] = weight
+        source_kinds[name] = source_kind
         source_status.append(
-            {"source": name, "ok": error is None, "items": len(rows), "error": error}
+            {"source": name, "kind": source_kind, "ok": error is None, "items": len(rows), "error": error}
         )
+        for row in rows:
+            row["source_kind"] = source_kind
+            row["source_weight"] = weight
         items.extend(rows)
 
     active = []
@@ -248,13 +538,18 @@ def collect_news_context(markets: list[dict], now_ts: float | None = None) -> di
         seen.add(item["id"])
         published_ts = item.get("published_ts")
         if published_ts is None:
-            # Unknown publication time is useful context, but must not create an
-            # early watch because temporal causality is unknown.
             continue
         age = now_ts - published_ts
         if age < -300 or age > NEWS_LOOKBACK_SECONDS:
             continue
         active.append((item, max(0.0, age)))
+
+    asset_names = _asset_names(asset_rows)
+    registry_names = {
+        str((row or {}).get("symbol") or market.split("-", 1)[0]).upper(): str((row or {}).get("project_name") or "")
+        for market, row in (registry.get("markets") or {}).items()
+        if isinstance(row, dict)
+    }
 
     by_market: dict[str, dict[str, Any]] = {}
     for meta in markets:
@@ -262,48 +557,63 @@ def collect_news_context(markets: list[dict], now_ts: float | None = None) -> di
         base = str(meta.get("base") or market.split("-", 1)[0]).upper()
         if not market or not base:
             continue
+        project_name = asset_names.get(base) or registry_names.get(base)
         matches = []
         for item, age in active:
             raw_text = f"{item.get('title','')} {item.get('description','')}"
             normalized = _plain(raw_text)
-            if not _market_match(raw_text, normalized, base):
+            direct = market in (item.get("direct_markets") or [])
+            if not direct and not _market_match(raw_text, normalized, base, project_name):
                 continue
-            score, direction, groups = _classify(
-                raw_text, age, weights.get(item["source"], 0.9)
-            )
+            source_weight = float(item.get("source_weight") or weights.get(item.get("source"), 0.9))
+            score, direction, groups = _classify(raw_text, age, source_weight)
             matches.append(
                 {
                     "news_id": item["id"],
                     "source": item["source"],
+                    "source_kind": item.get("source_kind") or source_kinds.get(item.get("source"), "media"),
                     "title": item["title"],
                     "url": item.get("url"),
                     "published_at_utc": item.get("published_at_utc"),
+                    "timestamp_semantics": item.get("timestamp_semantics", "PUBLISHED_AT"),
                     "age_minutes": round(age / 60.0, 1),
                     "score": score,
                     "direction": direction,
                     "categories": groups,
+                    "official_direct_match": direct,
                 }
             )
         if not matches:
             continue
-        matches.sort(key=lambda row: (row["score"], -row["age_minutes"]), reverse=True)
+        matches.sort(
+            key=lambda row: (
+                row.get("direction") != "NEUTRAL",
+                row.get("source_kind") == "official_project",
+                row["score"],
+                -row["age_minutes"],
+            ),
+            reverse=True,
+        )
         top = matches[0]
         by_market[market] = {
             "score": top["score"],
             "direction": top["direction"],
-            "watch_trigger": top["score"] >= NEWS_WATCH_MIN,
+            "watch_trigger": top["direction"] != "NEUTRAL" and top["score"] >= NEWS_WATCH_MIN,
             "weight_in_composite": NEWS_WEIGHT,
             "top": top,
-            "items": matches[:5],
+            "items": matches[:8],
+            "official_items": sum(row.get("source_kind") == "official_project" for row in matches),
         }
 
     return {
-        "schema": "solaire_production_news_v1",
+        "schema": "solaire_production_news_v2_official_first",
         "generated_at_utc": datetime.fromtimestamp(now_ts, timezone.utc).isoformat(),
         "lookback_hours": NEWS_LOOKBACK_SECONDS / 3600,
         "news_weight": NEWS_WEIGHT,
         "news_watch_min": NEWS_WATCH_MIN,
-        "sources": sorted(source_status, key=lambda row: row["source"]),
+        "source_priority": ["OFFICIAL_PROJECT", "OFFICIAL_PARTNER", "MEDIA_FALLBACK"],
+        "official_sources": official_diag,
+        "sources": sorted(source_status, key=lambda row: str(row.get("source"))),
         "items_with_known_recent_time": len(active),
         "markets": by_market,
     }
@@ -321,11 +631,8 @@ def composite_score(quant_score: Any, news: dict[str, Any] | None) -> float:
         news_score = 0.0
     direction = news.get("direction")
     if direction == "POSITIVE":
-        # NEWS can contribute up to 35% of the final note but never penalises a
-        # strong quant setup merely because no catalyst was found.
         result = quant + NEWS_WEIGHT * max(0.0, news_score - quant)
     elif direction == "NEGATIVE":
-        # Material negative news can cut the long score by up to 35%.
         result = quant * (1.0 - NEWS_WEIGHT * news_score / 10.0)
     else:
         result = quant
