@@ -249,6 +249,7 @@ def test_official_imminent_teaser_opens_catalyst_prewatch_before_quant():
     assert catalyst["prewatch_trigger"] is True
     assert catalyst["level"] == 3
     assert catalyst["label"] == "IMMINENT"
+    assert catalyst["speculative_review"] is True
     assert signal["watch_trigger"] is False
 
     obs = {
