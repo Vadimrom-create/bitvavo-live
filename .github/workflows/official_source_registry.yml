@@ -1,0 +1,51 @@
+name: Refresh official crypto sources
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'research/official_source_registry.py'
+      - 'scripts/update_official_source_registry.py'
+      - '.github/workflows/official_source_registry.yml'
+  schedule:
+    - cron: '17 3 * * *'
+
+permissions:
+  contents: write
+
+concurrency:
+  group: solaire-official-source-registry
+  cancel-in-progress: false
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Discover official sources for all active EUR markets
+        run: python scripts/update_official_source_registry.py
+      - name: Persist official source registry
+        run: |
+          set -euo pipefail
+          git config user.name 'bitvavo-live-bot'
+          git config user.email 'actions@users.noreply.github.com'
+          git add official_source_registry.json
+          if git diff --cached --quiet; then exit 0; fi
+          git commit -m 'Refresh official crypto source registry'
+          for attempt in 1 2 3 4 5 6; do
+            git fetch origin main
+            if ! git rebase origin/main; then
+              git rebase --abort || true
+              exit 1
+            fi
+            if git push origin HEAD:main; then exit 0; fi
+            sleep $((attempt * 3))
+          done
+          exit 1
