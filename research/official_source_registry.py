@@ -9,6 +9,7 @@ import json
 import re
 import time
 import unicodedata
+import urllib.error
 import urllib.parse
 import urllib.request
 from pathlib import Path
@@ -18,7 +19,7 @@ REGISTRY = Path("official_source_registry.json")
 COINGECKO_LIST = "https://api.coingecko.com/api/v3/coins/list?include_platform=false"
 COINGECKO_COIN = "https://api.coingecko.com/api/v3/coins/{coin_id}?localization=false&tickers=false&market_data=false&community_data=false&developer_data=false&sparkline=false"
 USER_AGENT = "SolaireOfficialSources/1.0"
-DETAIL_DELAY_SECONDS = 2.2
+DETAIL_DELAY_SECONDS = 4.0
 
 OFFICIAL_OVERRIDES = {
     "ETHFI": {
@@ -43,8 +44,24 @@ def _get_json(url: str, timeout: int = 15) -> Any:
         url,
         headers={"Accept": "application/json", "User-Agent": USER_AGENT},
     )
-    with urllib.request.urlopen(req, timeout=timeout) as response:
-        return json.loads(response.read().decode("utf-8"))
+    last_error = None
+    for attempt in range(4):
+        try:
+            with urllib.request.urlopen(req, timeout=timeout) as response:
+                return json.loads(response.read().decode("utf-8"))
+        except urllib.error.HTTPError as exc:
+            last_error = exc
+            if exc.code != 429 or attempt >= 3:
+                raise
+            retry_after = exc.headers.get("Retry-After") if exc.headers else None
+            try:
+                delay = max(8.0, min(60.0, float(retry_after)))
+            except (TypeError, ValueError):
+                delay = 12.0 * (attempt + 1)
+            time.sleep(delay)
+    if last_error:
+        raise last_error
+    raise RuntimeError("COINGECKO_FETCH_FAILED")
 
 
 def _clean_urls(values: Any) -> list[str]:
@@ -173,6 +190,7 @@ def discover_official_links(
             row["official_forum_urls"] = list(dict.fromkeys((row.get("official_forum_urls") or []) + forums))
             row["x_handle"] = row.get("x_handle") or x_handle
             row["discovery_status"] = "DISCOVERED"
+            row.pop("discovery_error", None)
             row["link_discovery_source"] = "COINGECKO_DIRECTORY"
             row["links_are_project_sources"] = True
             resolved += 1
