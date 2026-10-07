@@ -1,0 +1,86 @@
+name: Swing Selector Shadow
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '17 */3 * * *'
+  push:
+    branches: [main]
+    paths:
+      - 'research/swing_selector.py'
+      - 'scripts/run_swing_selector_shadow.py'
+      - '.github/workflows/swing_selector_shadow.yml'
+
+permissions:
+  contents: write
+
+concurrency:
+  group: swing-selector-shadow-v1
+  cancel-in-progress: false
+
+jobs:
+  shadow:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 1
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Compile
+        run: |
+          python -m py_compile research/swing_selector.py
+          python -m py_compile scripts/run_swing_selector_shadow.py
+
+      - name: Run frozen swing selector
+        run: python scripts/run_swing_selector_shadow.py
+
+      - name: Validate shadow-only contract
+        run: |
+          python - <<'PY'
+          import json
+          p=json.load(open('swing_selector_shadow.json'))
+          assert p['mode']=='SHADOW_ONLY'
+          assert p['no_orders'] is True
+          assert p['no_alerts'] is True
+          assert p['no_decision_layer_changes'] is True
+          assert p['policy']['micro_5m_15m_used_for_thesis'] is False
+          assert len(p['top10']) <= 10
+          PY
+
+      - name: Upload shadow artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: swing-selector-shadow-${{ github.run_id }}-${{ github.run_attempt }}
+          retention-days: 30
+          path: |
+            swing_selector_shadow.json
+            swing_selector_shadow.md
+            swing_selector_shadow_state.json
+            swing_history/**/*.json.gz
+
+      - name: Persist shadow outputs
+        run: |
+          set -euo pipefail
+          git config user.name 'bitvavo-live-bot'
+          git config user.email 'actions@users.noreply.github.com'
+          git add swing_selector_shadow.json swing_selector_shadow.md swing_selector_shadow_state.json swing_history
+          if git diff --cached --quiet; then
+            exit 0
+          fi
+          git commit -m 'Update swing selector shadow'
+          for attempt in 1 2 3 4 5 6; do
+            git fetch origin main
+            if ! git rebase origin/main; then
+              git rebase --abort || true
+              exit 1
+            fi
+            if git push origin HEAD:main; then exit 0; fi
+            sleep $((attempt * 2))
+          done
+          exit 1
