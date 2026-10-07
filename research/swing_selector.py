@@ -11,7 +11,7 @@ from __future__ import annotations
 import math
 from typing import Any
 
-VERSION = "SWING_SELECTOR_V1_FROZEN_2026-10-08_R1"
+VERSION = "SWING_SELECTOR_V1_FROZEN_2026-10-08_R2"
 
 def _f(v: Any, default: float | None = None) -> float | None:
     try:
