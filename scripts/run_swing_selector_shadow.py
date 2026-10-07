@@ -49,8 +49,11 @@ def main():
     news_doc=load(NEWS_PATH,{})
     news_by=news_doc.get("markets") or {}
     prev=load(STATE_PATH,{"markets":{}})
+    if prev.get("version") != VERSION:
+        prev={"markets":{}}
     prev_markets=prev.get("markets") or {}
 
+    btc=trends.get("BTC-EUR") or {}
     ranked=[]
     excluded=[]
     for market,trend in trends.items():
@@ -58,6 +61,11 @@ def main():
             continue
         live=live_by.get(market,{})
         news=news_by.get(market,{})
+        trend=dict(trend)
+        for days in (3,7,14):
+            key=f"rs_btc_{days}d"
+            if trend.get(key) is None and trend.get(f"ret{days}d") is not None and btc.get(f"ret{days}d") is not None:
+                trend[key]=float(trend[f"ret{days}d"])-float(btc[f"ret{days}d"])
         row=score_market(market,trend,live,news)
         row["last_eur"]=trend.get("last")
         qv=live.get("quote_volume_24h_eur")
@@ -115,7 +123,6 @@ def main():
 
         row["human_review_eligible"]=row["shadow_status"]=="HUMAN_REVIEW"
 
-    btc=trends.get("BTC-EUR") or {}
     eth=trends.get("ETH-EUR") or {}
     market_context={
         "btc_ret3d":btc.get("ret3d"),"btc_ret7d":btc.get("ret7d"),"btc_ret14d":btc.get("ret14d"),
