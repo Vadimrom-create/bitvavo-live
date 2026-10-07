@@ -1,6 +1,6 @@
 # Solaire Swing Selector — SHADOW
 
-Generated: 2026-10-07T23:21:03.093131+00:00
+Generated: 2026-10-07T23:21:44.812468+00:00
 Version: SWING_SELECTOR_V1_FROZEN_2026-10-08_R1
 No orders, no alerts, no Decision Layer changes.
 
