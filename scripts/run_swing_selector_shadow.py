@@ -153,6 +153,12 @@ def main():
         "top20":ranked[:TOP20],
         "top10":ranked[:TOP10],
         "human_review":[r for r in ranked[:TOP20] if r.get("human_review_eligible")],
+        "ranked_summary":[{
+            "market":r["market"],"rank":r["rank"],"score":r["score"],
+            "technical_score":r["technical_score"],"news_modifier":r["news_modifier"],
+            "last_eur":r.get("last_eur"),"shadow_status":r.get("shadow_status"),
+            "flags":r.get("flags") or []
+        } for r in ranked],
         "notes":[
             "A PREWATCH is not a buy recommendation.",
             "HUMAN_REVIEW requires at least 3h persistence in top20 and top10 rank.",
