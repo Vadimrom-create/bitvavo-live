@@ -1,7 +1,7 @@
 # Solaire Swing Selector — SHADOW
 
-Generated: 2026-10-07T23:22:26.796113+00:00
-Version: SWING_SELECTOR_V1_FROZEN_2026-10-08_R1
+Generated: 2026-10-07T23:23:10.443087+00:00
+Version: SWING_SELECTOR_V1_FROZEN_2026-10-08_R2
 No orders, no alerts, no Decision Layer changes.
 
 | Rank | Market | Score | Status | 3d | 7d | 14d | RS BTC 7d | Dist EMA50 | News mod |
