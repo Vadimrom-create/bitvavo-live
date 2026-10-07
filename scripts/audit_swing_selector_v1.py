@@ -92,12 +92,22 @@ def build_snapshots():
         rows=[]
         baseline_events=[]
         v4_entries=[]
-        for obs in doc.get("observations") or []:
-            if not isinstance(obs,dict) or not obs.get("market"): continue
+        observations=[x for x in (doc.get("observations") or []) if isinstance(x,dict)]
+        btc_trend={}
+        for x in observations:
+            if x.get("market")=="BTC-EUR":
+                btc_trend=((x.get("baseline") or {}).get("trend_profile") or {})
+                break
+        for obs in observations:
+            if not obs.get("market"): continue
             market=str(obs["market"])
             if base(market) in EXCLUDED_BASES: continue
             b=obs.get("baseline") or {}
-            trend=b.get("trend_profile") or {}
+            trend=dict(b.get("trend_profile") or {})
+            for days in (3,7,14):
+                key=f"rs_btc_{days}d"
+                if trend.get(key) is None and trend.get(f"ret{days}d") is not None and btc_trend.get(f"ret{days}d") is not None:
+                    trend[key]=float(trend[f"ret{days}d"])-float(btc_trend[f"ret{days}d"])
             live=live_from_obs(obs)
             price=finite(obs.get("price_eur"))
             qv=finite(live.get("quote_volume_24h_eur"))
