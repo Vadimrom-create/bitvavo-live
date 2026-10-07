@@ -24,7 +24,7 @@ STATE_PATH=ROOT/"swing_selector_shadow_state.json"
 OUT_PATH=ROOT/"swing_selector_shadow.json"
 OUT_MD=ROOT/"swing_selector_shadow.md"
 
-EXCLUDED_BASES={"BTC","ETH","USDT","USDC","EURC","DAI","FDUSD","PYUSD","EURQ"}
+EXCLUDED_BASES={"BTC","ETH","USDT","USDC","EURC","DAI","FDUSD","PYUSD","EURQ","FRAX","USDE","USDG","USDS","GHO","RLUSD","TUSD","USDP","USD1"}
 TOP20=20
 TOP10=10
 MIN_REVIEW_PERSISTENCE_HOURS=3.0
