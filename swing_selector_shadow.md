@@ -1,0 +1,28 @@
+# Solaire Swing Selector — SHADOW
+
+Generated: 2026-10-07T23:19:12.338774+00:00
+Version: SWING_SELECTOR_V1_FROZEN_2026-10-08
+No orders, no alerts, no Decision Layer changes.
+
+| Rank | Market | Score | Status | 3d | 7d | 14d | RS BTC 7d | Dist EMA50 | News mod |
+|---:|---|---:|---|---:|---:|---:|---:|---:|---:|
+| 1 | ADA-EUR | 72.42 | PREWATCH_PERSISTENCE_REQUIRED | -1.98% | 3.90% | 7.85% | —% | 13.70% | +0.00 |
+| 2 | RENDER-EUR | 71.92 | PREWATCH_PERSISTENCE_REQUIRED | 2.06% | 6.26% | 17.92% | —% | 20.24% | +0.00 |
+| 3 | FUN-EUR | 71.21 | PREWATCH_PERSISTENCE_REQUIRED | 5.10% | 17.69% | 6.09% | —% | 3.79% | +0.00 |
+| 4 | CATI-EUR | 69.81 | PREWATCH_PERSISTENCE_REQUIRED | 1.93% | 13.16% | 9.33% | —% | 14.69% | +0.00 |
+| 5 | AVNT-EUR | 69.51 | PREWATCH_PERSISTENCE_REQUIRED | 0.57% | 0.19% | 18.14% | —% | 15.55% | +0.00 |
+| 6 | CHIP-EUR | 68.67 | PREWATCH_PERSISTENCE_REQUIRED | 3.49% | 17.45% | 22.64% | —% | 19.59% | +0.00 |
+| 7 | WAL-EUR | 68.67 | PREWATCH_PERSISTENCE_REQUIRED | 1.72% | 9.15% | 14.56% | —% | 20.17% | +0.00 |
+| 8 | KAIA-EUR | 68.57 | PREWATCH_PERSISTENCE_REQUIRED | 2.52% | 12.52% | 19.79% | —% | 19.55% | +0.00 |
+| 9 | FRAX-EUR | 68.09 | PREWATCH_PERSISTENCE_REQUIRED | 4.26% | 2.49% | 8.38% | —% | 8.19% | +0.00 |
+| 10 | AXS-EUR | 66.82 | PREWATCH_PERSISTENCE_REQUIRED | -9.33% | 7.76% | 20.98% | —% | 18.01% | +0.00 |
+| 11 | ZIG-EUR | 66.68 | PREWATCH_PERSISTENCE_REQUIRED | 3.85% | 7.57% | 20.82% | —% | 23.16% | +0.00 |
+| 12 | MANA-EUR | 66.65 | PREWATCH_PERSISTENCE_REQUIRED | 0.33% | 16.53% | 27.99% | —% | 25.62% | +0.00 |
+| 13 | JUP-EUR | 66.61 | PREWATCH_PERSISTENCE_REQUIRED | 0.90% | 3.20% | 17.61% | —% | 23.82% | +0.00 |
+| 14 | LUMIA-EUR | 66.49 | PREWATCH_PERSISTENCE_REQUIRED | 0.78% | 3.05% | 9.13% | —% | 4.90% | +0.00 |
+| 15 | SOL-EUR | 66.44 | PREWATCH_PERSISTENCE_REQUIRED | -4.63% | -1.22% | 1.90% | —% | 9.74% | +1.25 |
+| 16 | FLOKI-EUR | 66.29 | PREWATCH_PERSISTENCE_REQUIRED | -4.92% | 0.74% | 2.12% | —% | 6.83% | +0.00 |
+| 17 | SOSO-EUR | 66.19 | PREWATCH_PERSISTENCE_REQUIRED | 6.80% | 4.30% | 0.27% | —% | 6.94% | +0.00 |
+| 18 | AI-EUR | 65.85 | PREWATCH_PERSISTENCE_REQUIRED | -0.75% | 2.22% | 5.58% | —% | 1.51% | +0.00 |
+| 19 | BAT-EUR | 65.85 | PREWATCH_PERSISTENCE_REQUIRED | -3.06% | 13.35% | 16.38% | —% | 21.83% | +0.00 |
+| 20 | HNT-EUR | 65.11 | PREWATCH_PERSISTENCE_REQUIRED | -9.27% | 11.19% | 5.61% | —% | 20.52% | +0.00 |
