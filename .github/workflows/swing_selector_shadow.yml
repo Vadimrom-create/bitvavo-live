@@ -27,6 +27,16 @@ jobs:
         with:
           ref: main
           fetch-depth: 1
+          filter: blob:none
+          sparse-checkout: |
+            research
+            scripts
+            v4_trend_cache.json
+            bitvavo_live.json
+            production_news_context.json
+            swing_selector_shadow_state.json
+            swing_history
+          sparse-checkout-cone-mode: false
 
       - uses: actions/setup-python@v5
         with:
