@@ -112,7 +112,7 @@ jobs:
           path: wallet_private_summary.json
 
       - name: Remove legacy readable wallet artifacts
-        if: always()
+        if: ${{ always() && github.event.repository.private != true }}
         env:
           GH_TOKEN: ${{ github.token }}
         shell: bash
