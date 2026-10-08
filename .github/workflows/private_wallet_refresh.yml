@@ -6,6 +6,7 @@ on:
     branches: [main]
     paths:
       - 'scripts/send_useful_alert.py'
+      - 'scripts/enrich_private_wallet.py'
       - '.github/workflows/private_wallet_refresh.yml'
   # Cold-start fallback only. Normal cadence is self-chained through
   # workflow_dispatch, so missed GitHub schedule events cannot stale WALLET.
@@ -52,6 +53,9 @@ jobs:
           ALLOW_BUY_ALERTS: 'false'
         run: python scripts/send_useful_alert.py
 
+      - name: Enrich every held position with public order-book and trade evidence
+        run: python scripts/enrich_private_wallet.py
+
       - name: Verify private wallet artifact
         run: |
           python - <<'PY'
@@ -69,12 +73,17 @@ jobs:
               raise SystemExit(f'missing wallet fields: {missing}')
           if not isinstance(payload['positions'], list):
               raise SystemExit('positions must be a list')
-          print(
-              'PRIVATE_WALLET_OK',
-              payload['generated_at_utc'],
-              payload['wallet_value_eur'],
-              [row.get('market') for row in payload['positions']],
-          )
+          coverage = payload.get('execution_coverage') or {}
+          counts = coverage.get('status_counts') or {}
+          if coverage.get('market_count') != len(payload['positions']):
+              raise SystemExit('private execution coverage count mismatch')
+          if sum(counts.values()) != len(payload['positions']):
+              raise SystemExit('private execution status count mismatch')
+          if any('execution_evidence' not in p for p in payload['positions']):
+              raise SystemExit('missing held-market execution evidence status')
+          # No amounts, positions or symbols in public job logs.
+          print('PRIVATE_WALLET_OK', 'positions=', len(payload['positions']),
+                'execution_status_counts=', counts)
           PY
 
       - name: Upload private wallet summary
