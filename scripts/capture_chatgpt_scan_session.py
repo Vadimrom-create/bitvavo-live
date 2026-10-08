@@ -52,10 +52,34 @@ def validate_session(obj, now):
             raise InputError("decision time not inside SCAN session")
         if d.get("scan_id") not in (None, sid):
             raise InputError("decision scan_id mismatch")
-    if obj["session_status"] == "SCAN_WITH_BUY" and not any(d["chatgpt_action"] == "BUY" for d in decisions):
+    buys = [d for d in decisions if d["chatgpt_action"] == "BUY"]
+    if obj["session_status"] == "SCAN_WITH_BUY" and not buys:
         raise InputError("SCAN_WITH_BUY requires BUY")
-    if obj["session_status"] == "SCAN_INSUFFICIENT_DATA" and any(d["chatgpt_action"] == "BUY" for d in decisions):
-        raise InputError("cannot claim BUY without data")
+    if buys and obj["session_status"] != "SCAN_WITH_BUY":
+        raise InputError("BUY requires SCAN_WITH_BUY status")
+    if source_status == "FRESH" and asof is not None:
+        delta = (end - parse_utc(asof, "machine_data_asof_utc")).total_seconds()
+        if delta > 600:
+            raise InputError("FRESH source is over 10 minutes old")
+    if buys and source_status != "FRESH":
+        raise InputError("BUY cannot be validated without fresh machine source")
+    for d in buys:
+        book_time = d.get("book_asof_utc")
+        if not book_time:
+            raise InputError("BUY requires timestamped order book evidence")
+        book_at = parse_utc(book_time, "buy.book_asof_utc")
+        if book_at > d["_at"] or (d["_at"] - book_at).total_seconds() > 360:
+            raise InputError("BUY requires order-book evidence <= 6 minutes old")
+        for numeric_key in ("entry_limit_eur", "stop_eur", "spread_pct", "roundtrip_150eur_pct"):
+            value = d.get(numeric_key)
+            if type(value) not in (int, float) or not (float("-inf") < value < float("inf")):
+                raise InputError(f"BUY missing finite {numeric_key}")
+            if value <= 0:
+                raise InputError(f"BUY requires positive {numeric_key}")
+        if d["stop_eur"] >= d["entry_limit_eur"]:
+            raise InputError("BUY long entry must have structural stop below entry")
+    if obj["session_status"] == "SCAN_NO_ACTION" and buys:
+        raise InputError("NO_ACTION cannot contain BUY")
     if not decisions and not str(obj.get("no_decision_reason") or "").strip():
         raise InputError("zero decisions require a documented reason")
     digest = hashlib.sha256(answer.encode("utf-8")).hexdigest()
