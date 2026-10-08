@@ -59,13 +59,14 @@ def validate_session(obj, now):
     if not decisions and not str(obj.get("no_decision_reason") or "").strip():
         raise InputError("zero decisions require a documented reason")
     digest = hashlib.sha256(answer.encode("utf-8")).hexdigest()
+    payload_digest = hashlib.sha256(json.dumps(obj, sort_keys=True, ensure_ascii=False, separators=(",", ":")).encode("utf-8")).hexdigest()
     head = {
         "record_type": "scan_session", "schema": obj["schema"], "scan_id": sid,
         "session_started_at_utc": start.isoformat(), "session_completed_at_utc": end.isoformat(),
         "session_status": obj["session_status"], "machine_source_status": source_status,
         "machine_data_asof_utc": asof, "machine_source_ref": obj.get("machine_source_ref"),
         "reviewed_signal_ids": signals, "decision_count": len(decisions),
-        "answer_sha256": digest, "assistant_final_text": answer,
+        "answer_sha256": digest, "capture_payload_sha256": payload_digest, "assistant_final_text": answer,
         "captured_at_utc": now.isoformat(), "no_decision_reason": obj.get("no_decision_reason"),
         "capture_mode": "EXPLICIT_WRITE_NOT_NATIVE_AUTO_HOOK",
     }
@@ -91,7 +92,7 @@ def commit_jsonl(ledger, lines):
         sid = lines[0]["scan_id"]
         for e in old:
             if e.get("record_type") == "scan_session" and e.get("scan_id") == sid:
-                if e.get("answer_sha256") == lines[0]["answer_sha256"]:
+                if e.get("capture_payload_sha256") == lines[0]["capture_payload_sha256"]:
                     return "ALREADY_RECORDED", 0
                 raise InputError("scan_id re-used with different answer hash")
         known = {e.get("decision_id") for e in old if e.get("record_type") == "scan_decision"}
