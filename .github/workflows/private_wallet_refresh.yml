@@ -122,7 +122,8 @@ jobs:
             --jq '.artifacts[] | select(.name | startswith("private-wallet-summary-")) | .id' |
           while IFS= read -r artifact_id; do
             if [[ "${artifact_id}" =~ ^[0-9]+$ ]]; then
-              gh api --method DELETE "/repos/${GITHUB_REPOSITORY}/actions/artifacts/${artifact_id}" >/dev/null
+              # Another concurrent privacy cleanup may have deleted it already.
+              gh api --method DELETE "/repos/${GITHUB_REPOSITORY}/actions/artifacts/${artifact_id}" >/dev/null 2>&1 || true
             fi
           done
           echo "Legacy plaintext artifact cleanup completed."
