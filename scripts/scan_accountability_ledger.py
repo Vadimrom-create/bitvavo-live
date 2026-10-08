@@ -52,7 +52,7 @@ def jsonl(path):
                 raise InputError(f"{path}:{lineno}: invalid JSON") from ex
             if not isinstance(row, dict):
                 raise InputError(f"{path}:{lineno}: JSON object required")
-            if row.get("record_type") == "ledger_header":
+            if row.get("record_type") in {"ledger_header", "scan_session"}:
                 continue
             rows.append(row)
     return rows
