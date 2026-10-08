@@ -39,17 +39,31 @@ de slippage ne tiennent pas compte de la profondeur future ni des frais réels.
 
 ## Confidentialité, accès et non-régression
 
-Le fichier enrichi est publié **uniquement comme artifact Actions du workflow
-privé existant**, sous le même nom `private-wallet-summary-…`. Il n'est
-jamais ajouté à Git, ni à `execution_snapshot.json`, ni aux fichiers publics
-de détection. Les logs n'affichent plus les montants et les symboles du wallet
-dans l'étape de validation.
+Le fichier enrichi n'est jamais ajouté à Git, ni à
+`execution_snapshot.json`, ni aux fichiers publics de détection. Les logs de
+validation n'affichent ni montants ni symboles du wallet.
 
-**Attention :** ce workflow est dans un dépôt GitHub public. Les artifacts
-Actions ne doivent pas être considérés comme un coffre-fort cryptographique :
-leur accès est régi par les permissions de consultation GitHub. Le résumé
-préexistant expose déjà le portefeuille dans ce canal ; cette modification ne
-rajoute pas de nouvelle destination, mais n'élimine pas ce risque existant.
+**Publication conditionnée à la visibilité GitHub :**
+
+- **Dépôt public :** `scripts/protect_private_wallet_artifact.py` chiffre
+  obligatoirement le résumé avec Fernet et la clé secrète `POSITION_STATE_KEY`
+  déjà configurée ; il vérifie l'authenticité du chiffrement, efface le fichier
+  en clair du workspace avant upload et publie uniquement
+  `encrypted-wallet-summary-…`. Sans clé valide : aucune publication.
+  Les anciens artifacts publics `private-wallet-summary-…` sont supprimés
+  via API GitHub, avec la permission Actions write du workflow.
+- **Dépôt privé :** publication en clair sous le nom historique
+  `private-wallet-summary-…`, accessible aux lecteurs autorisés du dépôt.
+
+**Conséquence fonctionnelle importante :** tant que le dépôt reste public, un
+assistant sans la clé de déchiffrement ne peut pas lire automatiquement les
+quantités et PRU à partir des futurs artifacts chiffrés. Il ne faut jamais
+communiquer la clé dans un chat. Pour retrouver le mode WALLET connecté en
+lecture directe sans exposer les soldes publiquement, rendre le dépôt GitHub
+**privé** et confirmer que le connecteur GitHub y conserve son accès.
+
+Supprimer un artifact limite les accès futurs ; cela ne révoque pas les copies
+éventuellement téléchargées auparavant.
 
 Aucun endpoint Bitvavo privé supplémentaire, aucun ordre, aucun email et
 aucune modification de la politique stop-loss. Le scanner public, les
