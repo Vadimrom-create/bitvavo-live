@@ -1,0 +1,25 @@
+name: Validate private SCAN session capture
+on:
+  pull_request:
+    paths:
+      - "scripts/capture_chatgpt_scan_session.py"
+      - "scripts/scan_accountability_ledger.py"
+      - "tests/test_capture_chatgpt_scan_session.py"
+      - ".github/workflows/test_scan_session_capture.yml"
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  capture-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Compile
+        run: python -m py_compile scripts/capture_chatgpt_scan_session.py scripts/scan_accountability_ledger.py tests/test_capture_chatgpt_scan_session.py
+      - name: Test capture and compatibility
+        run: python -m unittest discover -s tests -p 'test_capture_chatgpt_scan_session.py' -v
+      - name: Regression test accountability
+        run: python -m unittest discover -s tests -p 'test_scan_accountability_ledger.py' -v
