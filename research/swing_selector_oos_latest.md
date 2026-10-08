@@ -1,8 +1,8 @@
 # Swing Selector R2 — clean forward OOS
 
 Version: SWING_SELECTOR_V1_FROZEN_2026-10-08_R2
-Generated: 2026-10-07T23:28:07.403148+00:00
-Snapshots: 1
+Generated: 2026-10-08T12:15:37.933555+00:00
+Snapshots: 2
 Verdict: **INSUFFICIENT_MATURE_7D_DATA**
 
 | Cohort | Horizon | N | Close >0 | Hit +10 | Hit +20 | Hit +30 | Med close | Med MFE | Med MAE |
