@@ -73,6 +73,10 @@ class SessionCaptureTests(unittest.TestCase):
             ), NOW)
             with self.assertRaises(InputError):
                 capture.commit_jsonl(p, changed)
+            other = sample()
+            other["decisions"][0]["reason_codes"] = ["CHANGED_CAUSAL_REASON"]
+            with self.assertRaises(InputError):
+                capture.commit_jsonl(p, capture.validate_session(other, NOW))
 
     def test_reject_lookahead_in_market_data(self):
         with self.assertRaises(InputError):
