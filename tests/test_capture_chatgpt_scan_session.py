@@ -104,8 +104,24 @@ class SessionCaptureTests(unittest.TestCase):
     def test_no_unproven_buy(self):
         with self.assertRaises(InputError):
             capture.validate_session(sample(session_status="SCAN_WITH_BUY"), NOW)
+        buy = sample()
+        buy["session_status"] = "SCAN_INSUFFICIENT_DATA"
+        buy["decisions"][0].update(
+            chatgpt_action="BUY", book_asof_utc="2026-10-08T20:03:00Z",
+            entry_limit_eur=0.021, stop_eur=0.019,
+            spread_pct=0.2, roundtrip_150eur_pct=0.45,
+        )
         with self.assertRaises(InputError):
-            capture.validate_session(sample(session_status="SCAN_INSUFFICIENT_DATA"), NOW)
+            capture.validate_session(buy, NOW)
+        buy["session_status"] = "SCAN_WITH_BUY"
+        self.assertEqual(capture.validate_session(buy, NOW)[1]["chatgpt_action"], "BUY")
+        buy["machine_source_status"] = "UNAVAILABLE"
+        with self.assertRaises(InputError):
+            capture.validate_session(buy, NOW)
+        buy["machine_source_status"] = "FRESH"
+        buy["decisions"][0]["book_asof_utc"] = "2026-10-08T19:50:00Z"
+        with self.assertRaises(InputError):
+            capture.validate_session(buy, NOW)
 
     def test_source_fresh_needs_evidence_and_timestamp(self):
         with self.assertRaises(InputError):
