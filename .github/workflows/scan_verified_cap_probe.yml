@@ -1,0 +1,54 @@
+name: Observe verified cap turnover (OGN RLC ZRC)
+on:
+  pull_request:
+    paths:
+      - "scripts/scan_verified_cap_probe.py"
+      - "tests/test_scan_verified_cap_probe.py"
+      - ".github/workflows/scan_verified_cap_probe.yml"
+  push:
+    branches: ["main"]
+    paths:
+      - "scripts/scan_verified_cap_probe.py"
+      - "tests/test_scan_verified_cap_probe.py"
+      - ".github/workflows/scan_verified_cap_probe.yml"
+  schedule:
+    - cron: "17 0,6,12,18 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: measurement-cap-probe
+  cancel-in-progress: false
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Syntax checks
+        run: python -m py_compile scripts/scan_verified_cap_probe.py tests/test_scan_verified_cap_probe.py
+      - name: Unit tests (offline fixtures)
+        run: python -m unittest discover -s tests -p 'test_scan_verified_cap_probe.py' -v
+
+  observe:
+    needs: validate
+    if: github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Verify public EUR capitalizations then fetch later Bitvavo 24h ticker
+        run: python scripts/scan_verified_cap_probe.py --output /tmp/verified_turnover_observation.json
+      - uses: actions/upload-artifact@v4
+        if: success()
+        with:
+          name: verified-turnover-observation
+          path: /tmp/verified_turnover_observation.json
+          retention-days: 30
