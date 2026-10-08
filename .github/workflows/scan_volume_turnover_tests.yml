@@ -1,0 +1,42 @@
+name: Validate SCAN volume-turnover shadow
+on:
+  pull_request:
+    paths:
+      - "scripts/scan_volume_turnover_shadow.py"
+      - "tests/test_scan_volume_turnover_shadow.py"
+      - ".github/workflows/scan_volume_turnover_tests.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate-volume-shadow:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Compile sidecar
+        run: python -m py_compile scripts/scan_volume_turnover_shadow.py tests/test_scan_volume_turnover_shadow.py
+      - name: Unit tests
+        run: python -m unittest discover -s tests -p 'test_scan_volume_turnover_shadow.py' -v
+      - name: Produce snapshot from existing Bitvavo market data
+        run: python scripts/scan_volume_turnover_shadow.py --live bitvavo_live.json --output /tmp/volume_turnover_shadow.json
+      - name: Assert full-universe coverage with honest missing cap
+        run: |
+          python - <<'PY'
+          import json
+          x = json.load(open('/tmp/volume_turnover_shadow.json'))
+          assert x['measurement_only'] and not x['changes_buy_gate']
+          assert x['market_count'] > 100
+          assert x['cap_coverage_pct'] == 0, "No market-cap provider configured: MUST NOT fabricate capitalizations"
+          assert len(x['observations']) == x['market_count']
+          print('PASS:', x['market_count'], 'markets; missing-cap coverage clearly reported')
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: scan-volume-turnover-diagnostics
+          path: /tmp/volume_turnover_shadow.json
+          retention-days: 14
