@@ -1,0 +1,68 @@
+name: One-time historic WALLET privacy cleanup
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/cleanup_legacy_wallet_exposure.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: write
+
+concurrency:
+  group: wallet-historic-security-cleanup
+  cancel-in-progress: false
+
+jobs:
+  cleanup:
+    if: github.repository == 'Vadimrom-create/bitvavo-live'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Delete legacy readable wallet artifacts and old logs only
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          artifact_ids="$(mktemp)"
+          run_ids="$(mktemp)"
+          trap 'rm -f "$artifact_ids" "$run_ids"' EXIT
+
+          # Actions artifacts of public repositories are accessible to repo readers.
+          gh api "/repos/${GITHUB_REPOSITORY}/actions/artifacts?per_page=100" --paginate \
+            --jq '.artifacts[] | select(.name | startswith("private-wallet-summary-")) | .id' > "$artifact_ids"
+
+          removed_artifacts=0
+          while IFS= read -r artifact_id; do
+            if [[ "$artifact_id" =~ ^[0-9]+$ ]]; then
+              if gh api --method DELETE "/repos/${GITHUB_REPOSITORY}/actions/artifacts/${artifact_id}" >/dev/null 2>&1; then
+                removed_artifacts=$((removed_artifacts + 1))
+              fi
+            fi
+          done < "$artifact_ids"
+
+          # Until the 2026-10-08 logging fix, verification printed wallet
+          # value and position symbols. Restrict to the PRIVATE wallet
+          # heartbeat workflow, before that fix, without deleting run data
+          # from any other scanner or audit.
+          gh api "/repos/${GITHUB_REPOSITORY}/actions/workflows/private_wallet_refresh.yml/runs?per_page=100" --paginate \
+            --jq '.workflow_runs[] | select(.created_at < "2026-10-08T21:53:08Z" and .status == "completed") | .id' > "$run_ids"
+
+          deleted_log_sets=0
+          skipped_log_sets=0
+          while IFS= read -r run_id; do
+            if [[ "$run_id" =~ ^[0-9]+$ ]]; then
+              if gh api --method DELETE "/repos/${GITHUB_REPOSITORY}/actions/runs/${run_id}/logs" >/dev/null 2>&1; then
+                deleted_log_sets=$((deleted_log_sets + 1))
+              else
+                skipped_log_sets=$((skipped_log_sets + 1))
+              fi
+            fi
+          done < "$run_ids"
+
+          echo "Historic wallet security cleanup complete: artifacts=${removed_artifacts}, old_wallet_log_sets=${deleted_log_sets}, skipped_log_sets=${skipped_log_sets}."
+          # Deleting an artifact or log cannot retract any copies downloaded
+          # before deletion. This workflow does not rotate credentials.
