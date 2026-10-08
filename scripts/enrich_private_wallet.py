@@ -28,6 +28,7 @@ TRADES_LIMIT = 100
 MAX_POSITIONS_PER_CYCLE = 30
 MAX_COLLECTION_SECONDS = 90
 MAX_SNAPSHOT_AGE_SECONDS = 90
+MAX_LAST_TRADE_AGE_SECONDS = 900
 STAKES_EUR = (50.0, 100.0, 150.0)
 MARKET_PATTERN = re.compile(r"[A-Z0-9]+-EUR\Z")
 
@@ -192,11 +193,16 @@ def collect_market(client, market, quantity, now_fn=time.time, *, ticker=None, t
             if isinstance(t, dict) and isinstance(t.get("timestamp"), (int, float))
         ]
         latest = max(timed, key=lambda t: t["timestamp"]) if timed else None
+        earliest = min(timed, key=lambda t: t["timestamp"]) if timed else None
         last_age = (now_fn() * 1000 - latest["timestamp"]) / 1000 if latest else None
         row.update(
             trades_retrieved_at_utc=meta.get("retrieved_at_utc"),
             trades_age_seconds_at_write=age,
             recent_public_trade_flow=flow,
+            public_trade_sample_window_seconds=(
+                round((latest["timestamp"] - earliest["timestamp"]) / 1000, 3)
+                if latest and earliest else None
+            ),
             latest_public_trade=(
                 {
                     "price_eur": finite(latest.get("price")),
@@ -208,7 +214,11 @@ def collect_market(client, market, quantity, now_fn=time.time, *, ticker=None, t
                 if latest else None
             ),
         )
-        trades_ok = age is not None and -2 <= age <= MAX_SNAPSHOT_AGE_SECONDS and bool(trades)
+        trades_ok = (
+            age is not None and -2 <= age <= MAX_SNAPSHOT_AGE_SECONDS
+            and last_age is not None and -2 <= last_age <= MAX_LAST_TRADE_AGE_SECONDS
+            and bool(trades)
+        )
         if not trades_ok:
             row["reasons"].append("STALE_OR_EMPTY_TRADES")
     except (RuntimeError, ValueError, TypeError, KeyError, IndexError):
