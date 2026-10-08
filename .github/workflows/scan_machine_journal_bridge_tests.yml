@@ -1,0 +1,24 @@
+name: Test SCAN machine journal bridge
+on:
+  pull_request:
+    paths:
+      - "scripts/export_solaire_machine_alerts.py"
+      - "tests/test_export_solaire_machine_alerts.py"
+      - ".github/workflows/scan_machine_journal_bridge_tests.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  bridge-unit-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Compile accountability scripts
+        run: python -m py_compile scripts/scan_accountability_ledger.py scripts/export_solaire_machine_alerts.py tests/test_export_solaire_machine_alerts.py
+      - name: Unit tests
+        run: python -m unittest discover -s tests -p 'test_export_solaire_machine_alerts.py' -v
