@@ -22,6 +22,7 @@ from pathlib import Path
 
 BASE = "https://api.bitvavo.com/v2"
 WATCHLIST = Path("decision_watchlist.json")
+MARKET_ANALYSIS_WATCHLIST = Path("market_analysis_watchlist.json")
 V4 = Path("v4_watch.json")
 OUTPUT = Path("execution_snapshot.json")
 
@@ -76,6 +77,10 @@ def select_targets():
     targets: list[str] = []
     sources: dict[str, list[str]] = {}
 
+    # Public research targets take priority; they are NOT a wallet inventory.
+    public_research = load_json(MARKET_ANALYSIS_WATCHLIST, {})
+    for market in public_research.get("markets", []) or []:
+        add_target(targets, sources, market, "public_market_analysis:requested")
     d = load_json(WATCHLIST, {})
     for key in ("priority", "active_position_monitoring", "near_term_candidates"):
         for row in d.get(key, []) or []:
@@ -196,15 +201,35 @@ def main():
         row = {"market": market, "sources": sources.get(market, [])}
         try:
             book = get_json(f"/{market}/book", {"depth": BOOK_DEPTH})
+            book_observed_at_utc = datetime.now(timezone.utc).isoformat()
             trades = get_json(f"/{market}/trades", {"limit": TRADES_LIMIT})
             bids = book.get("bids", []) or []
             asks = book.get("asks", []) or []
+            if not bids or not asks:
+                raise ValueError("MISSING_BOOK_SIDE")
+            bid_prices = [f(level[0]) for level in bids]
+            ask_prices = [f(level[0]) for level in asks]
+            if (any(p <= 0 for p in bid_prices + ask_prices)
+                or bid_prices != sorted(set(bid_prices), reverse=True)
+                or ask_prices != sorted(set(ask_prices))
+                or f(bids[0][0]) > f(asks[0][0])):
+                raise ValueError("INVALID_OR_CROSSED_BOOK")
             tb = tickbooks.get(market, {})
             last = prices.get(market) or 0.0
-            best_bid = f(tb.get("bid")) or (f(bids[0][0]) if bids else 0.0)
-            best_ask = f(tb.get("ask")) or (f(asks[0][0]) if asks else 0.0)
+            # One order-book snapshot for price, spread and depth:
+            # ticker/book quotes can be asynchronous to the depth levels.
+            best_bid = f(bids[0][0])
+            best_ask = f(asks[0][0])
             mid = (best_bid + best_ask) / 2.0 if best_bid and best_ask else last
             spread_pct = ((best_ask - best_bid) / mid * 100.0) if mid else None
+            timed_trades = [t for t in trades if isinstance(t, dict)
+                            and isinstance(t.get("timestamp"), (int, float))] if isinstance(trades, list) else []
+            latest = max(timed_trades, key=lambda t: t["timestamp"], default=None)
+            trade_observed_at_utc = datetime.now(timezone.utc).isoformat()
+            latest_age_seconds = (
+                datetime.now(timezone.utc).timestamp() - latest["timestamp"] / 1000
+                if latest is not None else None
+            )
 
             buy_slippage = []
             sell_slippage = []
@@ -221,9 +246,26 @@ def main():
             row.update({
                 "last_trade_price": last,
                 "best_bid": best_bid,
-                "best_bid_size": f(tb.get("bidSize")),
+                "best_bid_size": f(bids[0][1]),
                 "best_ask": best_ask,
-                "best_ask_size": f(tb.get("askSize")),
+                "best_ask_size": f(asks[0][1]),
+                "ticker_book_bid": f(tb.get("bid")),
+                "ticker_book_ask": f(tb.get("ask")),
+                "book_observed_at_utc": book_observed_at_utc,
+                "trades_observed_at_utc": trade_observed_at_utc,
+                "latest_public_trade": (
+                    {"price_eur": f(latest.get("price")), "quantity": f(latest.get("amount")),
+                     "side": latest.get("side"), "timestamp_ms": latest["timestamp"]}
+                    if latest is not None else None
+                ),
+                "latest_trade_age_seconds_at_write": (
+                    round(latest_age_seconds, 3) if latest_age_seconds is not None else None
+                ),
+                "public_trade_sample_span_seconds": (
+                    round((max(t["timestamp"] for t in timed_trades) -
+                           min(t["timestamp"] for t in timed_trades)) / 1000, 3)
+                    if timed_trades else None
+                ),
                 "mid": round(mid, 12) if mid else None,
                 "spread_pct": round(spread_pct, 6) if spread_pct is not None else None,
                 "book_depth_levels_requested": BOOK_DEPTH,
@@ -244,7 +286,7 @@ def main():
         "source": "Bitvavo public REST API",
         "public_only": True,
         "api_key_used": False,
-        "purpose": "Fresh execution validation without user screenshots: price, best bid/ask, public order book, recent public trades and estimated slippage for relevant candidates.",
+        "purpose": "Timestamped public order-book and trade evidence for pinned market research and prospective candidates; no user holdings inferred.",
         "limitations": "Does not expose the user's wallet, private open orders, personal fills or private trade history.",
         "target_count": len(markets),
         "markets": markets,
