@@ -91,7 +91,7 @@ def _liquidate_quantity(bids, quantity, best_bid):
     }
 
 
-def collect_market(client, market, quantity, now_fn=time.time):
+def collect_market(client, market, quantity, now_fn=time.time, *, ticker=None, ticker_meta=None):
     row = {
         "market": market,
         "source": "Bitvavo public REST /book + /trades",
@@ -110,6 +110,25 @@ def collect_market(client, market, quantity, now_fn=time.time):
     if finite(quantity) is None or quantity <= 0:
         return {**row, "reasons": ["INVALID_QUANTITY"]}
 
+    ticker_ok = False
+    if isinstance(ticker, dict):
+        last = finite(ticker.get("last"))
+        opened = finite(ticker.get("open"))
+        quote_volume = finite(ticker.get("volumeQuote"))
+        ticker_age = _age(ticker_meta, now_fn())
+        ticker_ok = (
+            last is not None and last > 0 and quote_volume is not None
+            and ticker_age is not None and -2 <= ticker_age <= MAX_SNAPSHOT_AGE_SECONDS
+        )
+        row.update(
+            ticker_last_price_eur=last,
+            change_24h_pct=round((last / opened - 1) * 100, 5) if opened and opened > 0 and last else None,
+            quote_volume_24h_eur=quote_volume,
+            ticker_retrieved_at_utc=(ticker_meta or {}).get("retrieved_at_utc"),
+            ticker_age_seconds_at_write=ticker_age,
+        )
+    if not ticker_ok:
+        row["reasons"].append("TICKER_24H_UNAVAILABLE_OR_STALE")
     book_ok = False
     trades_ok = False
     book_path = "/" + market + "/book"
@@ -195,7 +214,7 @@ def collect_market(client, market, quantity, now_fn=time.time):
     except (RuntimeError, ValueError, TypeError, KeyError, IndexError):
         row["reasons"].append("TRADES_UNAVAILABLE_OR_INVALID")
 
-    row["status"] = "OK" if book_ok and trades_ok else "PARTIAL" if book_ok or trades_ok else "UNAVAILABLE"
+    row["status"] = "OK" if book_ok and trades_ok and ticker_ok else "PARTIAL" if book_ok or trades_ok else "UNAVAILABLE"
     return row
 
 
@@ -205,6 +224,18 @@ def enrich(summary, client, now_fn=time.time, monotonic_fn=time.monotonic):
     out = copy.deepcopy(summary)
     positions = out["positions"]
     started = monotonic_fn()
+    ticker_meta = {}
+    ticker_by_market = {}
+    try:
+        ticker_rows = client.get("/ticker/24h", cache=False)
+        if isinstance(ticker_rows, list):
+            ticker_by_market = {
+                item["market"]: item for item in ticker_rows
+                if isinstance(item, dict) and isinstance(item.get("market"), str)
+            }
+            ticker_meta = client.metadata("/ticker/24h")
+    except (RuntimeError, ValueError, TypeError):
+        pass  # Best effort; per-market state will record missing volumes.
     attempted = 0
     seen = set()
     for position in positions:
@@ -222,7 +253,8 @@ def enrich(summary, client, now_fn=time.time, monotonic_fn=time.monotonic):
             continue
         attempted += 1
         position["execution_evidence"] = collect_market(
-            client, market, finite(position.get("quantity")), now_fn=now_fn
+            client, market, finite(position.get("quantity")), now_fn=now_fn,
+            ticker=ticker_by_market.get(market), ticker_meta=ticker_meta,
         )
     counts = {s: 0 for s in ("OK", "PARTIAL", "UNAVAILABLE", "NOT_OBSERVED")}
     for pos in positions:
