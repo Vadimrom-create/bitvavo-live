@@ -201,6 +201,7 @@ def main():
         row = {"market": market, "sources": sources.get(market, [])}
         try:
             book = get_json(f"/{market}/book", {"depth": BOOK_DEPTH})
+            book_observed_at_utc = datetime.now(timezone.utc).isoformat()
             trades = get_json(f"/{market}/trades", {"limit": TRADES_LIMIT})
             bids = book.get("bids", []) or []
             asks = book.get("asks", []) or []
@@ -213,7 +214,6 @@ def main():
                 or ask_prices != sorted(set(ask_prices))
                 or f(bids[0][0]) > f(asks[0][0])):
                 raise ValueError("INVALID_OR_CROSSED_BOOK")
-            book_observed_at_utc = datetime.now(timezone.utc).isoformat()
             tb = tickbooks.get(market, {})
             last = prices.get(market) or 0.0
             # One order-book snapshot for price, spread and depth:
