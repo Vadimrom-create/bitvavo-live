@@ -7,6 +7,7 @@ on:
     paths:
       - 'scripts/send_useful_alert.py'
       - 'scripts/enrich_private_wallet.py'
+      - 'scripts/protect_private_wallet_artifact.py'
       - '.github/workflows/private_wallet_refresh.yml'
   # Cold-start fallback only. Normal cadence is self-chained through
   # workflow_dispatch, so missed GitHub schedule events cannot stale WALLET.
@@ -86,13 +87,45 @@ jobs:
                 'execution_status_counts=', counts)
           PY
 
-      - name: Upload private wallet summary
+      - name: Protect private wallet artifact before upload
+        env:
+          POSITION_STATE_KEY: ${{ secrets.POSITION_STATE_KEY }}
+          GITHUB_REPOSITORY_IS_PRIVATE: ${{ github.event.repository.private }}
+        run: python scripts/protect_private_wallet_artifact.py
+
+      - name: Upload encrypted wallet summary from public repository
+        if: ${{ github.event.repository.private != true }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: encrypted-wallet-summary-${{ github.run_id }}-${{ github.run_attempt }}
+          retention-days: 1
+          if-no-files-found: error
+          path: wallet_private_summary.enc.json
+
+      - name: Upload plaintext summary only when repository is private
+        if: ${{ github.event.repository.private == true }}
         uses: actions/upload-artifact@v4
         with:
           name: private-wallet-summary-${{ github.run_id }}-${{ github.run_attempt }}
           retention-days: 1
           if-no-files-found: error
           path: wallet_private_summary.json
+
+      - name: Remove legacy readable wallet artifacts
+        if: always()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          gh api "/repos/${GITHUB_REPOSITORY}/actions/artifacts?per_page=100" --paginate \
+            --jq '.artifacts[] | select(.name | startswith("private-wallet-summary-")) | .id' |
+          while IFS= read -r artifact_id; do
+            if [[ "${artifact_id}" =~ ^[0-9]+$ ]]; then
+              gh api --method DELETE "/repos/${GITHUB_REPOSITORY}/actions/artifacts/${artifact_id}" >/dev/null
+            fi
+          done
+          echo "Legacy plaintext artifact cleanup completed."
 
       - name: Observe production scan freshness
         id: production_freshness
