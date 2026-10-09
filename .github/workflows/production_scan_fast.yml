@@ -15,6 +15,7 @@ on:
       - 'research/production_news.py'
       - 'research/recovery_registry.py'
       - 'scripts/update_recovery_registry_heartbeat.py'
+      - 'scripts/follow_active_candidates.py'
       - '.github/workflows/production_scan_fast.yml'
   # Cold-start fallback only. Normal cadence is self-chained through
   # workflow_dispatch, so a missed GitHub schedule event cannot stop scanning.
@@ -66,6 +67,10 @@ jobs:
             python scripts/send_catalyst_prewatch_alert.py
             python scripts/send_production_buy_alert.py
             python scripts/update_recovery_registry_heartbeat.py
+            # Never allow optional follower failure to block the production scan.
+            if ! python scripts/follow_active_candidates.py; then
+              echo 'CANDIDATE_FOLLOW_DEGRADED: will retry at next probe' >&2
+            fi
 
             git config user.name 'bitvavo-live-bot'
             git config user.email 'actions@users.noreply.github.com'
@@ -81,7 +86,10 @@ jobs:
               production_catalyst_alert_status.json \
               production_direct_decision_journal.json \
               production_recovery_registry_shadow.json \
-              production_recovery_registry_status.json; do
+              production_recovery_registry_status.json \
+              production_candidate_follow_state.json \
+              production_candidate_follow_status.json \
+              production_candidate_follow_journal.json; do
               if [ -e "${file}" ]; then git add "${file}"; fi
             done
 
@@ -113,8 +121,42 @@ jobs:
               elapsed=$(( $(date +%s) - cycle_started ))
               sleep_for=$(( 300 - elapsed ))
               if [ "${sleep_for}" -gt 0 ]; then
-                echo "Sleeping ${sleep_for}s to preserve five-minute start cadence."
-                sleep "${sleep_for}"
+                echo "Following priority candidates during the five-minute scan gap."
+                next_scan_at=$((cycle_started + 300))
+                while [ "$(date +%s)" -lt "$next_scan_at" ]; do
+                  remaining=$((next_scan_at - $(date +%s)))
+                  if [ "$remaining" -le 0 ]; then break; fi
+                  step="$remaining"
+                  if [ "$step" -gt 60 ]; then step=60; fi
+                  sleep "$step"
+                  if [ "$(date +%s)" -ge "$next_scan_at" ]; then break; fi
+                  if ! python scripts/follow_active_candidates.py; then
+                    echo 'CANDIDATE_FOLLOW_DEGRADED: minute probe failed' >&2
+                  fi
+                done
+                # Persist the minute-probe snapshots before attempting the next rebase.
+                git add production_candidate_follow_state.json production_candidate_follow_status.json production_candidate_follow_journal.json
+                if ! git diff --cached --quiet; then
+                  git commit -m "Record autonomous candidate follow-up observations"
+                  follow_pushed=false
+                  for attempt in 1 2 3 4 5 6; do
+                    git fetch origin main
+                    if ! git rebase origin/main; then
+                      git rebase --abort || true
+                      echo "Follow-up rebase conflict; refusing stale publication." >&2
+                      exit 1
+                    fi
+                    if git push origin HEAD:main; then
+                      follow_pushed=true
+                      break
+                    fi
+                    sleep $((attempt * 2))
+                  done
+                  if [ "$follow_pushed" != "true" ]; then
+                    echo "Follow-up publication retry limit exhausted." >&2
+                    exit 1
+                  fi
+                fi
               else
                 echo "Cycle exceeded five minutes; starting next cycle immediately."
               fi
