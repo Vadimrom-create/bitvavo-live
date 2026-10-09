@@ -1,0 +1,65 @@
+name: Bootstrap public post-BUY follower
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/candidate_follow_bootstrap.yml'
+
+permissions:
+  contents: write
+
+concurrency:
+  group: bitvavo-candidate-follow-bootstrap-once
+  cancel-in-progress: false
+
+jobs:
+  collect-once:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          sparse-checkout: |
+            scripts
+            research
+          sparse-checkout-cone-mode: true
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Collect public books, trades and follow states
+        env:
+          FOLLOW_NOTIFY_ENABLED: 'false'
+        run: |
+          set -euo pipefail
+          python scripts/follow_active_candidates.py
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          p = json.loads(Path('production_candidate_follow_status.json').read_text())
+          if p['market_count'] < 1:
+              raise SystemExit('No prior public BUY signals selected for bootstrap')
+          if p['market_count'] != len(p['markets']):
+              raise SystemExit('Candidate count mismatch')
+          print('BOOTSTRAP_FOLLOW_VALID', p['checked_at_utc'], 'markets', p['market_count'],
+                'available', sum(v['probe'] is not None for v in p['markets']))
+          PY
+      - name: Persist dated public monitoring evidence
+        run: |
+          set -euo pipefail
+          git config user.name bitvavo-live-bot
+          git config user.email actions@users.noreply.github.com
+          git add production_candidate_follow_state.json production_candidate_follow_status.json production_candidate_follow_journal.json
+          if git diff --cached --quiet; then exit 0; fi
+          git commit -m 'Record initial public post-BUY follower observations'
+          for attempt in 1 2 3 4 5 6; do
+            git fetch origin main
+            if ! git rebase origin/main; then
+              git rebase --abort || true
+              exit 1
+            fi
+            if git push origin HEAD:main; then exit 0; fi
+            sleep $((attempt * 2))
+          done
+          exit 1
