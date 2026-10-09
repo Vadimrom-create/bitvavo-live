@@ -1,6 +1,5 @@
-name: Bootstrap public post-BUY follower
+name: Temporary bridge for autonomous post-BUY follow
 on:
-  workflow_dispatch:
   push:
     branches: [main]
     paths:
@@ -14,9 +13,9 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  collect-once:
+  bridge-follow:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 45
     steps:
       - uses: actions/checkout@v4
         with:
@@ -28,38 +27,51 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
-      - name: Collect public books, trades and follow states
+      - name: Follow public BUYs until updated heartbeat takes over
         env:
-          FOLLOW_NOTIFY_ENABLED: 'false'
-        run: |
-          set -euo pipefail
-          python scripts/follow_active_candidates.py
-          python - <<'PY'
-          import json
-          from pathlib import Path
-          p = json.loads(Path('production_candidate_follow_status.json').read_text())
-          if p['market_count'] < 1:
-              raise SystemExit('No prior public BUY signals selected for bootstrap')
-          if p['market_count'] != len(p['markets']):
-              raise SystemExit('Candidate count mismatch')
-          print('BOOTSTRAP_FOLLOW_VALID', p['checked_at_utc'], 'markets', p['market_count'],
-                'available', sum(v['probe'] is not None for v in p['markets']))
-          PY
-      - name: Persist dated public monitoring evidence
+          GH_TOKEN: ${{ github.token }}
+          FOLLOW_NOTIFY_ENABLED: 'true'
+          ALERT_GMAIL_USER: ${{ vars.ALERT_GMAIL_USER }}
+          ALERT_EMAIL_TO: bellonirom@gmail.com
+          GMAIL_APP_PASSWORD: ${{ secrets.GMAIL_APP_PASSWORD }}
         run: |
           set -euo pipefail
           git config user.name bitvavo-live-bot
           git config user.email actions@users.noreply.github.com
-          git add production_candidate_follow_state.json production_candidate_follow_status.json production_candidate_follow_journal.json
-          if git diff --cached --quiet; then exit 0; fi
-          git commit -m 'Record initial public post-BUY follower observations'
-          for attempt in 1 2 3 4 5 6; do
-            git fetch origin main
-            if ! git rebase origin/main; then
-              git rebase --abort || true
-              exit 1
+
+          publish_follow() {
+            for file in production_candidate_follow_state.json production_candidate_follow_status.json production_candidate_follow_journal.json; do
+              if [ -e "$file" ]; then git add "$file"; fi
+            done
+            if git diff --cached --quiet; then return 0; fi
+            git commit -m 'Persist bridge candidate follow-up evidence'
+            for attempt in 1 2 3 4 5 6; do
+              git fetch origin main
+              if ! git rebase origin/main; then
+                git rebase --abort || true
+                return 1
+              fi
+              if git push origin HEAD:main; then return 0; fi
+              sleep $((attempt * 2))
+            done
+            return 1
+          }
+
+          for tick in $(seq 1 34); do
+            # The old heartbeat started before deployment. Stop when a newer
+            # production heartbeat run takes over, preventing double polling.
+            newer_active="$(gh api "/repos/${GITHUB_REPOSITORY}/actions/workflows/production_scan_fast.yml/runs?status=in_progress&per_page=30" --jq '[.workflow_runs[] | select(.id > 37967933797)] | length' 2>/dev/null || echo 0)"
+            if [ "$newer_active" -gt 0 ]; then
+              publish_follow
+              echo 'UPDATED_HEARTBEAT_ACTIVE: bridge completed'
+              exit 0
             fi
-            if git push origin HEAD:main; then exit 0; fi
-            sleep $((attempt * 2))
+
+            if ! python scripts/follow_active_candidates.py; then
+              echo 'BRIDGE_FOLLOW_PROBE_DEGRADED: retrying' >&2
+            fi
+            if [ $((tick % 5)) -eq 0 ]; then publish_follow; fi
+            sleep 60
           done
-          exit 1
+          publish_follow
+          echo 'BRIDGE_DURATION_COMPLETED'
