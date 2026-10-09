@@ -145,7 +145,8 @@ def classify(item, obs):
               and num(obs['bid_depth_1pct_eur'], 0) >= 1500
               and obs['buy_150_complete'] and obs['sell_150_complete'])
     minimum = item.get('min_seen_price')
-    if (minimum and price >= minimum*1.007
+    if (item.get('status') in ('WAIT_REBOUND', 'BREAKDOWN')
+            and minimum and price >= minimum*1.007
             and price <= entry*1.02 and liquid
             and share is not None and share >= 0.56
             and obs['two_green_5m']
