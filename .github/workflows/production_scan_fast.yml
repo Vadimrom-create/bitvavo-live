@@ -51,6 +51,7 @@ jobs:
           ALERT_EMAIL_TO: bellonirom@gmail.com
           GMAIL_APP_PASSWORD: ${{ secrets.GMAIL_APP_PASSWORD }}
           X_BEARER_TOKEN: ${{ secrets.X_BEARER_TOKEN }}
+          FOLLOW_NOTIFY_ENABLED: 'true'
         run: |
           set -euo pipefail
 
