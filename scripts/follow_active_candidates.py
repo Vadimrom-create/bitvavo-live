@@ -59,6 +59,8 @@ def register(state, source, now):
                 'status': 'ACTIVE', 'pending': None, 'pending_count': 0,
                 'last_notice': None, 'last_notice_ts': 0,
                 'min_seen_price': None, 'first_seen_ts': now,
+                'bootstrap_historical': (now - sent > 900),
+                'bootstrap_ready': False,
             }
         keep.add(market)
     for market in list(markets):
@@ -175,6 +177,13 @@ def advance(item, obs, now):
     item['last_observed_at_utc'] = obs['observed_at_utc']
     item['last_probe'] = obs
     action = item['status']
+    # On deployment, old BUYs define a baseline; do not email their past moves.
+    # New BUYs (<15 min) are monitored normally from the first two probes.
+    if item.get('bootstrap_historical') and not item.get('bootstrap_ready'):
+        if item['pending_count'] >= 2 or action == 'INVALIDATED':
+            item['bootstrap_ready'] = True
+            item['last_notice'] = action
+        return None
     if action not in ('BREAKDOWN', 'RECONFIRMED', 'INVALIDATED', 'PROFIT_REVIEW'):
         return None
     if item.get('last_notice') == action:
