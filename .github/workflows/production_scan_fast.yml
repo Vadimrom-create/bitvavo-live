@@ -135,7 +135,9 @@ jobs:
                   fi
                 done
                 # Persist the minute-probe snapshots before attempting the next rebase.
-                git add production_candidate_follow_state.json production_candidate_follow_status.json production_candidate_follow_journal.json
+                for follow_file in production_candidate_follow_state.json production_candidate_follow_status.json production_candidate_follow_journal.json; do
+                  if [ -e "$follow_file" ]; then git add "$follow_file"; fi
+                done
                 if ! git diff --cached --quiet; then
                   git commit -m "Record autonomous candidate follow-up observations"
                   follow_pushed=false
