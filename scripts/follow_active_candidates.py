@@ -79,7 +79,7 @@ def validated_levels(book):
         raise ValueError('BOOK_INVALID')
     if (bids[0][0] >= asks[0][0] or
         any(bids[i][0] > bids[i-1][0] for i in range(1, len(bids))) or
-        any(asks[i][0] < asks[i-1][0] for i in range(1, len(asks))):
+        any(asks[i][0] < asks[i-1][0] for i in range(1, len(asks)))):
         raise ValueError('BOOK_CROSSED_OR_UNSORTED')
     return bids, asks
 
