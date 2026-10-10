@@ -3,12 +3,12 @@
   "coverage": {
     "active_markets": 427,
     "attempted_this_run": 40,
-    "coverage_pct": 69.32,
+    "coverage_pct": 70.02,
     "errors_this_run": 0,
     "resolved_this_run": 3,
-    "with_any_official_source": 296,
-    "with_official_page": 293,
-    "with_official_x": 289
+    "with_any_official_source": 299,
+    "with_official_page": 296,
+    "with_official_x": 292
   },
   "markets": {
     "0G-EUR": {
@@ -6214,48 +6214,65 @@
     },
     "SFP-EUR": {
       "active_on_bitvavo": true,
-      "announcement_urls": [],
+      "announcement_urls": [
+        "https://blog.safepal.com/"
+      ],
       "coingecko_id": "safepal",
       "coingecko_resolution": "SYMBOL_AND_NAME",
-      "discovery_error": "HTTPError: HTTP Error 429: Too Many Requests",
-      "discovery_status": "DISCOVERY_ERROR",
-      "homepage": [],
+      "discovery_status": "DISCOVERED",
+      "homepage": [
+        "https://www.safepal.com/",
+        "https://store.safepal.com/safepal-s1-hardware-wallet.html?ref=cgsafepal"
+      ],
+      "link_discovery_source": "COINGECKO_DIRECTORY",
+      "links_are_project_sources": true,
       "market": "SFP-EUR",
       "medium": [],
       "official_forum_urls": [],
       "project_name": "SafePal",
       "symbol": "SFP",
-      "x_handle": null
+      "x_handle": "iSafePal"
     },
     "SHELL-EUR": {
       "active_on_bitvavo": true,
       "announcement_urls": [],
       "coingecko_id": "myshell",
       "coingecko_resolution": "SYMBOL_AND_NAME",
-      "discovery_error": "HTTPError: HTTP Error 429: Too Many Requests",
-      "discovery_status": "DISCOVERY_ERROR",
-      "homepage": [],
+      "discovery_status": "DISCOVERED",
+      "homepage": [
+        "https://myshell.ai/"
+      ],
+      "link_discovery_source": "COINGECKO_DIRECTORY",
+      "links_are_project_sources": true,
       "market": "SHELL-EUR",
       "medium": [],
-      "official_forum_urls": [],
+      "official_forum_urls": [
+        "https://discord.com/invite/myshell"
+      ],
       "project_name": "MyShell",
       "symbol": "SHELL",
-      "x_handle": null
+      "x_handle": "myshell_ai"
     },
     "SHIB-EUR": {
       "active_on_bitvavo": true,
-      "announcement_urls": [],
+      "announcement_urls": [
+        "https://blog.shibaswap.com/"
+      ],
       "coingecko_id": "shiba-inu",
       "coingecko_resolution": "SYMBOL_AND_NAME",
-      "discovery_error": "HTTPError: HTTP Error 429: Too Many Requests",
-      "discovery_status": "DISCOVERY_ERROR",
-      "homepage": [],
+      "discovery_status": "DISCOVERED",
+      "homepage": [
+        "https://shibatoken.com/",
+        "https://shib.io/"
+      ],
+      "link_discovery_source": "COINGECKO_DIRECTORY",
+      "links_are_project_sources": true,
       "market": "SHIB-EUR",
       "medium": [],
       "official_forum_urls": [],
       "project_name": "Shiba Inu",
       "symbol": "SHIB",
-      "x_handle": null
+      "x_handle": "shibarium_"
     },
     "SIGN-EUR": {
       "active_on_bitvavo": true,
@@ -7887,5 +7904,5 @@
     }
   },
   "schema": "solaire_official_source_registry_v1",
-  "updated_at_ts": 1791656660.0133677
+  "updated_at_ts": 1791669420.5237052
 }
