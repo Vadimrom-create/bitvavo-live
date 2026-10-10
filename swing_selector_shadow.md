@@ -1,28 +1,28 @@
 # Solaire Swing Selector — SHADOW
 
-Generated: 2026-10-09T18:22:43.176426+00:00
+Generated: 2026-10-10T00:54:21.200742+00:00
 Version: SWING_SELECTOR_V1_FROZEN_2026-10-08_R2
 No orders, no alerts, no Decision Layer changes.
 
 | Rank | Market | Score | Status | 3d | 7d | 14d | RS BTC 7d | Dist EMA50 | News mod |
 |---:|---|---:|---|---:|---:|---:|---:|---:|---:|
-| 1 | SOSO-EUR | 87.11 | HUMAN_REVIEW | 11.56% | 18.35% | 22.86% | 19.74% | 17.97% | +0.00 |
-| 2 | FUN-EUR | 86.72 | HUMAN_REVIEW | 1.67% | 22.67% | 10.58% | 24.06% | 9.37% | +0.00 |
-| 3 | SKL-EUR | 85.72 | HUMAN_REVIEW | 8.25% | 13.81% | 14.35% | 15.19% | 23.81% | +0.00 |
-| 4 | AVNT-EUR | 83.15 | HUMAN_REVIEW | 7.06% | 5.55% | 12.15% | 6.94% | 22.03% | +0.00 |
-| 5 | MERL-EUR | 82.91 | HUMAN_REVIEW | 7.33% | 11.52% | 11.99% | 12.91% | 24.97% | +0.00 |
-| 6 | PARTI-EUR | 81.81 | HUMAN_REVIEW | 3.59% | 24.37% | 26.95% | 25.76% | 26.05% | +0.00 |
-| 7 | DOS-EUR | 81.79 | HUMAN_REVIEW | 10.06% | 10.44% | 7.78% | 11.83% | -0.27% | +0.00 |
-| 8 | XDC-EUR | 81.78 | HUMAN_REVIEW | 3.37% | 3.88% | 16.58% | 5.27% | 17.03% | +0.00 |
-| 9 | CYBER-EUR | 81.61 | PREWATCH_PERSISTENCE_REQUIRED | 4.01% | 11.81% | -0.20% | 13.19% | 10.65% | +0.00 |
-| 10 | RAY-EUR | 81.50 | WAIT_PULLBACK_OR_NORMALIZATION | 8.54% | 22.95% | 16.39% | 24.34% | 49.08% | +0.00 |
-| 11 | MMT-EUR | 81.39 | PREWATCH_PERSISTENCE_REQUIRED | 4.20% | 2.36% | 8.58% | 3.74% | 9.25% | +0.00 |
-| 12 | TIA-EUR | 81.35 | PERSISTENT_TOP20 | -1.87% | 7.79% | -1.92% | 9.18% | 15.54% | +0.00 |
-| 13 | DIA-EUR | 81.07 | PERSISTENT_TOP20 | 1.49% | 4.32% | 11.11% | 5.71% | 21.68% | +0.00 |
-| 14 | BOME-EUR | 80.61 | PERSISTENT_TOP20 | 4.79% | 3.13% | -1.39% | 4.51% | 12.94% | +0.00 |
-| 15 | CTR-EUR | 80.47 | PERSISTENT_TOP20 | -0.97% | 6.06% | 7.80% | 7.44% | 14.03% | +0.00 |
-| 16 | AKT-EUR | 80.38 | PERSISTENT_TOP20 | -3.25% | 11.88% | 5.18% | 13.27% | 19.45% | +0.00 |
-| 17 | CTSI-EUR | 79.38 | PREWATCH_PERSISTENCE_REQUIRED | 8.46% | 15.09% | 14.29% | 16.48% | 24.06% | +0.00 |
-| 18 | LPT-EUR | 79.28 | PERSISTENT_TOP20 | -2.56% | 3.39% | 2.89% | 4.78% | 13.13% | +0.00 |
-| 19 | JUP-EUR | 79.17 | PERSISTENT_TOP20 | 8.63% | 21.07% | 13.13% | 22.45% | 36.14% | +0.00 |
-| 20 | STX-EUR | 78.54 | PERSISTENT_TOP20 | 0.23% | 4.83% | 19.61% | 6.22% | 30.85% | +0.00 |
+| 1 | SOSO-EUR | 88.31 | HUMAN_REVIEW | 9.31% | 17.46% | 21.57% | 19.68% | 14.47% | +0.00 |
+| 2 | BAND-EUR | 85.22 | PREWATCH_PERSISTENCE_REQUIRED | 7.04% | 8.60% | 9.15% | 10.82% | 18.55% | +0.00 |
+| 3 | SKL-EUR | 84.88 | HUMAN_REVIEW | 15.60% | 12.53% | 11.74% | 14.75% | 22.88% | +0.00 |
+| 4 | LPT-EUR | 84.78 | HUMAN_REVIEW | 7.15% | 1.93% | 5.74% | 4.15% | 15.56% | +0.00 |
+| 5 | AKT-EUR | 84.38 | HUMAN_REVIEW | 3.62% | 9.96% | 6.94% | 12.18% | 19.12% | +0.00 |
+| 6 | CYBER-EUR | 83.90 | HUMAN_REVIEW | 13.40% | 14.26% | 0.49% | 16.48% | 12.31% | +0.00 |
+| 7 | CHIP-EUR | 83.68 | PREWATCH_PERSISTENCE_REQUIRED | 2.08% | 19.35% | 9.03% | 21.57% | 20.72% | +0.00 |
+| 8 | BOME-EUR | 82.93 | WAIT_PULLBACK_OR_NORMALIZATION | 4.95% | 9.02% | 7.85% | 11.24% | 17.32% | +0.00 |
+| 9 | AVNT-EUR | 82.85 | HUMAN_REVIEW | 7.22% | 8.83% | 9.26% | 11.05% | 22.82% | +0.00 |
+| 10 | DOT-EUR | 82.69 | PREWATCH_PERSISTENCE_REQUIRED | 10.42% | 4.81% | 1.16% | 7.03% | 16.39% | +0.00 |
+| 11 | FUN-EUR | 82.51 | PERSISTENT_TOP20 | 7.62% | 5.74% | 18.15% | 7.96% | 10.34% | +0.00 |
+| 12 | API3-EUR | 82.51 | PREWATCH_PERSISTENCE_REQUIRED | 2.89% | 8.89% | 16.12% | 11.11% | 23.57% | +0.00 |
+| 13 | XDC-EUR | 82.28 | PERSISTENT_TOP20 | 4.64% | 5.16% | 18.01% | 7.38% | 18.40% | +0.00 |
+| 14 | DOS-EUR | 82.26 | PERSISTENT_TOP20 | 7.10% | 9.67% | 2.89% | 11.89% | -0.68% | +0.00 |
+| 15 | DIA-EUR | 82.12 | PERSISTENT_TOP20 | 7.41% | 10.40% | 17.59% | 12.62% | 28.41% | +0.00 |
+| 16 | C98-EUR | 81.75 | PREWATCH_PERSISTENCE_REQUIRED | 3.65% | 9.60% | 6.97% | 11.82% | 16.08% | +0.00 |
+| 17 | ATOM-EUR | 81.63 | PREWATCH_PERSISTENCE_REQUIRED | 18.43% | 19.35% | 11.16% | 21.57% | 22.70% | +0.00 |
+| 18 | TIA-EUR | 80.66 | PERSISTENT_TOP20 | 1.79% | 1.80% | -1.34% | 4.02% | 14.90% | +0.00 |
+| 19 | JUP-EUR | 80.43 | PERSISTENT_TOP20 | 5.36% | 15.27% | 13.46% | 17.49% | 34.06% | +0.00 |
+| 20 | CTR-EUR | 80.29 | PERSISTENT_TOP20 | -0.68% | 6.37% | 8.12% | 8.59% | 14.35% | +0.00 |
