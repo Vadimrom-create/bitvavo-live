@@ -4,6 +4,8 @@ on:
   pull_request:
     paths:
       - 'research/economic_cash_ledger.py'
+      - 'research/capital_constrained_replay.py'
+      - 'tests/test_capital_constrained_replay.py'
       - 'scripts/build_economic_signal_ledger.py'
       - 'tests/test_economic_signal_ledger.py'
       - 'scripts/enrich_economic_signal_books.py'
@@ -24,7 +26,7 @@ jobs:
         with:
           python-version: '3.12'
       - name: Synthetic accounting and anti-lookahead tests
-        run: python -m unittest tests.test_economic_signal_ledger -v
+        run: python -m unittest tests.test_economic_signal_ledger tests.test_capital_constrained_replay -v
       - name: Convert retained public machine decisions without inferring orders
         run: |
           python scripts/build_economic_signal_ledger.py --output /tmp/solaire-machine-economic-ledger.json
