@@ -6,6 +6,7 @@ on:
       - 'research/economic_cash_ledger.py'
       - 'scripts/build_economic_signal_ledger.py'
       - 'tests/test_economic_signal_ledger.py'
+      - 'scripts/enrich_economic_signal_books.py'
       - 'docs/ECONOMIC_SIGNAL_LEDGER_V1.md'
       - '.github/workflows/test_economic_signal_ledger.yml'
   workflow_dispatch:
@@ -44,9 +45,29 @@ jobs:
           print(f"Source snapshot: {n} machine decisions; {buys} BUY_SENT; {refused} REJECTED.")
           print("Filled trades: UNKNOWN; actual PnL: NOT IDENTIFIABLE.")
           PY
+      - name: Join historical book snapshots by matching signal IDs (not fills)
+        run: |
+          python scripts/enrich_economic_signal_books.py \
+            --source /tmp/solaire-machine-economic-ledger.json \
+            --observations-dir execution_observations \
+            --output /tmp/solaire-machine-book-join.json
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          o = json.loads(Path("/tmp/solaire-machine-book-join.json").read_text())
+          assert o["schema"] == "solaire_economic_machine_book_join_v1"
+          assert o["historical_fills_verified"] == 0
+          assert o["portfolio_real_pnl_eur"] is None
+          assert sum(o["books_by_status"].values()) == o["count"]
+          assert all(x["historical_book_evidence"]["actual_fill_proven"] is False for x in o["records"])
+          print(f"Matched book snapshots: {o['matched_book_count']} / {o['count']}; fills remain unverified.")
+          print("Reasons:", o["books_by_status"])
+          PY
       - name: Upload public, synthetic-safe event registry artifact
         uses: actions/upload-artifact@v4
         with:
           name: economic-machine-decisions-unknown-fills
-          path: /tmp/solaire-machine-economic-ledger.json
+          path: |
+            /tmp/solaire-machine-economic-ledger.json
+            /tmp/solaire-machine-book-join.json
           retention-days: 14
