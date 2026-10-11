@@ -86,7 +86,7 @@ jobs:
               production_catalyst_alert_state.json \
               production_catalyst_alert_status.json \
               production_direct_decision_journal.json \
-              production_recovery_registry_shadow.json \
+              production_recovery_registry_shadow.json.gz \
               production_recovery_registry_status.json \
               production_candidate_follow_state.json \
               production_candidate_follow_status.json \
@@ -95,6 +95,14 @@ jobs:
             done
 
             if [ -d execution_observations ]; then git add execution_observations; fi
+            if [ -d recovery_registry_archives ]; then git add recovery_registry_archives; fi
+            if git ls-files --error-unmatch production_recovery_registry_shadow.json >/dev/null 2>&1; then
+              if [ -e production_recovery_registry_shadow.json ]; then
+                echo 'MIGRATION_BLOCKED: unverified legacy registry still present' >&2
+                exit 1
+              fi
+              git rm -f -- production_recovery_registry_shadow.json
+            fi
 
             if ! git diff --cached --quiet; then
               git commit -m "Record heartbeat production scan cycle ${cycle}"
