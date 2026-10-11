@@ -86,9 +86,11 @@ python scripts/research_mature_price_paths.py \
 
 - Choose the four most recently matured BUY_SENT events per horizon (24, 48 and 72h), strictly by timestamp; no cherry-picking winners.
 - Use candle START/END-aligned parameters, closed 5m intervals after the decision candle, and the existing conservative stop-before-profit tie-breaker from research.production_journal.
-- Missing candle intervals are INCOMPLETE (no forward-fill and no fabricated trade). Failed public requests are SOURCE_ERROR, not a zero or losing trade.
+- Primary strict observations treat missing 5m candle intervals as INCOMPLETE. Separately, an INDICATIVE market price mark may carry forward the last observed trade across Bitvavo-documented zero-trade gaps. The two outputs are never combined into a proven trade, execution price, or PnL. Failed requests are SOURCE_ERROR.
 - Completed records expose price-only close, MFE and MAE relative to the machine's proposed, not executed, entry.
 - actual_fill_proven=false, future_exit_executable_proven=false, net_pnl_eur=null, chatgpt_decision_joined=false for all rows.
 - CI runs only on PR and uploads a small research artifact; there is no production scan/policy/workflow modification or automatic trading.
 
 This gives a factual starting point for 48/72h paths but does not yet calculate net executable outcomes or prove that ChatGPT's abstentions were good or bad. The next join requires matched historical bid/ask evidence and private ChatGPT decisions, plus exit-fee/stop/latency assumptions.
+
+Even where the indicative zero-trade-gap price path has a nonzero reference close return, this is not an executable strategy return and does not validate an assistant buy/refusal. Every such observation reports the gap count and preserves strict completeness separately.
