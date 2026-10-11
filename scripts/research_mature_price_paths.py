@@ -130,9 +130,26 @@ def inspect_one(item, client, asof, *, observed_at=None):
             stop_eur=item.get("stop_eur"), tp1_eur=item.get("tp1_eur"),
             fill_no_trade_gaps=False,
         )
+        # Separate non-executable price reference: Bitvavo documents no-trade
+        # 5m intervals as missing candles. The existing evaluator can carry
+        # forward the last traded price, without fabricating a transaction.
+        # Never replace strict completeness or claim a filled buy/sell.
+        sparse = evaluate_closed_5m_path(
+            valid, item["decision_ts"], item["entry_eur"], horizon,
+            stop_eur=item.get("stop_eur"), tp1_eur=item.get("tp1_eur"),
+            fill_no_trade_gaps=True,
+        ) if valid else {}
+        sparse_ok = sparse.get("status") == "COMPLETE"
         record_time = time.time() if observed_at is None else observed_at
         return {
             **stub,
+            "indicative_no_trade_gap_mark_available": sparse_ok,
+            "indicative_no_trade_gap_policy": "BITVAVO_ZERO_TRADE_FORWARD_FILL_NOT_EXECUTABLE",
+            "indicative_reported_zero_trade_intervals": sparse.get("synthetic_no_trade_bars") if sparse_ok else None,
+            "indicative_close_return_pct": sparse.get("close_return_pct") if sparse_ok else None,
+            "indicative_mfe_pct": sparse.get("mfe_pct") if sparse_ok else None,
+            "indicative_mae_pct": sparse.get("mae_pct") if sparse_ok else None,
+            "indicative_path_result": sparse.get("result") if sparse_ok else None,
             "snapshot_collected_at_utc": iso(record_time),
             "status": path.get("status"),
             "reason": path.get("reason"),
@@ -168,6 +185,7 @@ def inspect(rows, now, client, max_per_horizon):
             "source_errors": counts.get("SOURCE_ERROR", 0),
             "other_unknown": len(part) - sum(counts.get(s, 0) for s in ("COMPLETE", "INCOMPLETE", "SOURCE_ERROR")),
             "executed_trades_proven": 0,
+            "indicative_gap_filled_price_marks": sum(r.get("indicative_no_trade_gap_mark_available") is True for r in part),
         }
     return {
         "schema": SCHEMA,
@@ -217,9 +235,18 @@ def main(argv=None):
             Path(a.output).parent.mkdir(parents=True, exist_ok=True)
             Path(a.output).write_text(payload, encoding="utf-8")
         # Avoid flooding CI logs with detailed episode paths.
-        print(json.dumps({k: report[k] for k in ("schema", "collected_at_utc", "horizons",
-                                                 "affects_production", "orders_sent")},
-                         ensure_ascii=False, sort_keys=True))
+        print(json.dumps({
+            "schema": report["schema"], "collected_at_utc": report["collected_at_utc"],
+            "horizons": report["horizons"],
+            "sample_price_marks_not_executable": [
+                {"market": o["market"], "h": o["horizon_hours"],
+                 "strict": o.get("status"), "observed_bars": o.get("observed_bars"),
+                 "expected_bars": o.get("expected_bars"),
+                 "indicative_mark_pct": o.get("indicative_close_return_pct")}
+                for o in report["observations"]
+            ],
+            "affects_production": report["affects_production"], "orders_sent": report["orders_sent"],
+        }, ensure_ascii=False, sort_keys=True))
         return 0
     except (ValueError, OSError, json.JSONDecodeError) as exc:
         print(f"PUBLIC_PRICE_PATH_RESEARCH_ERROR: {exc}", file=sys.stderr)
