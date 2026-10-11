@@ -39,10 +39,12 @@ jobs:
         run: |
           set -euo pipefail
           paths="$(git grep -l -F 'production_recovery_registry_shadow.json' -- '*.py' '*.yml' || true)"
+          failed=0
           while IFS= read -r p; do
             [ -z "$p" ] && continue
             case "$p" in
               scripts/recovery_registry_storage.py|scripts/update_recovery_registry_heartbeat.py|.github/workflows/production_scan_fast.yml|.github/workflows/test_recovery_registry_p0.yml|tests/test_recovery_registry.py|tests/test_recovery_registry_compaction.py) ;;
-              *) echo "UNMIGRATED_RECOVERY_READER: $p"; exit 1 ;;
+              *) echo "UNMIGRATED_RECOVERY_READER: $p"; failed=1 ;;
             esac
           done <<< "$paths"
+          [ "$failed" -eq 0 ]
