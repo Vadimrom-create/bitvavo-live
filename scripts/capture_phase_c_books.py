@@ -4,6 +4,7 @@ import copy,json,sys,time
 from pathlib import Path
 ROOT=Path(__file__).resolve().parents[1];sys.path.insert(0,str(ROOT))
 from research.common import atomic_json,read_json,utc
+from scripts.recovery_registry_storage import load_registry
 from research.http import PublicClient
 from research.execution_observability import book_evidence,identity
 
@@ -46,7 +47,7 @@ def collect(registry,state,client,clock=time.time,budget_seconds=120):
     return records,previous
 
 def main():
-    records,state=collect(read_json(ROOT/'production_recovery_registry_shadow.json',{}),read_json(ROOT/STATE,{}),
+    records,state=collect(load_registry(),read_json(ROOT/STATE,{}),
                           PublicClient(timeout=8,retries=2,requests_per_second=8))
     for row in records:
         dest=ROOT/'execution_observations'/(row['observation_id']+'.json')
