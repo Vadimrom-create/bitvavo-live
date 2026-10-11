@@ -1,0 +1,54 @@
+# SCAN abstention accountability — shadow V1 (24 / 48 / 72 h)
+
+**Status:** research-only, no deployment into production, no orders, no threshold changes.
+
+## Problem to measure
+
+A strong crypto market regime does **not** guarantee every rising asset is executable or profitable. Conversely, replacing most Solaire ACHETE signals with an assistant recommendation to wait can itself have a cost. Neither position may be defended without a prospective, paired, execution-aware comparison.
+
+This change **extends** the existing private SCAN sidecar; it does not duplicate the economic machine-signal or cash ledger proposed in PR #162 / #163 (issue #134).
+
+## Categories
+
+- **ACHAT_TEST** -> existing chatgpt_action=BUY; a small explicitly advised trade, never an automatic order.
+- **ATTENDRE_CONFIRMATION** -> WAIT_RECHECK; requires a reason, objective trigger and due time.
+- **ECARTER** -> REJECT_STRUCTURAL; explain verifiable structural/liquidity rejection.
+- **NON_CLASSABLE** -> INSUFFICIENT_DATA; an explicit missing-data bucket, **not** a disguised rejection.
+
+The field decision_category may be written explicitly in a private scan_decision record. The script rejects contradictions with the original chatgpt_action. Legacy records without the field are marked LEGACY_INFERRED, never mislabeled as contemporaneously explicit.
+
+## Input and provenance
+
+Use existing private SCAN session capture, scripts/capture_chatgpt_scan_session.py, to write decisions to the private JSONL ledger. A fresh and immutable machine source reference, captured human decision timestamp, Bitvavo book timestamp, quantified risk, explicit output and documented reason remain necessary for a valid BUY. The ledger is intentionally stored **outside the public GitHub repository**. The scripts do not capture ChatGPT conversations automatically.
+
+Run the new evaluator after the session has been captured:
+
+~~~bash
+python scripts/measure_scan_abstentions.py \
+  --decisions /tmp/private-scan-accountability.jsonl \
+  --asof 2026-10-14T21:00:00Z \
+  --output /tmp/private-abstention-report.json
+~~~
+
+For actual economic comparisons, add a separate **independently verified** private paired-outcome JSONL file and pass --pairs /tmp/private-paired-outcomes.jsonl. The existing strict paired-outcome interface requires both_executions_validated, matched_budget_policy_costs, horizon_matured, and independent_episode to be true, plus two net euro outcomes. Prefer an evidence_observed_at_utc timestamp; the new evaluator excludes pairs observed before maturity or after cutoff. Never manufacture these fields from highs, simulated peak profits, or signal scores.
+
+## Exact outputs
+
+For **each** decision, produce the category, whether the source machine action was ACHETE, reason codes, source age and per-horizon (24 / 48 / 72) state:
+
+- NOT_MATURE before the time window elapses.
+- MATURE_NO_VERIFIED_PAIR after maturity but without **both comparable, evidenced** economic outcomes.
+- VERIFIED_PAIRED_NET only when the supporting paired proof passes validation, is causally mature and is time admissible.
+
+Aggregate economic results **by original decision category and horizon**. Coverage denominator is matured decisions with an observed machine ACHETE. Missing pairs are not treated as zero PnL, and category aggregate values stay null until the first verified pair exists. Even with verified pairs, results are DESCRIPTIVE_ONLY, never a calibrated prediction or causal proof of ChatGPT's superiority.
+
+## Operational limits and next steps
+
+1. Record **every** SCAN decision at the moment it is made, including unfavorable cases, rather than selecting interesting outcomes afterward.
+2. Preserve source event IDs, exact entry limits, order-book depth/fees, risks and explicit WAIT recheck conditions **before** seeing future prices.
+3. Revisit outcomes at 24, 48 and 72 hours with independently verified comparable execution and exit assumptions. Missing execution evidence remains non-measurable.
+4. Join the prospective SCAN decisions to the independent machine event and cash ledgers from PR #162 / #163. Do not equate machine signals with actual fills.
+5. Compare net outcomes and opportunity costs on matched market/date/capital/risk cohorts, while monitoring selection bias, correlated episodes and attrition.
+6. Do **not** loosen live filters or issue orders on the basis of preliminary shadow results.
+
+No private balances, personal mail contents, secret token or user decision text are committed in this PR. The CI uses synthetic fixtures only.
