@@ -24,6 +24,14 @@ jobs:
       - uses: actions/checkout@v4
         with:
           persist-credentials: false
+          filter: blob:none
+          sparse-checkout-cone-mode: false
+          sparse-checkout: |
+            research/
+            scripts/
+            tests/
+            .github/workflows/
+            production_recovery_registry_shadow.json
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
