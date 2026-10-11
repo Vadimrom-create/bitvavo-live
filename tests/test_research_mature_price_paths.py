@@ -55,6 +55,7 @@ class MaturePricePathTests(unittest.TestCase):
         self.assertFalse(r["actual_fill_proven"])
         self.assertFalse(r["future_exit_executable_proven"])
         self.assertFalse(r["chatgpt_decision_joined"])
+        self.assertEqual(r["indicative_reported_zero_trade_intervals"], 0)
         self.assertEqual(client.calls[0][1]["interval"], "5m")
         self.assertLessEqual(client.calls[0][1]["end"], int(ASOF * 1000))
 
@@ -66,6 +67,11 @@ class MaturePricePathTests(unittest.TestCase):
         self.assertIsNone(res["reference_close_return_pct"])
         self.assertIsNone(res["path_result"])
         self.assertIsNone(res["net_pnl_eur"])
+        # Bitvavo zero-trade gaps may admit a separate, NON-executable mark.
+        self.assertTrue(res["indicative_no_trade_gap_mark_available"])
+        self.assertAlmostEqual(res["indicative_close_return_pct"], 2.0, places=2)
+        self.assertGreater(res["indicative_reported_zero_trade_intervals"], 0)
+        self.assertFalse(res["actual_fill_proven"])
 
     def test_48h_and_72h_supported_with_bounded_candles(self):
         client = FakePublicClient()
@@ -95,6 +101,7 @@ class MaturePricePathTests(unittest.TestCase):
         r = mod.inspect_one({**row(), "horizon_hours": 24},
                             FakePublicClient(fail=True), ASOF, observed_at=ASOF)
         self.assertEqual(r["status"], "SOURCE_ERROR")
+        self.assertIsNone(r.get("indicative_close_return_pct"))
         self.assertIsNone(r["reference_close_return_pct"])
         self.assertIsNone(r["net_pnl_eur"])
 
