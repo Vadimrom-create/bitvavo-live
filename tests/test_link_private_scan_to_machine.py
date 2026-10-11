@@ -62,7 +62,8 @@ class LinkageTests(unittest.TestCase):
         self.assertEqual(joined["link_status"], "EXACT_CAUSAL_MACHINE_BUY")
         self.assertEqual(joined["machine_decision_id"], "machine-decision-signal-1")
         self.assertEqual(joined["machine_episode_id"], "episode-signal-1")
-        self.assertTrue(joined["eligible_for_economic_pairing"])
+        self.assertTrue(joined["eligible_for_event_level_audit"])
+        self.assertFalse(joined["eligible_for_economic_pairing"])
         self.assertFalse(joined["fills_proven"])
         self.assertIsNone(joined["net_pnl_eur"])
 
