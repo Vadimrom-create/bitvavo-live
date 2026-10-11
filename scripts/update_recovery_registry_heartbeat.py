@@ -209,8 +209,8 @@ def main():
     now = time.time()
     try:
         archive_capacity_preflight(now)
-    except ArchivePreflightError as exc:
-        print("SOLAIRE_RECOVERY_CAPACITY_ARCHIVE_FAILED " + str(exc))
+    except (ArchivePreflightError, ValueError, OSError, TypeError, subprocess.CalledProcessError) as exc:
+        print("SOLAIRE_RECOVERY_CAPACITY_ARCHIVE_FAILED " + type(exc).__name__ + ':' + str(exc)[:180])
         # Fail closed only for optional recovery research. Production scanner
         # and BUY email operations execute independently before this step.
         capacity_guard(now)
