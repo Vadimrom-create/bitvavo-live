@@ -1,0 +1,31 @@
+name: Test SCAN abstention accountability (research only)
+
+on:
+  pull_request:
+    paths:
+      - "scripts/measure_scan_abstentions.py"
+      - "tests/test_measure_scan_abstentions.py"
+      - "docs/SCAN_ABSTENTION_ACCOUNTABILITY_V1.md"
+      - ".github/workflows/test_scan_abstentions.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate-private-shadow:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Compile accountability scripts
+        run: python -m py_compile scripts/measure_scan_abstentions.py scripts/scan_accountability_ledger.py tests/test_measure_scan_abstentions.py
+      - name: Test no-lookahead, provenance and abstention taxonomy
+        run: python -m unittest discover -s tests -p 'test_measure_scan_abstentions.py' -v
+      - name: Test existing private ledger compatibility
+        run: python -m unittest discover -s tests -p 'test_scan_accountability_ledger.py' -v
+      - name: Test existing explicit SCAN capture
+        run: python -m unittest discover -s tests -p 'test_capture_chatgpt_scan_session.py' -v
