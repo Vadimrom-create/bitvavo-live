@@ -20,6 +20,7 @@ from research.common import atomic_json, finite, read_json, utc
 from research.http import PublicClient
 from research.production_journal import evaluate_closed_5m_path
 from research.recovery_registry import (normalize_registry, observe_episode, register_episode, summarize)
+from scripts.recovery_registry_storage import load_registry
 from scripts.send_production_buy_alert import prior_buy_thesis_active, validate
 
 CANDIDATES="production_alert_candidates.json"
@@ -27,7 +28,7 @@ ALERT_STATUS="production_alert_status.json"
 STATE="production_rejection_shadow_state.json"
 JOURNAL="production_rejection_shadow_journal.json"
 STATUS="production_rejection_shadow_status.json"
-REGISTRY="production_recovery_registry_shadow.json"
+REGISTRY="production_recovery_registry_shadow.json.gz"
 PRODUCTION_STATE="production_alert_state.json"
 TRACKED={"STRUCTURAL_RANGE_TOO_NARROW","SPREAD_TOO_WIDE","INSUFFICIENT_EXECUTION_LIQUIDITY","STRUCTURAL_STOP_TOO_WIDE"}
 HORIZONS=(1,4,12,24)
@@ -125,7 +126,7 @@ def main():
     alert=read_json(ALERT_STATUS,{})
     state=read_json(STATE,{"schema":"solaire_rejection_shadow_state_v5","markets":{}})
     journal=read_json(JOURNAL,{"schema":"solaire_rejection_shadow_journal_v5","events":[]})
-    registry=normalize_registry(read_json(REGISTRY,{}))
+    registry=normalize_registry(load_registry())
     production_state=read_json(PRODUCTION_STATE,{"markets":{}})
     state["schema"]="solaire_rejection_shadow_state_v8"; state.setdefault("markets",{})
     journal["schema"]="solaire_rejection_shadow_journal_v8"; journal.setdefault("events",[])
