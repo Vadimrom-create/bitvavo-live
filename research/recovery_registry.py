@@ -122,8 +122,10 @@ def register_episode(
     event: dict[str, Any],
     source_row: dict[str, Any] | None,
     now: float,
+    *,
+    _normalized: bool = False,
 ) -> dict[str, Any]:
-    registry = normalize_registry(registry)
+    registry = registry if _normalized else normalize_registry(registry)
     event_id = str(event.get("event_id") or "")
     market = str(event.get("market") or "")
     if not event_id or not market:
@@ -199,8 +201,9 @@ def observe_episode(
     plan: dict[str, Any] | None = None,
     prior_thesis_clear: bool | None = None,
     prior_thesis_status: str | None = None,
+    _normalized: bool = False,
 ) -> dict[str, Any]:
-    registry = normalize_registry(registry)
+    registry = registry if _normalized else normalize_registry(registry)
     record = registry["episodes"].get(event_id)
     if not record or record.get("closed"):
         registry["updated_at_utc"] = utc(now)
