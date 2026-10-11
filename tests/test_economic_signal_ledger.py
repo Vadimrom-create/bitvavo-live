@@ -194,6 +194,9 @@ class BookJoinTests(unittest.TestCase):
         self.assertFalse(b["book_was_known_at_decision"])
         self.assertTrue(b["stake_estimates"]["100"]["entry_book_covered"])
         self.assertEqual(out["historical_fills_verified"], 0)
+        self.assertEqual(out["buy_sent_book_cost_summary"]["matched_buy_sent_books_n"], 1)
+        self.assertEqual(out["buy_sent_book_cost_summary"]["book_observed_after_decision_n"], 1)
+        self.assertEqual(out["buy_sent_book_cost_summary"]["size_estimates"]["100"]["median_same_snapshot_adverse_roundtrip_cost_eur_est"], 1.1)
         self.assertIsNone(out["portfolio_real_pnl_eur"])
 
     def test_book_mismatched_identity_refused(self):
