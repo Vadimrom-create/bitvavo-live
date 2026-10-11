@@ -68,7 +68,7 @@ def _already_registered(registry, market, episode_id, decision_id,
                         archived_episode_ids, archived_decision_ids, archived_event_ids,
                         rejection_ts):
     # Archived closed episodes must retain the same deduplication contract.
-    identity = lambda value: str(market) + "\\x1f" + str(value)
+    identity = lambda value: str(market) + chr(31) + str(value)
     if episode_id and identity(episode_id) in archived_episode_ids:
         return True
     if decision_id and identity(decision_id) in archived_decision_ids:
