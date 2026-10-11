@@ -159,6 +159,39 @@ class PortfolioReplayTests(unittest.TestCase):
         costly = replay([signal()], {"AAA-EUR": bars}, fee_each_side=0.0025, slippage_each_side=0.001)
         self.assertLess(costly["modeled_portfolio_pnl_eur"], cheap["modeled_portfolio_pnl_eur"])
 
+    def test_proxied_no_trade_gap_allows_path_only_as_model(self):
+        e = signal()
+        gap = {"AAA-EUR": [bar(5), bar(15, h=12.3)]}
+        strict = replay([e], gap)
+        proxy = replay([e], gap, gap_mode="BITVAVO_ZERO_TRADE_FLAT_PROXY")
+        self.assertEqual(strict["candidate_states"], {"CENSORED": 1})
+        self.assertEqual(proxy["trade_count"], 1)
+        self.assertEqual(proxy["candidate_states"], {"MODELED_COMPLETED": 1})
+        self.assertGreaterEqual(proxy["assumed_zero_trade_5m_intervals_n"], 1)
+        self.assertIsNone(proxy["real_bitvavo_pnl_eur"])
+
+    def test_zero_trade_first_entry_bar_is_never_filled(self):
+        e = signal()
+        # First real bar is at 00:00, next at 00:10. The missing 00:05
+        # entry bar is a no-trade flat interval: cannot claim a trade fill.
+        data = {"AAA-EUR": [bar(0), bar(10, h=12.5)]}
+        proxy = replay([e], data, gap_mode="BITVAVO_ZERO_TRADE_FLAT_PROXY")
+        self.assertEqual(proxy["candidate_states"], {"UNFILLED": 1})
+        self.assertEqual(proxy["trade_count"], 0)
+
+    def test_long_market_staleness_not_silently_padded(self):
+        e = signal()
+        # A 12h+ data hole could be market inactivity, delisting or
+        # incomplete provider response. Keep PnL unknown.
+        data = {"AAA-EUR": [bar(5), bar(800)]}
+        proxy = replay([e], data, gap_mode="BITVAVO_ZERO_TRADE_FLAT_PROXY")
+        self.assertEqual(proxy["candidate_states"], {"CENSORED": 1})
+        self.assertIsNone(proxy["modeled_portfolio_pnl_eur"])
+
+    def test_unknown_gap_mode_rejected(self):
+        with self.assertRaisesRegex(ReplayError, "unrecognized market gap"):
+            replay([signal()], {"AAA-EUR": []}, gap_mode="ASSUME_WINS")
+
     def test_no_real_fills_claimed_for_winning_model(self):
         r = replay([signal()], {"AAA-EUR": [bar(5), bar(10, h=12.5)]})
         self.assertEqual(r["actual_exchange_fills_verified"], 0)
