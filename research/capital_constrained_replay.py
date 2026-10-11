@@ -226,6 +226,7 @@ def replay_portfolio(
     fee_each_side=0.0025,
     slippage_each_side=0.001,
     maximum_open_positions=10,
+    gap_mode="STRICT",
 ):
     """Replay a predeclared event cohort, failing closed on all missing paths.
 
