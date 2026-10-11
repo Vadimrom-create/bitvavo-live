@@ -126,6 +126,16 @@ def probe(book_join, asof, capture_fn=capture_closed_public_candles):
             maximum_open_positions=10,
             gap_mode="BITVAVO_ZERO_TRADE_FLAT_PROXY",
         )
+    next_print = None
+    if official_public_source:
+        next_print = replay_portfolio(
+            window["events"], bundle["markets"], asof.isoformat(),
+            horizon_hours=24, initial_capital_eur=2300,
+            fee_each_side=0.0025, slippage_each_side=0.001,
+            maximum_open_positions=10,
+            gap_mode="BITVAVO_ZERO_TRADE_FLAT_PROXY",
+            horizon_exit_mode="NEXT_REAL_BAR_OPEN_PROXY",
+        )
     result = {
         "schema": "solaire_public_replay_probe_v1",
         "research_only": True,
@@ -138,6 +148,7 @@ def probe(book_join, asof, capture_fn=capture_closed_public_candles):
         },
         "model_only": model,
         "proxy_zero_trade_model_only": proxy,
+        "next_observed_trade_exit_proxy_model_only": next_print,
         "gap_semantics_reference": "https://docs.bitvavo.com/docs/rest-api/get-candlestick-data/",
         "status": model["status"],
         "real_bitvavo_pnl_eur": None,
@@ -170,6 +181,14 @@ def main():
             print("ZERO-TRADE FLAT PROXY state:", proxy["status"])
             print("ZERO-TRADE FLAT PROXY event counts:", proxy["candidate_states"])
             print("ZERO-TRADE FLAT PROXY conditional EUR PnL:", proxy["modeled_portfolio_pnl_eur"])
+        next_print = report.get("next_observed_trade_exit_proxy_model_only")
+        if isinstance(next_print, dict):
+            print("NEXT REAL TRADE EXIT PROXY state:", next_print["status"])
+            print("NEXT REAL TRADE EXIT PROXY event counts:", next_print["candidate_states"])
+            print("NEXT REAL TRADE EXIT PROXY conditional EUR PnL:",
+                  next_print.get("modeled_portfolio_pnl_eur"))
+            print("NEXT REAL TRADE EXIT PROXY allocations rejected:",
+                  next_print.get("allocation_reject_count"))
         print("REAL net PnL: NEVER VERIFIED IN THIS PROBE")
     except (OSError, ValueError, json.JSONDecodeError) as exc:
         p.exit(2, f"public 5m economic probe refused: {exc}\n")
