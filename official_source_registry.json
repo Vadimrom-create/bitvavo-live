@@ -3,12 +3,12 @@
   "coverage": {
     "active_markets": 427,
     "attempted_this_run": 40,
-    "coverage_pct": 70.73,
+    "coverage_pct": 71.43,
     "errors_this_run": 0,
     "resolved_this_run": 3,
-    "with_any_official_source": 302,
-    "with_official_page": 299,
-    "with_official_x": 295
+    "with_any_official_source": 305,
+    "with_official_page": 302,
+    "with_official_x": 298
   },
   "markets": {
     "0G-EUR": {
@@ -6456,45 +6456,58 @@
       "announcement_urls": [],
       "coingecko_id": "soon-2",
       "coingecko_resolution": "SYMBOL_AND_NAME",
-      "discovery_error": "HTTPError: HTTP Error 429: Too Many Requests",
-      "discovery_status": "DISCOVERY_ERROR",
-      "homepage": [],
+      "discovery_status": "DISCOVERED",
+      "homepage": [
+        "https://soo.network/"
+      ],
+      "link_discovery_source": "COINGECKO_DIRECTORY",
+      "links_are_project_sources": true,
       "market": "SOON-EUR",
       "medium": [],
       "official_forum_urls": [],
       "project_name": "SOON",
       "symbol": "SOON",
-      "x_handle": null
+      "x_handle": "soon_svm"
     },
     "SOSO-EUR": {
       "active_on_bitvavo": true,
       "announcement_urls": [],
       "coingecko_id": "sosovalue",
       "coingecko_resolution": "SYMBOL_AND_NAME",
-      "discovery_error": "HTTPError: HTTP Error 429: Too Many Requests",
-      "discovery_status": "DISCOVERY_ERROR",
-      "homepage": [],
+      "discovery_status": "DISCOVERED",
+      "homepage": [
+        "https://sosovalue.com/",
+        "https://ssi.sosovalue.com/"
+      ],
+      "link_discovery_source": "COINGECKO_DIRECTORY",
+      "links_are_project_sources": true,
       "market": "SOSO-EUR",
       "medium": [],
       "official_forum_urls": [],
       "project_name": "SoSoValue",
       "symbol": "SOSO",
-      "x_handle": null
+      "x_handle": "SoSoValueCrypto"
     },
     "SPK-EUR": {
       "active_on_bitvavo": true,
       "announcement_urls": [],
       "coingecko_id": "spark-2",
       "coingecko_resolution": "SYMBOL_AND_NAME",
-      "discovery_error": "HTTPError: HTTP Error 429: Too Many Requests",
-      "discovery_status": "DISCOVERY_ERROR",
-      "homepage": [],
+      "discovery_status": "DISCOVERED",
+      "homepage": [
+        "https://spark.finance/"
+      ],
+      "link_discovery_source": "COINGECKO_DIRECTORY",
+      "links_are_project_sources": true,
       "market": "SPK-EUR",
       "medium": [],
-      "official_forum_urls": [],
+      "official_forum_urls": [
+        "https://docs.spark.fi/",
+        "https://www.linkedin.com/company/sparkfinance/"
+      ],
       "project_name": "Spark",
       "symbol": "SPK",
-      "x_handle": null
+      "x_handle": "sparkfinance"
     },
     "SPX-EUR": {
       "active_on_bitvavo": true,
@@ -7916,5 +7929,5 @@
     }
   },
   "schema": "solaire_official_source_registry_v1",
-  "updated_at_ts": 1791679391.2299685
+  "updated_at_ts": 1791700302.809742
 }
