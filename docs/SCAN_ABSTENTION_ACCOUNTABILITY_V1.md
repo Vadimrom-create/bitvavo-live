@@ -84,7 +84,7 @@ python scripts/research_mature_price_paths.py \
   --output /tmp/solaire_research_mature_paths.json
 ~~~
 
-- Choose the four most recently matured BUY_SENT events per horizon (24, 48 and 72h), strictly by timestamp; no cherry-picking winners.
+- Choose the four most recently matured BUY_SENT events per horizon (24, 48 and 72h), strictly by timestamp, with no repeated market inside a horizon. This is a PREDECLARED de-correlation sampling rule, not cherry-picking winners.
 - Use candle START/END-aligned parameters, closed 5m intervals after the decision candle, and the existing conservative stop-before-profit tie-breaker from research.production_journal.
 - Primary strict observations treat missing 5m candle intervals as INCOMPLETE. Separately, an INDICATIVE market price mark may carry forward the last observed trade across Bitvavo-documented zero-trade gaps. The two outputs are never combined into a proven trade, execution price, or PnL. Failed requests are SOURCE_ERROR.
 - Completed records expose price-only close, MFE and MAE relative to the machine's proposed, not executed, entry.
