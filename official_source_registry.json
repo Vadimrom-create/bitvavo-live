@@ -3,12 +3,12 @@
   "coverage": {
     "active_markets": 427,
     "attempted_this_run": 40,
-    "coverage_pct": 71.43,
+    "coverage_pct": 72.13,
     "errors_this_run": 0,
     "resolved_this_run": 3,
-    "with_any_official_source": 305,
-    "with_official_page": 302,
-    "with_official_x": 298
+    "with_any_official_source": 308,
+    "with_official_page": 305,
+    "with_official_x": 301
   },
   "markets": {
     "0G-EUR": {
@@ -6514,45 +6514,61 @@
       "announcement_urls": [],
       "coingecko_id": "spx6900",
       "coingecko_resolution": "SYMBOL_AND_NAME",
-      "discovery_error": "HTTPError: HTTP Error 429: Too Many Requests",
-      "discovery_status": "DISCOVERY_ERROR",
-      "homepage": [],
+      "discovery_status": "DISCOVERED",
+      "homepage": [
+        "https://www.spx6900.com"
+      ],
+      "link_discovery_source": "COINGECKO_DIRECTORY",
+      "links_are_project_sources": true,
       "market": "SPX-EUR",
       "medium": [],
       "official_forum_urls": [],
       "project_name": "SPX6900",
       "symbol": "SPX",
-      "x_handle": null
+      "x_handle": "spx6900"
     },
     "SQD-EUR": {
       "active_on_bitvavo": true,
-      "announcement_urls": [],
+      "announcement_urls": [
+        "https://docs.subsquid.io/",
+        "https://blog.subsquid.io/"
+      ],
       "coingecko_id": "subsquid",
       "coingecko_resolution": "UNIQUE_SYMBOL",
-      "discovery_error": "HTTPError: HTTP Error 429: Too Many Requests",
-      "discovery_status": "DISCOVERY_ERROR",
-      "homepage": [],
+      "discovery_status": "DISCOVERED",
+      "homepage": [
+        "https://sqd.dev"
+      ],
+      "link_discovery_source": "COINGECKO_DIRECTORY",
+      "links_are_project_sources": true,
       "market": "SQD-EUR",
       "medium": [],
       "official_forum_urls": [],
       "project_name": "Subsquid",
       "symbol": "SQD",
-      "x_handle": null
+      "x_handle": "hellosqd"
     },
     "SSV-EUR": {
       "active_on_bitvavo": true,
-      "announcement_urls": [],
+      "announcement_urls": [
+        "https://medium.com/bloxstaking"
+      ],
       "coingecko_id": "ssv-network",
       "coingecko_resolution": "SYMBOL_AND_NAME",
-      "discovery_error": "HTTPError: HTTP Error 429: Too Many Requests",
-      "discovery_status": "DISCOVERY_ERROR",
-      "homepage": [],
+      "discovery_status": "DISCOVERED",
+      "homepage": [
+        "https://ssv.network/"
+      ],
+      "link_discovery_source": "COINGECKO_DIRECTORY",
+      "links_are_project_sources": true,
       "market": "SSV-EUR",
       "medium": [],
-      "official_forum_urls": [],
+      "official_forum_urls": [
+        "https://www.youtube.com/c/BloxStaking"
+      ],
       "project_name": "ssv.network",
       "symbol": "SSV",
-      "x_handle": null
+      "x_handle": "ssv_network"
     },
     "STO-EUR": {
       "active_on_bitvavo": true,
@@ -7929,5 +7945,5 @@
     }
   },
   "schema": "solaire_official_source_registry_v1",
-  "updated_at_ts": 1791700302.809742
+  "updated_at_ts": 1791724937.6248736
 }
