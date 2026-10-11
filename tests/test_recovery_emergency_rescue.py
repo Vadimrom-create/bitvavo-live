@@ -1,5 +1,6 @@
 import os
 import tempfile
+from contextlib import contextmanager
 from pathlib import Path
 
 from research.common import atomic_json, read_json
@@ -8,9 +9,18 @@ from research.recovery_storage import INDEX, fresh_index, reconstruct_and_verify
 from scripts.rescue_recovery_registry import migrate, REGISTRY
 
 
-def test_emergency_rescue_preserves_all_closed_records_and_counters(monkeypatch):
-    with tempfile.TemporaryDirectory() as tmp:
-        monkeypatch.chdir(tmp)
+@contextmanager
+def _working_directory(p):
+    previous = Path.cwd()
+    os.chdir(p)
+    try:
+        yield
+    finally:
+        os.chdir(previous)
+
+
+def test_emergency_rescue_preserves_all_closed_records_and_counters():
+    with tempfile.TemporaryDirectory() as tmp, _working_directory(tmp):
         original = new_registry()
         for i in range(12):
             original["episodes"][f"event_{i}"] = {
@@ -36,9 +46,8 @@ def test_emergency_rescue_preserves_all_closed_records_and_counters(monkeypatch)
         assert migrate(minimum_bytes=1000000)["result"] == "BELOW_ARCHIVE_TRIGGER"
 
 
-def test_emergency_never_changes_policy_or_bad_source(monkeypatch):
-    with tempfile.TemporaryDirectory() as tmp:
-        monkeypatch.chdir(tmp)
+def test_emergency_never_changes_policy_or_bad_source():
+    with tempfile.TemporaryDirectory() as tmp, _working_directory(tmp):
         data = new_registry()
         data["policy"]["ttl_seconds"] = 1
         atomic_json(REGISTRY, data)
