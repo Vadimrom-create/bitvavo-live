@@ -12,6 +12,7 @@ It deliberately does NOT run historical 1h/4h/12h/24h outcome measurements.
 from __future__ import annotations
 
 import json
+import os
 import time
 from datetime import datetime
 from pathlib import Path
@@ -217,7 +218,15 @@ def main():
         "affects_orders": False,
     }
 
-    persist_registry(registry)
+    # A heartbeat started before this workflow deployment may acquire new code
+    # through its git rebase while still running the OLD shell publication list.
+    # Keep that process on legacy JSON so it never silently omits the gzip blob.
+    if os.environ.get("RECOVERY_GZIP_WRITER_ENABLED") == "1":
+        persist_registry(registry)
+    else:
+        if Path(REGISTRY).exists():
+            raise RuntimeError("LEGACY_HEARTBEAT_CANNOT_PUBLISH_GZIP_REGISTRY")
+        atomic_json("production_recovery_registry_shadow.json", registry)
     atomic_json(STATUS, status)
     print("SOLAIRE_RECOVERY_HEARTBEAT " + json.dumps(status, ensure_ascii=False))
     return 0
