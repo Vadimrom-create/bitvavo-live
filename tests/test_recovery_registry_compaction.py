@@ -3,6 +3,8 @@ import copy
 import gzip
 import json
 import subprocess
+import tempfile
+from pathlib import Path
 
 from research.recovery_registry import (
     new_registry, register_episode, register_episode_inplace,
@@ -100,62 +102,70 @@ def setup_git(tmp_path, registry):
     git(tmp_path, "commit", "-m", "Original registry")
 
 
-def test_archive_preserves_every_closed_attempt_and_summary(tmp_path):
-    original = small_registry()
-    setup_git(tmp_path, original)
-    original_summary = summarize_inplace(original)
-    batch = run(force=True, root=tmp_path, name="test.json.gz")
-    active = json.loads((tmp_path / "production_recovery_registry_shadow.json").read_text())
-    archive = json.loads(gzip.decompress((tmp_path / batch["path"]).read_bytes()))
-    assert batch["archived_episodes"] == 2
-    assert set(archive["episodes"]) == {"ABC-EUR|1000", "ABC-EUR|2000"}
-    assert archive["episodes"]["ABC-EUR|2000"] == original["episodes"]["ABC-EUR|2000"]
-    assert set(active["episodes"]) == {"ABC-EUR|3000"}
-    assert summarize_inplace(active) == original_summary
-    assert active["archive_summary"]["episodes"] == 2
-    assert active["archive_batches"][-1]["source_commit"] == git(tmp_path, "rev-parse", "HEAD")
-    assert run(root=tmp_path) is None
+def test_archive_preserves_every_closed_attempt_and_summary():
+    with tempfile.TemporaryDirectory() as tmp:
+        tmp_path = Path(tmp)
+        original = small_registry()
+        setup_git(tmp_path, original)
+        original_summary = summarize_inplace(original)
+        batch = run(force=True, root=tmp_path, name="test.json.gz")
+        active = json.loads((tmp_path / "production_recovery_registry_shadow.json").read_text())
+        archive = json.loads(gzip.decompress((tmp_path / batch["path"]).read_bytes()))
+        assert batch["archived_episodes"] == 2
+        assert set(archive["episodes"]) == {"ABC-EUR|1000", "ABC-EUR|2000"}
+        assert archive["episodes"]["ABC-EUR|2000"] == original["episodes"]["ABC-EUR|2000"]
+        assert set(active["episodes"]) == {"ABC-EUR|3000"}
+        assert summarize_inplace(active) == original_summary
+        assert active["archive_summary"]["episodes"] == 2
+        assert active["archive_batches"][-1]["source_commit"] == git(tmp_path, "rev-parse", "HEAD")
+        assert run(root=tmp_path) is None
 
-    # The closed event cannot be rediscovered after compression.
-    same = dict(event(1000), event_id="ABC-EUR|1001", source_decision_id="another-decision")
-    before = summarize_inplace(active)
-    assert register_episode_inplace(active, same, row(), 1002) == active
-    assert summarize_inplace(active) == before
-    assert len(active["episodes"]) == 1
-
-
-def test_tampered_uncommitted_source_is_rejected(tmp_path):
-    registry = small_registry()
-    setup_git(tmp_path, registry)
-    p = tmp_path / "production_recovery_registry_shadow.json"
-    p.write_text(p.read_text() + "\n")
-    try:
-        run(force=True, root=tmp_path, name="bad.json.gz")
-    except ValueError as exc:
-        assert "SOURCE_REGISTRY_DIFFERS" in str(exc)
-    else:
-        raise AssertionError("Expected source-integrity failure")
-    assert not (tmp_path / "recovery_registry_archives" / "bad.json.gz").exists()
+        # The closed event cannot be rediscovered after compression.
+        same = dict(event(1000), event_id="ABC-EUR|1001", source_decision_id="another-decision")
+        before = summarize_inplace(active)
+        assert register_episode_inplace(active, same, row(), 1002) == active
+        assert summarize_inplace(active) == before
+        assert len(active["episodes"]) == 1
 
 
-def test_dry_run_never_writes(tmp_path):
-    registry = small_registry()
-    setup_git(tmp_path, registry)
-    before = (tmp_path / "production_recovery_registry_shadow.json").read_bytes()
-    batch = run(force=True, dry_run=True, root=tmp_path, name="dry.json.gz")
-    assert batch["archived_episodes"] == 2
-    assert (tmp_path / "production_recovery_registry_shadow.json").read_bytes() == before
-    assert not (tmp_path / "recovery_registry_archives").exists()
+def test_tampered_uncommitted_source_is_rejected():
+    with tempfile.TemporaryDirectory() as tmp:
+        tmp_path = Path(tmp)
+        registry = small_registry()
+        setup_git(tmp_path, registry)
+        p = tmp_path / "production_recovery_registry_shadow.json"
+        p.write_text(p.read_text() + "\n")
+        try:
+            run(force=True, root=tmp_path, name="bad.json.gz")
+        except ValueError as exc:
+            assert "SOURCE_REGISTRY_DIFFERS" in str(exc)
+        else:
+            raise AssertionError("Expected source-integrity failure")
+        assert not (tmp_path / "recovery_registry_archives" / "bad.json.gz").exists()
 
 
-def test_schema_drift_aborts_before_writes(tmp_path):
-    registry = small_registry()
-    registry["policy"]["ttl_seconds"] += 1
-    setup_git(tmp_path, registry)
-    try:
-        run(force=True, root=tmp_path, name="invalid.json.gz")
-    except ValueError as exc:
-        assert "REGISTRY_SCHEMA_OR_POLICY_DRIFT" in str(exc)
-    else:
-        raise AssertionError("Expected policy-drift failure")
-    assert not (tmp_path / "recovery_registry_archives").exists()
+def test_dry_run_never_writes():
+    with tempfile.TemporaryDirectory() as tmp:
+        tmp_path = Path(tmp)
+        registry = small_registry()
+        setup_git(tmp_path, registry)
+        before = (tmp_path / "production_recovery_registry_shadow.json").read_bytes()
+        batch = run(force=True, dry_run=True, root=tmp_path, name="dry.json.gz")
+        assert batch["archived_episodes"] == 2
+        assert (tmp_path / "production_recovery_registry_shadow.json").read_bytes() == before
+        assert not (tmp_path / "recovery_registry_archives").exists()
+
+
+def test_schema_drift_aborts_before_writes():
+    with tempfile.TemporaryDirectory() as tmp:
+        tmp_path = Path(tmp)
+        registry = small_registry()
+        registry["policy"]["ttl_seconds"] += 1
+        setup_git(tmp_path, registry)
+        try:
+            run(force=True, root=tmp_path, name="invalid.json.gz")
+        except ValueError as exc:
+            assert "REGISTRY_SCHEMA_OR_POLICY_DRIFT" in str(exc)
+        else:
+            raise AssertionError("Expected policy-drift failure")
+        assert not (tmp_path / "recovery_registry_archives").exists()
