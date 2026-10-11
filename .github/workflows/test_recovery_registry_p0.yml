@@ -23,6 +23,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
+          filter: blob:none
           sparse-checkout: |
             research
             scripts
@@ -35,6 +36,44 @@ jobs:
       - run: python -m pip install pytest
       - name: Verify historical integrity and batch non-regression
         run: python -m pytest -q tests/test_recovery_registry.py tests/test_recovery_registry_compaction.py
+      - name: Dry-run byte-exact migration on actual committed registry in temporary directory
+        run: |
+          set -euo pipefail
+          git show HEAD:production_recovery_registry_shadow.json > "$RUNNER_TEMP/recovery_source.json"
+          git rev-parse HEAD:production_recovery_registry_shadow.json > "$RUNNER_TEMP/recovery_source_git_sha.txt"
+          python - <<'PY'
+          import hashlib
+          import os
+          import shutil
+          import tempfile
+          from pathlib import Path
+          from scripts.recovery_registry_storage import LEGACY, MANIFEST, load_registry, persist_registry
+          from research.common import read_json
+          source = Path(os.environ["RUNNER_TEMP"]) / "recovery_source.json"
+          source_sha = hashlib.sha256(source.read_bytes()).hexdigest()
+          git_sha = (Path(os.environ["RUNNER_TEMP"]) / "recovery_source_git_sha.txt").read_text().strip()
+          startdir = Path.cwd()
+          with tempfile.TemporaryDirectory(prefix="recovery-registry-readonly-") as tmp:
+              shutil.copyfile(source, Path(tmp) / LEGACY)
+              os.chdir(tmp)
+              try:
+                  original = load_registry()
+                  expected_count = len(original["episodes"])
+                  persist_registry(original)
+                  restored = load_registry()
+                  manifest = read_json(MANIFEST)
+                  assert restored == original
+                  assert not LEGACY.exists()
+                  assert manifest["source_sha256"] == source_sha
+                  assert manifest["source_git_blob_sha"] == git_sha
+                  assert manifest["episode_count"] == expected_count
+                  print("P0_REAL_CORPUS_LOSSLESS_OK", "episodes=", expected_count,
+                        "source_raw_bytes=", manifest["source_raw_bytes"],
+                        "source_sha256=", source_sha,
+                        "archive_sha256=", manifest["archive_sha256"])
+              finally:
+                  os.chdir(startdir)
+          PY
       - name: Refuse unconverted registry readers in Python or workflows
         run: |
           set -euo pipefail
