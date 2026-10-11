@@ -4,6 +4,8 @@ on:
   pull_request:
     paths:
       - 'research/capital_constrained_replay.py'
+      - 'research/last_print_equity_diagnostic.py'
+      - 'tests/test_last_print_equity_diagnostic.py'
       - 'scripts/audit_frozen_exit_execution.py'
       - 'tests/test_capital_constrained_replay.py'
       - '.github/workflows/research_frozen_exit_audit.yml'
@@ -25,7 +27,7 @@ jobs:
         with:
           python-version: '3.12'
       - name: Offline synthetic regressions
-        run: python -m unittest tests.test_capital_constrained_replay tests.test_public_replay_probe -v
+        run: python -m unittest tests.test_capital_constrained_replay tests.test_public_replay_probe tests.test_last_print_equity_diagnostic -v
       - name: Recover exactly the original public machine-book and candle artifacts
         run: |
           mkdir -p /tmp/frozen-books /tmp/frozen-candles
@@ -51,6 +53,9 @@ jobs:
           assert p['modes']['strict']['modeled_portfolio_pnl_eur'] is None
           assert p['modes']['flat_last_price']['modeled_portfolio_pnl_eur'] is not None
           assert all(s['real_bitvavo_pnl_eur'] is None for s in p['modes'].values())
+          assert p['indicative_mark_to_last_print_risk']['strict']['max_drawdown_last_print_eur_est'] is None
+          assert all(r['real_executable_drawdown_eur'] is None
+                     for r in p['indicative_mark_to_last_print_risk'].values())
           print('Frozen source integrity verified; actual exchange PnL remains unknown')
           PY
       - name: Keep bounded frozen public results
