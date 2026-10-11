@@ -7,7 +7,10 @@ import os
 import subprocess
 import tempfile
 import time
+import sys
 from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from research.common import read_json
 from research.recovery_registry import normalize_registry, observe_episode, summarize
