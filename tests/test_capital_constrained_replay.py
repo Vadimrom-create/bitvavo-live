@@ -192,6 +192,42 @@ class PortfolioReplayTests(unittest.TestCase):
         with self.assertRaisesRegex(ReplayError, "unrecognized market gap"):
             replay([signal()], {"AAA-EUR": []}, gap_mode="ASSUME_WINS")
 
+    def test_next_real_print_exit_is_delayed_and_not_an_exchange_fill(self):
+        e = signal()
+        bars = [bar(i) for i in (5, 10, 700, 1390, 1460)]
+        result = replay([e], {"AAA-EUR": bars},
+                        gap_mode="BITVAVO_ZERO_TRADE_FLAT_PROXY",
+                        horizon_exit_mode="NEXT_REAL_BAR_OPEN_PROXY")
+        self.assertEqual(result["status"], "MODELED_CLOSED_COHORT_ONLY_NO_EXECUTION_PROOF")
+        self.assertEqual(result["trade_count"], 1)
+        trade = result["trades"][0]
+        self.assertEqual(trade["exit_reason"], "HORIZON_NEXT_REAL_BAR_OPEN_PROXY")
+        self.assertGreater(trade["horizon_exit_delay_minutes"], 0)
+        self.assertFalse(result["modeled_fills_not_real"] is False)
+        self.assertIsNone(result["real_bitvavo_pnl_eur"])
+
+    def test_no_real_trade_after_horizon_censors_whole_comparison(self):
+        e = signal()
+        bars = [bar(i) for i in (5, 10, 700, 1390)]
+        result = replay([e], {"AAA-EUR": bars},
+                        gap_mode="BITVAVO_ZERO_TRADE_FLAT_PROXY",
+                        horizon_exit_mode="NEXT_REAL_BAR_OPEN_PROXY")
+        self.assertEqual(result["candidate_reasons"], {"NO_REAL_TRADE_AFTER_HORIZON": 1})
+        self.assertIsNone(result["modeled_portfolio_pnl_eur"])
+
+    def test_next_print_mode_is_never_an_automatic_fix_for_missing_history(self):
+        e = signal()
+        result = replay([e], {"AAA-EUR": [bar(5), bar(1460)]},
+                        gap_mode="BITVAVO_ZERO_TRADE_FLAT_PROXY",
+                        horizon_exit_mode="NEXT_REAL_BAR_OPEN_PROXY")
+        self.assertEqual(result["candidate_states"], {"CENSORED": 1})
+        self.assertIsNone(result["modeled_portfolio_pnl_eur"])
+
+    def test_invalid_exit_mode_fail_closed(self):
+        with self.assertRaisesRegex(ReplayError, "unrecognized horizon exit mode"):
+            replay([signal()], {"AAA-EUR": []},
+                   horizon_exit_mode="OPTIMAL_FUTURE_PRICE")
+
     def test_no_real_fills_claimed_for_winning_model(self):
         r = replay([signal()], {"AAA-EUR": [bar(5), bar(10, h=12.5)]})
         self.assertEqual(r["actual_exchange_fills_verified"], 0)
