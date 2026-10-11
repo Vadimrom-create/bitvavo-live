@@ -6,6 +6,9 @@ on:
       - 'research/economic_cash_ledger.py'
       - 'research/capital_constrained_replay.py'
       - 'tests/test_capital_constrained_replay.py'
+      - 'scripts/prepare_economic_replay.py'
+      - 'scripts/run_economic_portfolio_replay.py'
+      - 'tests/test_economic_replay_preflight.py'
       - 'scripts/build_economic_signal_ledger.py'
       - 'tests/test_economic_signal_ledger.py'
       - 'scripts/enrich_economic_signal_books.py'
@@ -26,7 +29,7 @@ jobs:
         with:
           python-version: '3.12'
       - name: Synthetic accounting and anti-lookahead tests
-        run: python -m unittest tests.test_economic_signal_ledger tests.test_capital_constrained_replay -v
+        run: python -m unittest tests.test_economic_signal_ledger tests.test_capital_constrained_replay tests.test_economic_replay_preflight -v
       - name: Convert retained public machine decisions without inferring orders
         run: |
           python scripts/build_economic_signal_ledger.py --output /tmp/solaire-machine-economic-ledger.json
@@ -66,6 +69,26 @@ jobs:
           print("Reasons:", o["books_by_status"])
           print("BUY_SENT historical book cost summary:", o["buy_sent_book_cost_summary"])
           PY
+      - name: Prepare fixed-stake cohorts and fail closed without price trajectories
+        run: |
+          python scripts/prepare_economic_replay.py --books /tmp/solaire-machine-book-join.json --stake 100 --output /tmp/solaire-preflight-100.json
+          python scripts/prepare_economic_replay.py --books /tmp/solaire-machine-book-join.json --stake 150 --output /tmp/solaire-preflight-150.json
+          python scripts/run_economic_portfolio_replay.py --books /tmp/solaire-machine-book-join.json --output /tmp/solaire-replay-readiness.json
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          a=json.loads(Path("/tmp/solaire-preflight-100.json").read_text())
+          b=json.loads(Path("/tmp/solaire-preflight-150.json").read_text())
+          c=json.loads(Path("/tmp/solaire-replay-readiness.json").read_text())
+          assert a["alert_count"] == b["alert_count"]
+          assert a["prepared_signal_count"]+a["missing_book_proof_count"]==a["alert_count"]
+          assert b["prepared_signal_count"]+b["missing_book_proof_count"]==b["alert_count"]
+          assert c["status"] == "NOT_READY_NO_PUBLIC_PRICE_PATHS_SUPPLIED"
+          assert c["modeled_portfolio_pnl_eur"] is None and c["real_bitvavo_pnl_eur"] is None
+          print(f"Stake 100€: {a['prepared_signal_count']} eligible book-proven model signals; missing {a['missing_book_proof_count']}")
+          print(f"Stake 150€: {b['prepared_signal_count']} eligible book-proven model signals; missing {b['missing_book_proof_count']}")
+          print("REAL PORTFOLIO PNL UNKNOWN; MODEL PNL NOT ESTIMATED WITHOUT PRICE PATHS.")
+          PY
       - name: Upload public, synthetic-safe event registry artifact
         uses: actions/upload-artifact@v4
         with:
@@ -73,4 +96,7 @@ jobs:
           path: |
             /tmp/solaire-machine-economic-ledger.json
             /tmp/solaire-machine-book-join.json
+            /tmp/solaire-preflight-100.json
+            /tmp/solaire-preflight-150.json
+            /tmp/solaire-replay-readiness.json
           retention-days: 14
