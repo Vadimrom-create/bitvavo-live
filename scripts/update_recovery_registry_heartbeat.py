@@ -12,6 +12,8 @@ It deliberately does NOT run historical 1h/4h/12h/24h outcome measurements.
 from __future__ import annotations
 
 import json
+import os
+import subprocess
 import time
 from datetime import datetime
 from pathlib import Path
@@ -23,7 +25,8 @@ if str(ROOT) not in sys.path:
 
 from research.common import atomic_json, finite, read_json, utc
 from research.http import PublicClient
-from research.recovery_registry import POLICY, normalize_registry, observe_episode, register_episode, summarize
+from research.recovery_registry import POLICY, normalize_registry, observe_episode, register_episode
+from research.recovery_storage import INDEX, compact_closed, fresh_index, summarize_all
 from scripts.send_production_buy_alert import prior_buy_thesis_active, validate
 
 CANDIDATES = "production_alert_candidates.json"
@@ -61,7 +64,17 @@ def _source_row_maps(payload):
     return tracking, watch
 
 
-def _already_registered(registry, market, episode_id, decision_id):
+def _already_registered(registry, market, episode_id, decision_id,
+                        archived_episode_ids, archived_decision_ids, archived_event_ids,
+                        rejection_ts):
+    # Archived closed episodes must retain the same deduplication contract.
+    identity = lambda value: str(market) + "\\x1f" + str(value)
+    if episode_id and identity(episode_id) in archived_episode_ids:
+        return True
+    if decision_id and identity(decision_id) in archived_decision_ids:
+        return True
+    if rejection_ts is not None and f"{market}|{int(rejection_ts)}" in archived_event_ids:
+        return True
     for record in (registry.get("episodes") or {}).values():
         if record.get("market") != market:
             continue
@@ -85,6 +98,20 @@ def main():
     policy_before = (raw_registry or {}).get("policy")
     policy_drift_detected = bool(policy_before is not None and policy_before != POLICY)
     registry = normalize_registry(raw_registry)
+    archive_index = read_json(INDEX, {}) or fresh_index()
+    registry_path = Path(REGISTRY)
+    source_bytes = registry_path.stat().st_size if registry_path.exists() else 0
+    source_blob_sha = None
+    if source_bytes >= 32 * 1024 * 1024:
+        source_blob_sha = subprocess.check_output(
+            ["git", "hash-object", REGISTRY], text=True).strip()
+    registry, archive_index, initial_archival = compact_closed(
+        registry, archive_index, run_id=os.getenv("GITHUB_RUN_ID", "local") + "_pre",
+        source_bytes=source_bytes, source_blob_sha=source_blob_sha,
+    )
+    archived_episode_ids = set(archive_index.get("archived_source_episode_identities", []))
+    archived_decision_ids = set(archive_index.get("archived_source_decision_identities", []))
+    archived_event_ids = set(archive_index.get("archived_event_ids", []))
     tracking_rows, watch_rows = _source_row_maps(payload)
 
     new_episodes = 0
@@ -98,10 +125,12 @@ def main():
             continue
         episode_id = rejection.get("episode_id")
         decision_id = rejection.get("decision_id")
-        if _already_registered(registry, market, episode_id, decision_id):
-            continue
         rejected_at = alert.get("checked_at_utc") or utc(now)
         rejected_ts = _parse_ts(rejected_at) or now
+        if _already_registered(registry, market, episode_id, decision_id,
+                               archived_episode_ids, archived_decision_ids,
+                               archived_event_ids, rejected_ts):
+            continue
         event = {
             "event_id": f"{market}|{int(rejected_ts)}",
             "market": market,
@@ -117,7 +146,7 @@ def main():
             "evidence_count": int((row.get("acceleration") or {}).get("evidence_count") or 0),
         }
         before = len(registry.get("episodes") or {})
-        registry = register_episode(registry, event, row, now)
+        registry = register_episode(registry, event, row, now, inplace=True)
         if len(registry.get("episodes") or {}) > before:
             new_episodes += 1
 
@@ -141,6 +170,7 @@ def main():
                 execution_pass=None,
                 execution_reason="SIGNAL_ABSENT_NOT_EVALUATED",
                 plan=None,
+                inplace=True,
             )
             absence_observations += 1
             continue
@@ -175,6 +205,7 @@ def main():
                 plan=(validated or {}).get("trade") if validated else None,
                 prior_thesis_clear=prior_thesis_clear,
                 prior_thesis_status=prior_thesis_status,
+                inplace=True,
             )
         except (RuntimeError, ValueError, KeyError) as exc:
             errors.append({
@@ -185,7 +216,10 @@ def main():
     # Touch on every successful heartbeat observation, even when there are no
     # open episodes. This makes file freshness a direct health signal.
     registry["updated_at_utc"] = utc(now)
-    summary = summarize(registry)
+    registry, archive_index, subsequent_archival = compact_closed(
+        registry, archive_index, run_id=os.getenv("GITHUB_RUN_ID", "local") + "_post",
+    )
+    summary = summarize_all(registry, archive_index)
     policy_frozen = registry.get("policy") == POLICY
     invariant_flags_ok = all(
         summary.get(key) is False
@@ -207,6 +241,13 @@ def main():
         "revalidations": revalidations,
         "absence_observations": absence_observations,
         "registry": summary,
+        "archive": {"archived_total": archive_index.get("archived_total", 0),
+                    "archive_shard_count": len(archive_index.get("archives", [])),
+                    "archived_now": initial_archival["archived_now"] + subsequent_archival["archived_now"],
+                    "new_shards_verified": len(initial_archival["shards"]) + len(subsequent_archival["shards"]),
+                    "source_git_blob_sha": source_blob_sha,
+                    "status": "VERIFIED_ARCHIVE" if initial_archival["shards"] or subsequent_archival["shards"]
+                    else "INDEX_REUSED"},
         "errors": errors,
         "affects_detection": False,
         "affects_buy_gate": False,
@@ -214,6 +255,9 @@ def main():
         "affects_orders": False,
     }
 
+    # Workflow stages the archive shards, index, live registry and status in
+    # ONE Git commit. Never publish a compact registry without its archives.
+    atomic_json(INDEX, archive_index)
     atomic_json(REGISTRY, registry)
     atomic_json(STATUS, status)
     print("SOLAIRE_RECOVERY_HEARTBEAT " + json.dumps(status, ensure_ascii=False))
