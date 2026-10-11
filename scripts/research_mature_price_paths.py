@@ -67,9 +67,17 @@ def choose_due(rows, now, max_per_horizon):
     for horizon in HORIZONS:
         due = [r for r in rows
                if now >= r["decision_ts"] + horizon * 3600 + 300]
-        # Most recently matured episodes, never cherry-pick positive outcomes.
-        for r in due[:max_per_horizon]:
+        # Most recent matured episodes: at most one episode per market and
+        # horizon to avoid falsely inflating a small cohort with repeats.
+        # The rule is set before seeing any outcome and applied uniformly.
+        seen_markets = set()
+        for r in due:
+            if r["market"] in seen_markets:
+                continue
             selected.append({**r, "horizon_hours": horizon})
+            seen_markets.add(r["market"])
+            if len(seen_markets) >= max_per_horizon:
+                break
     return selected
 
 
@@ -190,7 +198,7 @@ def inspect(rows, now, client, max_per_horizon):
     return {
         "schema": SCHEMA,
         "collected_at_utc": iso(time.time()),
-        "selection": "MOST_RECENT_MATURED_FIRST_BY_TIMESTAMP_PER_HORIZON",
+        "selection": "MOST_RECENT_MATURED_DISTINCT_MARKETS_FIRST_PER_HORIZON",
         "limit_per_horizon": max_per_horizon,
         "source": "production_direct_decision_journal.json; Bitvavo PUBLIC /candles",
         "horizons": by_horizon,
