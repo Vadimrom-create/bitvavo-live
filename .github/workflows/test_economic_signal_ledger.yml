@@ -1,0 +1,52 @@
+name: Research economic signal ledger (read-only)
+
+on:
+  pull_request:
+    paths:
+      - 'research/economic_cash_ledger.py'
+      - 'scripts/build_economic_signal_ledger.py'
+      - 'tests/test_economic_signal_ledger.py'
+      - 'docs/ECONOMIC_SIGNAL_LEDGER_V1.md'
+      - '.github/workflows/test_economic_signal_ledger.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  signal-ledger:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Synthetic accounting and anti-lookahead tests
+        run: python -m unittest tests.test_economic_signal_ledger -v
+      - name: Convert retained public machine decisions without inferring orders
+        run: |
+          python scripts/build_economic_signal_ledger.py --output /tmp/solaire-machine-economic-ledger.json
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          a = json.loads(Path("/tmp/solaire-machine-economic-ledger.json").read_text())
+          n = a["count"]
+          buys = a["counts_by_machine_action"]["BUY_SENT"]
+          refused = a["counts_by_machine_action"]["REJECTED"]
+          assert n == buys + refused and n > 0
+          assert buys > 0 and refused > 0
+          assert all(row["execution_fill_status"] == "UNKNOWN_NOT_PROVEN" for row in a["records"])
+          assert all(row["net_trade_pnl_eur"] is None for row in a["records"])
+          assert a["actual_exchange_fills_verified"] == 0
+          assert a["actual_net_pnl_eur"] is None
+          assert not a["buy_sent_equals_filled_order"]
+          print(f"Source snapshot: {n} machine decisions; {buys} BUY_SENT; {refused} REJECTED.")
+          print("Filled trades: UNKNOWN; actual PnL: NOT IDENTIFIABLE.")
+          PY
+      - name: Upload public, synthetic-safe event registry artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: economic-machine-decisions-unknown-fills
+          path: /tmp/solaire-machine-economic-ledger.json
+          retention-days: 14
