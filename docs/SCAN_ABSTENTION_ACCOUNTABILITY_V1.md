@@ -94,3 +94,39 @@ python scripts/research_mature_price_paths.py \
 This gives a factual starting point for 48/72h paths but does not yet calculate net executable outcomes or prove that ChatGPT's abstentions were good or bad. The next join requires matched historical bid/ask evidence and private ChatGPT decisions, plus exit-fee/stop/latency assumptions.
 
 Even where the indicative zero-trade-gap price path has a nonzero reference close return, this is not an executable strategy return and does not validate an assistant buy/refusal. Every such observation reports the gap count and preserves strict completeness separately.
+
+
+## Private ChatGPT SCAN to PUBLIC machine event bridge (exact causal join)
+
+The new helper, scripts/link_private_scan_to_machine.py, reads a PRIVATE decisions JSONL produced by the existing explicit capture script and a PUBLIC Solaire direct decision journal. It never fetches ChatGPT messages itself, does not access Bitvavo, and is forbidden to write any private output inside the public GitHub repo.
+
+When recording a real SCAN decision *at decision time*, add the field machine_signal_id to the private scan_decision record using the actual signal_id from the machine source. Also retain the exact ChatGPT decision timestamp, source observation timestamp, documented reason and immutable machine source ref. For an actual BUY recommendation the existing capture's fresh machine/book/stop validations still apply.
+
+The bridge permits a comparable machine BUY provenance only if ALL are true:
+- Explicit machine_signal_id appears exactly once in the retained machine journal.
+- The referenced event is BUY_SENT and its market matches the privately recorded SCAN decision.
+- The privately recorded solaire_action is ACHETE.
+- The machine event preceded the private source observation and the human decision.
+- Machine signal age at the ChatGPT decision is <=10 minutes.
+
+Every other case is explicitly UNKNOWN / stale / ambiguous / mismatched. No heuristic join by market alone or nearest timestamp. The join does NOT infer email read, bid/ask orderbook availability, actual fill, private execution, or any net PnL.
+
+Run in a secure local or other PRIVATE environment:
+
+~~~bash
+python scripts/link_private_scan_to_machine.py \
+  --machine production_direct_decision_journal.json \
+  --decisions /private/scan_decisions.jsonl \
+  --output /private/scan_machine_link.json
+~~~
+
+For a public readiness-only audit which never reads any private data:
+
+~~~bash
+python scripts/link_private_scan_to_machine.py \
+  --machine production_direct_decision_journal.json \
+  --public-audit-only \
+  --output /tmp/public_signal_link_readiness.json
+~~~
+
+**Important:** the existing SCAN capture is still an explicit operator action, not a native ChatGPT hook. The private ledger must be captured at the time the advice is given; this PR cannot reconstruct the timestamp or verdict of previous chats with archival certainty. The event join is a prerequisite, not yet the missing pair of independently verified counterfactual fills. Future value attribution must also include ChatGPT waits that refer to machine WATCH candidates; those remain explicitly OUTSIDE_MATCHED_MACHINE_BUY until a separate causal WATCH comparison is specified.
