@@ -71,3 +71,24 @@ Current production evaluation implementation only lists horizons of **4, 12 and 
 The small scan_history.json leaderboard cache is also insufficient as a 24/48/72h price evaluation source: the 11 October sample matched only 12/171 mature 24h machine BUY events within one hour after target, 9/121 at 48h and 15/81 at 72h. These counts are diagnostic only, from the retained cache and an as-of cutoff of 2026-10-11T16:45:39Z. Do not treat sampled last prices as executable bid/ask or realizable performance.
 
 **Next prerequisite:** use the existing complete, timestamped 5-minute source or archived execution observations to create and verify paired, capital-constrained forward outcomes. Only then can the private ChatGPT decision ledger from this PR be joined for a non-biased economic comparison. Until that data exists, the evaluator returns NON_MESURABLE.
+
+
+## Bounded historical 5-minute price-path check (research only)
+
+After finding 0% 48h and 72h outcome coverage in the retained main production journal, a separate price-only recovery helper checks matured machine BUY_SENT signals against Bitvavo's public historical candlestick endpoint. Bitvavo explicitly supports interval=5m, UTC millisecond start/end and a maximum limit of 1440 candles; 72 hours fit this maximum. Reference: https://docs.bitvavo.com/docs/rest-api/get-candlestick-data/
+
+~~~bash
+python scripts/research_mature_price_paths.py \
+  --source production_direct_decision_journal.json \
+  --max-per-horizon 4 \
+  --output /tmp/solaire_research_mature_paths.json
+~~~
+
+- Choose the four most recently matured BUY_SENT events per horizon (24, 48 and 72h), strictly by timestamp; no cherry-picking winners.
+- Use candle START/END-aligned parameters, closed 5m intervals after the decision candle, and the existing conservative stop-before-profit tie-breaker from research.production_journal.
+- Missing candle intervals are INCOMPLETE (no forward-fill and no fabricated trade). Failed public requests are SOURCE_ERROR, not a zero or losing trade.
+- Completed records expose price-only close, MFE and MAE relative to the machine's proposed, not executed, entry.
+- actual_fill_proven=false, future_exit_executable_proven=false, net_pnl_eur=null, chatgpt_decision_joined=false for all rows.
+- CI runs only on PR and uploads a small research artifact; there is no production scan/policy/workflow modification or automatic trading.
+
+This gives a factual starting point for 48/72h paths but does not yet calculate net executable outcomes or prove that ChatGPT's abstentions were good or bad. The next join requires matched historical bid/ask evidence and private ChatGPT decisions, plus exit-fee/stop/latency assumptions.
