@@ -5,8 +5,6 @@ Any incomplete as-of mark invalidates the whole modeled drawdown result.
 """
 from __future__ import annotations
 import bisect
-import hashlib
-import json
 from datetime import timedelta
 from decimal import Decimal
 
@@ -49,6 +47,7 @@ def summarize_last_print_equity(
             raise ReplayError("duplicated candle timestamp")
         times[market] = ([t for t, _ in series], [p for _, p in series])
     raw_moves = []
+    modeled_net_total = Decimal(0)
     ids = set()
     for trade in trades:
         eid = trade.get("event_id")
@@ -69,6 +68,10 @@ def summarize_last_print_equity(
             raise ReplayError("trade event not on completed 5-minute clock")
         buy_cost = dec(trade.get("modeled_buy_cost_eur"), "buy cost", positive=True)
         proceeds = dec(trade.get("modeled_sell_proceeds_eur"), "sell proceeds")
+        expected_net = Decimal(str(trade.get("modeled_net_pnl_eur")))
+        if not expected_net.is_finite() or abs(expected_net - (proceeds - buy_cost)) > Decimal("0.00001"):
+            raise ReplayError("trade model PnL does not reconcile with cost/proceeds")
+        modeled_net_total += proceeds - buy_cost
         limit = dec(plan.get("entry_limit_eur"), "proposed entry", positive=True)
         modeled_entry = limit * (1 + slip)
         quantity = buy_cost / (modeled_entry * (1 + fee))
@@ -149,10 +152,7 @@ def summarize_last_print_equity(
         raise ReplayError("nonzero open positions after last modeled exit")
     if step_count == 0:
         raise ReplayError("unexpected empty mark clock")
-    if abs(cash - (start_capital + sum(
-        (dec(t["modeled_net_pnl_eur"], "pnl") if t["modeled_net_pnl_eur"] >= 0
-         else Decimal(str(t["modeled_net_pnl_eur"]))) for t in trades
-    ))) > Decimal("0.0002"):
+    if abs(cash - start_capital - modeled_net_total) > Decimal("0.0002"):
         raise ReplayError("post-trade equity/cash/PnL reconciliation failed")
     return {
         "schema": "solaire_last_print_equity_diagnostic_v1",
