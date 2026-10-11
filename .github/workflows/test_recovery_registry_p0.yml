@@ -1,0 +1,46 @@
+name: Recovery registry P0 safety tests
+
+on:
+  pull_request:
+    paths:
+      - "research/recovery_registry.py"
+      - "scripts/update_recovery_registry_heartbeat.py"
+      - "scripts/recovery_registry_storage.py"
+      - "tests/test_recovery_registry*.py"
+      - ".github/workflows/production_scan_fast.yml"
+      - ".github/workflows/test_recovery_registry_p0.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout: |
+            research
+            scripts
+            tests
+            .github/workflows
+          sparse-checkout-cone-mode: true
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: python -m pip install pytest
+      - name: Verify historical integrity and batch non-regression
+        run: python -m pytest -q tests/test_recovery_registry.py tests/test_recovery_registry_compaction.py
+      - name: Refuse unconverted registry readers in Python or workflows
+        run: |
+          set -euo pipefail
+          paths="$(git grep -l -F 'production_recovery_registry_shadow.json' -- '*.py' '*.yml' || true)"
+          while IFS= read -r p; do
+            [ -z "$p" ] && continue
+            case "$p" in
+              scripts/recovery_registry_storage.py|scripts/update_recovery_registry_heartbeat.py|.github/workflows/production_scan_fast.yml|.github/workflows/test_recovery_registry_p0.yml|tests/test_recovery_registry.py|tests/test_recovery_registry_compaction.py) ;;
+              *) echo "UNMIGRATED_RECOVERY_READER: $p"; exit 1 ;;
+            esac
+          done <<< "$paths"
