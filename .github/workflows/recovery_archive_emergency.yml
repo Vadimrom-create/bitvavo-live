@@ -1,0 +1,66 @@
+name: Solaire recovery archive emergency rescue
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/recovery_archive_emergency.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: solaire-recovery-one-time-rescue
+  cancel-in-progress: false
+
+jobs:
+  rescue-registry:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          filter: blob:none
+          sparse-checkout-cone-mode: false
+          sparse-checkout: |
+            scripts/
+            research/
+            production_recovery_registry_shadow.json
+            production_recovery_archive_index.json
+            production_recovery_archives/
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Archive closed episodes and verify exact history
+        run: python scripts/rescue_recovery_registry.py
+      - name: Verify full published snapshot locally
+        run: python scripts/verify_recovery_archives.py --verify-published
+      - name: Publish shards index and compacted registry atomically
+        run: |
+          set -euo pipefail
+          git config user.name bitvavo-live-bot
+          git config user.email actions@users.noreply.github.com
+          git add production_recovery_registry_shadow.json production_recovery_archive_index.json
+          if [ -d production_recovery_archives ]; then git add production_recovery_archives; fi
+          if git diff --cached --quiet; then
+            echo 'No recovery migration needed.'
+            exit 0
+          fi
+          git commit -m 'Publish verified, lossless emergency recovery registry archives'
+          for attempt in 1 2 3 4 5 6; do
+            git fetch origin main
+            if ! git rebase origin/main; then
+              git rebase --abort || true
+              echo 'Registry rescue conflict: refusing to overwrite concurrent data.' >&2
+              exit 1
+            fi
+            if git push origin HEAD:main; then
+              echo 'Recovery rescue published with all shards and index.'
+              exit 0
+            fi
+            sleep $((attempt * 2))
+          done
+          echo 'Registry rescue publication retries exhausted.' >&2
+          exit 1
