@@ -117,18 +117,20 @@ def _attempt(
     }
 
 
-def register_episode(
+def register_episode_inplace(
     registry: dict[str, Any] | None,
     event: dict[str, Any],
     source_row: dict[str, Any] | None,
     now: float,
 ) -> dict[str, Any]:
-    registry = normalize_registry(registry)
+    # Caller owns this already-normalized working copy; avoid copying per episode.
     event_id = str(event.get("event_id") or "")
     market = str(event.get("market") or "")
     if not event_id or not market:
         return registry
     if event_id in registry["episodes"]:
+        return registry
+    if event_id in registry.get("archive_event_ids", {}):
         return registry
 
     # The heartbeat and the heavier measurement workflow may observe the same
@@ -137,6 +139,11 @@ def register_episode(
     # BLOCKED_BUT_ALIVE records for one rejection episode.
     source_episode_id = event.get("source_episode_id")
     source_decision_id = event.get("source_decision_id")
+    # Archived closed records retain compact dedup identities.
+    if source_episode_id and identity_key(market, source_episode_id) in registry.get("archive_source_episodes", {}):
+        return registry
+    if source_decision_id and identity_key(market, source_decision_id) in registry.get("archive_source_decisions", {}):
+        return registry
     for existing in registry["episodes"].values():
         if existing.get("market") != market:
             continue
@@ -188,7 +195,7 @@ def register_episode(
     return registry
 
 
-def observe_episode(
+def observe_episode_inplace(
     registry: dict[str, Any] | None,
     event_id: str,
     row: dict[str, Any] | None,
@@ -200,7 +207,7 @@ def observe_episode(
     prior_thesis_clear: bool | None = None,
     prior_thesis_status: str | None = None,
 ) -> dict[str, Any]:
-    registry = normalize_registry(registry)
+    # Caller owns this already-normalized working copy; avoid copying per episode.
     record = registry["episodes"].get(event_id)
     if not record or record.get("closed"):
         registry["updated_at_utc"] = utc(now)
@@ -306,26 +313,73 @@ def observe_episode(
     return registry
 
 
-def summarize(registry: dict[str, Any] | None) -> dict[str, Any]:
-    registry = normalize_registry(registry)
+def summarize_inplace(registry: dict[str, Any] | None) -> dict[str, Any]:
+    # Caller owns this already-normalized working copy; avoid copying per episode.
     episodes = list(registry["episodes"].values())
+    archived = registry.get("archive_summary") or {}
     by_state: dict[str, int] = {}
     for record in episodes:
         state = str(record.get("state") or "UNKNOWN")
         by_state[state] = by_state.get(state, 0) + 1
+    for key, value in (archived.get("by_state") or {}).items():
+        by_state[key] = by_state.get(key, 0) + value
     return {
         "schema": SCHEMA,
-        "episodes": len(episodes),
-        "open": sum(not bool(record.get("closed")) for record in episodes),
+        "episodes": len(episodes) + archived.get("episodes", 0),
+        "open": sum(not bool(record.get("closed")) for record in episodes) + archived.get("open", 0),
         "shadow_candidates": sum(
             record.get("state") == "SHADOW_RECOVERY_CANDIDATE" for record in episodes
-        ),
+        ) + archived.get("shadow_candidates", 0),
         "technical_passes": sum(
             record.get("first_execution_pass") is not None for record in episodes
-        ),
+        ) + archived.get("technical_passes", 0),
         "by_state": by_state,
         "affects_detection": False,
         "affects_buy_gate": False,
         "affects_email": False,
         "affects_orders": False,
     }
+
+
+def identity_key(market: str, identity: str) -> str:
+    """Collision-safe key for a market and a production episode/decision ID."""
+    import json
+    return json.dumps([market, identity], ensure_ascii=False, separators=(',', ':'))
+
+
+def register_episode(
+    registry: dict[str, Any] | None,
+    event: dict[str, Any],
+    source_row: dict[str, Any] | None,
+    now: float,
+) -> dict[str, Any]:
+    """Retain the public copy-on-write contract for existing research callers."""
+    return register_episode_inplace(normalize_registry(registry), event, source_row, now)
+
+
+def observe_episode(
+    registry: dict[str, Any] | None,
+    event_id: str,
+    row: dict[str, Any] | None,
+    now: float,
+    *,
+    execution_pass: bool | None,
+    execution_reason: str | None = None,
+    plan: dict[str, Any] | None = None,
+    prior_thesis_clear: bool | None = None,
+    prior_thesis_status: str | None = None,
+) -> dict[str, Any]:
+    """Retain the public copy-on-write contract for existing research callers."""
+    return observe_episode_inplace(
+        normalize_registry(registry), event_id, row, now,
+        execution_pass=execution_pass,
+        execution_reason=execution_reason,
+        plan=plan,
+        prior_thesis_clear=prior_thesis_clear,
+        prior_thesis_status=prior_thesis_status,
+    )
+
+
+def summarize(registry: dict[str, Any] | None) -> dict[str, Any]:
+    """Public copy-on-write summary; heartbeat uses summarize_inplace."""
+    return summarize_inplace(normalize_registry(registry))
