@@ -148,7 +148,9 @@ def candidate_outcome(event, candles, asof, horizon_hours, fee_rate, slip_rate):
     first = candles.get(entry_first)
     if first is None:
         return {"state": "CENSORED", "reason": "ENTRY_CANDLE_MISSING", "event": event}
-    open_, high, low, close, synthetic_entry = first\n    if synthetic_entry:\n        return {"state": "UNFILLED", "reason": "NO_TRADES_IN_ENTRY_CANDLE", "event": event}
+    open_, high, low, close, synthetic_entry = first
+    if synthetic_entry:
+        return {"state": "UNFILLED", "reason": "NO_TRADES_IN_ENTRY_CANDLE", "event": event}
     # Passive limit is held one full, post-book candle only. Cautiously
     # treat the quote as a hypothetical adverse-slippage fill (not a limit fill).
     if low > limit:
@@ -286,9 +288,13 @@ def replay_portfolio(
         "asof_utc": asof.isoformat(),
         "fee_rate_each_side": number(fee),
         "adverse_slippage_each_side": number(slip),
-        "max_concurrent_positions": maximum_open_positions,\n        "gap_mode": gap_mode,\n        "assumed_zero_trade_5m_intervals_n": sum(derived_counts.values()),\n        "zero_trade_proxy_not_real_fill": True,
+        "max_concurrent_positions": maximum_open_positions,
+        "gap_mode": gap_mode,
+        "assumed_zero_trade_5m_intervals_n": sum(derived_counts.values()),
+        "zero_trade_proxy_not_real_fill": True,
         "candidate_count": len(prepared),
-        "candidate_states": counts,\n        "candidate_reasons": reasons,
+        "candidate_states": counts,
+        "candidate_reasons": reasons,
         "missing_or_ambiguous_event_ids": [x["event_id"] for x in blockers],
         "actual_exchange_fills_verified": 0,
         "real_bitvavo_pnl_eur": None,
