@@ -1,0 +1,24 @@
+name: Test private WALLET email bridge
+
+on:
+  pull_request:
+    paths:
+      - 'scripts/email_private_wallet_summary.py'
+      - 'tests/test_wallet_email_privacy.py'
+      - '.github/workflows/private_wallet_refresh.yml'
+      - '.github/workflows/test_wallet_email_bridge.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  wallet-email-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Run synthetic tests only (no credentials)
+        run: python -m unittest discover -s tests -p 'test_wallet_email_privacy.py' -v

@@ -7,6 +7,8 @@ on:
     paths:
       - 'scripts/send_useful_alert.py'
       - 'scripts/enrich_private_wallet.py'
+      - 'scripts/email_private_wallet_summary.py'
+      - 'tests/test_wallet_email_privacy.py'
       - 'scripts/protect_private_wallet_artifact.py'
       - '.github/workflows/private_wallet_refresh.yml'
   # Cold-start fallback only. Normal cadence is self-chained through
@@ -44,6 +46,9 @@ jobs:
 
       - name: Install monitoring dependencies
         run: python -m pip install -r requirements-monitoring.txt
+
+      - name: Run confidential email bridge unit tests (offline)
+        run: python -m unittest discover -s tests -p 'test_wallet_email_privacy.py' -v
 
       - name: Build read-only private wallet summary
         env:
@@ -86,6 +91,15 @@ jobs:
           print('PRIVATE_WALLET_OK', 'positions=', len(payload['positions']),
                 'execution_status_counts=', counts)
           PY
+
+      - name: Email confidential WALLET digest via existing Gmail transport
+        # Failures must not block encrypted snapshot publication or 5m handoff.
+        continue-on-error: true
+        env:
+          ALERT_GMAIL_USER: ${{ vars.ALERT_GMAIL_USER }}
+          ALERT_EMAIL_TO: bellonirom@gmail.com
+          GMAIL_APP_PASSWORD: ${{ secrets.GMAIL_APP_PASSWORD }}
+        run: python scripts/email_private_wallet_summary.py
 
       - name: Protect private wallet artifact before upload
         env:
