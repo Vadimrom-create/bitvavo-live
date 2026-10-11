@@ -1,0 +1,40 @@
+name: Verify published recovery archive integrity
+
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/verify_published_recovery_archives.yml'
+      - 'research/recovery_storage.py'
+      - 'scripts/verify_recovery_archives.py'
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/verify_published_recovery_archives.yml'
+      - 'production_recovery_archive_index.json'
+      - 'production_recovery_archives/**'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify-recovery-history:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+          filter: blob:none
+          sparse-checkout-cone-mode: false
+          sparse-checkout: |
+            research/
+            scripts/verify_recovery_archives.py
+            production_recovery_registry_shadow.json
+            production_recovery_archive_index.json
+            production_recovery_archives/
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Independently reconstruct published episode history and verify every archive hash
+        run: python scripts/verify_recovery_archives.py --verify-published
