@@ -53,6 +53,7 @@ class EconomicEvidenceGateTests(unittest.TestCase):
         self.assertIsNone(r["net_executable_portfolio_pnl_eur"])
         self.assertIsNone(r["actual_chatgpt_incremental_pnl_eur"])
         self.assertFalse(r["seven_day_observations_exist"])
+        self.assertFalse(r["paired_exit_shadow_diagnostics"][0]["event_id_pairing_verified"])
         self.assertEqual(len(r["paired_exit_shadow_diagnostics"]), 3)
         self.assertEqual(r["paired_exit_shadow_diagnostics"][0]["candidate_minus_reference_eur_est"], 5.0)
 
