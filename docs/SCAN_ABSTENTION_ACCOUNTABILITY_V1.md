@@ -52,3 +52,22 @@ Aggregate economic results **by original decision category and horizon**. Covera
 6. Do **not** loosen live filters or issue orders on the basis of preliminary shadow results.
 
 No private balances, personal mail contents, secret token or user decision text are committed in this PR. The CI uses synthetic fixtures only.
+
+
+## Empirical gap audit (public machine journals)
+
+A separate read-only script audits the *retained* canonical production journal and the five-minute direct decision journal, de-duplicates by stable decision ID, and counts recorded outcome coverage. It never generates a trading return or a ChatGPT decision.
+
+~~~bash
+python scripts/audit_evaluation_coverage.py \
+  --canonical production_decision_journal.json \
+  --direct production_direct_decision_journal.json \
+  --asof 2026-10-11T20:00:00Z \
+  --output /tmp/solaire_research_evaluation_coverage.json
+~~~
+
+Current production evaluation implementation only lists horizons of **4, 12 and 24 hours** and requests **400 × 5-minute** Bitvavo candles (approximately 33h20 of available history), regardless of the age of the signal. Its current interval window cannot reconstruct many older due outcomes, and it has no 48h or 72h horizon. A missing evaluation is **unknown**, not zero profit or a failed trade. The research CI runs the gap audit on real public journals and retains an aggregate-only artifact.
+
+The small scan_history.json leaderboard cache is also insufficient as a 24/48/72h price evaluation source: the 11 October sample matched only 12/171 mature 24h machine BUY events within one hour after target, 9/121 at 48h and 15/81 at 72h. These counts are diagnostic only, from the retained cache and an as-of cutoff of 2026-10-11T16:45:39Z. Do not treat sampled last prices as executable bid/ask or realizable performance.
+
+**Next prerequisite:** use the existing complete, timestamped 5-minute source or archived execution observations to create and verify paired, capital-constrained forward outcomes. Only then can the private ChatGPT decision ledger from this PR be joined for a non-biased economic comparison. Until that data exists, the evaluator returns NON_MESURABLE.
