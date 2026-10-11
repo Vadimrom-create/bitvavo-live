@@ -19,6 +19,7 @@ if str(ROOT) not in sys.path:
 
 from research.capital_constrained_replay import replay_portfolio
 from scripts.run_public_replay_probe import select_time_window
+from research.last_print_equity_diagnostic import summarize_last_print_equity
 
 
 def digest_markets(markets):
@@ -67,6 +68,23 @@ def replay_frozen(book_join, bundle, baseline_report, stake_eur=100):
             gap_mode=gap, horizon_exit_mode=exit_mode,
         )
         assert result[label]["real_bitvavo_pnl_eur"] is None
+    plans_by_id = {e["event_id"]: e for e in window["events"]}
+    indicative_risk = {}
+    for mode, modeled in result.items():
+        if modeled.get("status") == "MODELED_CLOSED_COHORT_ONLY_NO_EXECUTION_PROOF":
+            indicative_risk[mode] = summarize_last_print_equity(
+                modeled["trades"], plans_by_id, markets, asof_str,
+                initial_capital_eur=2300,
+                fee_each_side=0.0025,
+                slippage_each_side=0.001,
+                maximum_price_staleness_minutes=720,
+            )
+        else:
+            indicative_risk[mode] = {
+                "status": "NOT_IDENTIFIABLE_INCOMPLETE_MODEL",
+                "max_drawdown_last_print_eur_est": None,
+                "real_executable_drawdown_eur": None,
+            }
     old_proxy = baseline_report.get("proxy_zero_trade_model_only")
     if stake_eur == 100 and old_proxy and old_proxy.get("status") == "MODELED_CLOSED_COHORT_ONLY_NO_EXECUTION_PROOF":
         expected = old_proxy.get("modeled_portfolio_pnl_eur")
@@ -86,6 +104,7 @@ def replay_frozen(book_join, bundle, baseline_report, stake_eur=100):
         "source_candles_sha256": bundle["source_sha256"],
         "source_machine_sha256": book_join.get("source", {}).get("sha256"),
         "modes": result,
+        "indicative_mark_to_last_print_risk": indicative_risk,
         "real_execution_status": "NOT_PROVEN_NO_HISTORICAL_EXIT_BOOK_OR_FILLS",
         "v4_vs_r2_comparable": False,
         "caveat": "Next real candle open is a PRINT proxy, not evidence a 100 EUR sell order was executable. It can delay cash release and still understates liquidity risk.",
@@ -111,6 +130,10 @@ def main():
                   "modeled_eur=",result["modeled_portfolio_pnl_eur"],
                   "candidate=",result["candidate_states"],
                   "allocations_rejected=",result.get("allocation_reject_count"))
+        for label, risk in r["indicative_mark_to_last_print_risk"].items():
+            print("INDICATIVE risk", label, "status=", risk["status"],
+                  "last_print_drawdown_eur=", risk["max_drawdown_last_print_eur_est"],
+                  "not executable drawdown=", risk["real_executable_drawdown_eur"])
         print("Real exchange pnl always NULL. No V4 vs R2 attribution.")
     except (OSError, ValueError, json.JSONDecodeError) as exc:
         p.exit(2, f"frozen replay refused: {exc}\n")
