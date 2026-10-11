@@ -55,18 +55,40 @@ validation n'affichent ni montants ni symboles du wallet.
 - **Dépôt privé :** publication en clair sous le nom historique
   `private-wallet-summary-…`, accessible aux lecteurs autorisés du dépôt.
 
-**Conséquence fonctionnelle importante :** tant que le dépôt reste public, un
-assistant sans la clé de déchiffrement ne peut pas lire automatiquement les
-quantités et PRU à partir des futurs artifacts chiffrés. Il ne faut jamais
-communiquer la clé dans un chat. Pour retrouver le mode WALLET connecté en
-lecture directe sans exposer les soldes publiquement, rendre le dépôt GitHub
-**privé** et confirmer que le connecteur GitHub y conserve son accès.
+**Restitution confidentielle WALLET -> Gmail :** le workflow `private_wallet_refresh.yml`
+génère et enrichit le résumé en lecture seule, vérifie les données, puis exécute
+`scripts/email_private_wallet_summary.py` **avant** de chiffrer et de supprimer le
+fichier clair local. L'email est envoyé uniquement à la boîte autorisée
+`bellonirom@gmail.com`, via la configuration `ALERT_GMAIL_USER` et le secret
+`GMAIL_APP_PASSWORD` existants ; aucun nouveau token Bitvavo ou Gmail n'est
+nécessaire. Seuls les totaux, les positions, les PRU reconstruits, les PnL
+**bruts estimés**, et les résumés agrégés des carnets/trades sont inclus.
+Les prix et preuves de marché trop anciens sont explicitement déclassés ;
+le résumé de compte lui-même n'est envoyé que s'il a au plus 180 secondes.
+Aucune clé, aucun détail de portefeuille et aucun corps d'email ne sont
+inscrits dans les logs, Git, les artefacts publics ou les résumés d'étape.
+
+Le flux émet **un email par cycle de cinq minutes**, jusqu'à environ
+288 messages/jour tant qu'il fonctionne continuellement. Pour éviter les
+notifications, configurer dans Gmail un filtre sur l'objet exact
+`SOLAIRE WALLET — relevé privé` et ignorer la boîte de réception.
+Les emails sont un moyen de restitution distinct de la publication GitHub :
+ce n'est **pas** une synchronisation temps réel native avec ChatGPT.
+À chaque demande WALLET, ChatGPT peut chercher le dernier email et vérifier
+son horodatage ; s'il est trop ancien, il doit refuser de qualifier les
+cours d'« instantanés ». L'accès à Gmail connecté reste nécessaire.
+
+Dans un dépôt public, les artefacts GitHub restent obligatoirement chiffrés.
+Ne jamais communiquer `POSITION_STATE_KEY` ni les secrets SMTP dans un chat.
+Si l'envoi Gmail est indisponible, le workflow continue la publication chiffrée
+et le prochain heartbeat ; l'étape d'envoi apparaît toutefois en erreur
+(`PRIVATE_WALLET_EMAIL_...` sans données privées dans le log).
 
 Supprimer un artifact limite les accès futurs ; cela ne révoque pas les copies
 éventuellement téléchargées auparavant.
 
-Aucun endpoint Bitvavo privé supplémentaire, aucun ordre, aucun email et
-aucune modification de la politique stop-loss. Le scanner public, les
+Aucun endpoint Bitvavo privé supplémentaire, aucun ordre et
+aucune modification de la politique stop-loss. Seul l'email privé WALLET a été ajouté. Le scanner public, les
 fichiers utilisés pour ses alertes d'achat et `execution_snapshot.json`
 restent indépendants. Les champs de freshness doivent être recontrôlés au
 moment de chaque réponse utilisateur ; un artifact de la nuit ne peut être
