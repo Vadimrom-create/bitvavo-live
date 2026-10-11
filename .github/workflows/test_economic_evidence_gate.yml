@@ -1,0 +1,44 @@
+name: Test economic evidence gate (research only)
+
+on:
+  pull_request:
+    paths:
+      - 'scripts/economic_evidence_gate.py'
+      - 'tests/test_economic_evidence_gate.py'
+      - 'docs/ECONOMIC_EVIDENCE_GATE_V1.md'
+      - '.github/workflows/test_economic_evidence_gate.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  economic-gate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Offline regression tests
+        run: python -m unittest tests.test_economic_evidence_gate -v
+      - name: Assess the committed aggregate public evidence without market I/O
+        run: |
+          python scripts/economic_evidence_gate.py --output economic_evidence_gate_result.json
+          python - <<'PY'
+          import json
+          with open("economic_evidence_gate_result.json", encoding="utf-8") as file:
+              report = json.load(file)
+          assert report["status"] == "NOT_IDENTIFIABLE_AS_EXECUTABLE_PORTFOLIO_PNL"
+          assert report["net_executable_portfolio_pnl_eur"] is None
+          assert report["actual_chatgpt_incremental_pnl_eur"] is None
+          assert len(report["paired_exit_shadow_diagnostics"]) == 3
+          print("Aggregate shadow evidence validated; executable profit NOT IDENTIFIABLE")
+          PY
+      - name: Retain public aggregate report only
+        uses: actions/upload-artifact@v4
+        with:
+          name: economic-evidence-gate-report
+          path: economic_evidence_gate_result.json
+          retention-days: 14
