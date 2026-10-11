@@ -10,6 +10,7 @@ import argparse
 import json
 import math
 import re
+import statistics
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -122,12 +123,44 @@ def enrich_machine_ledger(source, observation_dir):
         stats[state] = stats.get(state, 0) + 1
         next_row["historical_book_evidence"] = book
         enriched.append(next_row)
+    buy_books = [r["historical_book_evidence"] for r in enriched
+                 if r["decision_type"] == "BUY_SENT"
+                 and r["historical_book_evidence"]["book_observation_status"]
+                 == "MATCHED_PUBLIC_BOOK_ESTIMATE"]
+    lag = [b["book_vs_decision_seconds"] for b in buy_books]
+    size_stats = {}
+    for size in ("100", "150"):
+        total_costs = []
+        covered = 0
+        for b in buy_books:
+            v = b["stake_estimates"].get(size) if isinstance(b.get("stake_estimates"), dict) else None
+            if not isinstance(v, dict):
+                continue
+            if v["entry_book_covered"] and v["same_snapshot_exit_book_covered"]:
+                covered += 1
+                c = v.get("roundtrip_adverse_cost_eur_est")
+                if c is not None and c >= 0:
+                    total_costs.append(c)
+        size_stats[size] = {
+            "both_book_sides_covered_n": covered,
+            "adverse_roundtrip_cost_available_n": len(total_costs),
+            "median_same_snapshot_adverse_roundtrip_cost_eur_est":
+                round(statistics.median(total_costs), 6) if total_costs else None,
+        }
+    buy_book_summary = {
+        "matched_buy_sent_books_n": len(buy_books),
+        "book_observed_after_decision_n": sum(x > 0 for x in lag),
+        "median_book_delay_after_decision_seconds": round(statistics.median(lag), 4) if lag else None,
+        "size_estimates": size_stats,
+        "never_derived_from_real_orders": True,
+    }
     return {
         **{k: v for k, v in source.items() if k not in ("records",)},
         "schema": "solaire_economic_machine_book_join_v1",
         "records": enriched,
         "books_by_status": stats,
         "matched_book_count": stats.get("MATCHED_PUBLIC_BOOK_ESTIMATE", 0),
+        "buy_sent_book_cost_summary": buy_book_summary,
         "historical_fills_verified": 0,
         "portfolio_real_pnl_eur": None,
         "book_join_note": "Matching 100/150 EUR snapshot quotes model immediate liquidity only; never claim filled trades.",
