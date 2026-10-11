@@ -97,6 +97,19 @@ class MaturePricePathTests(unittest.TestCase):
         self.assertEqual(len(d), 3)
         self.assertTrue(all(e["decision_id"] == "newer" for e in d))
 
+    def test_one_market_per_horizon_prevents_correlated_repeat_cohort(self):
+        latest = row("s-latest", ASOF - 80 * 3600)
+        duplicate = row("s-older", ASOF - 81 * 3600)
+        distinct = row("distinct", ASOF - 82 * 3600)
+        distinct["market"] = "OTHER-EUR"
+        selected = mod.choose_due(
+            mod.validate_source(source(latest, duplicate, distinct), ASOF),
+            ASOF, 2,
+        )
+        for horizon in (24, 48, 72):
+            markets = [r["market"] for r in selected if r["horizon_hours"] == horizon]
+            self.assertEqual(markets, ["TEST-EUR", "OTHER-EUR"])
+
     def test_public_api_error_yields_unknown_not_loss(self):
         r = mod.inspect_one({**row(), "horizon_hours": 24},
                             FakePublicClient(fail=True), ASOF, observed_at=ASOF)
