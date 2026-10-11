@@ -24,12 +24,13 @@ if str(ROOT) not in sys.path:
 from research.common import atomic_json, finite, read_json, utc
 from research.http import PublicClient
 from research.recovery_registry import POLICY, normalize_registry, observe_episode, register_episode, summarize
+from scripts.recovery_registry_storage import load_registry, persist_registry
 from scripts.send_production_buy_alert import prior_buy_thesis_active, validate
 
 CANDIDATES = "production_alert_candidates.json"
 ALERT_STATUS = "production_alert_status.json"
 PRODUCTION_STATE = "production_alert_state.json"
-REGISTRY = "production_recovery_registry_shadow.json"
+REGISTRY = "production_recovery_registry_shadow.json.gz"
 STATUS = "production_recovery_registry_status.json"
 TRACKED = {
     "STRUCTURAL_RANGE_TOO_NARROW",
@@ -77,7 +78,7 @@ def main():
     payload = read_json(CANDIDATES, {})
     alert = read_json(ALERT_STATUS, {})
     production_state = read_json(PRODUCTION_STATE, {})
-    raw_registry = read_json(REGISTRY, {})
+    raw_registry = load_registry()
     previous_updated = _parse_ts((raw_registry or {}).get("updated_at_utc"))
     previous_age = round(max(0.0, now - previous_updated), 3) if previous_updated is not None else None
     previous_stale = previous_age is None or previous_age > FRESHNESS_LIMIT_SECONDS
@@ -117,7 +118,7 @@ def main():
             "evidence_count": int((row.get("acceleration") or {}).get("evidence_count") or 0),
         }
         before = len(registry.get("episodes") or {})
-        registry = register_episode(registry, event, row, now)
+        registry = register_episode(registry, event, row, now, _normalized=True)
         if len(registry.get("episodes") or {}) > before:
             new_episodes += 1
 
@@ -141,6 +142,7 @@ def main():
                 execution_pass=None,
                 execution_reason="SIGNAL_ABSENT_NOT_EVALUATED",
                 plan=None,
+                _normalized=True,
             )
             absence_observations += 1
             continue
@@ -175,6 +177,7 @@ def main():
                 plan=(validated or {}).get("trade") if validated else None,
                 prior_thesis_clear=prior_thesis_clear,
                 prior_thesis_status=prior_thesis_status,
+                _normalized=True,
             )
         except (RuntimeError, ValueError, KeyError) as exc:
             errors.append({
@@ -214,7 +217,7 @@ def main():
         "affects_orders": False,
     }
 
-    atomic_json(REGISTRY, registry)
+    persist_registry(registry)
     atomic_json(STATUS, status)
     print("SOLAIRE_RECOVERY_HEARTBEAT " + json.dumps(status, ensure_ascii=False))
     return 0
