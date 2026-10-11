@@ -5,8 +5,10 @@ on:
     paths:
       - "scripts/measure_scan_abstentions.py"
       - "scripts/audit_evaluation_coverage.py"
+      - "scripts/research_mature_price_paths.py"
       - "tests/test_measure_scan_abstentions.py"
       - "tests/test_audit_evaluation_coverage.py"
+      - "tests/test_research_mature_price_paths.py"
       - "docs/SCAN_ABSTENTION_ACCOUNTABILITY_V1.md"
       - ".github/workflows/test_scan_abstentions.yml"
   workflow_dispatch:
@@ -17,14 +19,14 @@ permissions:
 jobs:
   validate-private-shadow:
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    timeout-minutes: 12
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
       - name: Compile accountability scripts
-        run: python -m py_compile scripts/measure_scan_abstentions.py scripts/scan_accountability_ledger.py tests/test_measure_scan_abstentions.py scripts/audit_evaluation_coverage.py tests/test_audit_evaluation_coverage.py
+        run: python -m py_compile scripts/measure_scan_abstentions.py scripts/scan_accountability_ledger.py tests/test_measure_scan_abstentions.py scripts/audit_evaluation_coverage.py tests/test_audit_evaluation_coverage.py scripts/research_mature_price_paths.py tests/test_research_mature_price_paths.py
       - name: Test no-lookahead, provenance and abstention taxonomy
         run: python -m unittest discover -s tests -p 'test_measure_scan_abstentions.py' -v
       - name: Test existing private ledger compatibility
@@ -46,4 +48,19 @@ jobs:
           name: research-scan-evaluation-coverage-${{ github.run_id }}
           retention-days: 30
           path: /tmp/solaire_research_evaluation_coverage.json
+          if-no-files-found: error
+      - name: Test exact 5m time bounds and no invented fills
+        run: python -m unittest discover -s tests -p 'test_research_mature_price_paths.py' -v
+      - name: Recover sampled matured 24-48-72h PUBLIC price paths
+        run: |
+          python scripts/research_mature_price_paths.py \
+            --source production_direct_decision_journal.json \
+            --max-per-horizon 4 \
+            --output /tmp/solaire_research_mature_paths.json
+      - name: Retain public-price-only maturity observations
+        uses: actions/upload-artifact@v4
+        with:
+          name: research-mature-24-48-72-paths-${{ github.run_id }}
+          retention-days: 30
+          path: /tmp/solaire_research_mature_paths.json
           if-no-files-found: error
