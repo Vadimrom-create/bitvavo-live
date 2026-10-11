@@ -24,12 +24,15 @@ if str(ROOT) not in sys.path:
 from research.common import atomic_json, finite, read_json, utc
 from research.http import PublicClient
 from research.recovery_registry import POLICY, normalize_registry, observe_episode, register_episode, summarize
+from research.recovery_storage import RecoveryMigrationError, ensure_compressed_registry
 from scripts.send_production_buy_alert import prior_buy_thesis_active, validate
 
 CANDIDATES = "production_alert_candidates.json"
 ALERT_STATUS = "production_alert_status.json"
 PRODUCTION_STATE = "production_alert_state.json"
-REGISTRY = "production_recovery_registry_shadow.json"
+REGISTRY = "production_recovery_registry_shadow.json.gz"
+LEGACY_REGISTRY = "production_recovery_registry_shadow.json"
+MIGRATION_MANIFEST = "production_recovery_registry_migration_manifest.json"
 STATUS = "production_recovery_registry_status.json"
 TRACKED = {
     "STRUCTURAL_RANGE_TOO_NARROW",
@@ -113,6 +116,36 @@ def _already_registered(registry, market, episode_id, decision_id):
 
 def main():
     now = time.time()
+    # If the compressed source itself nears the cap, do no writes to it.
+    if Path(REGISTRY).exists() and capacity_guard(now):
+        return 0
+
+    # Migrate the exact legacy history before the first write to compressed
+    # storage; the old source is retained in Git history and a SHA manifest.
+    try:
+        storage_action = ensure_compressed_registry(
+            LEGACY_REGISTRY, REGISTRY, MIGRATION_MANIFEST
+        )
+    except (OSError, ValueError, RecoveryMigrationError, RuntimeError) as exc:
+        previous = read_json(STATUS, {}) or {}
+        status = {
+            **previous,
+            "schema": "solaire_recovery_registry_heartbeat_v1",
+            "checked_at_utc": utc(now),
+            "status": "DEGRADED_ARCHIVE_MIGRATION",
+            "registry_update_paused": True,
+            "last_successful_registry_at_utc": previous.get("last_successful_registry_at_utc")
+                or (previous.get("checked_at_utc") if previous.get("status") == "OK" else None),
+            "errors": [{"reason": "LOSSLESS_REGISTRY_MIGRATION_FAILED",
+                        "error_type": type(exc).__name__, "detail": str(exc)[:220]}],
+            "affects_detection": False,
+            "affects_buy_gate": False,
+            "affects_email": False,
+            "affects_orders": False,
+        }
+        atomic_json(STATUS, status)
+        print("SOLAIRE_RECOVERY_HEARTBEAT " + json.dumps(status, ensure_ascii=False))
+        return 0
     if capacity_guard(now):
         return 0
     payload = read_json(CANDIDATES, {})
@@ -158,7 +191,7 @@ def main():
             "evidence_count": int((row.get("acceleration") or {}).get("evidence_count") or 0),
         }
         before = len(registry.get("episodes") or {})
-        registry = register_episode(registry, event, row, now)
+        registry = register_episode(registry, event, row, now, _inplace=True)
         if len(registry.get("episodes") or {}) > before:
             new_episodes += 1
 
@@ -182,6 +215,7 @@ def main():
                 execution_pass=None,
                 execution_reason="SIGNAL_ABSENT_NOT_EVALUATED",
                 plan=None,
+                _inplace=True,
             )
             absence_observations += 1
             continue
@@ -216,6 +250,7 @@ def main():
                 plan=(validated or {}).get("trade") if validated else None,
                 prior_thesis_clear=prior_thesis_clear,
                 prior_thesis_status=prior_thesis_status,
+                _inplace=True,
             )
         except (RuntimeError, ValueError, KeyError) as exc:
             errors.append({
@@ -226,7 +261,7 @@ def main():
     # Touch on every successful heartbeat observation, even when there are no
     # open episodes. This makes file freshness a direct health signal.
     registry["updated_at_utc"] = utc(now)
-    summary = summarize(registry)
+    summary = summarize(registry, _inplace=True)
     policy_frozen = registry.get("policy") == POLICY
     invariant_flags_ok = all(
         summary.get(key) is False
@@ -238,6 +273,9 @@ def main():
         "checked_at_utc": utc(now),
         "status": "OK" if not errors and policy_frozen and invariant_flags_ok else "DEGRADED_NONBLOCKING",
         "writer": "production_scan_fast_heartbeat",
+        "registry_storage_format": "gzip-json",
+        "registry_size_bytes": Path(REGISTRY).stat().st_size if Path(REGISTRY).exists() else 0,
+        "registry_storage_action": storage_action,
         "freshness_limit_seconds": FRESHNESS_LIMIT_SECONDS,
         "previous_registry_age_seconds": previous_age,
         "previous_registry_was_stale": previous_stale,
