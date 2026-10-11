@@ -23,7 +23,7 @@ if str(ROOT) not in sys.path:
 
 from research.common import atomic_json, finite, read_json, utc
 from research.http import PublicClient
-from research.recovery_registry import POLICY, normalize_registry, observe_episode, register_episode, summarize
+from research.recovery_registry import (POLICY, normalize_registry, observe_episode_inplace as observe_episode, register_episode_inplace as register_episode, summarize_inplace as summarize, identity_key)
 from scripts.send_production_buy_alert import prior_buy_thesis_active, validate
 
 CANDIDATES = "production_alert_candidates.json"
@@ -62,6 +62,10 @@ def _source_row_maps(payload):
 
 
 def _already_registered(registry, market, episode_id, decision_id):
+    if episode_id and identity_key(market, episode_id) in registry.get("archive_source_episodes", {}):
+        return True
+    if decision_id and identity_key(market, decision_id) in registry.get("archive_source_decisions", {}):
+        return True
     for record in (registry.get("episodes") or {}).values():
         if record.get("market") != market:
             continue
