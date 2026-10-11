@@ -4,8 +4,6 @@ import gzip
 import json
 import subprocess
 
-import pytest
-
 from research.recovery_registry import (
     new_registry, register_episode, register_episode_inplace,
     observe_episode, observe_episode_inplace, summarize, summarize_inplace,
@@ -41,7 +39,7 @@ def test_hot_path_matches_copy_on_write_for_transitions():
         (row(), False, None),
         (row(), True, False),
         (row(), True, True),
-        (row(episode=99), True, True),
+        (row(99), True, True),
     ]
     for signal, execution_pass, prior_clear in cases:
         base = registered(1000)
@@ -131,8 +129,12 @@ def test_tampered_uncommitted_source_is_rejected(tmp_path):
     setup_git(tmp_path, registry)
     p = tmp_path / "production_recovery_registry_shadow.json"
     p.write_text(p.read_text() + "\n")
-    with pytest.raises(ValueError, match="SOURCE_REGISTRY_DIFFERS"):
+    try:
         run(force=True, root=tmp_path, name="bad.json.gz")
+    except ValueError as exc:
+        assert "SOURCE_REGISTRY_DIFFERS" in str(exc)
+    else:
+        raise AssertionError("Expected source-integrity failure")
     assert not (tmp_path / "recovery_registry_archives" / "bad.json.gz").exists()
 
 
@@ -150,6 +152,10 @@ def test_schema_drift_aborts_before_writes(tmp_path):
     registry = small_registry()
     registry["policy"]["ttl_seconds"] += 1
     setup_git(tmp_path, registry)
-    with pytest.raises(ValueError, match="REGISTRY_SCHEMA_OR_POLICY_DRIFT"):
+    try:
         run(force=True, root=tmp_path, name="invalid.json.gz")
+    except ValueError as exc:
+        assert "REGISTRY_SCHEMA_OR_POLICY_DRIFT" in str(exc)
+    else:
+        raise AssertionError("Expected policy-drift failure")
     assert not (tmp_path / "recovery_registry_archives").exists()
