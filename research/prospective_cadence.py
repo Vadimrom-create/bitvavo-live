@@ -24,12 +24,45 @@ def missed_slots(state, now):
                   set(range(first + PERIOD, slot_at(now), PERIOD)))
 
 
+
+def completed_punctuality(state, expected):
+    """A successful run can be late: measure actual capture timing, not end status."""
+    if state.get('last_completed_slot') != expected:
+        return {'status': 'NOT_COMPLETED', 'start_delay_seconds': None,
+                'observation_delay_seconds': None}
+    attempts = state.get('attempts', {}).get(str(expected), [])
+    completed = [r for r in attempts if r.get('phase') == 'COMPLETED']
+    start_delay = None
+    if completed:
+        record = completed[-1]
+        start_value = record.get('collection_started_at_utc') or record.get('reserved_at_utc')
+        if start_value:
+            try:
+                start_delay = max(0.0, timestamp(start_value) - expected)
+            except (TypeError, ValueError):
+                pass
+    observed = state.get('last_valid_observation_ts')
+    observation_delay = max(0.0, observed - expected) if isinstance(observed, (int, float)) else None
+    if start_delay is None and observation_delay is None:
+        punctuality = 'UNKNOWN'
+    elif any(delay is not None and delay > GRACE
+             for delay in (start_delay, observation_delay)):
+        punctuality = 'LATE'
+    else:
+        punctuality = 'ON_TIME'
+    return {'status': punctuality, 'start_delay_seconds': start_delay,
+            'observation_delay_seconds': observation_delay}
+
+
 def health(state, now):
     expected = slot_at(now)
     completed = state.get('last_completed_slot')
     observation = state.get('last_valid_observation_ts')
     lag = max(0, now - expected)
-    status = ('OK' if completed == expected else
+    punctuality = completed_punctuality(state, expected)
+    status = (('OK' if punctuality['status'] == 'ON_TIME' else
+               'COMPLETED_LATE' if punctuality['status'] == 'LATE' else
+               'COMPLETED_UNVERIFIED') if completed == expected else
               'DELAYED' if lag <= GRACE else 'MISSED')
     holes = missed_slots(state, now)
     return {
@@ -42,6 +75,8 @@ def health(state, now):
         'health_max_age_seconds': GRACE,
         'last_completed_slot_at_utc': utc(completed) if completed is not None else None,
         'slot_lifecycle': slot_lifecycle(state, now),
+        'capture_punctuality': punctuality,
+        'current_slot_completed': completed == expected,
         'last_actual_start_at_utc': state.get('last_actual_start_at_utc'),
         'last_reserved_at_utc': state.get('last_reserved_at_utc'),
         'last_completed_at_utc': state.get('last_completed_at_utc'),
