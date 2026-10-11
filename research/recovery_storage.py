@@ -67,7 +67,7 @@ def _build_manifest(source: Path, compressed: Path, document: dict, raw: bytes):
 
 
 def ensure_compressed_registry(legacy_path, compressed_path, manifest_path):
-    """Idempotent migration; returns MIGRATED, EXISTING, or NEW_REGISTRY.
+    """Idempotent migration; returns MIGRATED or EXISTING.
 
     Failure never removes the legacy source; a partially written compressed
     file is safe to inspect/retry but MUST NOT be treated as authoritative.
@@ -82,12 +82,12 @@ def ensure_compressed_registry(legacy_path, compressed_path, manifest_path):
         details = read_json(manifest, {}) or {}
         if details.get("schema") != MANIFEST_SCHEMA or not details.get("complete_round_trip_verified"):
             raise RecoveryMigrationError("Compressed registry manifest invalid")
-        _check_registry(read_json(compressed))
+        # Main heartbeat loads and validates its one authoritative gzip below.
         return "EXISTING"
 
     if not legacy.exists() and not compressed.exists():
-        # Allow new installations to create a new registry at the compressed path.
-        return "NEW_REGISTRY"
+        # Never silently create an empty history when the source is missing.
+        raise RecoveryMigrationError("Neither legacy nor compressed registry is present")
 
     # Includes interrupted migration where both files exist: reconcile exactly.
     raw = legacy.read_bytes()
