@@ -278,8 +278,11 @@ def replay_portfolio(
     # cherry-pick only winners with complete future candles.
     blockers = [r for r in prepared if r["state"] in ("CENSORED", "NOT_MATURED")]
     counts = {}
+    reasons = {}
     for r in prepared:
         counts[r["state"]] = counts.get(r["state"], 0) + 1
+        why = str(r.get("reason") or r["state"])
+        reasons[why] = reasons.get(why, 0) + 1
     core = {
         "schema": "solaire_capital_replay_v1",
         "research_only": True,
