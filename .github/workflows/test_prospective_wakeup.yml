@@ -1,0 +1,40 @@
+name: Prospective timing and wakeup safety tests
+
+on:
+  pull_request:
+    paths:
+      - 'research/prospective_cadence.py'
+      - 'scripts/prospective_heartbeat_wakeup.py'
+      - 'tests/test_prospective_cadence.py'
+      - 'tests/test_prospective_heartbeat_wakeup.py'
+      - '.github/workflows/production_scan_fast.yml'
+      - '.github/workflows/test_prospective_wakeup.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  prospective-causal-safety:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+          filter: blob:none
+          sparse-checkout-cone-mode: false
+          sparse-checkout: |
+            research/
+            scripts/
+            tests/
+            .github/workflows/
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Static compile
+        run: python -m py_compile research/prospective_cadence.py scripts/prospective_heartbeat_wakeup.py scripts/prospective_wakeup.py
+      - name: Install pytest
+        run: python -m pip install pytest
+      - name: Causal cadence and watchdog regression tests
+        run: python -m pytest -q tests/test_prospective_cadence.py tests/test_prospective_heartbeat_wakeup.py
