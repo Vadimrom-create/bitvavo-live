@@ -38,6 +38,45 @@ TRACKED = {
     "STRUCTURAL_STOP_TOO_WIDE",
 }
 FRESHNESS_LIMIT_SECONDS = 15 * 60
+# Fail safely before hitting GitHub's 100 MiB single-blob limit.  This shadow
+# registry never participates in detection, the BUY gate, email or order flow.
+# Preservation takes precedence over another append when the archive is full.
+REGISTRY_CAPACITY_GUARD_BYTES = 85 * 1024 * 1024
+
+
+def capacity_guard(now):
+    """Preserve the original registry byte-for-byte if it is near GitHub's cap."""
+    path = Path(REGISTRY)
+    if not path.exists() or path.stat().st_size < REGISTRY_CAPACITY_GUARD_BYTES:
+        return False
+    size = path.stat().st_size
+    previous = read_json(STATUS, {}) or {}
+    status = {
+        **previous,
+        "schema": "solaire_recovery_registry_heartbeat_v1",
+        "checked_at_utc": utc(now),
+        "status": "DEGRADED_CAPACITY_GUARD",
+        "writer": "production_scan_fast_heartbeat",
+        "registry_update_paused": True,
+        "registry_size_bytes": size,
+        "registry_capacity_guard_bytes": REGISTRY_CAPACITY_GUARD_BYTES,
+        "last_successful_registry_at_utc": previous.get("last_successful_registry_at_utc")
+            or (previous.get("checked_at_utc") if previous.get("status") == "OK" else None),
+        "new_episodes": 0,
+        "revalidations": 0,
+        "absence_observations": 0,
+        "errors": [{"reason": "REGISTRY_CAPACITY_GUARD",
+                    "detail": "Historical registry preserved; archive required before writes resume",
+                    "size_bytes": size}],
+        "affects_detection": False,
+        "affects_buy_gate": False,
+        "affects_email": False,
+        "affects_orders": False,
+    }
+    atomic_json(STATUS, status)
+    print("SOLAIRE_RECOVERY_HEARTBEAT " + json.dumps(status, ensure_ascii=False))
+    return True
+
 
 
 def _parse_ts(value):
@@ -74,6 +113,8 @@ def _already_registered(registry, market, episode_id, decision_id):
 
 def main():
     now = time.time()
+    if capacity_guard(now):
+        return 0
     payload = read_json(CANDIDATES, {})
     alert = read_json(ALERT_STATUS, {})
     production_state = read_json(PRODUCTION_STATE, {})
