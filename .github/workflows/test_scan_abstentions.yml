@@ -4,9 +4,11 @@ on:
   pull_request:
     paths:
       - "scripts/measure_scan_abstentions.py"
+      - "scripts/link_private_scan_to_machine.py"
       - "scripts/audit_evaluation_coverage.py"
       - "scripts/research_mature_price_paths.py"
       - "tests/test_measure_scan_abstentions.py"
+      - "tests/test_link_private_scan_to_machine.py"
       - "tests/test_audit_evaluation_coverage.py"
       - "tests/test_research_mature_price_paths.py"
       - "docs/SCAN_ABSTENTION_ACCOUNTABILITY_V1.md"
@@ -26,7 +28,7 @@ jobs:
         with:
           python-version: '3.11'
       - name: Compile accountability scripts
-        run: python -m py_compile scripts/measure_scan_abstentions.py scripts/scan_accountability_ledger.py tests/test_measure_scan_abstentions.py scripts/audit_evaluation_coverage.py tests/test_audit_evaluation_coverage.py scripts/research_mature_price_paths.py tests/test_research_mature_price_paths.py
+        run: python -m py_compile scripts/measure_scan_abstentions.py scripts/scan_accountability_ledger.py tests/test_measure_scan_abstentions.py scripts/audit_evaluation_coverage.py tests/test_audit_evaluation_coverage.py scripts/research_mature_price_paths.py tests/test_research_mature_price_paths.py scripts/link_private_scan_to_machine.py tests/test_link_private_scan_to_machine.py
       - name: Test no-lookahead, provenance and abstention taxonomy
         run: python -m unittest discover -s tests -p 'test_measure_scan_abstentions.py' -v
       - name: Test existing private ledger compatibility
@@ -64,3 +66,24 @@ jobs:
           retention-days: 30
           path: /tmp/solaire_research_mature_paths.json
           if-no-files-found: error
+      - name: Test exact machine-event/private-SCAN linkage (synthetic only)
+        run: python -m unittest discover -s tests -p 'test_link_private_scan_to_machine.py' -v
+      - name: Verify public machine signal ID readiness (NO private data)
+        run: |
+          python scripts/link_private_scan_to_machine.py \
+            --machine production_direct_decision_journal.json \
+            --public-audit-only \
+            --output /tmp/solaire_public_link_readiness.json
+          python - <<'PY'
+          import json
+          s=json.load(open("/tmp/solaire_public_link_readiness.json",encoding="utf-8"))
+          assert s["private_decisions_loaded"] is False
+          assert s["chatgpt_attribution"]=="UNKNOWN_NO_PRIVATE_INPUT"
+          assert s["machine_retained_counts"]["BUY_SENT"]>=0
+          print("PUBLIC_LINK_READY",json.dumps({
+            "buy_sent":s["machine_retained_counts"]["BUY_SENT"],
+            "unique_signals":s["unique_signal_ids"],
+            "duplicate_signal_ids":s["duplicate_signal_ids"],
+            "private_decisions_loaded":s["private_decisions_loaded"]
+          }))
+          PY
