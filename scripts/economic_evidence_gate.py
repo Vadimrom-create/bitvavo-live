@@ -86,6 +86,7 @@ def assess(exit_status, oos_status):
         rows.append({
             "horizon_h": int(horizon),
             "same_mature_events_n": ref_n,
+            "event_id_pairing_verified": False,
             "reference_sum_pnl_eur_est": _round(baseline_pnl),
             "candidate_1_4r_sum_pnl_eur_est": _round(candidate_pnl),
             "candidate_minus_reference_eur_est": _round(computed_delta),
@@ -125,6 +126,7 @@ def assess(exit_status, oos_status):
         "status": "NOT_IDENTIFIABLE_AS_EXECUTABLE_PORTFOLIO_PNL",
         "reasons": [
             "Aggregated exit shadow sums are not a capital-constrained equity ledger.",
+            "Aggregated same-size cohorts do not independently prove event-ID pairing.",
             "No documented matched fills or portfolio cash, overlap and risk accounting.",
             "MFE/hit rates and positive cohort sums are not realized profit.",
             "ChatGPT decisions/fills are not yet privately paired to machine signals.",
