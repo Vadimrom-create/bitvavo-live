@@ -48,7 +48,7 @@ def number(value):
 
 
 def _bar_grid(series, asof):
-    """Only accept chronological *completed* candles; gaps are never padded."""
+    """Only accept completed candles. Flat zero-trade proxy must be marked."""
     if not isinstance(series, list):
         raise ReplayError("candle series must be list")
     candles = {}
@@ -68,8 +68,49 @@ def _bar_grid(series, asof):
         c = dec(item.get("close"), "bar.close", positive=True)
         if l > min(o, c) or h < max(o, c) or l > h:
             raise ReplayError("inconsistent OHLC")
-        candles[t] = (o, h, l, c)
+        candles[t] = (o, h, l, c, item.get("synthetic_zero_trade") is True)
     return candles
+
+
+def _zero_trade_flat_proxy(series, asof, max_gap_minutes=720):
+    """Conditional candle provider model: no returned candle means no trade.
+
+    Never fill before the first real candle or across >12h staleness;
+    marking bars as derived prevents an inferred entry/fill at zero volume.
+    This proxy cannot prove executable *exit* liquidity.
+    """
+    if not isinstance(series, list):
+        raise ReplayError("series must be a list")
+    sorted_bars = sorted(series, key=lambda x: x.get("start_utc", ""))
+    if not sorted_bars:
+        return [], 0
+    result = []
+    count = 0
+    for i, row in enumerate(sorted_bars):
+        result.append(row)
+        start = utc(row.get("start_utc"), "real bar start")
+        if i + 1 < len(sorted_bars):
+            next_start = utc(sorted_bars[i + 1].get("start_utc"), "next real bar start")
+        else:
+            # Only infer a trailing no-trade interval up to the last
+            # fully closed bar at the frozen observation cutoff.
+            next_start = datetime.fromtimestamp(
+                int(asof.timestamp()) // BAR_SECONDS * BAR_SECONDS, timezone.utc)
+        gap_seconds = (next_start - start).total_seconds()
+        if gap_seconds <= BAR_SECONDS or gap_seconds > max_gap_minutes * 60 + BAR_SECONDS:
+            continue
+        price = row.get("close")
+        price = dec(price, "last actual traded close", positive=True)
+        t = start + timedelta(seconds=BAR_SECONDS)
+        while t < next_start:
+            result.append({
+                "start_utc": t.isoformat(), "open": str(price), "high": str(price),
+                "low": str(price), "close": str(price),
+                "synthetic_zero_trade": True,
+            })
+            count += 1
+            t += timedelta(seconds=BAR_SECONDS)
+    return result, count
 
 
 def candidate_outcome(event, candles, asof, horizon_hours, fee_rate, slip_rate):
@@ -107,7 +148,7 @@ def candidate_outcome(event, candles, asof, horizon_hours, fee_rate, slip_rate):
     first = candles.get(entry_first)
     if first is None:
         return {"state": "CENSORED", "reason": "ENTRY_CANDLE_MISSING", "event": event}
-    open_, high, low, close = first
+    open_, high, low, close, synthetic_entry = first\n    if synthetic_entry:\n        return {"state": "UNFILLED", "reason": "NO_TRADES_IN_ENTRY_CANDLE", "event": event}
     # Passive limit is held one full, post-book candle only. Cautiously
     # treat the quote as a hypothetical adverse-slippage fill (not a limit fill).
     if low > limit:
@@ -133,7 +174,7 @@ def candidate_outcome(event, candles, asof, horizon_hours, fee_rate, slip_rate):
         bar = candles.get(t)
         if bar is None:
             return {"state": "CENSORED", "reason": "FUTURE_BAR_MISSING", "event": event}
-        o, h, l, c = bar
+        o, h, l, c, _synthetic = bar
         if l <= stop:
             exit_px = min(stop, o) * (1 - slip_rate)
             exit_at = t + timedelta(seconds=BAR_SECONDS)
@@ -202,7 +243,17 @@ def replay_portfolio(
         raise ReplayError("max open positions invalid")
     if not isinstance(events, list) or not isinstance(bars_by_market, dict):
         raise ReplayError("predeclared events list and bars map required")
-    grids = {m: _bar_grid(series, asof) for m, series in bars_by_market.items()}
+    if gap_mode not in ("STRICT", "BITVAVO_ZERO_TRADE_FLAT_PROXY"):
+        raise ReplayError("unrecognized market gap mode")
+    derived_counts = {}
+    grids = {}
+    for market, series in bars_by_market.items():
+        source = series
+        count = 0
+        if gap_mode == "BITVAVO_ZERO_TRADE_FLAT_PROXY":
+            source, count = _zero_trade_flat_proxy(series, asof)
+        grids[market] = _bar_grid(source, asof)
+        derived_counts[market] = count
     prepared = []
     identifiers = set()
     for e in events:
@@ -235,9 +286,9 @@ def replay_portfolio(
         "asof_utc": asof.isoformat(),
         "fee_rate_each_side": number(fee),
         "adverse_slippage_each_side": number(slip),
-        "max_concurrent_positions": maximum_open_positions,
+        "max_concurrent_positions": maximum_open_positions,\n        "gap_mode": gap_mode,\n        "assumed_zero_trade_5m_intervals_n": sum(derived_counts.values()),\n        "zero_trade_proxy_not_real_fill": True,
         "candidate_count": len(prepared),
-        "candidate_states": counts,
+        "candidate_states": counts,\n        "candidate_reasons": reasons,
         "missing_or_ambiguous_event_ids": [x["event_id"] for x in blockers],
         "actual_exchange_fills_verified": 0,
         "real_bitvavo_pnl_eur": None,
