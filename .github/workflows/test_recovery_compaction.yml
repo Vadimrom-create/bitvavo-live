@@ -1,0 +1,46 @@
+name: Recovery archive migration safety tests
+
+on:
+  pull_request:
+    paths:
+      - 'research/recovery_registry.py'
+      - 'research/recovery_storage.py'
+      - 'scripts/update_recovery_registry_heartbeat.py'
+      - 'scripts/verify_recovery_archives.py'
+      - 'tests/test_recovery_registry.py'
+      - 'tests/test_recovery_storage.py'
+      - '.github/workflows/production_scan_fast.yml'
+      - '.github/workflows/test_recovery_compaction.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  lossless-migration-audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+          filter: blob:none
+          sparse-checkout-cone-mode: false
+          sparse-checkout: |
+            research/
+            scripts/
+            tests/
+            .github/workflows/
+            production_recovery_registry_shadow.json
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Static syntax verification
+        run: |
+          python -m py_compile research/recovery_registry.py research/recovery_storage.py scripts/update_recovery_registry_heartbeat.py scripts/verify_recovery_archives.py
+      - name: Install test runner
+        run: python -m pip install pytest
+      - name: Regression and adversarial unit tests
+        run: python -m pytest -q tests/test_recovery_registry.py tests/test_recovery_storage.py
+      - name: Dry-run full actual registry migration, no write to main
+        run: python scripts/verify_recovery_archives.py --exercise-migration

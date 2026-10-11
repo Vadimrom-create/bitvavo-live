@@ -122,8 +122,16 @@ def register_episode(
     event: dict[str, Any],
     source_row: dict[str, Any] | None,
     now: float,
+    *,
+    inplace: bool = False,
 ) -> dict[str, Any]:
-    registry = normalize_registry(registry)
+    # Batch heartbeat owns its freshly loaded registry and mutates it in place.
+    # Public default retains the historical no-mutation API contract.
+    if inplace:
+        if registry is None or registry.get("schema") != SCHEMA or registry.get("policy") != POLICY:
+            raise ValueError("RECOVERY_INPLACE_REQUIRES_NORMALIZED_REGISTRY")
+    else:
+        registry = normalize_registry(registry)
     event_id = str(event.get("event_id") or "")
     market = str(event.get("market") or "")
     if not event_id or not market:
@@ -199,8 +207,13 @@ def observe_episode(
     plan: dict[str, Any] | None = None,
     prior_thesis_clear: bool | None = None,
     prior_thesis_status: str | None = None,
+    inplace: bool = False,
 ) -> dict[str, Any]:
-    registry = normalize_registry(registry)
+    if inplace:
+        if registry is None or registry.get("schema") != SCHEMA or registry.get("policy") != POLICY:
+            raise ValueError("RECOVERY_INPLACE_REQUIRES_NORMALIZED_REGISTRY")
+    else:
+        registry = normalize_registry(registry)
     record = registry["episodes"].get(event_id)
     if not record or record.get("closed"):
         registry["updated_at_utc"] = utc(now)

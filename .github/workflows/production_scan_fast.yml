@@ -14,6 +14,7 @@ on:
       - 'research/production_context.py'
       - 'research/production_news.py'
       - 'research/recovery_registry.py'
+      - 'research/recovery_storage.py'
       - 'scripts/update_recovery_registry_heartbeat.py'
       - 'scripts/follow_active_candidates.py'
       - '.github/workflows/production_scan_fast.yml'
@@ -87,6 +88,7 @@ jobs:
               production_catalyst_alert_status.json \
               production_direct_decision_journal.json \
               production_recovery_registry_shadow.json \
+              production_recovery_archive_index.json \
               production_recovery_registry_status.json \
               production_candidate_follow_state.json \
               production_candidate_follow_status.json \
@@ -94,6 +96,7 @@ jobs:
               if [ -e "${file}" ]; then git add "${file}"; fi
             done
 
+            if [ -d production_recovery_archives ]; then git add production_recovery_archives; fi
             if [ -d execution_observations ]; then git add execution_observations; fi
 
             if ! git diff --cached --quiet; then
