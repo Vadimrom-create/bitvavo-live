@@ -76,6 +76,7 @@ def _link_one(decision, indexed, asof):
         "machine_decision_id": None, "machine_episode_id": None,
         "machine_event_at_utc": None, "machine_event_age_seconds": None,
         "source_causal": False,
+        "eligible_for_event_level_audit": False,
         "eligible_for_economic_pairing": False,
         "fills_proven": False, "net_pnl_eur": None,
     }
@@ -118,7 +119,9 @@ def _link_one(decision, indexed, asof):
     # Chronology + identity is a necessary condition, NEVER sufficient proof
     # of a trade or of comparative profitability.
     result["link_status"] = "EXACT_CAUSAL_MACHINE_BUY"
-    result["eligible_for_economic_pairing"] = True
+    result["eligible_for_event_level_audit"] = True
+    # Strictly insufficient for executable economic pairing; no independent
+    # bid/ask fill or attributable ChatGPT counterfactual is proven here.
     return result
 
 
@@ -142,6 +145,7 @@ def link(decision_rows, machine, asof, *, raw_sha256=None):
             "Only BUY_SENT, not REJECTED or WATCH, permits exact machine BUY join.",
             "Retained public journal can omit old signals; absent is UNKNOWN.",
             "Source chronology and <=10m freshness enforced; email read or trade never inferred.",
+            "Causal ID match only authorizes event-level review; economic pairing is NOT verified.",
             "An exact causal link does not prove that either counterfactual entry was filled.",
             "No automatic capture of ChatGPT responses; private input must be explicitly recorded.",
         ],
