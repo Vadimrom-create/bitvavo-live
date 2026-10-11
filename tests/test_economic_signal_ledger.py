@@ -158,5 +158,74 @@ class CashLedgerTests(unittest.TestCase):
             calculate_cash_ledger([x], {}, ASOF)
 
 
+from scripts.enrich_economic_signal_books import enrich_machine_ledger
+
+
+class BookJoinTests(unittest.TestCase):
+    def test_book_snapshot_matches_ids_but_does_not_prove_fills(self):
+        import tempfile
+        from pathlib import Path
+        event = machine_fixture()
+        event["entries"][0]["execution_observation_id"] = "observation_" + "c" * 32
+        ledger = build_machine_event_ledger(event, "c" * 64)
+        with tempfile.TemporaryDirectory() as folder:
+            observation = {
+                "observation_id": "observation_" + "c" * 32,
+                "decision_id": "decision-1", "signal_id": "signal-1",
+                "market": "TEST-EUR",
+                "execution_costs": {
+                    "available_at_ts": 1791710901.0,
+                    "best_bid_eur": 9.99,
+                    "best_ask_eur": 10.01,
+                    "spread": 0.002,
+                    "sizes": {"100": {
+                        "entry": {"covered": True, "vwap_eur": 10.01},
+                        "immediate_exit_estimate": {"covered": True, "vwap_eur": 9.99},
+                        "roundtrip_adverse_cost_eur_est": 1.10,
+                    }},
+                },
+            }
+            Path(folder, "observation_" + "c" * 32 + ".json").write_text(
+                __import__("json").dumps(observation), encoding="utf-8")
+            out = enrich_machine_ledger(ledger, folder)
+        self.assertEqual(out["matched_book_count"], 1)
+        b = out["records"][0]["historical_book_evidence"]
+        self.assertEqual(b["book_vs_decision_seconds"], 1.0)
+        self.assertFalse(b["book_was_known_at_decision"])
+        self.assertTrue(b["stake_estimates"]["100"]["entry_book_covered"])
+        self.assertEqual(out["historical_fills_verified"], 0)
+        self.assertIsNone(out["portfolio_real_pnl_eur"])
+
+    def test_book_mismatched_identity_refused(self):
+        import tempfile
+        from pathlib import Path
+        event = machine_fixture()
+        event["entries"][0]["execution_observation_id"] = "observation_" + "d" * 32
+        ledger = build_machine_event_ledger(event, "d" * 64)
+        with tempfile.TemporaryDirectory() as folder:
+            Path(folder, "observation_" + "d" * 32 + ".json").write_text(
+                '{"observation_id":"observation_' + "d" * 32 +
+                '","decision_id":"wrong"}', encoding="utf-8")
+            result = enrich_machine_ledger(ledger, folder)
+        self.assertEqual(result["matched_book_count"], 0)
+        self.assertEqual(
+            result["records"][0]["historical_book_evidence"]["book_observation_status"],
+            "OBSERVATION_IDENTITY_MISMATCH",
+        )
+
+    def test_missing_book_does_not_become_non_detection(self):
+        import tempfile
+        event = machine_fixture()
+        event["entries"][0]["execution_observation_id"] = "observation_" + "f" * 32
+        ledger = build_machine_event_ledger(event, "e" * 64)
+        with tempfile.TemporaryDirectory() as folder:
+            result = enrich_machine_ledger(ledger, folder)
+        self.assertEqual(
+            result["records"][0]["historical_book_evidence"]["book_observation_status"],
+            "OBSERVATION_FILE_UNAVAILABLE",
+        )
+        self.assertEqual(result["records"][0]["decision_type"], "BUY_SENT")
+
+
 if __name__ == "__main__":
     unittest.main()
