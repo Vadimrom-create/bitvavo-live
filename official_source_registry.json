@@ -3,12 +3,12 @@
   "coverage": {
     "active_markets": 427,
     "attempted_this_run": 40,
-    "coverage_pct": 72.13,
+    "coverage_pct": 72.6,
     "errors_this_run": 0,
-    "resolved_this_run": 3,
-    "with_any_official_source": 308,
-    "with_official_page": 305,
-    "with_official_x": 301
+    "resolved_this_run": 2,
+    "with_any_official_source": 310,
+    "with_official_page": 307,
+    "with_official_x": 303
   },
   "markets": {
     "0G-EUR": {
@@ -6575,30 +6575,37 @@
       "announcement_urls": [],
       "coingecko_id": "stakestone",
       "coingecko_resolution": "SYMBOL_AND_NAME",
-      "discovery_error": "HTTPError: HTTP Error 429: Too Many Requests",
-      "discovery_status": "DISCOVERY_ERROR",
-      "homepage": [],
+      "discovery_status": "DISCOVERED",
+      "homepage": [
+        "https://stakestone.io/#/home",
+        "https://app.stakestone.io/u/vault"
+      ],
+      "link_discovery_source": "COINGECKO_DIRECTORY",
+      "links_are_project_sources": true,
       "market": "STO-EUR",
       "medium": [],
       "official_forum_urls": [],
       "project_name": "StakeStone",
       "symbol": "STO",
-      "x_handle": null
+      "x_handle": "Stake_Stone"
     },
     "STRAX-EUR": {
       "active_on_bitvavo": true,
       "announcement_urls": [],
       "coingecko_id": "stratis",
       "coingecko_resolution": "UNIQUE_SYMBOL",
-      "discovery_error": "HTTPError: HTTP Error 429: Too Many Requests",
-      "discovery_status": "DISCOVERY_ERROR",
-      "homepage": [],
+      "discovery_status": "DISCOVERED",
+      "homepage": [
+        "http://xertra.com/"
+      ],
+      "link_discovery_source": "COINGECKO_DIRECTORY",
+      "links_are_project_sources": true,
       "market": "STRAX-EUR",
       "medium": [],
       "official_forum_urls": [],
       "project_name": "Stratis",
       "symbol": "STRAX",
-      "x_handle": null
+      "x_handle": "stratisplatform"
     },
     "STRK-EUR": {
       "active_on_bitvavo": true,
@@ -7945,5 +7952,5 @@
     }
   },
   "schema": "solaire_official_source_registry_v1",
-  "updated_at_ts": 1791724937.6248736
+  "updated_at_ts": 1791742766.5027604
 }
