@@ -2,7 +2,11 @@ import copy
 import hashlib
 from pathlib import Path
 
-import pytest
+import unittest
+try:
+    import pytest
+except ModuleNotFoundError:
+    pytest = None  # Fixture-based tests run separately in the dedicated pytest CI.
 
 from research.recovery_registry import (
     POLICY, new_registry, normalize_registry, observe_episode,
@@ -114,6 +118,6 @@ def test_inplace_and_legacy_public_apis_produce_equivalent_results():
 
 
 def test_inplace_requires_normalized_registry():
-    with pytest.raises(ValueError, match="NORMALIZED"):
+    with unittest.TestCase().assertRaisesRegex(ValueError, "NORMALIZED"):
         observe_episode({"episodes": {}}, "x", None, 1,
                         execution_pass=None, inplace=True)
