@@ -52,6 +52,7 @@ jobs:
           GMAIL_APP_PASSWORD: ${{ secrets.GMAIL_APP_PASSWORD }}
           X_BEARER_TOKEN: ${{ secrets.X_BEARER_TOKEN }}
           FOLLOW_NOTIFY_ENABLED: 'true'
+          RECOVERY_GZIP_WRITER_ENABLED: '1'
         run: |
           set -euo pipefail
 
