@@ -3,12 +3,12 @@
   "coverage": {
     "active_markets": 427,
     "attempted_this_run": 40,
-    "coverage_pct": 72.6,
+    "coverage_pct": 73.07,
     "errors_this_run": 0,
     "resolved_this_run": 2,
-    "with_any_official_source": 310,
-    "with_official_page": 307,
-    "with_official_x": 303
+    "with_any_official_source": 312,
+    "with_official_page": 309,
+    "with_official_x": 305
   },
   "markets": {
     "0G-EUR": {
@@ -6623,33 +6623,43 @@
     },
     "STX-EUR": {
       "active_on_bitvavo": true,
-      "announcement_urls": [],
+      "announcement_urls": [
+        "https://www.stacks.co/blog"
+      ],
       "coingecko_id": "blockstack",
       "coingecko_resolution": "SYMBOL_AND_NAME",
-      "discovery_error": "HTTPError: HTTP Error 429: Too Many Requests",
-      "discovery_status": "DISCOVERY_ERROR",
-      "homepage": [],
+      "discovery_status": "DISCOVERED",
+      "homepage": [
+        "http://stacks.co/"
+      ],
+      "link_discovery_source": "COINGECKO_DIRECTORY",
+      "links_are_project_sources": true,
       "market": "STX-EUR",
       "medium": [],
-      "official_forum_urls": [],
+      "official_forum_urls": [
+        "https://forum.stacks.org/"
+      ],
       "project_name": "Stacks",
       "symbol": "STX",
-      "x_handle": null
+      "x_handle": "Stacks"
     },
     "SUI-EUR": {
       "active_on_bitvavo": true,
       "announcement_urls": [],
       "coingecko_id": "sui",
       "coingecko_resolution": "SYMBOL_AND_NAME",
-      "discovery_error": "HTTPError: HTTP Error 429: Too Many Requests",
-      "discovery_status": "DISCOVERY_ERROR",
-      "homepage": [],
+      "discovery_status": "DISCOVERED",
+      "homepage": [
+        "https://sui.io/"
+      ],
+      "link_discovery_source": "COINGECKO_DIRECTORY",
+      "links_are_project_sources": true,
       "market": "SUI-EUR",
       "medium": [],
       "official_forum_urls": [],
       "project_name": "Sui",
       "symbol": "SUI",
-      "x_handle": null
+      "x_handle": "SuiNetwork"
     },
     "SUPER-EUR": {
       "active_on_bitvavo": true,
@@ -7952,5 +7962,5 @@
     }
   },
   "schema": "solaire_official_source_registry_v1",
-  "updated_at_ts": 1791742766.5027604
+  "updated_at_ts": 1791757098.979022
 }
