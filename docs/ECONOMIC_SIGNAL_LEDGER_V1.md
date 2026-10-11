@@ -22,6 +22,22 @@ The snapshot observed at 2026-10-11 18:34 UTC contained **702 machine decisions*
 
 The producer SHA-256 (raw input bytes) and source publication timestamp are retained. The normalized view does **not** assert immutable code SHA/feature provenance at every decision: source policy commit and feature-as-of are null until proven.
 
+### 1b. Historical execution book join (still not fills)
+
+```bash
+python scripts/enrich_economic_signal_books.py \
+  --source /tmp/economic_machine_events.json \
+  --observations-dir execution_observations \
+  --output /tmp/economic_machine_books.json
+```
+
+The join accepts *only* `observation_<32-hex>.json` files and matches the observation, decision, signal and market IDs exactly. Missing, malformed or mismatched observations are flagged, not invented. For matched observations it retains:
+- Exact **availability timestamp** relative to the machine decision (`book_was_known_at_decision` is false if it arrived afterwards);
+- Historical best bid/ask, spread, book coverage and same-snapshot hypothetical entry/exit cost at **100 EUR and 150 EUR** when present;
+- Explicit `actual_fill_proven=false`, even when the quoted order book depth was adequate.
+
+The important causal distinction: a book collected *after* a decision may be evidence for a later **hypothetical** execution, but cannot be retroactively attributed to the decision maker's knowledge. Same-snapshot liquidation costs are **not** a future order's spread/slippage, and no price target touch is an executed trade.
+
 ### 2. Separate deterministic capital accounting
 
 `research/economic_cash_ledger.py` has a tested `calculate_cash_ledger(...)` helper. It **accepts only explicit independent `FILL_CONFIRMED` records**, never `BUY_SENT`. For each record: unique fill ID, UTC time, market, BUY/SELL, quantity, executed price, explicit nonnegative fee, and source classification (`MODEL_FILL` vs `OPERATOR_ATTESTED_FILL`). The latter requires a private proof pointer and is still **not independently verified**.
