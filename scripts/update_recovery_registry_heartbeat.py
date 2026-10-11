@@ -26,7 +26,8 @@ if str(ROOT) not in sys.path:
 from research.common import atomic_json, finite, read_json, utc
 from research.http import PublicClient
 from research.recovery_registry import POLICY, normalize_registry, observe_episode, register_episode
-from research.recovery_storage import (ARCHIVE_DIR, INDEX, compact_closed, fresh_index,\n                                       reconstruct_and_verify, summarize_all)
+from research.recovery_storage import (ARCHIVE_DIR, INDEX, compact_closed, fresh_index,
+                                       reconstruct_and_verify, summarize_all)
 from scripts.send_production_buy_alert import prior_buy_thesis_active, validate
 
 CANDIDATES = "production_alert_candidates.json"
