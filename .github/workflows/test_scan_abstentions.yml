@@ -4,7 +4,9 @@ on:
   pull_request:
     paths:
       - "scripts/measure_scan_abstentions.py"
+      - "scripts/audit_evaluation_coverage.py"
       - "tests/test_measure_scan_abstentions.py"
+      - "tests/test_audit_evaluation_coverage.py"
       - "docs/SCAN_ABSTENTION_ACCOUNTABILITY_V1.md"
       - ".github/workflows/test_scan_abstentions.yml"
   workflow_dispatch:
@@ -22,10 +24,26 @@ jobs:
         with:
           python-version: '3.11'
       - name: Compile accountability scripts
-        run: python -m py_compile scripts/measure_scan_abstentions.py scripts/scan_accountability_ledger.py tests/test_measure_scan_abstentions.py
+        run: python -m py_compile scripts/measure_scan_abstentions.py scripts/scan_accountability_ledger.py tests/test_measure_scan_abstentions.py scripts/audit_evaluation_coverage.py tests/test_audit_evaluation_coverage.py
       - name: Test no-lookahead, provenance and abstention taxonomy
         run: python -m unittest discover -s tests -p 'test_measure_scan_abstentions.py' -v
       - name: Test existing private ledger compatibility
         run: python -m unittest discover -s tests -p 'test_scan_accountability_ledger.py' -v
       - name: Test existing explicit SCAN capture
         run: python -m unittest discover -s tests -p 'test_capture_chatgpt_scan_session.py' -v
+      - name: Test actual evaluation coverage instrumentation
+        run: python -m unittest discover -s tests -p 'test_audit_evaluation_coverage.py' -v
+      - name: Audit retained PUBLIC journals without trading access
+        run: |
+          python scripts/audit_evaluation_coverage.py \
+            --canonical production_decision_journal.json \
+            --direct production_direct_decision_journal.json \
+            --asof "$(date -u +'%Y-%m-%dT%H:%M:%SZ')" \
+            --output /tmp/solaire_research_evaluation_coverage.json
+      - name: Retain aggregate-only coverage audit for independent review
+        uses: actions/upload-artifact@v4
+        with:
+          name: research-scan-evaluation-coverage-${{ github.run_id }}
+          retention-days: 30
+          path: /tmp/solaire_research_evaluation_coverage.json
+          if-no-files-found: error
