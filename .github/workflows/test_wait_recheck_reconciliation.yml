@@ -1,0 +1,26 @@
+name: Test private WAIT_RECHECK causal reconciliation
+on:
+  pull_request:
+    paths:
+      - 'scripts/reconcile_private_wait_recheck.py'
+      - 'tests/test_reconcile_private_wait_recheck.py'
+      - 'docs/WAIT_RECHECK_CAUSAL_RECONCILIATION.md'
+      - '.github/workflows/test_wait_recheck_reconciliation.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  causal-reconciliation:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Compile standalone read-only bridge
+        run: python -m py_compile scripts/reconcile_private_wait_recheck.py tests/test_reconcile_private_wait_recheck.py
+      - name: Causal regression tests with synthetic data only
+        run: python -m unittest discover -s tests -p 'test_reconcile_private_wait_recheck.py' -v
