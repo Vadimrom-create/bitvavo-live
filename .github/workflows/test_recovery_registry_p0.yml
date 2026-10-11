@@ -1,6 +1,8 @@
 name: Recovery registry P0 safety tests
 
 on:
+  push:
+    branches: ["fix/solaire-recovery-p0-20261011"]
   pull_request:
     paths:
       - "research/recovery_registry.py"
