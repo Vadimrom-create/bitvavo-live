@@ -52,7 +52,7 @@ class ReconcileWaitTests(unittest.TestCase):
             event("W-EUR", "2026-10-08T20:00:00Z", "BUY_SENT", signal="before-wait"),
             event("W-EUR", "2026-10-09T07:00:00Z", "BUY_SENT", signal="w-new"),
             event("W-EUR", "2026-10-09T07:00:00Z", "BUY_SENT", signal="w-new"),
-            event("W-EUR", "2026-10-10T15:00:00Z", "BUY_SENT", signal="future"),
+            event("W-EUR", "2026-10-12T15:00:00Z", "BUY_SENT", signal="future"),
         ]
         result = reconcile(decisions, {"entries": events}, ASOF)
         by_market = {p["market"]: p for p in result["pending"]}
