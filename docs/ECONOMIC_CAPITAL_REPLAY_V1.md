@@ -30,6 +30,8 @@ Status 11 October 2026: **engine implemented, the full historical economic compa
 }
 ```
 
+The `source_sha256` MUST match the canonical JSON bytes of `markets` encoded as UTF-8 with `json.dumps(markets, sort_keys=True, separators=(",", ":"), ensure_ascii=False)`. This integrity check prevents silently altered candle arrays, but it **does not authenticate** that the candles came from Bitvavo. Exchange/public collection provenance must be separately retained.
+
 The example is format ONLY, not market evidence. The bundle must come from a real timestamped capture and include every relevant *full* five-minute candle (no data after `asof`). When any predeclared candidate has a missing/incomplete future trajectory, the entire portfolio comparison's PnL is **null**; incomplete cohorts must not be cherry-picked.
 
 ```bash
