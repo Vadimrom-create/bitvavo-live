@@ -113,7 +113,13 @@ def _zero_trade_flat_proxy(series, asof, max_gap_minutes=720):
     return result, count
 
 
-def candidate_outcome(event, candles, asof, horizon_hours, fee_rate, slip_rate):
+def candidate_outcome(event, candles, asof, horizon_hours, fee_rate, slip_rate,
+                      horizon_exit_mode="LAST_BAR_CLOSE_PROXY"):
+    """Model-only exit: require explicit next printed trade when requested.
+
+    A first trade open is not evidence a 100 EUR order would fill. For
+    chronology, its proceeds only become reusable at the candle close.
+    """
     """Independent candidate trajectory; NOT a capital allocation decision."""
     if not isinstance(event, dict) or event.get("event_type") != "MODEL_SIGNAL":
         raise ReplayError("signals must explicitly identify as MODEL_SIGNAL")
@@ -189,15 +195,30 @@ def candidate_outcome(event, candles, asof, horizon_hours, fee_rate, slip_rate):
             break
         t += timedelta(seconds=BAR_SECONDS)
     if exit_px is None:
-        # Last candle open at end-300s is required, including when a trade
-        # held through the entire horizon.
-        final_t = end - timedelta(seconds=BAR_SECONDS)
-        final = candles.get(final_t)
-        if final is None:
-            return {"state": "CENSORED", "reason": "HORIZON_CLOSE_MISSING", "event": event}
-        exit_px = final[3] * (1 - slip_rate)
-        exit_at = end
-        reason = "HORIZON_CLOSE"
+        if horizon_exit_mode == "NEXT_REAL_BAR_OPEN_PROXY":
+            # A no-trade flat synthetic candle has NO executable offer.
+            # Inspect only the first real closed candle at or after expiry,
+            # not the next desired/beneficial price. The first public trade's
+            # open is an indicative quote, NOT a confirmed order fill.
+            after = sorted(t for t, v in candles.items()
+                           if t >= end and not v[4])
+            if not after:
+                return {"state": "CENSORED",
+                        "reason": "NO_REAL_TRADE_AFTER_HORIZON", "event": event}
+            first_real_t = after[0]
+            exit_px = candles[first_real_t][0] * (1 - slip_rate)
+            exit_at = first_real_t + timedelta(seconds=BAR_SECONDS)
+            reason = "HORIZON_NEXT_REAL_BAR_OPEN_PROXY"
+        else:
+            # Legacy hypothetical same-horizon value can be a stale last
+            # trade and MUST NOT be presented as an executable sale.
+            final_t = end - timedelta(seconds=BAR_SECONDS)
+            final = candles.get(final_t)
+            if final is None:
+                return {"state": "CENSORED", "reason": "HORIZON_CLOSE_MISSING", "event": event}
+            exit_px = final[3] * (1 - slip_rate)
+            exit_at = end
+            reason = "HORIZON_CLOSE"
     qty = budget / (entry * (1 + fee_rate))
     gross_buy = qty * entry
     entry_fee = gross_buy * fee_rate
@@ -213,6 +234,11 @@ def candidate_outcome(event, candles, asof, horizon_hours, fee_rate, slip_rate):
         "net_pnl": sell_proceeds - buy_cost,
         "exit_reason": reason,
         "modeled_entry_eur": entry, "modeled_exit_eur": exit_px,
+        "horizon_exit_mode": horizon_exit_mode,
+        "horizon_exit_delay_minutes": (
+            (exit_at - end).total_seconds() / 60
+            if reason == "HORIZON_NEXT_REAL_BAR_OPEN_PROXY" else None
+        ),
     }
 
 
@@ -227,6 +253,7 @@ def replay_portfolio(
     slippage_each_side=0.001,
     maximum_open_positions=10,
     gap_mode="STRICT",
+    horizon_exit_mode="LAST_BAR_CLOSE_PROXY",
 ):
     """Replay a predeclared event cohort, failing closed on all missing paths.
 
@@ -248,6 +275,8 @@ def replay_portfolio(
         raise ReplayError("predeclared events list and bars map required")
     if gap_mode not in ("STRICT", "BITVAVO_ZERO_TRADE_FLAT_PROXY"):
         raise ReplayError("unrecognized market gap mode")
+    if horizon_exit_mode not in ("LAST_BAR_CLOSE_PROXY", "NEXT_REAL_BAR_OPEN_PROXY"):
+        raise ReplayError("unrecognized horizon exit mode")
     derived_counts = {}
     grids = {}
     for market, series in bars_by_market.items():
@@ -270,7 +299,7 @@ def replay_portfolio(
         if not isinstance(market, str) or not market.endswith("-EUR"):
             raise ReplayError("market not an EUR market")
         state = candidate_outcome(e, grids.get(market, {}), asof,
-                                  horizon_hours, fee, slip)
+                                  horizon_hours, fee, slip, horizon_exit_mode)
         state["event_id"] = eid
         state["market"] = market
         prepared.append(state)
@@ -294,6 +323,7 @@ def replay_portfolio(
         "adverse_slippage_each_side": number(slip),
         "max_concurrent_positions": maximum_open_positions,
         "gap_mode": gap_mode,
+        "horizon_exit_mode": horizon_exit_mode,
         "assumed_zero_trade_5m_intervals_n": sum(derived_counts.values()),
         "zero_trade_proxy_not_real_fill": True,
         "candidate_count": len(prepared),
@@ -343,6 +373,7 @@ def replay_portfolio(
             "modeled_net_pnl_eur": number(r["net_pnl"]),
             "modeled_fees_eur": number(r["fees"]),
             "exit_reason": r["exit_reason"],
+            "horizon_exit_delay_minutes": r.get("horizon_exit_delay_minutes"),
         })
     for p in sorted(active, key=lambda x: (x["closed_at"], x["event_id"])):
         cash += p["sell_proceeds"]
