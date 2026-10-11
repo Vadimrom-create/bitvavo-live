@@ -79,11 +79,15 @@ class ReplayPreflightTests(unittest.TestCase):
                 "open": 10, "high": high, "low": 9.5, "close": 10,
             }
         asof = stamp(T0 + timedelta(days=2))
+        import hashlib
+        import json
+        markets = {"AAA-EUR": [bar(5), bar(10, high=12.5)]}
+        digest = hashlib.sha256(json.dumps(markets, sort_keys=True, separators=(",", ":"), ensure_ascii=False).encode("utf-8")).hexdigest()
         candles = {
             "schema": "solaire_closed_5m_candles_bundle_v1",
             "asof_utc": asof,
-            "source_sha256": "b" * 64,
-            "markets": {"AAA-EUR": [bar(5), bar(10, high=12.5)]},
+            "source_sha256": digest,
+            "markets": markets,
         }
         r = evaluate_preflight(p, candles, asof, horizon_hours=24)
         self.assertEqual(r["status"], "MODELED_CLOSED_COHORT_ONLY_NO_EXECUTION_PROOF")
@@ -101,6 +105,17 @@ class ReplayPreflightTests(unittest.TestCase):
         }
         with self.assertRaisesRegex(ValueError, "asof must exactly match"):
             evaluate_preflight(p, candle, "2026-10-04T00:00:00Z")
+
+    def test_bogus_candle_checksum_rejected(self):
+        p = prepare(joined_book())
+        candles = {
+            "schema": "solaire_closed_5m_candles_bundle_v1",
+            "asof_utc": stamp(T0 + timedelta(days=2)),
+            "source_sha256": "0" * 64,
+            "markets": {"AAA-EUR": []},
+        }
+        with self.assertRaisesRegex(ValueError, "SHA-256 does not match"):
+            evaluate_preflight(p, candles, candles["asof_utc"])
 
     def test_bad_stake_rejected(self):
         with self.assertRaisesRegex(ValueError, "fixed stake"):
