@@ -17,9 +17,30 @@ class CadenceTests(unittest.TestCase):
         self.assertEqual(status['status'],'MISSED')
         self.assertEqual(len(state['missed_slots']),3)
         state,receipt,status=finish(state,attempt,now+60,{'v3':{'checked_at_utc':utc(now),'status':'OK'}})
-        self.assertEqual(status['status'],'OK');self.assertEqual(status['missed_slots_count'],3)
+        self.assertEqual(status['status'],'COMPLETED_LATE');self.assertEqual(status['missed_slots_count'],3)
         self.assertEqual(receipt['recovery'],'LATE_CURRENT_CAPTURE_NO_BACKFILL')
         self.assertFalse(status['historical_holes_backfilled'])
+    def test_completed_capture_can_be_late_or_on_time(self):
+        t = slot_at(20000)
+        on_time, attempt, _ = begin({}, t+15, 'punctual')
+        on_time, _, result = finish(
+            on_time, attempt, t+100,
+            {'v3': {'checked_at_utc': utc(t+70), 'status': 'OK'}})
+        self.assertEqual(result['status'], 'OK')
+        self.assertEqual(result['capture_punctuality']['status'], 'ON_TIME')
+        self.assertEqual(result['capture_punctuality']['observation_delay_seconds'], 70)
+        self.assertTrue(result['current_slot_completed'])
+
+        delayed, attempt, _ = begin({}, t+400, 'late')
+        delayed, _, result = finish(
+            delayed, attempt, t+500,
+            {'v3': {'checked_at_utc': utc(t+450), 'status': 'OK'}})
+        self.assertEqual(result['status'], 'COMPLETED_LATE')
+        self.assertEqual(result['capture_punctuality']['status'], 'LATE')
+        self.assertEqual(result['capture_punctuality']['start_delay_seconds'], 400)
+        self.assertEqual(result['capture_punctuality']['observation_delay_seconds'], 450)
+        self.assertTrue(result['current_slot_completed'])
+
     def test_completed_window_not_collected_twice(self):
         now=slot_at(20000)+50;s,a,_=begin({},now,'a')
         s,_,_=finish(s,a,now+10,{'v3':{'checked_at_utc':utc(now),'status':'OK'}})
