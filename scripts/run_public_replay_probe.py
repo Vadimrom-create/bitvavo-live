@@ -109,6 +109,23 @@ def probe(book_join, asof, capture_fn=capture_closed_public_candles):
         fee_each_side=0.0025, slippage_each_side=0.001,
         maximum_open_positions=10,
     )
+    # Official Bitvavo candle semantics: intervals without trades have no
+    # returned candles. A separately labeled FLAT last-trade *proxy* is useful
+    # for path diagnostics but does NOT establish future exit liquidity.
+    official_public_source = (
+        bundle.get("source_kind")
+        == "Bitvavo public REST /<market>/candles interval=5m, limit=1000"
+        and not bundle.get("fetch_error_by_market")
+    )
+    proxy = None
+    if official_public_source:
+        proxy = replay_portfolio(
+            window["events"], bundle["markets"], asof.isoformat(),
+            horizon_hours=24, initial_capital_eur=2300,
+            fee_each_side=0.0025, slippage_each_side=0.001,
+            maximum_open_positions=10,
+            gap_mode="BITVAVO_ZERO_TRADE_FLAT_PROXY",
+        )
     result = {
         "schema": "solaire_public_replay_probe_v1",
         "research_only": True,
@@ -120,11 +137,13 @@ def probe(book_join, asof, capture_fn=capture_closed_public_candles):
             "closed_candles_sha256": bundle["source_sha256"],
         },
         "model_only": model,
+        "proxy_zero_trade_model_only": proxy,
+        "gap_semantics_reference": "https://docs.bitvavo.com/docs/rest-api/get-candlestick-data/",
         "status": model["status"],
         "real_bitvavo_pnl_eur": None,
         "modeled_portfolio_pnl_eur": model.get("modeled_portfolio_pnl_eur"),
         "r2_v4_comparison_ready": False,
-        "risk_note": "No real fills or forward liquidity; no synchronized drawdown; single retrospective time-window research probe.",
+        "risk_note": "No real fills, no known future exit order book, and no synchronized drawdown. Flat no-trade gaps are a CONDI-TIONAL PRICE PATH PROXY ONLY; cannot claim actual executable portfolio PnL.",
     }
     return result, bundle
 
@@ -145,7 +164,12 @@ def main():
             Path(args.candle_bundle).write_text(json.dumps(bundle, ensure_ascii=False, sort_keys=True)+"\n", encoding="utf-8")
         print("RESEARCH ONLY", report["status"])
         print("Predeclared 24h time-window BUY_SENT:", report["window"]["buy_alert_count"])
-        print("MODELED net PnL:", report.get("modeled_portfolio_pnl_eur"))
+        print("STRICT MODEL net PnL:", report.get("modeled_portfolio_pnl_eur"))
+        proxy = report.get("proxy_zero_trade_model_only")
+        if isinstance(proxy, dict):
+            print("ZERO-TRADE FLAT PROXY state:", proxy["status"])
+            print("ZERO-TRADE FLAT PROXY event counts:", proxy["candidate_states"])
+            print("ZERO-TRADE FLAT PROXY conditional EUR PnL:", proxy["modeled_portfolio_pnl_eur"])
         print("REAL net PnL: NEVER VERIFIED IN THIS PROBE")
     except (OSError, ValueError, json.JSONDecodeError) as exc:
         p.exit(2, f"public 5m economic probe refused: {exc}\n")
