@@ -41,7 +41,7 @@ def prepare(book_join, stake_eur=100.0, max_book_delay_seconds=60):
         if isinstance(lag, bool) or not isinstance(lag, (float, int)) or not 0 <= lag <= max_book_delay_seconds:
             missing.append({"decision_id": decision, "reason": "BOOK_NOT_FRESH_POST_DECISION"})
             continue
-        quote = b.get("stake_estimates", {}).get(str(stake_eur))
+        quote = b.get("stake_estimates", {}).get(str(int(stake_eur)))
         if not isinstance(quote, dict) or quote.get("entry_book_covered") is not True or quote.get("same_snapshot_exit_book_covered") is not True:
             missing.append({"decision_id": decision, "reason": "BOOK_DEPTH_NOT_VERIFIED"})
             continue
