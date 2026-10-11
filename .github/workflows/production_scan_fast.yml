@@ -15,6 +15,7 @@ on:
       - 'research/production_news.py'
       - 'research/recovery_registry.py'
       - 'scripts/update_recovery_registry_heartbeat.py'
+      - 'scripts/archive_recovery_registry.py'
       - 'scripts/follow_active_candidates.py'
       - '.github/workflows/production_scan_fast.yml'
   # Cold-start fallback only. Normal cadence is self-chained through
@@ -45,6 +46,22 @@ jobs:
         with:
           python-version: '3.12'
 
+      - name: Verify and compact oversized shadow registry before production
+        run: |
+          set -euo pipefail
+          # The heartbeat is the sole writer for this shadow file.
+          # Always operate on the latest committed source, never on stale data.
+          git fetch origin main
+          git reset --hard origin/main
+          if python scripts/archive_recovery_registry.py; then
+            echo "SOLAIRE_RECOVERY_SHADOW_ENABLED=true" >> "$GITHUB_ENV"
+          else
+            # Recovery memory is SHADOW ONLY. Do not block production BUYs
+            # if archiving fails; do not risk another oversize registry write.
+            echo "RECOVERY_SHADOW_ARCHIVE_FAILED: scan and final-gate continue, registry frozen" >&2
+            echo "SOLAIRE_RECOVERY_SHADOW_ENABLED=false" >> "$GITHUB_ENV"
+          fi
+
       - name: Run twelve five-minute production cycles
         env:
           ALERT_GMAIL_USER: ${{ vars.ALERT_GMAIL_USER }}
@@ -67,7 +84,11 @@ jobs:
             python scripts/production_scan.py
             python scripts/send_catalyst_prewatch_alert.py
             python scripts/send_production_buy_alert.py
-            python scripts/update_recovery_registry_heartbeat.py
+            if [ "${SOLAIRE_RECOVERY_SHADOW_ENABLED}" = "true" ]; then
+              python scripts/update_recovery_registry_heartbeat.py
+            else
+              echo 'RECOVERY_SHADOW_NOT_WRITABLE: skipping optional registry, scanner and alerts remain active' >&2
+            fi
             # Never allow optional follower failure to block the production scan.
             if ! python scripts/follow_active_candidates.py; then
               echo 'CANDIDATE_FOLLOW_DEGRADED: will retry at next probe' >&2
@@ -94,6 +115,7 @@ jobs:
               if [ -e "${file}" ]; then git add "${file}"; fi
             done
 
+            if [ -d recovery_registry_archives ]; then git add recovery_registry_archives; fi
             if [ -d execution_observations ]; then git add execution_observations; fi
 
             if ! git diff --cached --quiet; then
