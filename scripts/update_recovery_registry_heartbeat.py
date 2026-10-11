@@ -26,7 +26,8 @@ if str(ROOT) not in sys.path:
 from research.common import atomic_json, finite, read_json, utc
 from research.http import PublicClient
 from research.recovery_registry import POLICY, normalize_registry, observe_episode, register_episode
-from research.recovery_storage import INDEX, compact_closed, fresh_index, summarize_all
+from research.recovery_storage import (ARCHIVE_DIR, INDEX, compact_closed, fresh_index,
+                                       reconstruct_and_verify, summarize_all)
 from scripts.send_production_buy_alert import prior_buy_thesis_active, validate
 
 CANDIDATES = "production_alert_candidates.json"
@@ -82,6 +83,87 @@ def capacity_guard(now):
 
 
 
+class ArchivePreflightError(RuntimeError):
+    """A shadow storage validation failure; preserve the original registry."""
+
+
+def archive_capacity_preflight(now):
+    """One-shot lossless compaction BEFORE the normal capacity guard.
+
+    The guard must remain fail-closed for unsafe archives, but cannot prevent
+    its own remediation. No live scans, BUY gates or sender are called here.
+    """
+    source_path = Path(REGISTRY)
+    if not source_path.exists() or source_path.stat().st_size < REGISTRY_CAPACITY_GUARD_BYTES:
+        return False
+
+    source_bytes = source_path.stat().st_size
+    source = read_json(REGISTRY, {})
+    if (not isinstance(source, dict)
+            or source.get("schema") != "solaire_recovery_registry_shadow_v1"
+            or source.get("policy") != POLICY
+            or not isinstance(source.get("episodes"), dict)):
+        raise ArchivePreflightError("REGISTRY_SOURCE_OR_FROZEN_POLICY_INVALID")
+
+    old_index = read_json(INDEX, {}) or fresh_index()
+    before = summarize_all(source, old_index)
+    # This source blob SHA can be checked against the archived Git commit.
+    source_blob_sha = subprocess.check_output(
+        ["git", "hash-object", REGISTRY], text=True).strip()
+    preexisting = set(ARCHIVE_DIR.glob("closed_*.json.gz"))
+    try:
+        working = normalize_registry(source)
+        working, new_index, result = compact_closed(
+            working, old_index,
+            run_id=os.getenv("GITHUB_RUN_ID", "local") + "_capacity",
+            source_bytes=source_bytes,
+            source_blob_sha=source_blob_sha,
+            force=True,
+        )
+        if not result.get("shards"):
+            raise ArchivePreflightError("CAPACITY_LIMIT_WITHOUT_CLOSED_ARCHIVABLE_EPISODES")
+
+        reconstructed = reconstruct_and_verify(working, new_index)
+        # Every episode in the preflight source, including all attempts, MUST
+        # still exist byte-for-byte at the JSON-value level after compaction.
+        for event_id, record in source["episodes"].items():
+            if reconstructed.get(event_id) != record:
+                raise ArchivePreflightError("CAPACITY_ARCHIVE_EPISODE_MISMATCH:" + event_id)
+        if summarize_all(working, new_index) != before:
+            raise ArchivePreflightError("CAPACITY_ARCHIVE_COUNTER_MISMATCH")
+        compact_size = len(json.dumps(
+            working, separators=(",", ":"), ensure_ascii=False,
+            allow_nan=False).encode("utf-8"))
+        if compact_size >= REGISTRY_CAPACITY_GUARD_BYTES:
+            raise ArchivePreflightError("COMPACTED_REGISTRY_STILL_EXCEEDS_CAPACITY_GUARD")
+    except Exception as exc:
+        # Only new, uncommitted temporary shards are removed. Existing archives
+        # and the original Git-tracked registry remain strictly unchanged.
+        for path in set(ARCHIVE_DIR.glob("closed_*.json.gz")) - preexisting:
+            path.unlink(missing_ok=True)
+        if isinstance(exc, ArchivePreflightError):
+            raise
+        raise ArchivePreflightError(
+            "CAPACITY_ARCHIVE_VERIFICATION_FAILED:" + type(exc).__name__) from exc
+
+    # All read-only validations succeeded. The workflow stages these two files
+    # and every verified gzip shard in ONE Git commit; no partial history can
+    # be committed if a write raises an exception.
+    atomic_json(INDEX, new_index)
+    atomic_json(REGISTRY, working)
+    print("SOLAIRE_RECOVERY_CAPACITY_ARCHIVED " + json.dumps({
+        "source_size_bytes": source_bytes,
+        "compact_size_bytes": compact_size,
+        "source_git_blob_sha": source_blob_sha,
+        "archived_episodes": result["archived_now"],
+        "archive_shards": len(result["shards"]),
+        "full_round_trip_verified": True,
+        "cumulative_counters_unchanged": True,
+        "research_only": True,
+    }))
+    return True
+
+
 def _parse_ts(value):
     try:
         return datetime.fromisoformat(str(value).replace("Z", "+00:00")).timestamp()
@@ -126,6 +208,14 @@ def _already_registered(registry, market, episode_id, decision_id,
 
 def main():
     now = time.time()
+    try:
+        archive_capacity_preflight(now)
+    except (ArchivePreflightError, ValueError, OSError, TypeError, subprocess.CalledProcessError) as exc:
+        print("SOLAIRE_RECOVERY_CAPACITY_ARCHIVE_FAILED " + type(exc).__name__ + ':' + str(exc)[:180])
+        # Fail closed only for optional recovery research. Production scanner
+        # and BUY email operations execute independently before this step.
+        capacity_guard(now)
+        return 0
     if capacity_guard(now):
         return 0
     payload = read_json(CANDIDATES, {})
