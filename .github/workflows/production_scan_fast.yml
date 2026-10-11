@@ -94,6 +94,16 @@ jobs:
               if [ -e "${file}" ]; then git add "${file}"; fi
             done
 
+            # The lossless archive migration stages its verified gzip + SHA
+            # manifest atomically with the deletion of the oversized legacy blob.
+            # A failed/incomplete migration never removes the historical source.
+            if [ -f production_recovery_registry_shadow.json.gz ] && [ -f production_recovery_registry_migration_manifest.json ]; then
+              git add production_recovery_registry_shadow.json.gz production_recovery_registry_migration_manifest.json
+              if [ ! -e production_recovery_registry_shadow.json ] && git ls-files --error-unmatch production_recovery_registry_shadow.json >/dev/null 2>&1; then
+                git add -u -- production_recovery_registry_shadow.json
+              fi
+            fi
+
             if [ -d execution_observations ]; then git add execution_observations; fi
 
             if ! git diff --cached --quiet; then
