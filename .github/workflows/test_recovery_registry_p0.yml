@@ -43,7 +43,7 @@ jobs:
           while IFS= read -r p; do
             [ -z "$p" ] && continue
             case "$p" in
-              scripts/recovery_registry_storage.py|scripts/update_recovery_registry_heartbeat.py|.github/workflows/production_scan_fast.yml|.github/workflows/test_recovery_registry_p0.yml|tests/test_recovery_registry.py|tests/test_recovery_registry_compaction.py) ;;
+              scripts/recovery_registry_storage.py|scripts/update_recovery_registry_heartbeat.py|.github/workflows/production_scan_fast.yml|.github/workflows/test_recovery_registry_p0.yml|tests/test_recovery_registry.py|tests/test_recovery_registry_compaction.py|scripts/capture_phase_c_books.py|scripts/update_rejection_shadow.py|tests/test_rejection_shadow.py) ;;
               *) echo "UNMIGRATED_RECOVERY_READER: $p"; failed=1 ;;
             esac
           done <<< "$paths"
