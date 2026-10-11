@@ -1,28 +1,28 @@
 # Solaire Swing Selector — SHADOW
 
-Generated: 2026-10-10T21:47:10.078767+00:00
+Generated: 2026-10-11T05:51:03.031930+00:00
 Version: SWING_SELECTOR_V1_FROZEN_2026-10-08_R2
 No orders, no alerts, no Decision Layer changes.
 
 | Rank | Market | Score | Status | 3d | 7d | 14d | RS BTC 7d | Dist EMA50 | News mod |
 |---:|---|---:|---|---:|---:|---:|---:|---:|---:|
-| 1 | LPT-EUR | 85.23 | HUMAN_REVIEW | 7.14% | 1.92% | 5.74% | 3.51% | 15.55% | +0.00 |
-| 2 | ARPA-EUR | 84.75 | HUMAN_REVIEW | 9.25% | 7.06% | 8.07% | 8.66% | 17.80% | +0.00 |
-| 3 | C98-EUR | 84.71 | HUMAN_REVIEW | 5.66% | 11.72% | 9.04% | 13.32% | 18.22% | +0.00 |
-| 4 | BAND-EUR | 84.47 | HUMAN_REVIEW | 6.50% | 8.05% | 8.60% | 9.64% | 17.97% | +0.00 |
-| 5 | XDC-EUR | 84.44 | HUMAN_REVIEW | 8.35% | 7.54% | 19.03% | 9.13% | 16.73% | +0.00 |
-| 6 | CYBER-EUR | 84.36 | HUMAN_REVIEW | 11.39% | 12.24% | -1.29% | 13.83% | 10.41% | +0.00 |
-| 7 | DIA-EUR | 84.33 | HUMAN_REVIEW | 6.31% | 9.83% | 11.42% | 11.42% | 20.74% | +0.00 |
-| 8 | AKT-EUR | 84.24 | HUMAN_REVIEW | 3.75% | 10.09% | 7.07% | 11.69% | 19.26% | +0.00 |
-| 9 | ATOM-EUR | 84.10 | HUMAN_REVIEW | 15.92% | 16.82% | 8.81% | 18.42% | 20.23% | +0.00 |
-| 10 | AVNT-EUR | 83.23 | HUMAN_REVIEW | 3.26% | 4.81% | 5.22% | 6.40% | 18.49% | +0.00 |
-| 11 | DOT-EUR | 82.90 | PERSISTENT_TOP20 | 11.90% | 6.22% | 2.52% | 7.81% | 17.87% | +0.00 |
-| 12 | SKL-EUR | 82.57 | PERSISTENT_TOP20 | 10.94% | 8.00% | 7.24% | 9.59% | 18.16% | +0.00 |
-| 13 | FIL-EUR | 81.61 | PERSISTENT_TOP20 | 6.86% | 6.16% | 0.86% | 7.75% | 21.26% | +0.00 |
-| 14 | RON-EUR | 81.44 | PREWATCH_PERSISTENCE_REQUIRED | 7.10% | 3.28% | 5.54% | 4.87% | 16.54% | +0.00 |
-| 15 | AXS-EUR | 80.47 | PERSISTENT_TOP20 | 0.32% | 4.53% | 8.44% | 6.12% | 17.80% | +0.00 |
-| 16 | ESP-EUR | 80.27 | PREWATCH_PERSISTENCE_REQUIRED | 1.78% | 15.72% | 13.74% | 17.31% | 24.49% | +0.00 |
-| 17 | IMX-EUR | 80.19 | PERSISTENT_TOP20 | 12.63% | 8.17% | 21.12% | 9.76% | 30.66% | +0.00 |
-| 18 | PARTI-EUR | 79.96 | PREWATCH_PERSISTENCE_REQUIRED | 0.96% | 22.42% | 33.50% | 24.01% | 27.09% | +0.00 |
-| 19 | JUP-EUR | 79.86 | PERSISTENT_TOP20 | 0.75% | 10.23% | 8.51% | 11.82% | 28.50% | +0.00 |
-| 20 | PIXEL-EUR | 79.10 | PREWATCH_PERSISTENCE_REQUIRED | 9.48% | 1.87% | 7.98% | 3.46% | 18.15% | +0.00 |
+| 1 | C98-EUR | 86.27 | HUMAN_REVIEW | 15.44% | 11.81% | 8.25% | 15.44% | 15.67% | +0.00 |
+| 2 | ATOM-EUR | 85.40 | HUMAN_REVIEW | 9.02% | 10.89% | 3.97% | 14.52% | 15.80% | +0.00 |
+| 3 | ARPA-EUR | 85.34 | HUMAN_REVIEW | 9.49% | 9.69% | 9.50% | 13.31% | 19.69% | +0.00 |
+| 4 | DIA-EUR | 83.53 | HUMAN_REVIEW | 6.50% | 11.65% | 12.78% | 15.28% | 21.46% | +0.00 |
+| 5 | CTSI-EUR | 83.34 | PREWATCH_PERSISTENCE_REQUIRED | 4.47% | 15.20% | 16.68% | 18.82% | 23.42% | +0.00 |
+| 6 | LPT-EUR | 82.81 | HUMAN_REVIEW | 1.66% | 5.10% | 1.17% | 8.73% | 14.29% | +0.00 |
+| 7 | DOS-EUR | 82.74 | PREWATCH_PERSISTENCE_REQUIRED | 16.25% | 20.48% | 15.42% | 24.10% | 8.39% | +0.00 |
+| 8 | BAND-EUR | 82.63 | HUMAN_REVIEW | 4.39% | 5.64% | 8.79% | 9.26% | 17.99% | +0.00 |
+| 9 | CYBER-EUR | 82.02 | HUMAN_REVIEW | 9.25% | 8.60% | -3.26% | 12.23% | 8.11% | +0.00 |
+| 10 | DOT-EUR | 80.61 | HUMAN_REVIEW | 13.71% | 2.61% | -1.14% | 6.23% | 15.73% | +0.00 |
+| 11 | APT-EUR | 80.35 | PREWATCH_PERSISTENCE_REQUIRED | 15.85% | 6.49% | -0.28% | 10.11% | 19.67% | +0.00 |
+| 12 | WAL-EUR | 80.19 | PREWATCH_PERSISTENCE_REQUIRED | 14.36% | 4.24% | 0.58% | 7.87% | 20.38% | +0.00 |
+| 13 | ESP-EUR | 80.02 | PERSISTENT_TOP20 | 6.03% | 11.06% | 14.22% | 14.69% | 23.61% | +0.00 |
+| 14 | BOME-EUR | 79.38 | PREWATCH_PERSISTENCE_REQUIRED | 2.53% | 5.29% | 6.82% | 8.92% | 14.99% | +0.00 |
+| 15 | XDC-EUR | 79.11 | PERSISTENT_TOP20 | 9.50% | 8.70% | 7.09% | 12.33% | 15.96% | +0.00 |
+| 16 | AERO-EUR | 78.74 | PREWATCH_PERSISTENCE_REQUIRED | 12.82% | 7.73% | 13.20% | 11.35% | 38.22% | +1.75 |
+| 17 | W-EUR | 78.65 | PREWATCH_PERSISTENCE_REQUIRED | 14.82% | 20.38% | 13.04% | 24.00% | 42.76% | +0.00 |
+| 18 | AVNT-EUR | 78.59 | PERSISTENT_TOP20 | 0.06% | 5.06% | 4.53% | 8.69% | 16.80% | +0.00 |
+| 19 | ALT-EUR | 78.20 | PREWATCH_PERSISTENCE_REQUIRED | 10.42% | 2.16% | 2.52% | 5.79% | 13.61% | +0.00 |
+| 20 | ZRX-EUR | 77.84 | PREWATCH_PERSISTENCE_REQUIRED | 9.78% | 0.79% | 4.01% | 4.42% | 15.29% | +0.00 |
