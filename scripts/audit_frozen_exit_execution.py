@@ -11,6 +11,11 @@ import hashlib
 import json
 from datetime import datetime, timezone
 from pathlib import Path
+import sys
+
+ROOT = Path(__file__).resolve().parents[1]
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
 
 from research.capital_constrained_replay import replay_portfolio
 from scripts.run_public_replay_probe import select_time_window
