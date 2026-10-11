@@ -1,0 +1,37 @@
+name: Verify published Solaire recovery archives
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'production_recovery_registry_shadow.json'
+      - 'production_recovery_archive_index.json'
+      - 'production_recovery_archives/**'
+      - 'scripts/verify_recovery_archives.py'
+      - '.github/workflows/verify_published_recovery_archives.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify-published:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+          filter: blob:none
+          sparse-checkout-cone-mode: false
+          sparse-checkout: |
+            research/
+            scripts/verify_recovery_archives.py
+            production_recovery_registry_shadow.json
+            production_recovery_archive_index.json
+            production_recovery_archives/
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Rebuild and hash-check every published closed episode
+        run: python scripts/verify_recovery_archives.py --verify-published
