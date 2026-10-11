@@ -12,6 +12,11 @@ import hashlib
 import json
 from pathlib import Path
 
+import sys
+ROOT = Path(__file__).resolve().parents[1]
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
+
 from research.capital_constrained_replay import HORIZONS, replay_portfolio
 from scripts.prepare_economic_replay import prepare
 
