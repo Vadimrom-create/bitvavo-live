@@ -17,6 +17,8 @@ on:
       - 'research/recovery_storage.py'
       - 'scripts/update_recovery_registry_heartbeat.py'
       - 'scripts/follow_active_candidates.py'
+      - 'scripts/prospective_heartbeat_wakeup.py'
+      - 'research/prospective_cadence.py'
       - '.github/workflows/production_scan_fast.yml'
   # Cold-start fallback only. Normal cadence is self-chained through
   # workflow_dispatch, so a missed GitHub schedule event cannot stop scanning.
@@ -53,6 +55,7 @@ jobs:
           GMAIL_APP_PASSWORD: ${{ secrets.GMAIL_APP_PASSWORD }}
           X_BEARER_TOKEN: ${{ secrets.X_BEARER_TOKEN }}
           FOLLOW_NOTIFY_ENABLED: 'true'
+          GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
 
@@ -119,6 +122,12 @@ jobs:
                 echo "Heartbeat publication retries exhausted." >&2
                 exit 1
               fi
+            fi
+
+            # Independent 30-minute research collection: one bounded scheduling
+            # request, never in the detection/BUY path, never blocks a scan.
+            if ! python scripts/prospective_heartbeat_wakeup.py; then
+              echo 'PROSPECTIVE_WAKEUP_DEGRADED_NONBLOCKING' >&2
             fi
 
             if [ "${cycle}" -lt 12 ]; then
