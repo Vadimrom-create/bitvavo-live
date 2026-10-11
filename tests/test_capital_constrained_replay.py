@@ -209,9 +209,12 @@ class PortfolioReplayTests(unittest.TestCase):
     def test_no_real_trade_after_horizon_censors_whole_comparison(self):
         e = signal()
         bars = [bar(i) for i in (5, 10, 700, 1390)]
-        result = replay([e], {"AAA-EUR": bars},
-                        gap_mode="BITVAVO_ZERO_TRADE_FLAT_PROXY",
-                        horizon_exit_mode="NEXT_REAL_BAR_OPEN_PROXY")
+        result = replay_portfolio(
+            [e], {"AAA-EUR": bars},
+            iso(T0 + timedelta(hours=25)),
+            gap_mode="BITVAVO_ZERO_TRADE_FLAT_PROXY",
+            horizon_exit_mode="NEXT_REAL_BAR_OPEN_PROXY",
+        )
         self.assertEqual(result["candidate_reasons"], {"NO_REAL_TRADE_AFTER_HORIZON": 1})
         self.assertIsNone(result["modeled_portfolio_pnl_eur"])
 
