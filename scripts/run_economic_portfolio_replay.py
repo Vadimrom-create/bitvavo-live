@@ -40,6 +40,12 @@ def evaluate_preflight(preflight, candle_bundle, asof_utc, horizon_hours=24):
     bars = candle_bundle.get("markets")
     if not isinstance(bars, dict):
         raise ValueError("candle bundle markets object required")
+    fingerprint = hashlib.sha256(
+        json.dumps(bars, sort_keys=True, separators=(",", ":"), ensure_ascii=False)
+        .encode("utf-8")
+    ).hexdigest()
+    if candle_bundle.get("source_sha256") != fingerprint:
+        raise ValueError("candle bundle SHA-256 does not match the supplied market data")
     if preflight["missing_book_proof_count"]:
         return {
             "schema": "solaire_capital_replay_readiness_v1",
