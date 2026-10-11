@@ -62,6 +62,7 @@ jobs:
           assert all(x["historical_book_evidence"]["actual_fill_proven"] is False for x in o["records"])
           print(f"Matched book snapshots: {o['matched_book_count']} / {o['count']}; fills remain unverified.")
           print("Reasons:", o["books_by_status"])
+          print("BUY_SENT historical book cost summary:", o["buy_sent_book_cost_summary"])
           PY
       - name: Upload public, synthetic-safe event registry artifact
         uses: actions/upload-artifact@v4
