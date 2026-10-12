@@ -189,7 +189,7 @@ def _stop_summary(rows,h):
         "median_delta_net_return_pct_points":med(deltas),
         "sum_delta_net_pnl_eur_est":round(sum(
             finite(r.get("stake_eur"),0)*(b-a)/100 for r,a,b in pairs
-        ),2),
+        ),2) if pairs else None,
     }
 
 def _row_key(r):
@@ -211,7 +211,7 @@ def _summary(rows,policy,h):
         "negative_net":sum(z["net_return_pct_est"]<0 for _,z in xs),
         "median_net_return_pct":med([z["net_return_pct_est"] for _,z in xs]),
         "median_r_multiple":med([z["r_multiple"] for _,z in xs]),
-        "sum_net_pnl_eur_est":round(sum((r.get("stake_eur") or 0)*z["net_return_pct_est"]/100 for r,z in xs),2),
+        "sum_net_pnl_eur_est":round(sum((r.get("stake_eur") or 0)*z["net_return_pct_est"]/100 for r,z in xs),2) if xs else None,
         "target_exits":sum(z["exit_reason"]=="TARGET" for _,z in xs),
         "stop_exits":sum(z["exit_reason"]=="STOP" for _,z in xs),
     }
@@ -238,7 +238,7 @@ def _pairwise(rows,a,b,h):
         "median_delta_net_return_pct_a_minus_b":med(deltas),
         "sum_delta_net_pnl_eur_est_a_minus_b":round(
             sum(stake*(a_ret-b_ret)/100 for a_ret,b_ret,stake in pairs),2
-        ),
+        ) if pairs else None,
     }
 
 def _candidate_pairwise(rows):
@@ -366,7 +366,8 @@ def main():
             if p=="current_tp1_stop":continue
             a=summary[k]["current_tp1_stop"];b=summary[k][p]
             comparisons[k][p]={
-                "delta_sum_net_pnl_eur_est":round(b["sum_net_pnl_eur_est"]-a["sum_net_pnl_eur_est"],2),
+                "delta_sum_net_pnl_eur_est":round(b["sum_net_pnl_eur_est"]-a["sum_net_pnl_eur_est"],2)
+                    if a["n"]>0 and a["n"]==b["n"] and a["sum_net_pnl_eur_est"] is not None and b["sum_net_pnl_eur_est"] is not None else None,
                 "delta_median_net_return_pct":None if a["median_net_return_pct"] is None or b["median_net_return_pct"] is None else round(b["median_net_return_pct"]-a["median_net_return_pct"],4),
             }
 
@@ -377,7 +378,8 @@ def main():
             if p=="current_tp1_stop":continue
             a=prospective_summary[k]["current_tp1_stop"];b=prospective_summary[k][p]
             prospective_comparisons[k][p]={
-                "delta_sum_net_pnl_eur_est":round(b["sum_net_pnl_eur_est"]-a["sum_net_pnl_eur_est"],2),
+                "delta_sum_net_pnl_eur_est":round(b["sum_net_pnl_eur_est"]-a["sum_net_pnl_eur_est"],2)
+                    if a["n"]>0 and a["n"]==b["n"] and a["sum_net_pnl_eur_est"] is not None and b["sum_net_pnl_eur_est"] is not None else None,
                 "delta_median_net_return_pct":None if a["median_net_return_pct"] is None or b["median_net_return_pct"] is None else round(b["median_net_return_pct"]-a["median_net_return_pct"],4),
             }
 
