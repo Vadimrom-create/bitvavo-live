@@ -33,7 +33,10 @@ HORIZONS=(1,4)
 MAX_EVENTS=3000
 HQ_MIN_SCORE=6.0
 HQ_MIN_EVIDENCE=4
-BOOK_STAKES_EUR=(100.0,250.0)
+BOOK_STAKES_EUR=(100.0,125.0,150.0,250.0)
+# Research assumptions only; not the user's actual Bitvavo fee tier.
+ASSUMED_FEE_EACH_SIDE=0.0025
+ASSUMED_ADVERSE_SLIPPAGE_EACH_SIDE=0.001
 BOOK_IMPACT_REFERENCE_PCT=0.25
 TURNOVER_MULTIPLE_MIN=50.0
 
@@ -149,11 +152,25 @@ def _book_metrics(book,turnover):
         }
         buy[key]=b; sell[key]=s
         cost=None
+        after_fees=None
+        stressed=None
         if b.get("fillable") and s.get("fillable") and b.get("avg_price_eur") and s.get("avg_price_eur"):
-            cost=(1-s["avg_price_eur"]/b["avg_price_eur"])*100
+            # Snapshot-only liquidation, not a forecast or verified exchange fill.
+            exit_eur=b["base_amount"]*s["avg_price_eur"]
+            cost=(stake-exit_eur)/stake*100
+            after_fees=(
+                stake*(1+ASSUMED_FEE_EACH_SIDE)
+                - exit_eur*(1-ASSUMED_FEE_EACH_SIDE)
+            )/stake*100
+            stressed=(
+                stake*(1+ASSUMED_FEE_EACH_SIDE+ASSUMED_ADVERSE_SLIPPAGE_EACH_SIDE)
+                - exit_eur*(1-ASSUMED_FEE_EACH_SIDE-ASSUMED_ADVERSE_SLIPPAGE_EACH_SIDE)
+            )/stake*100
         multiple=turnover/stake if stake>0 else None
         roundtrip[key]={
             "roundtrip_cost_pct":round(cost,4) if cost is not None else None,
+            "roundtrip_after_fees_pct_est":round(after_fees,4) if after_fees is not None else None,
+            "roundtrip_stressed_pct_est":round(stressed,4) if stressed is not None else None,
             "turnover_multiple_1h":round(multiple,2) if multiple is not None else None,
         }
         direct[key]=bool(
@@ -286,6 +303,9 @@ def main():
         "new_events":0,
         "evaluated_horizons":0,
         "book_stakes_eur":list(BOOK_STAKES_EUR),
+        "assumed_fee_each_side_pct":ASSUMED_FEE_EACH_SIDE*100,
+        "assumed_adverse_slippage_each_side_pct":ASSUMED_ADVERSE_SLIPPAGE_EACH_SIDE*100,
+        "roundtrip_cost_scope":"SAME_BOOK_SNAPSHOT_NO_FUTURE_EXIT_FILL",
         "book_impact_reference_pct":BOOK_IMPACT_REFERENCE_PCT,
         "turnover_multiple_min":TURNOVER_MULTIPLE_MIN,
         "errors":[],
