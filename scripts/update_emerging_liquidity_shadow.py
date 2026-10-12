@@ -201,12 +201,12 @@ def _eval(e,bars,h):
         return None
     first=((int(t0*1000)//300_000)+1)*300_000
     end=int((t0+h*3600)*1000)
-    xs=[x for x in bars if first<=x[0]<end]
+    xs=[x for x in bars if first<=x[0] and x[0]+300_000<=end]
     if not xs:
         return None
     # The expected grid is defined BEFORE inspecting outcomes; a missing
     # five-minute bar may be no-trade or missing data, never a zero return.
-    expected=list(range(first,end,300_000))
+    expected=[t for t in range(first,end,300_000) if t+300_000<=end]
     observed=[x[0] for x in xs]
     observed_set=set(observed)
     expected_set=set(expected)
@@ -471,7 +471,7 @@ def main():
                 if t0 is not None:
                     first=((int(t0*1000)//300_000)+1)*300_000
                     end=int((t0+h*3600)*1000)
-                    nominal=len(range(first,end,300_000))
+                    nominal=len([t for t in range(first,end,300_000) if t+300_000<=end])
                     if int(ev.get("bars") or 0)<nominal:
                         counts["legacy_fewer_than_nominal"]+=1
         coverage[key]=counts
