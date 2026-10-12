@@ -194,25 +194,51 @@ def _bars(raw,now):
     return sorted(out)
 
 def _eval(e,bars,h):
+    """Retain partial observations, but never label them full-horizon returns."""
     t0=finite(e.get("detected_ts"))
     base=finite(e.get("entry_eur"),finite(e.get("signal_price_eur")))
     if t0 is None or base is None or base<=0:
         return None
     first=((int(t0*1000)//300_000)+1)*300_000
     end=int((t0+h*3600)*1000)
-    xs=[x for x in bars if first<=x[0]<end]
+    xs=[x for x in bars if first<=x[0] and x[0]+300_000<=end]
     if not xs:
         return None
+    # The expected grid is defined BEFORE inspecting outcomes; a missing
+    # five-minute bar may be no-trade or missing data, never a zero return.
+    expected=[t for t in range(first,end,300_000) if t+300_000<=end]
+    observed=[x[0] for x in xs]
+    observed_set=set(observed)
+    expected_set=set(expected)
+    strict_complete=bool(expected) and (
+        len(observed)==len(observed_set)==len(expected)
+        and observed_set==expected_set
+    )
     high=max(x[1] for x in xs); low=min(x[2] for x in xs); close=xs[-1][3]
     stop=finite(e.get("stop_eur")); tp1=finite(e.get("tp1_eur"))
+    partial_mfe=round((high/base-1)*100,4)
+    partial_mae=round((low/base-1)*100,4)
+    partial_close=round((close/base-1)*100,4)
     return {
         "horizon_hours":h,
-        "mfe_pct":round((high/base-1)*100,4),
-        "mae_pct":round((low/base-1)*100,4),
-        "close_return_pct":round((close/base-1)*100,4),
+        # Compatibility-only: these are observed-window statistics and MAY
+        # end before the nominated horizon when strict_complete is false.
+        "mfe_pct":partial_mfe,
+        "mae_pct":partial_mae,
+        "close_return_pct":partial_close,
         "stop_touched":bool(stop is not None and low<=stop),
         "tp1_touched":bool(tp1 is not None and high>=tp1),
         "bars":len(xs),
+        "expected_bars":len(expected),
+        "observed_unique_bars":len(observed_set & expected_set),
+        "missing_bars":len(expected_set-observed_set),
+        "first_observed_start_ms":min(observed),
+        "last_observed_start_ms":max(observed),
+        "coverage_status":"COMPLETE_STRICT" if strict_complete else "INCOMPLETE_STRICT",
+        "strict_complete":strict_complete,
+        "strict_close_return_pct":partial_close if strict_complete else None,
+        "strict_mfe_pct":partial_mfe if strict_complete else None,
+        "strict_mae_pct":partial_mae if strict_complete else None,
     }
 
 def _snapshot(row,client,meta,now):
@@ -418,6 +444,38 @@ def main():
                 status["errors"].append({"market":market,"reason":type(exc).__name__+":"+str(exc)})
     except Exception as exc:
         status["errors"].append({"reason":type(exc).__name__+":"+str(exc)})
+
+    # Old events retained only candle COUNTS, not candle timestamps. Do not
+    # backfill historical completeness from counts alone.
+    coverage={}
+    for h in HORIZONS:
+        key=str(h)
+        counts={
+            "complete_strict":0,
+            "incomplete_strict":0,
+            "legacy_unverifiable":0,
+            "legacy_fewer_than_nominal":0,
+            "not_evaluated":0,
+        }
+        for event in journal["events"]:
+            ev=(event.get("evaluations") or {}).get(key)
+            if ev is None:
+                counts["not_evaluated"]+=1
+            elif ev.get("coverage_status")=="COMPLETE_STRICT":
+                counts["complete_strict"]+=1
+            elif ev.get("coverage_status")=="INCOMPLETE_STRICT":
+                counts["incomplete_strict"]+=1
+            else:
+                counts["legacy_unverifiable"]+=1
+                t0=finite(event.get("detected_ts"))
+                if t0 is not None:
+                    first=((int(t0*1000)//300_000)+1)*300_000
+                    end=int((t0+h*3600)*1000)
+                    nominal=len([t for t in range(first,end,300_000) if t+300_000<=end])
+                    if int(ev.get("bars") or 0)<nominal:
+                        counts["legacy_fewer_than_nominal"]+=1
+        coverage[key]=counts
+    status["evaluation_coverage"]=coverage
 
     if status["errors"]:
         status["status"]="DEGRADED_NONBLOCKING"
