@@ -3,12 +3,12 @@
   "coverage": {
     "active_markets": 427,
     "attempted_this_run": 40,
-    "coverage_pct": 74.0,
+    "coverage_pct": 74.24,
     "errors_this_run": 0,
     "resolved_this_run": 1,
-    "with_any_official_source": 316,
-    "with_official_page": 313,
-    "with_official_x": 309
+    "with_any_official_source": 317,
+    "with_official_page": 314,
+    "with_official_x": 310
   },
   "markets": {
     "0G-EUR": {
@@ -6777,15 +6777,20 @@
       "announcement_urls": [],
       "coingecko_id": "syrup",
       "coingecko_resolution": "SYMBOL_AND_NAME",
-      "discovery_error": "HTTPError: HTTP Error 429: Too Many Requests",
-      "discovery_status": "DISCOVERY_ERROR",
-      "homepage": [],
+      "discovery_status": "DISCOVERED",
+      "homepage": [
+        "https://maple.finance/"
+      ],
+      "link_discovery_source": "COINGECKO_DIRECTORY",
+      "links_are_project_sources": true,
       "market": "SYRUP-EUR",
       "medium": [],
-      "official_forum_urls": [],
+      "official_forum_urls": [
+        "https://maple.finance/category/all"
+      ],
       "project_name": "Maple Finance",
       "symbol": "SYRUP",
-      "x_handle": null
+      "x_handle": "maplefinance"
     },
     "T-EUR": {
       "active_on_bitvavo": true,
@@ -7984,5 +7989,5 @@
     }
   },
   "schema": "solaire_official_source_registry_v1",
-  "updated_at_ts": 1791827115.8852904
+  "updated_at_ts": 1791848892.6565588
 }
