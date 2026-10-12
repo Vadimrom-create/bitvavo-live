@@ -147,6 +147,11 @@ def collect(frozen, *, client, asof_time):
             if not isinstance(tape, list):
                 raise ValueError("public response must be a list")
             observation = analyze_target(item, tape, asof_time)
+            observation["public_request"] = {"path": "/" + item["market"] + "/trades", "params": params}
+            observation["public_tape_sha256"] = hashlib.sha256(json.dumps(
+                tape, sort_keys=True, separators=(",", ":"), ensure_ascii=False
+            ).encode("utf-8")).hexdigest()
+            observation["public_tape_raw_for_reproduction"] = tape
             observation["data_status"] = ("PAGE_LIMIT_TRUNCATED" if len(tape) >= MAX_PUBLIC_TRADES
                                           else "PUBLIC_PRINTS_CAPTURED")
         except Exception as exc:
