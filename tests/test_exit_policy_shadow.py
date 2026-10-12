@@ -74,3 +74,20 @@ def test_exit_shadow_summary_excludes_legacy_false_complete():
     x=_summary(rows,"current_tp1_stop",4)
     assert x["n"]==1
     assert x["sum_net_pnl_eur_est"]==-0.45
+
+
+def test_no_verified_exit_policy_cases_are_unknown_not_zero_profit():
+    from scripts.update_exit_policy_shadow import _summary, _pairwise
+    only_legacy={
+        "stake_eur":100.0,
+        "policies":{
+            "current_tp1_stop":{"4":{"complete_horizon":True,"net_return_pct_est":10.0}},
+            "full_1_4r":{"4":{"complete_horizon":True,"net_return_pct_est":11.0}},
+        },
+    }
+    result=_summary([only_legacy],"current_tp1_stop",4)
+    assert result["n"]==0
+    assert result["sum_net_pnl_eur_est"] is None
+    pair=_pairwise([only_legacy],"current_tp1_stop","full_1_4r",4)
+    assert pair["n"]==0
+    assert pair["sum_delta_net_pnl_eur_est_a_minus_b"] is None
