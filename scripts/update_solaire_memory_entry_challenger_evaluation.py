@@ -28,6 +28,22 @@ CHALLENGER_VERSION = "memory-entry-challenger-v2-decoupled-20260924"
 MAX_NEW_EVALUATIONS_PER_RUN = 24
 
 
+def _evaluation_runtime_context() -> tuple[dict[str, Any], dict[str, Any]]:
+    """Keep retry/telemetry compatible with the shared V3 evaluator, in memory only."""
+    telemetry = {
+        "logical_attempts": 0,
+        "fetch_wall_seconds": 0.0,
+        "complete_results": 0,
+        "incomplete_results": 0,
+        "incomplete_market_counts": {},
+        "incomplete_horizon_counts": {},
+        "incomplete_samples": [],
+        "error_market_counts": {},
+        "cooldown_skipped": 0,
+    }
+    return telemetry, {"entries": {}}
+
+
 def _summary(events: list[dict[str, Any]], event_type: str, horizon: int) -> dict[str, Any]:
     rows = []
     for event in events:
@@ -112,12 +128,15 @@ def main() -> int:
     try:
         client = PublicClient(timeout=10, retries=2, requests_per_second=8)
         client.get("/time", cache=False)
-        completed = _evaluate_event_collection(
+        telemetry, retry_state = _evaluation_runtime_context()
+        completed, _ = _evaluate_event_collection(
             client,
             decision_events,
             now,
             MAX_NEW_EVALUATIONS_PER_RUN,
             errors,
+            telemetry,
+            retry_state,
         )
     except Exception as exc:
         critical_error = type(exc).__name__ + ":" + str(exc)
