@@ -1,8 +1,8 @@
 # Bitvavo — V4 mesurée / infrastructure V5
 
-Scan UTC : 2026-10-12T05:30:25.501667+00:00
-État : OK | marchés EUR : 427 | V4 : 364 | données valides : 427
-Récupération : 2026-10-12T05:29:21.407795+00:00 | âge ticker : 177.9 s | durée : 178.4 s
+Scan UTC : 2026-10-12T13:29:05.537244+00:00
+État : OK | marchés EUR : 427 | V4 : 367 | données valides : 427
+Récupération : 2026-10-12T13:27:54.186216+00:00 | âge ticker : 186.9 s | durée : 187.7 s
 
 ## ACHÈTE — signal V4 et plan théorique
 
@@ -12,27 +12,26 @@ Les intervalles sans transaction sont représentés explicitement à volume 0 ; 
 
 ## SURVEILLE
 
-- RAY-EUR : 2.18523 € ; score 79.09/100 ; SURVEILLE ; seuil achat non atteint
-- TIA-EUR : 0.52772 € ; score 78.37/100 ; SURVEILLE ; SELLER_HEAVY_BOOK, WICK_SETUP
-- AERO-EUR : 0.83949 € ; score 76.44/100 ; SURVEILLE ; WICK_SETUP
-- JUP-EUR : 0.32686 € ; score 75.38/100 ; SURVEILLE ; seuil achat non atteint
-- EDU-EUR : 0.06578 € ; score 73.71/100 ; SURVEILLE ; LOW_LIQUIDITY, SPREAD_RISK
+- TIA-EUR : 0.52924 € ; score 77.28/100 ; SURVEILLE ; WICK_SETUP, STABILITY_HOLD
+- ZK-EUR : 0.013549 € ; score 73.80/100 ; SURVEILLE ; VERY_SELLER_HEAVY_BOOK
+- PARTI-EUR : 0.030116 € ; score 73.12/100 ; SURVEILLE ; SELLER_HEAVY_BOOK
+- FRAX-EUR : 0.30459 € ; score 72.01/100 ; SURVEILLE ; SPREAD_RISK
 
 ## Contrôle des hausses
 
 | Marché | Prix € | 24 h | Détection | Couche d’échec | Actionnabilité |
 |---|---:|---:|---|---|---|
-| ZEUS-EUR | 0.010154 | +82.18 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
-| W-EUR | 0.025011 | +59.75 % | DETECTED_EARLY | NONE | ENTRY_TIMING_OR_EXECUTION |
-| RSR-EUR | 0.0021766 | +53.12 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
-| ZRC-EUR | 0.0013775 | +39.38 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
-| S-EUR | 0.054473 | +26.89 % | DETECTED_EARLY | NONE | ENTRY_TIMING_OR_EXECUTION |
-| GRASS-EUR | 0.74164 | +23.39 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
-| IO-EUR | 0.16796 | +22.06 % | DETECTED_EARLY | NONE | INTERPRETATION |
-| PLUME-EUR | 0.0197759 | +17.21 % | DETECTED_EARLY | NONE | ENTRY_TIMING_OR_EXECUTION |
-| METIS-EUR | 3.595 | +16.79 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
-| ZRO-EUR | 2.0688 | +16.49 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
+| GTC-EUR | 0.257443 | +58.54 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
+| RSR-EUR | 0.0021367 | +48.93 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
+| W-EUR | 0.022203 | +43.55 % | DETECTED_EARLY | NONE | ENTRY_TIMING_OR_EXECUTION |
+| ZRC-EUR | 0.0012592 | +20.28 % | DETECTED_EARLY | NONE | INTERPRETATION |
+| S-EUR | 0.051935 | +18.52 % | DETECTED_EARLY | NONE | ENTRY_TIMING_OR_EXECUTION |
+| ZRO-EUR | 2.1506 | +17.58 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
+| RAD-EUR | 0.31978 | +16.67 % | NO_CONFIRMED_SHORT_TERM_EVENT | NOT_APPLICABLE | NOT_APPLICABLE |
+| PYTH-EUR | 0.077474 | +13.41 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
+| NOS-EUR | 0.57784 | +13.13 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
+| DOS-EUR | 0.26189 | +13.10 % | DETECTED_EARLY | NONE | ENTRY_TIMING_OR_EXECUTION |
 
-Historique (snapshot asynchrone) : 2145 scans ; 917807 observations ; 1658 épisodes d’achat évaluables.
+Historique (snapshot asynchrone) : 2146 scans ; 918234 observations ; 1658 épisodes d’achat évaluables.
 V5 optimisée : aucune. Supériorité sur V4 : non démontrée. Probabilités : non calibrées.
 Le cash et le portefeuille du plan sont hypothétiques. Aucun ordre réel n’est envoyé.
