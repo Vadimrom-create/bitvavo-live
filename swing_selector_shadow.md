@@ -1,28 +1,28 @@
 # Solaire Swing Selector — SHADOW
 
-Generated: 2026-10-13T16:58:04.201048+00:00
+Generated: 2026-10-13T22:47:47.295746+00:00
 Version: SWING_SELECTOR_V1_FROZEN_2026-10-08_R2
 No orders, no alerts, no Decision Layer changes.
 
 | Rank | Market | Score | Status | 3d | 7d | 14d | RS BTC 7d | Dist EMA50 | News mod |
 |---:|---|---:|---|---:|---:|---:|---:|---:|---:|
-| 1 | DUSK-EUR | 85.55 | PREWATCH_PERSISTENCE_REQUIRED | 8.56% | 10.86% | 13.77% | 12.70% | 19.14% | +0.00 |
-| 2 | ICNT-EUR | 84.87 | HUMAN_REVIEW | 8.75% | 8.66% | 13.77% | 10.50% | 5.09% | +0.00 |
-| 3 | SKL-EUR | 84.43 | HUMAN_REVIEW | 6.03% | 10.22% | 15.98% | 12.05% | 21.14% | +0.00 |
-| 4 | SAFE-EUR | 83.84 | HUMAN_REVIEW | 10.03% | 9.68% | 20.23% | 11.51% | 21.38% | +0.00 |
-| 5 | CTR-EUR | 83.14 | HUMAN_REVIEW | 6.81% | 9.16% | 11.03% | 11.00% | 21.92% | +0.00 |
-| 6 | DODO-EUR | 82.41 | HUMAN_REVIEW | 5.71% | 7.52% | 10.74% | 9.36% | 8.54% | +0.00 |
-| 7 | STX-EUR | 82.32 | WAIT_PULLBACK_OR_NORMALIZATION | 7.35% | 12.71% | 37.83% | 14.54% | 38.62% | +0.00 |
-| 8 | METIS-EUR | 81.98 | HUMAN_REVIEW | 8.40% | 8.36% | 10.43% | 10.20% | 16.63% | +0.00 |
-| 9 | SYRUP-EUR | 81.41 | PREWATCH_PERSISTENCE_REQUIRED | 10.77% | 4.80% | 12.90% | 6.64% | 20.15% | +0.00 |
-| 10 | FIL-EUR | 80.95 | PREWATCH_PERSISTENCE_REQUIRED | 5.21% | 1.98% | 12.74% | 3.82% | 23.08% | +0.00 |
-| 11 | MERL-EUR | 80.70 | PERSISTENT_TOP20 | 1.37% | 7.10% | 8.68% | 8.93% | 20.58% | +0.00 |
-| 12 | PYTH-EUR | 80.46 | PERSISTENT_TOP20 | 5.51% | 10.24% | 7.83% | 12.08% | 26.20% | +0.00 |
-| 13 | FUEL-EUR | 80.26 | PERSISTENT_TOP20 | 3.16% | 11.43% | 13.08% | 13.27% | 8.02% | +0.00 |
-| 14 | PLUME-EUR | 79.45 | PERSISTENT_TOP20 | 12.53% | 10.52% | 21.95% | 12.36% | 29.71% | +0.00 |
-| 15 | WAL-EUR | 78.96 | PREWATCH_PERSISTENCE_REQUIRED | 4.91% | 2.04% | 14.91% | 3.87% | 19.29% | +0.00 |
-| 16 | SYN-EUR | 78.24 | PERSISTENT_TOP20 | 4.80% | 4.89% | 19.23% | 6.73% | 20.67% | +0.00 |
-| 17 | TIA-EUR | 78.00 | PERSISTENT_TOP20 | 0.93% | 24.90% | 39.43% | 26.74% | 38.64% | +0.00 |
-| 18 | RENDER-EUR | 77.96 | PREWATCH_PERSISTENCE_REQUIRED | 9.79% | -0.50% | 12.53% | 1.34% | 22.16% | +0.00 |
-| 19 | DYM-EUR | 77.85 | PERSISTENT_TOP20 | 5.99% | 2.76% | 2.85% | 4.60% | 13.34% | +0.00 |
-| 20 | INIT-EUR | 77.74 | PERSISTENT_TOP20 | 4.18% | 9.35% | 20.83% | 11.19% | 37.95% | +0.00 |
+| 1 | DUSK-EUR | 84.79 | HUMAN_REVIEW | 11.38% | 13.74% | 16.72% | 15.74% | 22.09% | +0.00 |
+| 2 | SKL-EUR | 84.67 | HUMAN_REVIEW | 5.76% | 9.93% | 15.68% | 11.94% | 20.85% | +0.00 |
+| 3 | DODO-EUR | 83.13 | HUMAN_REVIEW | 7.91% | 9.75% | 13.04% | 11.76% | 10.70% | +0.00 |
+| 4 | STX-EUR | 82.48 | WAIT_PULLBACK_OR_NORMALIZATION | 5.64% | 10.91% | 35.64% | 12.92% | 36.54% | +0.00 |
+| 5 | CTR-EUR | 82.46 | HUMAN_REVIEW | 11.11% | 13.56% | 15.51% | 15.57% | 26.59% | +0.00 |
+| 6 | ICNT-EUR | 82.37 | HUMAN_REVIEW | 12.40% | 12.31% | 17.59% | 14.32% | 8.47% | +0.00 |
+| 7 | PLUME-EUR | 81.72 | HUMAN_REVIEW | 12.53% | 10.52% | 21.95% | 12.53% | 29.71% | +0.00 |
+| 8 | SAFE-EUR | 81.58 | HUMAN_REVIEW | 14.42% | 14.05% | 25.02% | 16.06% | 25.98% | +0.00 |
+| 9 | METIS-EUR | 81.49 | HUMAN_REVIEW | 9.76% | 9.72% | 11.81% | 11.73% | 18.02% | +0.00 |
+| 10 | CC-EUR | 80.82 | PREWATCH_PERSISTENCE_REQUIRED | 7.27% | 1.12% | 4.65% | 3.13% | 10.28% | +0.00 |
+| 11 | FIL-EUR | 80.67 | PERSISTENT_TOP20 | 4.42% | 1.21% | 11.90% | 3.22% | 22.20% | +0.00 |
+| 12 | LINEA-EUR | 80.37 | PREWATCH_PERSISTENCE_REQUIRED | 4.19% | 6.50% | 6.39% | 8.51% | 12.90% | +0.00 |
+| 13 | ATOM-EUR | 80.35 | PREWATCH_PERSISTENCE_REQUIRED | -2.73% | 6.72% | 11.43% | 8.73% | 12.52% | +0.00 |
+| 14 | PARTI-EUR | 79.98 | PREWATCH_PERSISTENCE_REQUIRED | 0.03% | 5.48% | 33.99% | 7.49% | 24.27% | +0.00 |
+| 15 | CYBER-EUR | 79.71 | PREWATCH_PERSISTENCE_REQUIRED | 1.17% | 5.36% | 10.51% | 7.37% | 9.76% | +0.00 |
+| 16 | WAL-EUR | 79.59 | PERSISTENT_TOP20 | 6.22% | 3.31% | 16.35% | 5.32% | 20.72% | +0.00 |
+| 17 | ALT-EUR | 78.85 | PREWATCH_PERSISTENCE_REQUIRED | 1.66% | 6.47% | 9.60% | 8.48% | 16.04% | +0.00 |
+| 18 | AZTEC-EUR | 78.41 | PREWATCH_PERSISTENCE_REQUIRED | 18.21% | 23.43% | 23.43% | 25.44% | 30.59% | +0.00 |
+| 19 | SYN-EUR | 78.08 | PERSISTENT_TOP20 | 2.92% | 3.01% | 17.09% | 5.02% | 18.61% | +0.00 |
+| 20 | INIT-EUR | 77.66 | PERSISTENT_TOP20 | 4.51% | 9.69% | 21.21% | 11.70% | 38.36% | +0.00 |
