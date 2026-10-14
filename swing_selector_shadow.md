@@ -1,28 +1,28 @@
 # Solaire Swing Selector — SHADOW
 
-Generated: 2026-10-14T11:57:04.926959+00:00
+Generated: 2026-10-14T17:14:05.830871+00:00
 Version: SWING_SELECTOR_V1_FROZEN_2026-10-08_R2
 No orders, no alerts, no Decision Layer changes.
 
 | Rank | Market | Score | Status | 3d | 7d | 14d | RS BTC 7d | Dist EMA50 | News mod |
 |---:|---|---:|---|---:|---:|---:|---:|---:|---:|
-| 1 | ICNT-EUR | 86.01 | HUMAN_REVIEW | 8.04% | 16.66% | 14.93% | 16.52% | 7.28% | +0.00 |
-| 2 | STX-EUR | 84.88 | WAIT_PULLBACK_OR_NORMALIZATION | 9.28% | 17.78% | 19.19% | 17.65% | 37.91% | +1.25 |
-| 3 | SAFE-EUR | 84.77 | HUMAN_REVIEW | 7.66% | 13.75% | 7.84% | 13.61% | 16.05% | +0.00 |
-| 4 | PYTH-EUR | 84.15 | HUMAN_REVIEW | 3.78% | 10.89% | 7.74% | 10.75% | 23.41% | +0.00 |
-| 5 | OP-EUR | 83.42 | PREWATCH_PERSISTENCE_REQUIRED | 4.01% | 21.00% | 16.90% | 20.86% | 24.36% | +0.00 |
-| 6 | INJ-EUR | 82.23 | HUMAN_REVIEW | 2.83% | 6.35% | 8.43% | 6.21% | 18.29% | +0.00 |
-| 7 | AMP-EUR | 82.22 | HUMAN_REVIEW | 8.95% | 20.84% | 12.91% | 20.70% | 27.04% | +0.00 |
-| 8 | SKL-EUR | 81.76 | HUMAN_REVIEW | 0.68% | 11.05% | 9.44% | 10.92% | 14.03% | +0.00 |
-| 9 | AVA-EUR | 81.67 | WAIT_PULLBACK_OR_NORMALIZATION | 14.61% | 14.94% | 7.85% | 14.80% | 18.85% | +0.00 |
-| 10 | CTR-EUR | 81.46 | HUMAN_REVIEW | 3.76% | 6.51% | 5.22% | 6.37% | 17.24% | +0.00 |
-| 11 | DODO-EUR | 80.54 | PERSISTENT_TOP20 | 6.79% | 10.61% | 8.50% | 10.47% | 7.10% | +0.00 |
-| 12 | ACE-EUR | 79.74 | PERSISTENT_TOP20 | 1.96% | 9.88% | 5.90% | 9.74% | 12.25% | +0.00 |
-| 13 | AXL-EUR | 78.78 | PREWATCH_PERSISTENCE_REQUIRED | 6.56% | 18.20% | 21.89% | 18.06% | 25.61% | +0.00 |
-| 14 | AZTEC-EUR | 78.74 | PREWATCH_PERSISTENCE_REQUIRED | 6.96% | 30.68% | 16.86% | 30.55% | 26.84% | +0.00 |
-| 15 | ALT-EUR | 77.93 | PERSISTENT_TOP20 | 0.33% | 10.64% | 8.07% | 10.50% | 13.21% | +0.00 |
-| 16 | TRAC-EUR | 77.60 | PREWATCH_PERSISTENCE_REQUIRED | 7.52% | 9.79% | 6.68% | 9.65% | 21.68% | +0.00 |
-| 17 | TIA-EUR | 76.78 | PERSISTENT_TOP20 | -6.70% | 15.51% | 24.36% | 15.37% | 23.02% | +0.00 |
-| 18 | LINEA-EUR | 76.39 | PERSISTENT_TOP20 | -1.01% | 8.54% | 2.53% | 8.41% | 9.74% | +0.00 |
-| 19 | FIL-EUR | 76.30 | PERSISTENT_TOP20 | -7.59% | 7.29% | 9.75% | 7.15% | 17.56% | +0.00 |
-| 20 | WLFI-EUR | 75.43 | PREWATCH_PERSISTENCE_REQUIRED | 0.12% | 3.27% | 4.73% | 3.13% | 2.12% | +0.00 |
+| 1 | ICNT-EUR | 88.21 | HUMAN_REVIEW | 6.63% | 15.14% | 13.43% | 16.17% | 5.94% | +0.00 |
+| 2 | PYTH-EUR | 85.67 | HUMAN_REVIEW | 4.41% | 11.56% | 8.39% | 12.58% | 24.12% | +0.00 |
+| 3 | STX-EUR | 83.94 | WAIT_PULLBACK_OR_NORMALIZATION | 6.52% | 14.81% | 16.19% | 15.84% | 34.61% | +0.00 |
+| 4 | AMP-EUR | 83.84 | HUMAN_REVIEW | 8.16% | 19.97% | 12.10% | 20.99% | 26.17% | +0.00 |
+| 5 | CTR-EUR | 83.16 | HUMAN_REVIEW | 6.23% | 9.03% | 7.72% | 10.06% | 19.89% | +0.00 |
+| 6 | DODO-EUR | 82.77 | HUMAN_REVIEW | 9.39% | 13.30% | 11.14% | 14.33% | 9.60% | +0.00 |
+| 7 | INJ-EUR | 82.46 | HUMAN_REVIEW | 1.25% | 4.71% | 6.76% | 5.74% | 16.55% | +0.00 |
+| 8 | OP-EUR | 81.71 | HUMAN_REVIEW | -3.11% | 12.71% | 8.90% | 13.74% | 16.23% | +0.00 |
+| 9 | AXL-EUR | 81.51 | HUMAN_REVIEW | 4.80% | 16.25% | 19.88% | 17.28% | 23.64% | +0.00 |
+| 10 | AZTEC-EUR | 80.71 | HUMAN_REVIEW | 3.37% | 26.29% | 12.94% | 27.32% | 22.78% | +0.00 |
+| 11 | SKL-EUR | 78.12 | PERSISTENT_TOP20 | -1.73% | 8.39% | 6.82% | 9.42% | 11.42% | +0.00 |
+| 12 | NES-EUR | 77.88 | PREWATCH_PERSISTENCE_REQUIRED | 5.03% | 8.36% | -0.52% | 9.39% | -1.18% | +0.00 |
+| 13 | WLFI-EUR | 77.55 | PERSISTENT_TOP20 | 0.31% | 3.47% | 4.94% | 4.50% | 2.32% | +0.00 |
+| 14 | AVA-EUR | 77.54 | PERSISTENT_TOP20 | 21.86% | 22.22% | 14.68% | 23.24% | 26.00% | +0.00 |
+| 15 | TIA-EUR | 77.49 | PERSISTENT_TOP20 | -6.91% | 15.26% | 24.09% | 16.29% | 22.77% | +0.00 |
+| 16 | ACE-EUR | 76.92 | PERSISTENT_TOP20 | -0.68% | 7.03% | 3.16% | 8.06% | 9.47% | +0.00 |
+| 17 | DEEP-EUR | 76.34 | PREWATCH_PERSISTENCE_REQUIRED | 9.20% | 12.97% | 7.64% | 13.99% | 25.02% | +0.00 |
+| 18 | TRAC-EUR | 76.10 | PERSISTENT_TOP20 | 3.37% | 5.55% | 2.56% | 6.58% | 17.20% | +0.00 |
+| 19 | ALT-EUR | 75.94 | PERSISTENT_TOP20 | -1.36% | 8.78% | 6.25% | 9.80% | 11.39% | +0.00 |
+| 20 | SAFE-EUR | 75.82 | PERSISTENT_TOP20 | 2.47% | 8.27% | 2.64% | 9.30% | 10.70% | +0.00 |
