@@ -1,6 +1,6 @@
 # Decision Layer V1 + boucle de contrôle — shadow
 
-Scan : 2026-10-14T19:40:59.686458+00:00
+Scan : 2026-10-14T22:44:29.955642+00:00
 Policy : DECISION_LAYER_V1_SHADOW au-dessus de V4_FROZEN_20260908
 
 Cette couche ne modifie aucun score V4 et ne peut envoyer aucun ordre.
@@ -8,55 +8,56 @@ Entry est un indicateur de timing, pas un veto structurel.
 
 ## Quatre lectures obligatoires
 
-- **MEILLEUR_ACHAT_IMMEDIAT** : OP-EUR | action ACHETE_MAINTENANT | opportunité 9.097 | entrée 7.650 | trend 7.900 | rang 7.925
-  - V4 buy-ready with acceptable current entry; no structural veto.
-- **MEILLEURE_LIMITE_PASSIVE** : ICNT-EUR | action PLACE_LIMITE_PASSIVE | opportunité 7.692 | entrée 6.200 | trend 8.750 | rang 7.552
+- **MEILLEUR_ACHAT_IMMEDIAT** : aucun candidat matériel
+- **MEILLEURE_LIMITE_PASSIVE** : ICNT-EUR | action PLACE_LIMITE_PASSIVE | opportunité 7.728 | entrée 6.650 | trend 8.750 | rang 7.543
   - Strong structure but imperfect current entry; prefer passive execution.
-- **MEILLEUR_LATENT_ACCELERATOR** : aucun candidat matériel
-- **MEILLEUR_PULLBACK_REENTRY** : STX-EUR | action ATTENDS_REPRISE_OU_REENTREE | opportunité 8.966 | entrée 6.750 | trend 8.650 | rang 8.021
+- **MEILLEUR_LATENT_ACCELERATOR** : DEEP-EUR | action LATENT_ACCELERATOR | opportunité 7.526 | entrée 5.700 | trend 8.950 | rang 6.742
+  - Strong structural opportunity retained despite weak instantaneous entry.
+- **MEILLEUR_PULLBACK_REENTRY** : STX-EUR | action ATTENDS_REPRISE_OU_REENTREE | opportunité 8.097 | entrée 6.200 | trend 8.900 | rang 7.699
   - Strong trend/opportunity retained through pullback; timing does not erase setup.
 
 ## Tous les achats immédiats
 
-1. OP-EUR — ACHETE_MAINTENANT — rank 7.925 — opportunité 9.097 — entrée 7.650 — trend 7.900
+Aucun ACHETE_MAINTENANT dans le classement complet.
 
 ## Top cross-sectionnel — aperçu non exhaustif
 
 Ce top est une vue courte multi-buckets. Il ne doit jamais être utilisé comme liste exhaustive des achats immédiats.
-1. STX-EUR — MEILLEUR_PULLBACK_REENTRY — ATTENDS_REPRISE_OU_REENTREE — rank 8.021
-2. OP-EUR — MEILLEUR_ACHAT_IMMEDIAT — ACHETE_MAINTENANT — rank 7.925
-3. ICNT-EUR — MEILLEURE_LIMITE_PASSIVE — PLACE_LIMITE_PASSIVE — rank 7.552
+1. STX-EUR — MEILLEUR_PULLBACK_REENTRY — ATTENDS_REPRISE_OU_REENTREE — rank 7.699
+2. ICNT-EUR — MEILLEURE_LIMITE_PASSIVE — PLACE_LIMITE_PASSIVE — rank 7.543
+3. PYTH-EUR — MEILLEUR_PULLBACK_REENTRY — ATTENDS_REPRISE_OU_REENTREE — rank 7.453
 
 ## Accélération indépendante
 
-- CT-EUR — BUILDING_ACCELERATION — score 5.805/10 — REQUIRES_FINAL_EXECUTION_VALIDATION
-- NIL-EUR — BUILDING_ACCELERATION — score 5.592/10 — DETECTED_BUT_TOO_LATE
+- OSMO-EUR — CONFIRMED_ACCELERATION — score 8.500/10 — DETECTED_BUT_TOO_LATE
+- PNT-EUR — BUILDING_ACCELERATION — score 6.000/10 — DETECTED_BUT_TOO_LATE
+- LINEA-EUR — BUILDING_ACCELERATION — score 5.074/10 — REQUIRES_FINAL_EXECUTION_VALIDATION
 
 ## Watchlist persistante 24–72 h
 
 - MEGA-EUR — MEMORY_24H — score mémoire 9.593/10 — sources ACCELERATION — MEMORY_ONLY
 - NES-EUR — MEMORY_24H — score mémoire 9.532/10 — sources ACCELERATION — MEMORY_ONLY
 - PONKE-EUR — MEMORY_24H — score mémoire 9.495/10 — sources ACCELERATION — MEMORY_ONLY
+- OSMO-EUR — ACTIVE_NOW — score mémoire 8.500/10 — sources ACCELERATION, DECISION_LAYER — DETECTED_BUT_TOO_LATE
 - PUFFER-EUR — MEMORY_24H — score mémoire 8.033/10 — sources ACCELERATION — MEMORY_ONLY
-- STX-EUR — ACTIVE_NOW — score mémoire 8.021/10 — sources ACCELERATION, DECISION_LAYER, V4 — WATCH_ONLY
-- OP-EUR — ACTIVE_NOW — score mémoire 7.925/10 — sources ACCELERATION, DECISION_LAYER, V4 — WATCH_ONLY
 - GIGA-EUR — MEMORY_24H — score mémoire 7.813/10 — sources ACCELERATION — MEMORY_ONLY
+- STX-EUR — ACTIVE_NOW — score mémoire 7.699/10 — sources ACCELERATION, DECISION_LAYER, V4 — WATCH_ONLY
 - QUID-EUR — MEMORY_24H — score mémoire 7.680/10 — sources ACCELERATION — MEMORY_ONLY
 - RAD-EUR — MEMORY_24H — score mémoire 7.564/10 — sources ACCELERATION, DECISION_LAYER — MEMORY_ONLY
-- ICNT-EUR — ACTIVE_NOW — score mémoire 7.552/10 — sources DECISION_LAYER, V4 — WATCH_ONLY
+- ICNT-EUR — ACTIVE_NOW — score mémoire 7.543/10 — sources DECISION_LAYER, V4 — WATCH_ONLY
 
 ## Audit des plus fortes hausses
 
-- WAL-EUR +58.20% — INSUFFICIENT_HISTORY — couche HISTORY — action NOT_APPLICABLE
-- AVA-EUR +41.71% — INSUFFICIENT_HISTORY — couche HISTORY — action NOT_APPLICABLE
-- DEEP-EUR +16.48% — INSUFFICIENT_HISTORY — couche HISTORY — action NOT_APPLICABLE
-- NIL-EUR +12.87% — INSUFFICIENT_HISTORY — couche HISTORY — action NOT_APPLICABLE
-- AXL-EUR +12.15% — INSUFFICIENT_HISTORY — couche HISTORY — action NOT_APPLICABLE
-- CT-EUR +9.61% — INSUFFICIENT_HISTORY — couche HISTORY — action NOT_APPLICABLE
-- IKA-EUR +8.50% — INSUFFICIENT_HISTORY — couche HISTORY — action NOT_APPLICABLE
-- PNT-EUR +7.69% — INSUFFICIENT_HISTORY — couche HISTORY — action NOT_APPLICABLE
-- NES-EUR +6.91% — INSUFFICIENT_HISTORY — couche HISTORY — action NOT_APPLICABLE
-- FLUID-EUR +6.61% — NO_CONFIRMED_SHORT_TERM_EVENT — couche NOT_APPLICABLE — action NOT_APPLICABLE
+- WAL-EUR +65.80% — INSUFFICIENT_HISTORY — couche HISTORY — action NOT_APPLICABLE
+- AVA-EUR +19.00% — INSUFFICIENT_HISTORY — couche HISTORY — action NOT_APPLICABLE
+- DEEP-EUR +17.81% — INSUFFICIENT_HISTORY — couche HISTORY — action NOT_APPLICABLE
+- OSMO-EUR +17.38% — INSUFFICIENT_HISTORY — couche HISTORY — action NOT_APPLICABLE
+- PNT-EUR +16.32% — INSUFFICIENT_HISTORY — couche HISTORY — action NOT_APPLICABLE
+- NIL-EUR +14.99% — INSUFFICIENT_HISTORY — couche HISTORY — action NOT_APPLICABLE
+- AXL-EUR +14.04% — INSUFFICIENT_HISTORY — couche HISTORY — action NOT_APPLICABLE
+- PYTH-EUR +9.96% — DETECTED_EARLY — couche NONE — action ENTRY_TIMING_OR_EXECUTION
+- IKA-EUR +8.97% — INSUFFICIENT_HISTORY — couche HISTORY — action NOT_APPLICABLE
+- GLMR-EUR +7.90% — INSUFFICIENT_HISTORY — couche HISTORY — action NOT_APPLICABLE
 
 ## Gestion des positions détenues
 
