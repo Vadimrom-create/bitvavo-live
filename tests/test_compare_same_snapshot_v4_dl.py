@@ -30,6 +30,7 @@ class SameSnapshotTests(unittest.TestCase):
         report=inspect_scan(scan([a,b]),source="memory",source_sha256="x"*64)
         self.assertEqual(report["counts"]["confirmed_and_immediate"],1)
         self.assertEqual(report["counts"]["confirmed_not_immediate"],1)
+        self.assertEqual(report["confirmed_markets"],["A-EUR","B-EUR"])
         self.assertFalse(report["actual_direct_production_gate_compared"])
         self.assertFalse(report["same_inputs_as_direct_production"])
 
