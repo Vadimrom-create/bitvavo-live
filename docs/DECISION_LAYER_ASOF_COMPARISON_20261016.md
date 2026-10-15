@@ -24,3 +24,19 @@ PR-only CI emits a temporary public-research artifact, without publishing privat
 5. Study 6/12/24-month price-memory zones as a **separate shadow variable**: FET's rebound is a hypothesis, not proof of systematic mean reversion.
 
 Do not reinstate the Decision Layer as a production veto without separately approved prospective evidence.
+
+## First empirical cadence audit — 16 October checkpoint
+
+Research workflow [#38819050737](https://github.com/Vadimrom-create/bitvavo-live/actions/runs/38819050737) **SUCCESS**; regression tests and both archive studies passed. Data are a moving retention-limited snapshot, not a frozen 30-day strategy cohort.
+
+- **1,766** public machine decisions, including **497 BUY_SENT**, **1,269 REJECTED**; **2,086** readable historical DL snapshots.
+- 15-min (900 s) maximal DL age: **24 / 497 BUY_SENT matched (4.83%)**.
+- 30-min (1800 s): **41 / 497 (8.25%)**.
+- 60-min (3600 s): **89 / 497 (17.91%)**; all machine events 308 / 1766 (17.44%).
+- 120-min (7200 s): **212 / 497 (42.66%)**; all machine events 671 / 1766 (38.00%).
+- Full UTC day 2026-10-14: **9** archived DL generations for **96 nominal quarter-hour slots**, median observed gap **178.75 min**, max gap **302.29 min**.
+- Partial UTC day 2026-10-15 through last observed generation at 22:12: **6** archived DL generations, median observed gap **278.08 min**, maximum **286.52 min**. Do not compare this partial day to a complete day's 96 slots.
+
+The schedule `7,22,37,52 * * * *` has been configured since at least the October 4 workflow revision. The scheduled runs examined on October 15 passed their tests, pipeline and DL generation steps; the observed omissions are **not currently attributed** to any one GitHub cause. The data establish low *published archive cadence*, not the number or origin of missed cron dispatches. The outcomes do **not** establish an economic benefit of DL. Accepting a 120-minute stale state for 42.66% matching is a sensitivity study, **not an acceptable trading decision latency**.
+
+A prospective synchronous study must timestamp same-cycle context and publication separately, and be isolated from Solaire production. **No promotion or auto-merge.**
