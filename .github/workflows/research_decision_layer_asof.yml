@@ -1,0 +1,37 @@
+name: Research Decision Layer as-of comparison
+on:
+  pull_request:
+    paths:
+      - scripts/compare_direct_decision_shadow.py
+      - tests/test_compare_direct_decision_shadow.py
+      - docs/DECISION_LAYER_ASOF_COMPARISON_20261016.md
+      - .github/workflows/research_decision_layer_asof.yml
+permissions:
+  contents: read
+jobs:
+  asof-evidence:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          filter: blob:none
+          sparse-checkout: |
+            scripts/compare_direct_decision_shadow.py
+            tests/test_compare_direct_decision_shadow.py
+            production_direct_decision_journal.json
+            decision_history
+          sparse-checkout-cone-mode: false
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Offline causal join regression tests
+        run: python -m unittest discover -s tests -p 'test_compare_direct_decision_shadow.py' -v
+      - name: Align retained public production decisions with historical DL states
+        run: python scripts/compare_direct_decision_shadow.py --max-age-seconds 3600 --output /tmp/dl-asof-evidence.json
+      - uses: actions/upload-artifact@v4
+        with:
+          name: dl-asof-research-only
+          path: /tmp/dl-asof-evidence.json
+          retention-days: 14
