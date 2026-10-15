@@ -31,7 +31,7 @@ jobs:
         with:
           python-version: '3.11'
       - name: Offline causal join regression tests
-        run: python -m unittest discover -s tests -p 'test_*dl*.py' -v
+        run: python -m unittest discover -s tests -p 'test_*.py' -v
       - name: Align retained public production decisions with historical DL states
         run: python scripts/compare_direct_decision_shadow.py --max-age-seconds 3600 --output /tmp/dl-asof-evidence.json
       - name: Quantify DL cadence and freshness sensitivity
