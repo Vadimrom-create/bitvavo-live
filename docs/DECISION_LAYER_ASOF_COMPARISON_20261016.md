@@ -40,3 +40,15 @@ Research workflow [#38819050737](https://github.com/Vadimrom-create/bitvavo-live
 The schedule `7,22,37,52 * * * *` has been configured since at least the October 4 workflow revision. The scheduled runs examined on October 15 passed their tests, pipeline and DL generation steps; the observed omissions are **not currently attributed** to any one GitHub cause. The data establish low *published archive cadence*, not the number or origin of missed cron dispatches. The outcomes do **not** establish an economic benefit of DL. Accepting a 120-minute stale state for 42.66% matching is a sensitivity study, **not an acceptable trading decision latency**.
 
 A prospective synchronous study must timestamp same-cycle context and publication separately, and be isolated from Solaire production. **No promotion or auto-merge.**
+
+## Second empirical experiment — identical frozen V4 scan (16 Oct checkpoint)
+
+PR-only workflow [#38822675635](https://github.com/Vadimrom-create/bitvavo-live/actions/runs/38822675635) **SUCCESS**: 24 synthetic tests passed; recalculated `research/decision_layer.classify` actions agree with all the six archived `decision_history` reports (`frozen_dl_replay_mismatches=0`). The earlier 198 mismatches were a **bug in the research classification of missing V4 profiles**, now corrected with a regression test; they were not policy drift.
+
+Inputs: **6** immutable full-market `history/2026-10-15/*.json.gz` scans, **2,562** observations, same scan IDs and source features for original/recomputed DL and archived V4 acceleration states. Among the **43** V4 `CONFIRMED_ACCELERATION` states: `DL ACHETE_MAINTENANT=0`, `WATCH=36`, `VETO_STRUCTUREL=3`, `PLACE_LIMITE_PASSIVE=2`, `ATTENDS_REPRISE_OU_REENTREE=1`, `DL_UNCLASSIFIABLE_NO_BASELINE=1`.
+
+**What is established**: consistent DL code replay on the same immutable V4 observations and an apparent strictness/timing conflict between V4 acceleration evidence and DL immediate-buy classification. No policy mismatch in this selected day.
+
+**What is NOT established**: these are **not modern DIRECT BUY_SENT signals**. V4 acceleration is *legacy upstream evidence* and its `CONFIRMED_ACCELERATION` does not guarantee a safe fill or a BUY from the independent direct scanner. Original DL generation occurs after its source scan; archival replay is not verified delivery-time classification. No matched DIRECT vs DL PnL, no actual fills, and no reason to relax safety vetoes or change production.
+
+Remaining target for #134: prospective same-cycle independent source capture, causal as-of timestamp and immutable direct event IDs; evaluate avoided losers vs forgone winners after stop-first, spread, true bid/ask liquidity, fees, capital concurrency and matured 24/48/72h. Preserve separate 6/12/24-month price-memory research to avoid FET hindsight.
