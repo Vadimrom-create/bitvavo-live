@@ -68,7 +68,10 @@ def inspect_scan(scan, *, source, source_sha256, frozen_dl=None):
         baseline_present=isinstance(base,dict) and bool(base)
         if not baseline_present:
             counts["baseline_features_unknown"]+=1
-        dl_action=classify(obs)["action"] if baseline_present else "DL_UNCLASSIFIABLE_NO_BASELINE"
+        # Replay archived policy faithfully even without a V4 profile. For inference,
+        # keep absent V4 features as UNCLASSIFIABLE rather than silently WATCH.
+        raw_dl_action=classify(obs)["action"]
+        dl_action=raw_dl_action if baseline_present else "DL_UNCLASSIFIABLE_NO_BASELINE"
         counts["observations"]+=1
         counts["acceleration_"+state]+=1
         counts["dl_"+dl_action]+=1
@@ -78,10 +81,10 @@ def inspect_scan(scan, *, source, source_sha256, frozen_dl=None):
         if frozen_dl is not None:
             if market not in dl_lookup:
                 counts["missing_frozen_dl_market"]+=1
-            elif dl_action!=dl_lookup[market]:
+            elif raw_dl_action!=dl_lookup[market]:
                 counts["frozen_dl_action_mismatch"]+=1
                 if len(exceptions)<15:
-                    exceptions.append({"market":market,"recomputed":dl_action,"original":dl_lookup[market]})
+                    exceptions.append({"market":market,"recomputed":raw_dl_action,"original":dl_lookup[market]})
             else:
                 counts["frozen_dl_action_matched"]+=1
         if state == "CONFIRMED_ACCELERATION":
