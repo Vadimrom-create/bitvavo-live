@@ -35,6 +35,7 @@ def inspect_scan(scan, *, source, source_sha256, frozen_dl=None):
     if not isinstance(sid,str) or not sid or not isinstance(sat,str) or not sat:
         raise SnapshotError("missing scan identity or scan time")
     seen=set()
+    confirmed_markets=set()
     counts=Counter()
     cross=Counter()
     exceptions=[]
@@ -88,13 +89,15 @@ def inspect_scan(scan, *, source, source_sha256, frozen_dl=None):
             else:
                 counts["frozen_dl_action_matched"]+=1
         if state == "CONFIRMED_ACCELERATION":
+            confirmed_markets.add(market)
             if dl_action=="ACHETE_MAINTENANT":
                 counts["confirmed_and_immediate"]+=1
             elif dl_action not in ("DL_UNCLASSIFIABLE_NO_BASELINE",):
                 counts["confirmed_not_immediate"]+=1
     return {
         "scan_id":sid,"scan_at_utc":sat,"source":source,"source_sha256":source_sha256,
-        "total_markets":len(seen),"counts":dict(sorted(counts.items())),
+        "total_markets":len(seen),"confirmed_markets":sorted(confirmed_markets),
+        "counts":dict(sorted(counts.items())),
         "acceleration_dl_cross":[{"legacy_acceleration":state,"dl_action":action,"n":n}
                                  for (state,action),n in sorted(cross.items())],
         "frozen_dl_archive_present":frozen_dl is not None,
@@ -130,7 +133,9 @@ def run(paths, decision_dir):
     reports=[inspect_file(Path(p),decision_dir) for p in paths]
     count=Counter()
     table=Counter()
+    all_confirmed_markets=set()
     for report in reports:
+        all_confirmed_markets.update(report["confirmed_markets"])
         count.update(report["counts"])
         for cell in report["acceleration_dl_cross"]:
             table[(cell["legacy_acceleration"],cell["dl_action"])]+=cell["n"]
@@ -142,6 +147,9 @@ def run(paths, decision_dir):
         "frozen_dl_replay_mismatches":count["frozen_dl_action_mismatch"],
         "missing_dl_archives":sum(not x["frozen_dl_archive_present"] for x in reports),
         "total_confirmed_acceleration":count["acceleration_CONFIRMED_ACCELERATION"],
+        "distinct_markets_with_confirmed_acceleration":len(all_confirmed_markets),
+        "confirmed_market_names":sorted(all_confirmed_markets),
+        "independent_signal_episodes_established":False,
         "confirmed_also_dl_immediate":count["confirmed_and_immediate"],
         "confirmed_dl_not_immediate":count["confirmed_not_immediate"],
         "unclassifiable_confirmed":count["acceleration_CONFIRMED_ACCELERATION"]-count["confirmed_and_immediate"]-count["confirmed_not_immediate"],
