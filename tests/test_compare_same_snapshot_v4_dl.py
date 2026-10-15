@@ -39,6 +39,13 @@ class SameSnapshotTests(unittest.TestCase):
         self.assertEqual(report["counts"]["dl_DL_UNCLASSIFIABLE_NO_BASELINE"],1)
         self.assertEqual(report["counts"]["baseline_features_unknown"],1)
 
+    def test_missing_baseline_still_matches_frozen_watch_in_replay(self):
+        a=obs("A-EUR","CONFIRMED_ACCELERATION",with_base=False)
+        frozen={"scan_id":scan([a])["scan_id"],"ranked":[{"market":"A-EUR","action":"WATCH"}]}
+        out=inspect_scan(scan([a]),source="memory",source_sha256="x"*64,frozen_dl=frozen)
+        self.assertTrue(out["dl_policy_replay_matches_archived"])
+        self.assertEqual(out["counts"]["dl_DL_UNCLASSIFIABLE_NO_BASELINE"],1)
+
     def test_missing_acceleration_not_labeled_zero(self):
         a=obs("A-EUR",None)
         report=inspect_scan(scan([a]),source="memory",source_sha256="x"*64)
