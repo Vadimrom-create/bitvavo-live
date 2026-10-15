@@ -13,8 +13,12 @@ import statistics
 from collections import Counter, defaultdict
 from datetime import datetime, timezone
 from pathlib import Path
+import sys
+ROOT = Path(__file__).resolve().parents[1]
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
 
-from compare_direct_decision_shadow import (
+from scripts.compare_direct_decision_shadow import (
     EvidenceError, compare, load_shadow_snapshots, read_events,
 )
 
