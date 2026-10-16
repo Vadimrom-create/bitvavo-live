@@ -52,3 +52,33 @@ Inputs: **6** immutable full-market `history/2026-10-15/*.json.gz` scans, **2,56
 **What is NOT established**: these are **not modern DIRECT BUY_SENT signals**. V4 acceleration is *legacy upstream evidence* and its `CONFIRMED_ACCELERATION` does not guarantee a safe fill or a BUY from the independent direct scanner. Original DL generation occurs after its source scan; archival replay is not verified delivery-time classification. No matched DIRECT vs DL PnL, no actual fills, and no reason to relax safety vetoes or change production.
 
 Remaining target for #134: prospective same-cycle independent source capture, causal as-of timestamp and immutable direct event IDs; evaluate avoided losers vs forgone winners after stop-first, spread, true bid/ask liquidity, fees, capital concurrency and matured 24/48/72h. Preserve separate 6/12/24-month price-memory research to avoid FET hindsight.
+
+
+## Third experiment — bounded real DIRECT buy signals and retrospective price references (16 October, 09:00 UTC)
+
+[PR-only workflow #38877402095 — SUCCESS](https://github.com/Vadimrom-create/bitvavo-live/actions/runs/38877402095) with **38 passing synthetic regression tests**, archive and source alignment, and bounded public Bitvavo read-only candle requests. Artifacts include \`direct-dl-price-paths.json\` and \`v4-dl-price-paths.json\`; 14-day artifact retention.
+
+Moving retention-limited machine journal at execution: **1,809** decisions including **514 BUY_SENT**; **2,088** historical DL archives. Only **24 BUY_SENT** have an earlier DL generation of at most 900 seconds (4.67% of 514); the remaining **490** had only older DL states. Availability on GitHub *by signal time* still unverified. From these 24, the deterministic first *five distinct markets* with mature horizons were RLC, W, TREAD, LUMIA, FIL, for 15 horizon observations (5 markets × 24/48/72h) — **not 15 independent trades**.
+
+All 15 strict 5m histories are \`INCOMPLETE\` because Bitvavo has gaps in the 5m trade candles. Indicative forward-filled zero-trade mark **only if >=80% actual observed 5m slots**, never a filled trade:
+
+| Pair | Historic machine date UTC | Prior DL generated state | 72h actual 5m coverage | Indicative 72h close vs SIGNAL LAST | Indicative 72h MFE | Indicative stop-vs-TP1 touch |
+|---|---|---|---:|---:|---:|---|
+| RLC-EUR | 2026-10-06 21:16 | WATCH | 98.84% | +31.9658% | +87.5826% | STOP before rebound |
+| W-EUR | 2026-10-07 23:16 | PLACE_LIMITE_PASSIVE | 83.66% | +10.9513% | +19.2300% | TP1 touched |
+| TREAD-EUR | 2026-10-11 00:04 | WATCH | 26.54% | CENSORED | CENSORED | UNKNOWN |
+| LUMIA-EUR | 2026-10-11 12:58 | WATCH | 80.88% | -35.4341% | +3.8091% | STOP |
+| FIL-EUR | 2026-10-11 20:50 | PLACE_LIMITE_PASSIVE | 75.32% | CENSORED | CENSORED | UNKNOWN |
+
+Very important: RLC initially had a 24h indicative close of **-15.3505%** with planned stop touched; its 72h +31.9658% mark / +87.5826% MFE cannot be counted as a realizable winner following the submitted stop. W's signal-time reference entry was **0.014181 EUR** but its machine limit entry was separate; a TP1 wick alone is not evidence of a filled limit order. LUMIA peaked only +3.8091% while closing -35.4341% at 72h. This is *descriptive evidence* for future classification research, not an estimator of DL avoided loss or missed profit.
+
+Also on V4 15 October: 6 observations are 24h mature, 0 strictly complete; only DUSK and PUFFER passed the >=80% 5m coverage threshold for separate indicative marks. No 48/72h reached maturity for that V4 date at this run.
+
+### Research priority
+
+1. Compare **real DIRECT BUY_SENT and REJECTED on identical prospective market snapshots**; current DL is based on older, independent V4 data and is not an actual same-input treatment.
+2. Isolate direct machine **order plans** (limit/stop/TP1), historical bid/ask books and true availability; do not convert arbitrary positive/negative candle paths into fills.
+3. Study 24/48/72h conditional on observed stop-before-target sequence, delayed continuation and liquidity, with predeclared OOS sampling.
+4. Publish N independent cash-constrained matched trades only once the input and execution evidence are valid. Until then, economic superiority: **NOT ESTABLISHED**.
+
+No changes to production, live V4, LIVE direct scanner, thresholds, email alerts, or actual orders. PR #169 remains draft.
