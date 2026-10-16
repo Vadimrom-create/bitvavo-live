@@ -61,7 +61,7 @@ jobs:
           GITHUB_TOKEN: ${{ github.token }}
         run: python scripts/verify_dl_commit_asof.py --asof-json /tmp/dl-asof-evidence.json --max-age-seconds 900 --output /tmp/dl-commit-asof-evidence.json
       - name: Quantify DL cadence and freshness sensitivity
-        run: python scripts/audit_dl_cadence.py --full-day-utc 2026-10-14 --output /tmp/dl-cadence-evidence.json
+        run: python scripts/audit_dl_cadence.py --full-day-utc 2026-10-14 --compare-periods 2026-09-10 2026-10-02 2026-10-04 2026-10-15 --output /tmp/dl-cadence-evidence.json
       - name: Compare same-snapshot V4 acceleration proxy and Decision Layer
         run: python scripts/compare_same_snapshot_v4_dl.py --history-glob 'history/2026-10-15/*.json.gz' --output /tmp/v4-accel-dl-same-snapshot.json
       - name: Observe matured 24/48/72h reference paths on first V4 confirmed events
