@@ -11,7 +11,7 @@ import argparse
 import json
 import statistics
 from collections import Counter, defaultdict
-from datetime import datetime, timezone
+from datetime import date, datetime, timedelta, timezone
 from pathlib import Path
 import sys
 ROOT = Path(__file__).resolve().parents[1]
@@ -26,6 +26,49 @@ DEFAULT_AGE_WINDOWS = (900, 1800, 3600, 7200)
 
 def day_utc(ts):
     return datetime.fromtimestamp(ts, tz=timezone.utc).strftime("%Y-%m-%d")
+
+
+def diagnose_calendar_shift(daily, baseline_start, baseline_end, later_start, later_end):
+    """Exploratory fixed-window archive counts; zero-archive days count as zero.
+
+    Dates are UTC and must be fully ended at analysis time. Do not infer
+    missing GitHub scheduled dispatches or causal software regressions.
+    """
+    count_by_day={r["date_utc"]:r["n_snapshots"] for r in daily}
+    def segment(start,end):
+        start_day=date.fromisoformat(start)
+        end_day=date.fromisoformat(end)
+        if end_day<start_day:
+            raise EvidenceError("invalid date range")
+        values=[]
+        cursor=start_day
+        while cursor<=end_day:
+            values.append(count_by_day.get(cursor.isoformat(),0))
+            cursor+=timedelta(days=1)
+        return {"start_utc":start,"end_utc":end,"full_days":len(values),
+                "total_archives":sum(values),
+                "mean_per_day":round(statistics.mean(values),4),
+                "median_per_day":round(statistics.median(values),4),
+                "zero_archive_days":sum(n==0 for n in values)}
+    if date.fromisoformat(later_start)<=date.fromisoformat(baseline_end):
+        raise EvidenceError("overlapping or reversed diagnosis periods")
+    old=segment(baseline_start,baseline_end)
+    new=segment(later_start,later_end)
+    if old["mean_per_day"]>0:
+        change_pct=round(100*(new["mean_per_day"]/old["mean_per_day"]-1),2)
+        decline_pct=round(-change_pct,2)
+    else:
+        change_pct=decline_pct=None
+    return {
+        "schema":"solaire_dl_archive_frequency_shift_v1",
+        "research_only":True,"method":"EXPLORATORY_CALENDAR_PERIOD_COMPARE",
+        "baseline":old,"later":new,
+        "relative_change_pct":change_pct,"decline_pct":decline_pct,
+        "shadow_continuity_degraded":change_pct is not None and change_pct<=-50,
+        "causal_conclusion":None,
+        "missing_cron_dispatches_proven":None,
+        "note":"Counts are generated archival snapshots by completed UTC dates, not GitHub schedule runs or independent trades.",
+    }
 
 def summarize_cadence(events, snapshots, windows=DEFAULT_AGE_WINDOWS, *, full_day=None):
     if not windows or any(type(v) is not int or v <= 0 for v in windows):
@@ -92,6 +135,7 @@ def main(argv=None):
     parser.add_argument("--decision-history", default="decision_history")
     parser.add_argument("--full-day-utc", default=None, help="ISO YYYY-MM-DD date known to be complete")
     parser.add_argument("--output", help="optional research JSON path")
+    parser.add_argument("--compare-periods", nargs=4, metavar=("BASE_FROM","BASE_TO","LATER_FROM","LATER_TO"), help="Optional exploratory comparison of two completed UTC date periods")
     args = parser.parse_args(argv)
     try:
         source=json.loads(Path(args.machine).read_text(encoding="utf-8"))
@@ -99,6 +143,8 @@ def main(argv=None):
         snaps, bad=load_shadow_snapshots(args.decision_history,{e["market"] for e in events})
         report=summarize_cadence(events, snaps, full_day=args.full_day_utc)
         report["unreadable_snapshot_counts"]=bad
+        if args.compare_periods:
+            report["cadence_shift_diagnostic"]=diagnose_calendar_shift(report["daily_shadow_generated_observations"],*args.compare_periods)
         if args.output:
             Path(args.output).write_text(json.dumps(report,ensure_ascii=False,sort_keys=True,indent=2)+"\n",encoding="utf-8")
         print(json.dumps(report,ensure_ascii=False,sort_keys=True,indent=2))
