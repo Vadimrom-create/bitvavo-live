@@ -8,16 +8,19 @@ on:
       - scripts/research_dl_price_paths.py
       - scripts/research_direct_dl_outcomes.py
       - scripts/verify_dl_commit_asof.py
+      - scripts/audit_dl_dispatches.py
       - tests/test_compare_direct_decision_shadow.py
       - tests/test_audit_dl_cadence.py
       - tests/test_compare_same_snapshot_v4_dl.py
       - tests/test_research_dl_price_paths.py
       - tests/test_research_direct_dl_outcomes.py
       - tests/test_verify_dl_commit_asof.py
+      - tests/test_audit_dl_dispatches.py
       - docs/DECISION_LAYER_ASOF_COMPARISON_20261016.md
       - .github/workflows/research_decision_layer_asof.yml
 permissions:
   contents: read
+  actions: read
 jobs:
   asof-evidence:
     runs-on: ubuntu-latest
@@ -33,6 +36,7 @@ jobs:
             scripts/research_dl_price_paths.py
             scripts/research_direct_dl_outcomes.py
             scripts/verify_dl_commit_asof.py
+            scripts/audit_dl_dispatches.py
             research/common.py
             research/http.py
             research/production_journal.py
@@ -45,6 +49,7 @@ jobs:
             tests/test_research_dl_price_paths.py
             tests/test_research_direct_dl_outcomes.py
             tests/test_verify_dl_commit_asof.py
+            tests/test_audit_dl_dispatches.py
             production_direct_decision_journal.json
             decision_history
           sparse-checkout-cone-mode: false
@@ -60,6 +65,10 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ github.token }}
         run: python scripts/verify_dl_commit_asof.py --asof-json /tmp/dl-asof-evidence.json --max-age-seconds 900 --output /tmp/dl-commit-asof-evidence.json
+      - name: Count actual recorded V4-DL scheduled workflow runs by historical UTC date
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: python scripts/audit_dl_dispatches.py --days 2026-10-02 2026-10-03 2026-10-04 2026-10-14 2026-10-15 --output /tmp/dl-github-dispatch.json
       - name: Quantify DL cadence and freshness sensitivity
         run: python scripts/audit_dl_cadence.py --full-day-utc 2026-10-14 --compare-periods 2026-09-10 2026-10-02 2026-10-04 2026-10-15 --output /tmp/dl-cadence-evidence.json
       - name: Compare same-snapshot V4 acceleration proxy and Decision Layer
@@ -78,4 +87,5 @@ jobs:
             /tmp/v4-dl-price-paths.json
             /tmp/direct-dl-price-paths.json
             /tmp/dl-commit-asof-evidence.json
+            /tmp/dl-github-dispatch.json
           retention-days: 14
