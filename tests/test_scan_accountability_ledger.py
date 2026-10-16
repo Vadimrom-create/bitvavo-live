@@ -109,6 +109,28 @@ class ScanAccountabilityTests(unittest.TestCase):
         bad = dict(good, both_executions_validated=False)
         self.assertEqual(mod.validate_pairs([bad], {"s1-ogn"}), [])
 
+    def test_verified_refusal_has_explicit_zero_position_arm(self):
+        ds = mod.validate_decisions([decision()], ASOF)
+        p = dict(record_type="paired_outcome", decision_id="s1-ogn", horizon_hours=4,
+                 both_executions_validated=False, matched_budget_policy_costs=True,
+                 horizon_matured=True, independent_episode=True,
+                 solaire_execution_validated_at_chat_decision=True,
+                 chatgpt_no_trade_verified=True, decision_time_parity_verified=True,
+                 solaire_net_eur=3.5, chatgpt_net_eur=0)
+        # A loose historical price or a BUY action cannot count as avoided PnL.
+        action = {"s1-ogn": "WAIT_RECHECK"}
+        self.assertEqual(mod.validate_pairs([p], {"s1-ogn"}), [])
+        self.assertEqual(mod.validate_pairs([p], {"s1-ogn"}, {"s1-ogn": "BUY"}), [])
+        self.assertEqual(mod.validate_pairs([dict(p, decision_time_parity_verified=False)],
+                                             {"s1-ogn"}, action), [])
+        self.assertEqual(mod.validate_pairs([dict(p, chatgpt_net_eur=-1.0)],
+                                             {"s1-ogn"}, action), [])
+        verified = mod.validate_pairs([p], {"s1-ogn"}, action)
+        self.assertEqual(len(verified), 1)
+        r = mod.aggregate(ds, [], verified, ASOF)
+        self.assertEqual(r["paired_net"]["4"]["chatgpt_net_eur"], 0)
+        self.assertEqual(r["paired_net"]["4"]["chatgpt_minus_solaire_eur"], -3.5)
+
     def test_no_lookahead(self):
         with self.assertRaises(mod.InputError):
             mod.validate_decisions([decision(source_at_utc="2026-10-08T10:03:00Z")], ASOF)
