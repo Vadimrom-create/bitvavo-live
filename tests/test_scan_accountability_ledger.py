@@ -60,6 +60,42 @@ class ScanAccountabilityTests(unittest.TestCase):
         self.assertEqual(result["overdue_recheck_ids"], [])
         self.assertEqual(result["unreviewed_new_machine_alerts"], [])
 
+    def test_late_refusal_is_not_treated_as_ex_ante_veto(self):
+        ds = mod.validate_decisions([
+            decision(decision_id="d-late", market="ABC-EUR",
+                     source_at_utc="2026-10-08T10:00:00Z",
+                     decision_at_utc="2026-10-08T11:02:00Z",
+                     recheck_due_utc="2026-10-08T12:00:00Z")
+        ], ASOF)
+        alerts = mod.validate_alerts([
+            dict(record_type="machine_alert", market="ABC-EUR", signal_id="s-first",
+                 action="ACHETE", signal_at_utc="2026-10-08T10:00:00Z"),
+            dict(record_type="machine_alert", market="ABC-EUR", signal_id="s-second",
+                 action="ACHETE", signal_at_utc="2026-10-08T11:00:00Z"),
+        ], ASOF)
+        r = mod.aggregate(ds, alerts, [], ASOF)
+        self.assertEqual(r["post_alert_nonbuy_count"], 1)
+        timing = r["machine_buy_refusal_timing"][0]
+        self.assertEqual(timing["status"], "POST_ALERT_REVIEW_NOT_EX_ANTE_VETO")
+        self.assertEqual(timing["first_prior_signal_id"], "s-first")
+        self.assertEqual(timing["latest_prior_signal_id"], "s-second")
+        self.assertEqual(timing["seconds_since_first_prior_buy"], 3720)
+        self.assertEqual(timing["seconds_since_latest_prior_buy"], 120)
+        self.assertEqual(r["paired_net"]["4"]["verdict"], "NON_MESURABLE")
+        self.assertEqual(r["chatgpt_value_verdict"], "NON_MESURABLE")
+
+    def test_missing_alert_history_never_proves_pre_alert_veto(self):
+        ds = mod.validate_decisions([decision()], ASOF)
+        future_alert = mod.validate_alerts([
+            dict(record_type="machine_alert", market="OGN-EUR", signal_id="later",
+                 action="ACHETE", signal_at_utc="2026-10-08T10:03:00Z")
+        ], ASOF)
+        r = mod.aggregate(ds, future_alert, [], ASOF)
+        self.assertEqual(r["post_alert_nonbuy_count"], 0)
+        self.assertEqual(r["nonbuy_without_prior_alert_evidence_count"], 1)
+        self.assertEqual(r["machine_buy_refusal_timing"][0]["attribution"], "NON_MESURABLE")
+        self.assertEqual(r["chatgpt_value_verdict"], "NON_MESURABLE")
+
     def test_pair_requires_all_four_proofs(self):
         ds = mod.validate_decisions([decision()], ASOF)
         good = dict(record_type="paired_outcome", decision_id="s1-ogn", horizon_hours=4,
@@ -72,6 +108,28 @@ class ScanAccountabilityTests(unittest.TestCase):
         self.assertEqual(result["chatgpt_value_verdict"], "PROVISIONAL_DESCRIPTIVE_ONLY")
         bad = dict(good, both_executions_validated=False)
         self.assertEqual(mod.validate_pairs([bad], {"s1-ogn"}), [])
+
+    def test_verified_refusal_has_explicit_zero_position_arm(self):
+        ds = mod.validate_decisions([decision()], ASOF)
+        p = dict(record_type="paired_outcome", decision_id="s1-ogn", horizon_hours=4,
+                 both_executions_validated=False, matched_budget_policy_costs=True,
+                 horizon_matured=True, independent_episode=True,
+                 solaire_execution_validated_at_chat_decision=True,
+                 chatgpt_no_trade_verified=True, decision_time_parity_verified=True,
+                 solaire_net_eur=3.5, chatgpt_net_eur=0)
+        # A loose historical price or a BUY action cannot count as avoided PnL.
+        action = {"s1-ogn": "WAIT_RECHECK"}
+        self.assertEqual(mod.validate_pairs([p], {"s1-ogn"}), [])
+        self.assertEqual(mod.validate_pairs([p], {"s1-ogn"}, {"s1-ogn": "BUY"}), [])
+        self.assertEqual(mod.validate_pairs([dict(p, decision_time_parity_verified=False)],
+                                             {"s1-ogn"}, action), [])
+        self.assertEqual(mod.validate_pairs([dict(p, chatgpt_net_eur=-1.0)],
+                                             {"s1-ogn"}, action), [])
+        verified = mod.validate_pairs([p], {"s1-ogn"}, action)
+        self.assertEqual(len(verified), 1)
+        r = mod.aggregate(ds, [], verified, ASOF)
+        self.assertEqual(r["paired_net"]["4"]["chatgpt_net_eur"], 0)
+        self.assertEqual(r["paired_net"]["4"]["chatgpt_minus_solaire_eur"], -3.5)
 
     def test_no_lookahead(self):
         with self.assertRaises(mod.InputError):
