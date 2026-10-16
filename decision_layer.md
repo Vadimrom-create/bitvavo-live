@@ -1,6 +1,6 @@
 # Decision Layer V1 + boucle de contrôle — shadow
 
-Scan : 2026-10-16T09:41:01.764993+00:00
+Scan : 2026-10-16T14:14:53.272336+00:00
 Policy : DECISION_LAYER_V1_SHADOW au-dessus de V4_FROZEN_20260908
 
 Cette couche ne modifie aucun score V4 et ne peut envoyer aucun ordre.
@@ -9,10 +9,10 @@ Entry est un indicateur de timing, pas un veto structurel.
 ## Quatre lectures obligatoires
 
 - **MEILLEUR_ACHAT_IMMEDIAT** : aucun candidat matériel
-- **MEILLEURE_LIMITE_PASSIVE** : EDU-EUR | action PLACE_LIMITE_PASSIVE | opportunité 7.524 | entrée 6.400 | trend 8.950 | rang 7.299
-  - Strong structure but imperfect current entry; prefer passive execution.
+- **MEILLEURE_LIMITE_PASSIVE** : DUSK-EUR | action PLACE_LIMITE_PASSIVE | opportunité 7.462 | entrée 5.900 | trend 8.500 | rang 7.161
+  - Strong structure but imperfect current entry; prefer passive execution. High extension/chase reduces rank but does not erase the setup.
 - **MEILLEUR_LATENT_ACCELERATOR** : aucun candidat matériel
-- **MEILLEUR_PULLBACK_REENTRY** : PYTH-EUR | action ATTENDS_REPRISE_OU_REENTREE | opportunité 7.510 | entrée 6.350 | trend 8.500 | rang 7.234
+- **MEILLEUR_PULLBACK_REENTRY** : DODO-EUR | action ATTENDS_REPRISE_OU_REENTREE | opportunité 7.663 | entrée 5.500 | trend 8.700 | rang 7.353
   - Strong trend/opportunity retained through pullback; timing does not erase setup.
 
 ## Tous les achats immédiats
@@ -22,14 +22,15 @@ Aucun ACHETE_MAINTENANT dans le classement complet.
 ## Top cross-sectionnel — aperçu non exhaustif
 
 Ce top est une vue courte multi-buckets. Il ne doit jamais être utilisé comme liste exhaustive des achats immédiats.
-1. EDU-EUR — MEILLEURE_LIMITE_PASSIVE — PLACE_LIMITE_PASSIVE — rank 7.299
-2. PYTH-EUR — MEILLEUR_PULLBACK_REENTRY — ATTENDS_REPRISE_OU_REENTREE — rank 7.234
-3. ZK-EUR — MEILLEUR_PULLBACK_REENTRY — ATTENDS_REPRISE_OU_REENTREE — rank 7.037
+1. DODO-EUR — MEILLEUR_PULLBACK_REENTRY — ATTENDS_REPRISE_OU_REENTREE — rank 7.353
+2. DUSK-EUR — MEILLEURE_LIMITE_PASSIVE — PLACE_LIMITE_PASSIVE — rank 7.161
+3. WAL-EUR — MEILLEUR_PULLBACK_REENTRY — ATTENDS_REPRISE_OU_REENTREE — rank 7.045
 
 ## Accélération indépendante
 
-- XYO-EUR — BUILDING_ACCELERATION — score 5.551/10 — REQUIRES_FINAL_EXECUTION_VALIDATION
-- RSR-EUR — BUILDING_ACCELERATION — score 4.833/10 — REQUIRES_FINAL_EXECUTION_VALIDATION
+- ICNT-EUR — BUILDING_ACCELERATION — score 6.051/10 — DETECTED_BUT_TOO_LATE
+- CAP-EUR — BUILDING_ACCELERATION — score 5.733/10 — REQUIRES_FINAL_EXECUTION_VALIDATION
+- APE-EUR — BUILDING_ACCELERATION — score 5.276/10 — DETECTED_BUT_TOO_LATE
 
 ## Watchlist persistante 24–72 h
 
@@ -39,23 +40,23 @@ Ce top est une vue courte multi-buckets. Il ne doit jamais être utilisé comme 
 - BREV-EUR — MEMORY_24H — score mémoire 9.000/10 — sources ACCELERATION — MEMORY_ONLY
 - COW-EUR — MEMORY_24H — score mémoire 8.909/10 — sources ACCELERATION — MEMORY_ONLY
 - ZRO-EUR — MEMORY_24H — score mémoire 8.832/10 — sources ACCELERATION, DECISION_LAYER, V4 — MEMORY_ONLY
-- MAGIC-EUR — MEMORY_DECAY_24_72H — score mémoire 8.588/10 — sources ACCELERATION — MEMORY_ONLY
 - HOME-EUR — MEMORY_24H — score mémoire 8.559/10 — sources ACCELERATION — MEMORY_ONLY
 - IRYS-EUR — MEMORY_24H — score mémoire 8.481/10 — sources ACCELERATION — MEMORY_ONLY
 - BAT-EUR — MEMORY_24H — score mémoire 8.396/10 — sources ACCELERATION, DECISION_LAYER, V4 — MEMORY_ONLY
+- TURBO-EUR — MEMORY_24H — score mémoire 8.332/10 — sources ACCELERATION — MEMORY_ONLY
 
 ## Audit des plus fortes hausses
 
-- POND-EUR +29.22% — DETECTED_EARLY — couche NONE — action INTERPRETATION
-- TIA-EUR +27.65% — INSUFFICIENT_HISTORY — couche HISTORY — action NOT_APPLICABLE
-- INJ-EUR +25.56% — INSUFFICIENT_HISTORY — couche HISTORY — action NOT_APPLICABLE
-- ICNT-EUR +21.99% — DETECTED_EARLY — couche NONE — action ENTRY_TIMING_OR_EXECUTION
-- KMNO-EUR +19.24% — INSUFFICIENT_HISTORY — couche HISTORY — action NOT_APPLICABLE
-- ALIGN-EUR +18.81% — INSUFFICIENT_HISTORY — couche HISTORY — action NOT_APPLICABLE
-- ZRO-EUR +16.44% — INSUFFICIENT_HISTORY — couche HISTORY — action NOT_APPLICABLE
-- ETHFI-EUR +15.85% — INSUFFICIENT_HISTORY — couche HISTORY — action NOT_APPLICABLE
-- SOLV-EUR +15.84% — INSUFFICIENT_HISTORY — couche HISTORY — action NOT_APPLICABLE
-- ARB-EUR +14.14% — INSUFFICIENT_HISTORY — couche HISTORY — action NOT_APPLICABLE
+- POND-EUR +46.62% — DETECTED_EARLY — couche NONE — action INTERPRETATION
+- TIA-EUR +28.63% — INSUFFICIENT_HISTORY — couche HISTORY — action NOT_APPLICABLE
+- ICNT-EUR +24.07% — INSUFFICIENT_HISTORY — couche HISTORY — action NOT_APPLICABLE
+- INJ-EUR +23.60% — INSUFFICIENT_HISTORY — couche HISTORY — action NOT_APPLICABLE
+- NPC-EUR +20.91% — INSUFFICIENT_HISTORY — couche HISTORY — action NOT_APPLICABLE
+- DRV-EUR +16.12% — INSUFFICIENT_HISTORY — couche HISTORY — action NOT_APPLICABLE
+- BAT-EUR +14.76% — INSUFFICIENT_HISTORY — couche HISTORY — action NOT_APPLICABLE
+- ZRO-EUR +14.37% — INSUFFICIENT_HISTORY — couche HISTORY — action NOT_APPLICABLE
+- APE-EUR +14.17% — INSUFFICIENT_HISTORY — couche HISTORY — action NOT_APPLICABLE
+- KMNO-EUR +13.86% — INSUFFICIENT_HISTORY — couche HISTORY — action NOT_APPLICABLE
 
 ## Gestion des positions détenues
 
