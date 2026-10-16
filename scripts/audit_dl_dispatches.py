@@ -45,7 +45,10 @@ def fetch_page(day,page,*,token=None):
     with urllib.request.urlopen(urllib.request.Request(url,headers=headers),timeout=14) as response:
         if response.status!=200:
             raise ValueError("unexpected GitHub API status")
-        data=json.loads(response.read(850000))
+        body=response.read(8_000_001)
+        if len(body)>8_000_000:
+            raise ValueError("github_page_exceeds_eight_megabytes")
+        data=json.loads(body)
     if not isinstance(data,dict) or not isinstance(data.get("workflow_runs"),list):
         raise ValueError("malformed GitHub Actions API")
     return data
