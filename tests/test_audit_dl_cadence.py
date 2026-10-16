@@ -1,6 +1,6 @@
 import unittest
 
-from scripts.audit_dl_cadence import summarize_cadence
+from scripts.audit_dl_cadence import diagnose_calendar_shift, summarize_cadence
 from scripts.compare_direct_decision_shadow import EvidenceError
 
 class CadenceTests(unittest.TestCase):
@@ -37,6 +37,34 @@ class CadenceTests(unittest.TestCase):
             summarize_cadence([],[],windows=(900,900))
         with self.assertRaises(EvidenceError):
             summarize_cadence([],[],windows=(0,))
+
+    def test_documented_october_cadence_break_is_detected_without_causality(self):
+        rows=[
+            {"date_utc":"2026-10-01","n_snapshots":80},
+            {"date_utc":"2026-10-02","n_snapshots":80},
+            {"date_utc":"2026-10-04","n_snapshots":10},
+            {"date_utc":"2026-10-05","n_snapshots":10},
+        ]
+        got=diagnose_calendar_shift(rows,"2026-10-01","2026-10-02",
+                                         "2026-10-04","2026-10-05")
+        self.assertEqual(got["decline_pct"],87.5)
+        self.assertTrue(got["shadow_continuity_degraded"])
+        self.assertIsNone(got["missing_cron_dispatches_proven"])
+        self.assertIsNone(got["causal_conclusion"])
+
+    def test_missing_day_is_counted_as_zero_not_silently_dropped(self):
+        rows=[{"date_utc":"2026-10-01","n_snapshots":80},
+              {"date_utc":"2026-10-02","n_snapshots":80},
+              {"date_utc":"2026-10-04","n_snapshots":12}]
+        got=diagnose_calendar_shift(rows,"2026-10-01","2026-10-02",
+                                         "2026-10-04","2026-10-05")
+        self.assertEqual(got["later"]["zero_archive_days"],1)
+        self.assertEqual(got["later"]["mean_per_day"],6)
+
+    def test_overlapping_periods_fail(self):
+        with self.assertRaises(EvidenceError):
+            diagnose_calendar_shift([],"2026-10-01","2026-10-04",
+                                     "2026-10-04","2026-10-05")
 
     def test_empty_inputs_are_nonmeasurable(self):
         result=summarize_cadence([],[])
