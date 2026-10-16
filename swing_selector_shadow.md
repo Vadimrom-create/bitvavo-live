@@ -1,28 +1,28 @@
 # Solaire Swing Selector — SHADOW
 
-Generated: 2026-10-16T21:12:56.974290+00:00
+Generated: 2026-10-16T23:38:17.727231+00:00
 Version: SWING_SELECTOR_V1_FROZEN_2026-10-08_R2
 No orders, no alerts, no Decision Layer changes.
 
 | Rank | Market | Score | Status | 3d | 7d | 14d | RS BTC 7d | Dist EMA50 | News mod |
 |---:|---|---:|---|---:|---:|---:|---:|---:|---:|
-| 1 | METIS-EUR | 88.44 | HUMAN_REVIEW | 1.98% | 14.46% | 16.68% | 15.97% | 17.91% | +0.00 |
-| 2 | INJ-EUR | 88.43 | PREWATCH_PERSISTENCE_REQUIRED | 5.19% | 22.67% | 15.09% | 24.18% | 24.20% | +0.00 |
-| 3 | DODO-EUR | 88.18 | HUMAN_REVIEW | 2.43% | 12.46% | 13.80% | 13.97% | 10.29% | +0.00 |
-| 4 | SOLV-EUR | 86.64 | HUMAN_REVIEW | 8.05% | 10.32% | 5.82% | 11.83% | 12.77% | +0.00 |
-| 5 | EIGEN-EUR | 85.32 | HUMAN_REVIEW | 1.47% | 10.48% | 0.31% | 11.98% | 6.88% | +0.00 |
-| 6 | APT-EUR | 83.92 | HUMAN_REVIEW | 0.80% | 2.87% | 5.95% | 4.38% | 14.25% | +0.00 |
-| 7 | PYTH-EUR | 82.79 | HUMAN_REVIEW | 9.16% | 5.72% | 8.50% | 7.23% | 24.62% | +0.00 |
-| 8 | MANTA-EUR | 82.75 | HUMAN_REVIEW | 0.58% | 9.41% | 5.16% | 10.91% | 10.22% | +0.00 |
-| 9 | MEGA-EUR | 80.18 | HUMAN_REVIEW | 3.13% | 10.52% | -0.41% | 12.03% | 8.12% | +0.00 |
-| 10 | AERO-EUR | 79.83 | HUMAN_REVIEW | -4.11% | 8.19% | 9.88% | 9.69% | 20.02% | +0.00 |
-| 11 | ZRO-EUR | 79.40 | PERSISTENT_TOP20 | 3.40% | 6.44% | 19.79% | 7.95% | 33.20% | +0.00 |
-| 12 | FIL-EUR | 78.84 | PERSISTENT_TOP20 | -2.87% | 3.58% | 9.45% | 5.09% | 15.49% | +0.00 |
-| 13 | ALT-EUR | 78.66 | PREWATCH_PERSISTENCE_REQUIRED | -1.96% | 3.65% | 4.68% | 5.16% | 12.97% | +0.00 |
-| 14 | AZTEC-EUR | 78.53 | PREWATCH_PERSISTENCE_REQUIRED | -1.44% | 33.97% | 18.70% | 35.47% | 24.17% | +0.00 |
-| 15 | DEEP-EUR | 78.22 | PERSISTENT_TOP20 | 5.22% | 4.85% | -2.94% | 6.36% | 13.05% | +0.00 |
-| 16 | GMX-EUR | 77.98 | PERSISTENT_TOP20 | -0.35% | 1.94% | 9.33% | 3.44% | 10.01% | +0.00 |
-| 17 | EDU-EUR | 77.03 | PREWATCH_PERSISTENCE_REQUIRED | 8.93% | 9.83% | 50.08% | 11.34% | 37.07% | +0.00 |
-| 18 | GWEI-EUR | 76.96 | PREWATCH_PERSISTENCE_REQUIRED | 2.12% | 3.22% | 4.96% | 4.73% | -2.15% | +0.00 |
-| 19 | ARB-EUR | 76.67 | PERSISTENT_TOP20 | -0.05% | 4.76% | -1.97% | 6.27% | 11.36% | +0.00 |
-| 20 | ELSA-EUR | 76.28 | PREWATCH_PERSISTENCE_REQUIRED | 18.70% | 9.07% | 10.48% | 10.57% | 13.42% | +0.00 |
+| 1 | DODO-EUR | 88.01 | HUMAN_REVIEW | 2.35% | 12.38% | 13.71% | 13.89% | 10.21% | +0.00 |
+| 2 | INJ-EUR | 86.56 | PREWATCH_PERSISTENCE_REQUIRED | 6.81% | 24.57% | 16.86% | 26.08% | 26.02% | +0.00 |
+| 3 | METIS-EUR | 86.42 | HUMAN_REVIEW | 6.25% | 19.24% | 21.55% | 20.75% | 22.60% | +0.00 |
+| 4 | EIGEN-EUR | 85.90 | HUMAN_REVIEW | 2.09% | 11.15% | 0.92% | 12.67% | 7.51% | +0.00 |
+| 5 | SOLV-EUR | 85.05 | HUMAN_REVIEW | 6.35% | 8.59% | 4.16% | 10.11% | 11.07% | +0.00 |
+| 6 | APT-EUR | 83.81 | HUMAN_REVIEW | 0.71% | 2.79% | 5.86% | 4.30% | 14.16% | +0.00 |
+| 7 | MANTA-EUR | 83.36 | HUMAN_REVIEW | 0.94% | 9.80% | 5.54% | 11.31% | 10.60% | +0.00 |
+| 8 | PYTH-EUR | 83.10 | HUMAN_REVIEW | 11.17% | 7.67% | 10.50% | 9.18% | 26.80% | +0.00 |
+| 9 | MEGA-EUR | 82.14 | HUMAN_REVIEW | 4.44% | 11.93% | 0.85% | 13.44% | 9.44% | +0.00 |
+| 10 | IO-EUR | 80.97 | PREWATCH_PERSISTENCE_REQUIRED | -0.97% | 6.09% | 5.53% | 7.60% | 7.52% | +0.00 |
+| 11 | FIL-EUR | 80.87 | PERSISTENT_TOP20 | -1.56% | 4.98% | 10.92% | 6.49% | 16.97% | +0.00 |
+| 12 | GMX-EUR | 80.69 | PERSISTENT_TOP20 | 1.25% | 3.57% | 11.08% | 5.08% | 11.69% | +0.00 |
+| 13 | AERO-EUR | 80.00 | PERSISTENT_TOP20 | -3.25% | 9.15% | 10.87% | 10.67% | 21.04% | +0.00 |
+| 14 | ALT-EUR | 79.98 | PREWATCH_PERSISTENCE_REQUIRED | -1.14% | 4.51% | 5.55% | 6.02% | 13.87% | +0.00 |
+| 15 | NEAR-EUR | 79.36 | PREWATCH_PERSISTENCE_REQUIRED | 0.30% | 3.49% | 8.11% | 5.00% | 26.09% | +0.00 |
+| 16 | AZTEC-EUR | 78.96 | PREWATCH_PERSISTENCE_REQUIRED | -1.42% | 34.00% | 18.73% | 35.52% | 24.21% | +0.00 |
+| 17 | ZRO-EUR | 78.59 | PERSISTENT_TOP20 | 1.69% | 4.67% | 17.80% | 6.18% | 31.10% | +0.00 |
+| 18 | OSMO-EUR | 77.80 | PREWATCH_PERSISTENCE_REQUIRED | 2.30% | 20.83% | 22.24% | 22.34% | 15.02% | +0.00 |
+| 19 | DEEP-EUR | 77.69 | PERSISTENT_TOP20 | 5.50% | 5.13% | -2.69% | 6.64% | 13.33% | +0.00 |
+| 20 | EDU-EUR | 77.27 | PREWATCH_PERSISTENCE_REQUIRED | 9.16% | 10.06% | 50.39% | 11.57% | 37.34% | +0.00 |
