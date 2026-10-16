@@ -82,3 +82,23 @@ Also on V4 15 October: 6 observations are 24h mature, 0 strictly complete; only 
 4. Publish N independent cash-constrained matched trades only once the input and execution evidence are valid. Until then, economic superiority: **NOT ESTABLISHED**.
 
 No changes to production, live V4, LIVE direct scanner, thresholds, email alerts, or actual orders. PR #169 remains draft.
+
+
+## Fourth experiment — Git commit metadata and DL cadence collapse (16 Oct ~17:55 UTC)
+
+Read-only CI [run #38943082749, SUCCESS](https://github.com/Vadimrom-create/bitvavo-live/actions/runs/38943082749) uses the **path-scoped GitHub repository API** for every DL snapshot referenced by an eligible DIRECT BUY_SENT. No changes to order paths, production workflow, private account credentials or trading thresholds.
+
+At this checkpoint the rolling machine log contained **1,866** decisions including **530 BUY_SENT**. Only **25/530 (4.72%)** BUY_SENT had a previous generated DL snapshot less than 15 minutes old. The commit metadata audit found **18 distinct archival commits**, all with committer timestamps **before** the associated 25 sender starts: **24/25** were at least 30 seconds earlier, **1/25** was within 30 seconds (FIL-EUR 15 October, about 3.7 seconds earlier). **This is metadata timing consistency, not proof GitHub had made the commit remotely visible or the user could have acted at that time.** The unresolved **505/530** cannot be interpreted as DL rejections.
+
+Independent archive-cadence analysis on full UTC calendar days (periods selected *after observing the discontinuity*, descriptive only):
+
+- **10 Sep–2 Oct**: 23 days, **1,923** DL shadow generations, mean **83.61/day**, median **85/day**.
+- **4 Oct–15 Oct**: 12 days, **121** generations, mean **10.08/day**, median **9/day**.
+- **3 Oct transition**: **35** generations; schedule deterioration begins around this date, before the 4 Oct heartbeat commit.
+- Mean cadence decline about **87.94%**; date-selected exploration, NOT a randomized or causal change-point test and NOT proof of dropped GitHub schedule events.
+
+The original update.yml still has cron '7,22,37,52 * * * *' with cancel-in-progress: false. The direct heartbeat's separate concurrency group cannot itself prove the origin of the decline. Do not edit the direct scanner or merge an expensive watchdog based on chronological coincidence. First obtain schedule-run telemetry, Actions queue/runner saturation and estimated GitHub minutes. A reliable same-input prospective DL shadow *cannot* be inferred merely by rerunning V4 on a later Bitvavo read: features, books and clock times differ. Production and research isolation remain mandatory.
+
+The new script scripts/verify_dl_commit_asof.py performs this commit-metadata check automatically in **PR-only** CI using read-only GITHUB_TOKEN and bounded path lookups. The added calendar comparison treats days with zero archived files as **zero**, not as absent sampling days. Evidence flags for actual publication, same-input causal A/B and net portfolio PnL remain false/null.
+
+Decision: **NO-GO** to reinstate DL as an alert veto; retain PR #169 as draft; next engineering milestone is capture a deterministic, simultaneous DIRECT and V4/DL feature packet in a separate research path with independent timestamps, fill feasibility, and 24/48/72h outcomes, without moving any direct scan critical path.
