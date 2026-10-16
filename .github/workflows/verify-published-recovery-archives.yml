@@ -1,0 +1,30 @@
+name: Verify published recovery archives
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '17 */6 * * *'
+  push:
+    branches: [main]
+    paths:
+      - 'production_recovery_archive_index.json'
+      - 'production_recovery_archives/**'
+      - 'production_recovery_registry_shadow.json'
+      - 'scripts/verify_recovery_archives.py'
+      - 'research/recovery_storage.py'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: recovery-published-verify
+  cancel-in-progress: false
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify all published archive shards and reconstruction
+        run: python scripts/verify_recovery_archives.py --verify-published
