@@ -1,0 +1,59 @@
+name: Frozen exit public tape activity (research only)
+
+on:
+  pull_request:
+    paths:
+      - 'scripts/audit_frozen_exit_public_tape.py'
+      - 'tests/test_frozen_exit_public_tape.py'
+      - '.github/workflows/research_frozen_exit_public_tape.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  public-exit-tape:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Reject false proofs of exit fills in synthetic cases
+        run: python -m unittest tests.test_frozen_exit_public_tape -v
+      - name: Recover frozen research artifact with exact closed model exits
+        run: |
+          mkdir -p /tmp/frozen-original
+          gh run download 38168762021 --repo "Vadimrom-create/bitvavo-live" \
+            --name frozen-exit-executability-11oct --dir /tmp/frozen-original
+          test -s /tmp/frozen-original/frozen-exit-execution-report.json
+      - name: Compare time-frozen exits to historical public market trades, 10-minute windows
+        run: |
+          python scripts/audit_frozen_exit_public_tape.py \
+            --frozen-report /tmp/frozen-original/frozen-exit-execution-report.json \
+            --output /tmp/frozen-public-exit-tape-report.json
+          python - <<'PY'
+          import json
+          p=json.load(open("/tmp/frozen-public-exit-tape-report.json"))
+          summary=p["summary"]
+          assert summary["target_count"] > 0
+          assert (summary["public_prints_captured_count"] +
+                  summary["page_limit_truncated_count"] +
+                  summary["unknown_data_count"] == summary["target_count"])
+          assert not p["real_exit_execution_proven"]
+          assert p["actual_wallet_pnl_eur"] is None
+          assert summary["real_exit_fills_verified"] == 0
+          print("FROZEN_EXIT_PUBLIC_TAPE", json.dumps(summary, sort_keys=True))
+          print("PUBLIC_PRINTS != EXECUTABLE_ORDER_BOOK; REAL_PNL_UNKNOWN")
+          PY
+      - name: Preserve public query windows, trade IDs, amounts and checksums only
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: frozen-public-exit-tape-v1
+          retention-days: 14
+          path: /tmp/frozen-public-exit-tape-report.json
