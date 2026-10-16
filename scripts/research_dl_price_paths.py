@@ -123,8 +123,18 @@ def inspect_one(item,client,asof):
                 bars.append(bar)
         strict=evaluate_closed_5m_path(
             bars,item["scan_ts"],item["scan_price_eur"],item["hours"],
+            stop_eur=item.get("stop_eur"), tp1_eur=item.get("tp1_eur"),
             fill_no_trade_gaps=False,
         )
+        # Diagnostic only: last-traded-price marks are NOT evidence of fills.
+        # Suppress derived indicative returns if more than 20% of bars are absent.
+        observed_ratio=len({bar[0] for bar in bars})/expected if expected else 0.0
+        sparse=(evaluate_closed_5m_path(
+            bars,item["scan_ts"],item["scan_price_eur"],item["hours"],
+            stop_eur=item.get("stop_eur"),tp1_eur=item.get("tp1_eur"),
+            fill_no_trade_gaps=True,
+        ) if bars and observed_ratio>=0.80 else {})
+        sparse_ok=sparse.get("status")=="COMPLETE"
         record.update({
             "status":strict["status"],"reason":strict.get("reason"),
             "expected_bars":expected,"observed_bars":len(bars),
@@ -133,6 +143,14 @@ def inspect_one(item,client,asof):
             "mae_pct":strict.get("mae_pct") if strict["status"]=="COMPLETE" else None,
             "close_pct":strict.get("close_return_pct") if strict["status"]=="COMPLETE" else None,
             "future_book_depth_verified":False,
+            "path_touch_result":strict.get("result") if strict["status"]=="COMPLETE" else None,
+            "indicative_no_trade_gap_reference":sparse_ok,
+            "indicative_mark_only_no_fill":True,
+            "observed_5m_source_coverage_pct":round(100*observed_ratio,2),
+            "indicative_mfe_pct":sparse.get("mfe_pct") if sparse_ok else None,
+            "indicative_mae_pct":sparse.get("mae_pct") if sparse_ok else None,
+            "indicative_close_pct":sparse.get("close_return_pct") if sparse_ok else None,
+            "indicative_stop_before_tp_touch":sparse.get("result") if sparse_ok else None,
         })
     except (ValueError,RuntimeError,KeyError,TypeError,OSError) as exc:
         record.update(status="SOURCE_ERROR",reason=type(exc).__name__)
@@ -153,6 +171,7 @@ def report_for_archive(paths,client,asof,max_per_horizon=10):
             "hit_5pct_reference_n":sum(x["mfe_pct"]>=5 for x in complete),
             "hit_10pct_reference_n":sum(x["mfe_pct"]>=10 for x in complete),
             "mae_le_minus5pct_n":sum(x["mae_pct"]<=-5 for x in complete),
+            "indicative_80pct_coverage_marks":sum(x.get("indicative_no_trade_gap_reference") is True for x in subset),
             "executed_trades":0, "real_pnl_eur":None,
         }
     return {
