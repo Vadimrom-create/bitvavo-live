@@ -5,9 +5,11 @@ on:
       - scripts/compare_direct_decision_shadow.py
       - scripts/audit_dl_cadence.py
       - scripts/compare_same_snapshot_v4_dl.py
+      - scripts/research_dl_price_paths.py
       - tests/test_compare_direct_decision_shadow.py
       - tests/test_audit_dl_cadence.py
       - tests/test_compare_same_snapshot_v4_dl.py
+      - tests/test_research_dl_price_paths.py
       - docs/DECISION_LAYER_ASOF_COMPARISON_20261016.md
       - .github/workflows/research_decision_layer_asof.yml
 permissions:
@@ -24,12 +26,17 @@ jobs:
             scripts/compare_direct_decision_shadow.py
             scripts/audit_dl_cadence.py
             scripts/compare_same_snapshot_v4_dl.py
+            scripts/research_dl_price_paths.py
+            research/common.py
+            research/http.py
+            research/production_journal.py
             research/__init__.py
             research/decision_layer.py
             history/2026-10-15
             tests/test_compare_direct_decision_shadow.py
             tests/test_audit_dl_cadence.py
             tests/test_compare_same_snapshot_v4_dl.py
+            tests/test_research_dl_price_paths.py
             production_direct_decision_journal.json
             decision_history
           sparse-checkout-cone-mode: false
@@ -45,6 +52,8 @@ jobs:
         run: python scripts/audit_dl_cadence.py --full-day-utc 2026-10-14 --output /tmp/dl-cadence-evidence.json
       - name: Compare same-snapshot V4 acceleration proxy and Decision Layer
         run: python scripts/compare_same_snapshot_v4_dl.py --history-glob 'history/2026-10-15/*.json.gz' --output /tmp/v4-accel-dl-same-snapshot.json
+      - name: Observe matured 24/48/72h reference paths on first V4 confirmed events
+        run: python scripts/research_dl_price_paths.py --history-glob 'history/2026-10-15/*.json.gz' --max-per-horizon 8 --output /tmp/v4-dl-price-paths.json
       - uses: actions/upload-artifact@v4
         with:
           name: dl-asof-research-only
@@ -52,4 +61,5 @@ jobs:
             /tmp/dl-asof-evidence.json
             /tmp/dl-cadence-evidence.json
             /tmp/v4-accel-dl-same-snapshot.json
+            /tmp/v4-dl-price-paths.json
           retention-days: 14
