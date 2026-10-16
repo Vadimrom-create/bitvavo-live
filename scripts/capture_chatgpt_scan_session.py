@@ -52,6 +52,23 @@ def validate_session(obj, now):
             raise InputError("decision time not inside SCAN session")
         if d.get("scan_id") not in (None, sid):
             raise InputError("decision scan_id mismatch")
+        # Optional V1-compatible exact machine linkage. Once declared, it MUST
+        # have been listed as reviewed during the captured SCAN session;
+        # unreviewed signals cannot be attached retroactively.
+        machine_signal_id = d.get("machine_signal_id")
+        if machine_signal_id is not None:
+            if (not isinstance(machine_signal_id, str) or not machine_signal_id.strip()
+                    or machine_signal_id not in signals):
+                raise InputError("machine_signal_id must be in reviewed_signal_ids")
+            if d["solaire_action"] != "ACHETE":
+                raise InputError("machine_signal_id linkage currently requires solaire_action=ACHETE")
+        category = d.get("decision_category")
+        if category is not None:
+            expected = {"BUY": "ACHAT_TEST", "WAIT_RECHECK": "ATTENDRE_CONFIRMATION",
+                        "REJECT_STRUCTURAL": "ECARTER",
+                        "INSUFFICIENT_DATA": "NON_CLASSABLE"}[d["chatgpt_action"]]
+            if category != expected:
+                raise InputError("decision_category contradicts chatgpt_action")
     buys = [d for d in decisions if d["chatgpt_action"] == "BUY"]
     if obj["session_status"] == "SCAN_WITH_BUY" and not buys:
         raise InputError("SCAN_WITH_BUY requires BUY")

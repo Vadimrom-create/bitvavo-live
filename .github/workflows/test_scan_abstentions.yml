@@ -1,0 +1,91 @@
+name: Test SCAN abstention accountability (research only)
+
+on:
+  pull_request:
+    paths:
+      - "scripts/measure_scan_abstentions.py"
+      - "scripts/link_private_scan_to_machine.py"
+      - "scripts/capture_chatgpt_scan_session.py"
+      - "scripts/audit_evaluation_coverage.py"
+      - "scripts/research_mature_price_paths.py"
+      - "tests/test_measure_scan_abstentions.py"
+      - "tests/test_link_private_scan_to_machine.py"
+      - "tests/test_capture_chatgpt_scan_session.py"
+      - "tests/test_audit_evaluation_coverage.py"
+      - "tests/test_research_mature_price_paths.py"
+      - "docs/SCAN_ABSTENTION_ACCOUNTABILITY_V1.md"
+      - ".github/workflows/test_scan_abstentions.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate-private-shadow:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Compile accountability scripts
+        run: python -m py_compile scripts/measure_scan_abstentions.py scripts/scan_accountability_ledger.py tests/test_measure_scan_abstentions.py scripts/audit_evaluation_coverage.py tests/test_audit_evaluation_coverage.py scripts/research_mature_price_paths.py tests/test_research_mature_price_paths.py scripts/link_private_scan_to_machine.py tests/test_link_private_scan_to_machine.py
+      - name: Test no-lookahead, provenance and abstention taxonomy
+        run: python -m unittest discover -s tests -p 'test_measure_scan_abstentions.py' -v
+      - name: Test existing private ledger compatibility
+        run: python -m unittest discover -s tests -p 'test_scan_accountability_ledger.py' -v
+      - name: Test existing explicit SCAN capture
+        run: python -m unittest discover -s tests -p 'test_capture_chatgpt_scan_session.py' -v
+      - name: Test actual evaluation coverage instrumentation
+        run: python -m unittest discover -s tests -p 'test_audit_evaluation_coverage.py' -v
+      - name: Audit retained PUBLIC journals without trading access
+        run: |
+          python scripts/audit_evaluation_coverage.py \
+            --canonical production_decision_journal.json \
+            --direct production_direct_decision_journal.json \
+            --asof "$(date -u +'%Y-%m-%dT%H:%M:%SZ')" \
+            --output /tmp/solaire_research_evaluation_coverage.json
+      - name: Retain aggregate-only coverage audit for independent review
+        uses: actions/upload-artifact@v4
+        with:
+          name: research-scan-evaluation-coverage-${{ github.run_id }}
+          retention-days: 30
+          path: /tmp/solaire_research_evaluation_coverage.json
+          if-no-files-found: error
+      - name: Test exact 5m time bounds and no invented fills
+        run: python -m unittest discover -s tests -p 'test_research_mature_price_paths.py' -v
+      - name: Recover sampled matured 24-48-72h PUBLIC price paths
+        run: |
+          python scripts/research_mature_price_paths.py \
+            --source production_direct_decision_journal.json \
+            --max-per-horizon 4 \
+            --output /tmp/solaire_research_mature_paths.json
+      - name: Retain public-price-only maturity observations
+        uses: actions/upload-artifact@v4
+        with:
+          name: research-mature-24-48-72-paths-${{ github.run_id }}
+          retention-days: 30
+          path: /tmp/solaire_research_mature_paths.json
+          if-no-files-found: error
+      - name: Test exact machine-event/private-SCAN linkage (synthetic only)
+        run: python -m unittest discover -s tests -p 'test_link_private_scan_to_machine.py' -v
+      - name: Verify public machine signal ID readiness (NO private data)
+        run: |
+          python scripts/link_private_scan_to_machine.py \
+            --machine production_direct_decision_journal.json \
+            --public-audit-only \
+            --output /tmp/solaire_public_link_readiness.json
+          python - <<'PY'
+          import json
+          s=json.load(open("/tmp/solaire_public_link_readiness.json",encoding="utf-8"))
+          assert s["private_decisions_loaded"] is False
+          assert s["chatgpt_attribution"]=="UNKNOWN_NO_PRIVATE_INPUT"
+          assert s["machine_retained_counts"]["BUY_SENT"]>=0
+          print("PUBLIC_LINK_READY",json.dumps({
+            "buy_sent":s["machine_retained_counts"]["BUY_SENT"],
+            "unique_signals":s["unique_signal_ids"],
+            "duplicate_signal_ids":s["duplicate_signal_ids"],
+            "private_decisions_loaded":s["private_decisions_loaded"]
+          }))
+          PY
