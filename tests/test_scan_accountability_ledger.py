@@ -60,6 +60,42 @@ class ScanAccountabilityTests(unittest.TestCase):
         self.assertEqual(result["overdue_recheck_ids"], [])
         self.assertEqual(result["unreviewed_new_machine_alerts"], [])
 
+    def test_late_refusal_is_not_treated_as_ex_ante_veto(self):
+        ds = mod.validate_decisions([
+            decision(decision_id="d-late", market="ABC-EUR",
+                     source_at_utc="2026-10-08T10:00:00Z",
+                     decision_at_utc="2026-10-08T11:02:00Z",
+                     recheck_due_utc="2026-10-08T12:00:00Z")
+        ], ASOF)
+        alerts = mod.validate_alerts([
+            dict(record_type="machine_alert", market="ABC-EUR", signal_id="s-first",
+                 action="ACHETE", signal_at_utc="2026-10-08T10:00:00Z"),
+            dict(record_type="machine_alert", market="ABC-EUR", signal_id="s-second",
+                 action="ACHETE", signal_at_utc="2026-10-08T11:00:00Z"),
+        ], ASOF)
+        r = mod.aggregate(ds, alerts, [], ASOF)
+        self.assertEqual(r["post_alert_nonbuy_count"], 1)
+        timing = r["machine_buy_refusal_timing"][0]
+        self.assertEqual(timing["status"], "POST_ALERT_REVIEW_NOT_EX_ANTE_VETO")
+        self.assertEqual(timing["first_prior_signal_id"], "s-first")
+        self.assertEqual(timing["latest_prior_signal_id"], "s-second")
+        self.assertEqual(timing["seconds_since_first_prior_buy"], 3720)
+        self.assertEqual(timing["seconds_since_latest_prior_buy"], 120)
+        self.assertEqual(r["paired_net"]["4"]["verdict"], "NON_MESURABLE")
+        self.assertEqual(r["chatgpt_value_verdict"], "NON_MESURABLE")
+
+    def test_missing_alert_history_never_proves_pre_alert_veto(self):
+        ds = mod.validate_decisions([decision()], ASOF)
+        future_alert = mod.validate_alerts([
+            dict(record_type="machine_alert", market="OGN-EUR", signal_id="later",
+                 action="ACHETE", signal_at_utc="2026-10-08T10:03:00Z")
+        ], ASOF)
+        r = mod.aggregate(ds, future_alert, [], ASOF)
+        self.assertEqual(r["post_alert_nonbuy_count"], 0)
+        self.assertEqual(r["nonbuy_without_prior_alert_evidence_count"], 1)
+        self.assertEqual(r["machine_buy_refusal_timing"][0]["attribution"], "NON_MESURABLE")
+        self.assertEqual(r["chatgpt_value_verdict"], "NON_MESURABLE")
+
     def test_pair_requires_all_four_proofs(self):
         ds = mod.validate_decisions([decision()], ASOF)
         good = dict(record_type="paired_outcome", decision_id="s1-ogn", horizon_hours=4,
