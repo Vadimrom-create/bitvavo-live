@@ -67,3 +67,16 @@ La capture des réponses ChatGPT **n'est pas automatique** : le dispositif
 `scripts/capture_chatgpt_scan_session.py` nécessite encore un enregistrement
 privé explicite. Aucune phrase ou donnée de conversation ne doit être
 versée au dépôt public ou à un commentaire d'issue.
+
+### Bras de contrôle « ne pas acheter »
+
+Un refus `WAIT_RECHECK`, `REJECT_STRUCTURAL` ou `INSUFFICIENT_DATA`
+peut être comparé à une entrée Solaire, mais uniquement avec un PnL
+ChatGPT **strictement nul**, et trois preuves supplémentaires explicites :
+`solaire_execution_validated_at_chat_decision=true`,
+`chatgpt_no_trade_verified=true`,
+`decision_time_parity_verified=true`. S'ajoutent les preuves déjà exigées
+de coûts/budget/politique appariés, horizon maturé et épisode indépendant.
+Ces attestations sont fournies par un validateur de preuve externe ; la
+présence de booléens dans un JSON ne constitue pas leur vérification.
+À défaut, la paire est écartée du calcul et reste `NON_MESURABLE`.
