@@ -142,7 +142,7 @@ def main():
         o=report(args.days,lambda day,page:fetch_page(day,page,token=token))
         Path(args.output).write_text(json.dumps(o,ensure_ascii=False,sort_keys=True,indent=2)+"\n",encoding="utf8")
         print(json.dumps(o,ensure_ascii=False,sort_keys=True))
-        return 0
+        return 0 if o["all_days_complete"] else 3
     except (OSError,ValueError) as exc:
         print("GITHUB_DL_DISPATCH_AUDIT_FAILED: "+str(exc),file=sys.stderr)
         return 2
