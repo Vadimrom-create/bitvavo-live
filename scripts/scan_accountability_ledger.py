@@ -169,6 +169,39 @@ def aggregate(decisions, alerts, pairs, asof):
             alerts_after_refusal.append({"market": market, "last_decision_id": d["decision_id"],
                                          "new_signal_ids": [a["signal_id"] for a in new]})
 
+    # Audit attribution requires the order of messages. A ChatGPT refusal
+    # *after* an alert cannot be treated as an ex-ante veto of that initial
+    # entry. The pair's executable baseline needs an independent timestamp.
+    buys_by_market = defaultdict(list)
+    for alert in alerts:
+        if alert["action"] == "ACHETE":
+            buys_by_market[alert["market"]].append(alert)
+    for events in buys_by_market.values():
+        events.sort(key=lambda a: (a["_at"], a["signal_id"]))
+
+    machine_buy_refusal_timing = []
+    for d in machine_buy_rejected:
+        prior = [a for a in buys_by_market[d["market"]] if a["_at"] <= d["_at"]]
+        if prior:
+            first, last = prior[0], prior[-1]
+            machine_buy_refusal_timing.append({
+                "decision_id": d["decision_id"],
+                "market": d["market"],
+                "status": "POST_ALERT_REVIEW_NOT_EX_ANTE_VETO",
+                "first_prior_signal_id": first["signal_id"],
+                "latest_prior_signal_id": last["signal_id"],
+                "seconds_since_first_prior_buy": round((d["_at"] - first["_at"]).total_seconds(), 3),
+                "seconds_since_latest_prior_buy": round((d["_at"] - last["_at"]).total_seconds(), 3),
+                "attribution": "UNVERIFIED_UNTIL_DECISION_TIME_ENTRY_AND_EXECUTION_PROVEN",
+            })
+        else:
+            machine_buy_refusal_timing.append({
+                "decision_id": d["decision_id"],
+                "market": d["market"],
+                "status": "NO_PRIOR_MACHINE_BUY_IN_SUPPLIED_ALERT_LOG",
+                "attribution": "NON_MESURABLE",
+            })
+
     pairs_by_horizon = {}
     for h in HORIZONS:
         grp = [(a, b) for horizon, a, b, _ in pairs if horizon == h]
@@ -186,6 +219,15 @@ def aggregate(decisions, alerts, pairs, asof):
         "decision_count": len(decisions), "markets": len(by_market),
         "machine_buy_refused_count": len(machine_buy_rejected),
         "machine_buy_refused_ids": [d["decision_id"] for d in machine_buy_rejected],
+        "machine_buy_refusal_timing": machine_buy_refusal_timing,
+        "post_alert_nonbuy_count": sum(
+            item["status"] == "POST_ALERT_REVIEW_NOT_EX_ANTE_VETO"
+            for item in machine_buy_refusal_timing
+        ),
+        "nonbuy_without_prior_alert_evidence_count": sum(
+            item["status"] == "NO_PRIOR_MACHINE_BUY_IN_SUPPLIED_ALERT_LOG"
+            for item in machine_buy_refusal_timing
+        ),
         "stale_source_over_10min_ids": stale_source,
         "missing_execution_evidence_ids": missing_liquidity,
         "overdue_recheck_ids": overdue,
@@ -199,6 +241,7 @@ def aggregate(decisions, alerts, pairs, asof):
             "Missing archival book or verified fills => no realized counterfactual PnL.",
             "Paired outcomes are supplied and verified externally, not inferred from token price highs.",
             "Small or overlapping cohorts do not establish statistical superiority.",
+            "Late ChatGPT refusals cannot be credited as pre-alert vetoes; compare from decision-time executable prices.",
         ],
     }
 
