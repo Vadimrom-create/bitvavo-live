@@ -1,6 +1,6 @@
 # Decision Layer V1 + boucle de contrôle — shadow
 
-Scan : 2026-10-17T13:56:52.802901+00:00
+Scan : 2026-10-17T17:00:49.364660+00:00
 Policy : DECISION_LAYER_V1_SHADOW au-dessus de V4_FROZEN_20260908
 
 Cette couche ne modifie aucun score V4 et ne peut envoyer aucun ordre.
@@ -9,9 +9,10 @@ Entry est un indicateur de timing, pas un veto structurel.
 ## Quatre lectures obligatoires
 
 - **MEILLEUR_ACHAT_IMMEDIAT** : aucun candidat matériel
-- **MEILLEURE_LIMITE_PASSIVE** : aucun candidat matériel
+- **MEILLEURE_LIMITE_PASSIVE** : RSR-EUR | action PLACE_LIMITE_PASSIVE | opportunité 7.589 | entrée 6.500 | trend 8.000 | rang 7.211
+  - Strong structure but imperfect current entry; prefer passive execution.
 - **MEILLEUR_LATENT_ACCELERATOR** : aucun candidat matériel
-- **MEILLEUR_PULLBACK_REENTRY** : INJ-EUR | action ATTENDS_REPRISE_OU_REENTREE | opportunité 7.403 | entrée 5.550 | trend 8.450 | rang 7.173
+- **MEILLEUR_PULLBACK_REENTRY** : INJ-EUR | action ATTENDS_REPRISE_OU_REENTREE | opportunité 7.545 | entrée 6.100 | trend 8.450 | rang 7.304
   - Strong trend/opportunity retained through pullback; timing does not erase setup.
 
 ## Tous les achats immédiats
@@ -21,16 +22,14 @@ Aucun ACHETE_MAINTENANT dans le classement complet.
 ## Top cross-sectionnel — aperçu non exhaustif
 
 Ce top est une vue courte multi-buckets. Il ne doit jamais être utilisé comme liste exhaustive des achats immédiats.
-1. INJ-EUR — MEILLEUR_PULLBACK_REENTRY — ATTENDS_REPRISE_OU_REENTREE — rank 7.173
-2. DUSK-EUR — MEILLEUR_PULLBACK_REENTRY — ATTENDS_REPRISE_OU_REENTREE — rank 6.985
-3. KMNO-EUR — MEILLEUR_PULLBACK_REENTRY — ATTENDS_REPRISE_OU_REENTREE — rank 6.832
+1. INJ-EUR — MEILLEUR_PULLBACK_REENTRY — ATTENDS_REPRISE_OU_REENTREE — rank 7.304
+2. RSR-EUR — MEILLEURE_LIMITE_PASSIVE — PLACE_LIMITE_PASSIVE — rank 7.211
+3. DUSK-EUR — MEILLEUR_PULLBACK_REENTRY — ATTENDS_REPRISE_OU_REENTREE — rank 6.998
 
 ## Accélération indépendante
 
-- GTC-EUR — CONFIRMED_ACCELERATION — score 7.849/10 — DETECTED_BUT_TOO_LATE
-- U-EUR — CONFIRMED_ACCELERATION — score 7.667/10 — REQUIRES_FINAL_EXECUTION_VALIDATION
-- CSPR-EUR — BUILDING_ACCELERATION — score 5.651/10 — REQUIRES_FINAL_EXECUTION_VALIDATION
-- ALT-EUR — BUILDING_ACCELERATION — score 4.953/10 — DETECTED_BUT_TOO_LATE
+- ICNT-EUR — CONFIRMED_ACCELERATION — score 7.720/10 — DETECTED_BUT_TOO_LATE
+- ALT-EUR — BUILDING_ACCELERATION — score 5.193/10 — REQUIRES_FINAL_EXECUTION_VALIDATION
 
 ## Watchlist persistante 24–72 h
 
@@ -38,25 +37,25 @@ Ce top est une vue courte multi-buckets. Il ne doit jamais être utilisé comme 
 - AXL-EUR — MEMORY_24H — score mémoire 9.132/10 — sources ACCELERATION, DECISION_LAYER, V4 — MEMORY_ONLY
 - BTT-EUR — MEMORY_24H — score mémoire 8.833/10 — sources ACCELERATION — MEMORY_ONLY
 - ZRC-EUR — MEMORY_24H — score mémoire 8.245/10 — sources ACCELERATION, DECISION_LAYER, V4 — MEMORY_ONLY
-- GTC-EUR — ACTIVE_NOW — score mémoire 7.849/10 — sources ACCELERATION, DECISION_LAYER, V4 — DETECTED_BUT_TOO_LATE
+- GTC-EUR — MEMORY_24H — score mémoire 7.849/10 — sources ACCELERATION, DECISION_LAYER, V4 — MEMORY_ONLY
+- ICNT-EUR — ACTIVE_NOW — score mémoire 7.720/10 — sources ACCELERATION, DECISION_LAYER, V4 — DETECTED_BUT_TOO_LATE
 - CPOOL-EUR — MEMORY_24H — score mémoire 7.716/10 — sources ACCELERATION — MEMORY_ONLY
-- U-EUR — ACTIVE_NOW — score mémoire 7.667/10 — sources ACCELERATION — WATCH_ONLY
+- U-EUR — MEMORY_24H — score mémoire 7.667/10 — sources ACCELERATION — MEMORY_ONLY
 - METIS-EUR — MEMORY_24H — score mémoire 7.359/10 — sources DECISION_LAYER, V4 — MEMORY_ONLY
-- INJ-EUR — ACTIVE_NOW — score mémoire 7.173/10 — sources ACCELERATION, DECISION_LAYER, V4 — WATCH_ONLY
-- LAPTOP-EUR — MEMORY_24H — score mémoire 7.122/10 — sources ACCELERATION — MEMORY_ONLY
+- INJ-EUR — ACTIVE_NOW — score mémoire 7.304/10 — sources ACCELERATION, DECISION_LAYER, V4 — WATCH_ONLY
 
 ## Audit des plus fortes hausses
 
-- EPIC-EUR +34.19% — INSUFFICIENT_HISTORY — couche HISTORY — action NOT_APPLICABLE
-- GTC-EUR +25.78% — INSUFFICIENT_HISTORY — couche HISTORY — action NOT_APPLICABLE
-- ICNT-EUR +22.17% — DETECTED_EARLY — couche NONE — action ENTRY_TIMING_OR_EXECUTION
-- ZEUS-EUR +17.22% — INSUFFICIENT_HISTORY — couche HISTORY — action NOT_APPLICABLE
-- AVA-EUR +13.16% — INSUFFICIENT_HISTORY — couche HISTORY — action NOT_APPLICABLE
-- BTT-EUR +11.51% — INSUFFICIENT_HISTORY — couche HISTORY — action NOT_APPLICABLE
-- SAND-EUR +10.18% — INSUFFICIENT_HISTORY — couche HISTORY — action NOT_APPLICABLE
-- AMP-EUR +10.07% — INSUFFICIENT_HISTORY — couche HISTORY — action NOT_APPLICABLE
-- ALT-EUR +8.31% — INSUFFICIENT_HISTORY — couche HISTORY — action NOT_APPLICABLE
-- LAPTOP-EUR +7.16% — INSUFFICIENT_HISTORY — couche HISTORY — action NOT_APPLICABLE
+- EPIC-EUR +33.57% — INSUFFICIENT_HISTORY — couche HISTORY — action NOT_APPLICABLE
+- AVA-EUR +30.35% — INSUFFICIENT_HISTORY — couche HISTORY — action NOT_APPLICABLE
+- ICNT-EUR +28.47% — DETECTED_EARLY — couche NONE — action INTERPRETATION
+- BTT-EUR +14.16% — INSUFFICIENT_HISTORY — couche HISTORY — action NOT_APPLICABLE
+- SAND-EUR +12.74% — INSUFFICIENT_HISTORY — couche HISTORY — action NOT_APPLICABLE
+- GTC-EUR +12.32% — INSUFFICIENT_HISTORY — couche HISTORY — action NOT_APPLICABLE
+- ZEUS-EUR +10.49% — INSUFFICIENT_HISTORY — couche HISTORY — action NOT_APPLICABLE
+- LAPTOP-EUR +6.50% — INSUFFICIENT_HISTORY — couche HISTORY — action NOT_APPLICABLE
+- REQ-EUR +6.27% — INSUFFICIENT_HISTORY — couche HISTORY — action NOT_APPLICABLE
+- NMR-EUR +6.27% — NO_CONFIRMED_SHORT_TERM_EVENT — couche NOT_APPLICABLE — action NOT_APPLICABLE
 
 ## Gestion des positions détenues
 
