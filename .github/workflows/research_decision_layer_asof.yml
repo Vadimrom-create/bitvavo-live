@@ -9,6 +9,8 @@ on:
       - scripts/research_direct_dl_outcomes.py
       - scripts/verify_dl_commit_asof.py
       - scripts/audit_dl_dispatches.py
+      - scripts/capture_direct_dl_prospective_receipt.py
+      - .github/workflows/research_direct_dl_receipt.yml
       - tests/test_compare_direct_decision_shadow.py
       - tests/test_audit_dl_cadence.py
       - tests/test_compare_same_snapshot_v4_dl.py
@@ -16,6 +18,7 @@ on:
       - tests/test_research_direct_dl_outcomes.py
       - tests/test_verify_dl_commit_asof.py
       - tests/test_audit_dl_dispatches.py
+      - tests/test_capture_direct_dl_prospective_receipt.py
       - docs/DECISION_LAYER_ASOF_COMPARISON_20261016.md
       - .github/workflows/research_decision_layer_asof.yml
 permissions:
@@ -37,6 +40,11 @@ jobs:
             scripts/research_direct_dl_outcomes.py
             scripts/verify_dl_commit_asof.py
             scripts/audit_dl_dispatches.py
+            scripts/capture_direct_dl_prospective_receipt.py
+            production_scan_status.json
+            production_alert_candidates.json
+            production_universe_snapshot.json
+            decision_layer.json
             research/common.py
             research/http.py
             research/production_journal.py
@@ -50,6 +58,7 @@ jobs:
             tests/test_research_direct_dl_outcomes.py
             tests/test_verify_dl_commit_asof.py
             tests/test_audit_dl_dispatches.py
+            tests/test_capture_direct_dl_prospective_receipt.py
             production_direct_decision_journal.json
             decision_history
           sparse-checkout-cone-mode: false
@@ -77,6 +86,8 @@ jobs:
         run: python scripts/research_dl_price_paths.py --history-glob 'history/2026-10-15/*.json.gz' --max-per-horizon 8 --output /tmp/v4-dl-price-paths.json
       - name: Observe true DIRECT sent alerts vs previous shadow DL on mature public price paths
         run: python scripts/research_direct_dl_outcomes.py --max-per-horizon 5 --output /tmp/direct-dl-price-paths.json
+      - name: Pilot prospective same-DIRECT-input receipt on current frozen public snapshot
+        run: python scripts/capture_direct_dl_prospective_receipt.py --revision "$(git rev-parse HEAD)" --output /tmp/direct-dl-source-receipt.json.gz
       - uses: actions/upload-artifact@v4
         with:
           name: dl-asof-research-only
@@ -88,4 +99,5 @@ jobs:
             /tmp/direct-dl-price-paths.json
             /tmp/dl-commit-asof-evidence.json
             /tmp/dl-github-dispatch.json
+            /tmp/direct-dl-source-receipt.json.gz
           retention-days: 14
