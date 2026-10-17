@@ -1,8 +1,8 @@
 # Bitvavo — V4 mesurée / infrastructure V5
 
-Scan UTC : 2026-10-17T19:14:16.641804+00:00
-État : OK | marchés EUR : 427 | V4 : 361 | données valides : 427
-Récupération : 2026-10-17T19:13:12.203844+00:00 | âge ticker : 183.9 s | durée : 184.8 s
+Scan UTC : 2026-10-17T21:33:45.173820+00:00
+État : OK | marchés EUR : 427 | V4 : 353 | données valides : 427
+Récupération : 2026-10-17T21:32:40.472031+00:00 | âge ticker : 181.0 s | durée : 181.8 s
 
 ## ACHÈTE — signal V4 et plan théorique
 
@@ -12,27 +12,23 @@ Les intervalles sans transaction sont représentés explicitement à volume 0 ; 
 
 ## SURVEILLE
 
-- INJ-EUR : 7.6695 € ; score 81.45/100 ; SURVEILLE ; seuil achat non atteint
-- WAL-EUR : 0.037224 € ; score 75.75/100 ; SURVEILLE ; SELLER_HEAVY_BOOK, WICK_SETUP
-- METIS-EUR : 3.4391 € ; score 75.44/100 ; SURVEILLE ; seuil achat non atteint
-- BEAM-EUR : 0.0026309 € ; score 73.78/100 ; SURVEILLE ; seuil achat non atteint
-- RSR-EUR : 0.0017637 € ; score 73.23/100 ; SURVEILLE ; seuil achat non atteint
+- INJ-EUR : 7.5596 € ; score 72.19/100 ; SURVEILLE ; SPREAD_RISK, STABILITY_HOLD
 
 ## Contrôle des hausses
 
 | Marché | Prix € | 24 h | Détection | Couche d’échec | Actionnabilité |
 |---|---:|---:|---|---|---|
-| ICNT-EUR | 0.2011 | +36.55 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
-| AVA-EUR | 0.34223 | +35.14 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
-| GTC-EUR | 0.200874 | +16.01 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
-| SAND-EUR | 0.055198 | +15.07 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
-| ALT-EUR | 0.0083582 | +13.87 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
-| ZEUS-EUR | 0.008502 | +13.36 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
-| EPIC-EUR | 0.25506 | +12.77 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
-| LSK-EUR | 0.1911 | +10.16 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
-| BTT-EUR | 3.2769e-07 | +9.58 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
-| GNS-EUR | 0.41955 | +9.26 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
+| AVA-EUR | 0.35763 | +35.86 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
+| GTC-EUR | 0.200922 | +16.62 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
+| ALT-EUR | 0.0083452 | +14.45 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
+| ZRC-EUR | 0.0013806 | +13.43 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
+| SAND-EUR | 0.052961 | +9.59 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
+| EPIC-EUR | 0.23659 | +9.05 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
+| ZEUS-EUR | 0.0083325 | +8.56 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
+| WHUF-EUR | 1.9809 | +8.41 % | DETECTED_EARLY | NONE | INTERPRETATION |
+| THQ-EUR | 0.009831 | +8.12 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
+| LAPTOP-EUR | 0.07301 | +6.66 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
 
-Historique (snapshot asynchrone) : 2182 scans ; 933606 observations ; 1661 épisodes d’achat évaluables.
+Historique (snapshot asynchrone) : 2183 scans ; 934033 observations ; 1661 épisodes d’achat évaluables.
 V5 optimisée : aucune. Supériorité sur V4 : non démontrée. Probabilités : non calibrées.
 Le cash et le portefeuille du plan sont hypothétiques. Aucun ordre réel n’est envoyé.
