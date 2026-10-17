@@ -102,3 +102,23 @@ The original update.yml still has cron '7,22,37,52 * * * *' with cancel-in-progr
 The new script scripts/verify_dl_commit_asof.py performs this commit-metadata check automatically in **PR-only** CI using read-only GITHUB_TOKEN and bounded path lookups. The added calendar comparison treats days with zero archived files as **zero**, not as absent sampling days. Evidence flags for actual publication, same-input causal A/B and net portfolio PnL remain false/null.
 
 Decision: **NO-GO** to reinstate DL as an alert veto; retain PR #169 as draft; next engineering milestone is capture a deterministic, simultaneous DIRECT and V4/DL feature packet in a separate research path with independent timestamps, fill feasibility, and 24/48/72h outcomes, without moving any direct scan critical path.
+
+## Prospective DIRECT feature-receipt pilot — 17 Oct (nonactivated draft)
+
+GitHub officially documents that scheduled Actions events may be delayed or dropped during high load; this is a plausible contributing mechanism for the October archive collapse, **not a proved root cause for this repository**. The independent production heartbeat is already event-chained, whereas the legacy V4/DL scan is largely dependent on best-effort schedule dispatches.
+
+A separate **read-only observer** is drafted at `.github/workflows/research_direct_dl_receipt.yml` and `scripts/capture_direct_dl_prospective_receipt.py`. Trigger design: after a **successful** production heartbeat completes on `main`, checkout the latest public `main` snapshot in a **distinct concurrency group**, with only `contents: read`. It does not call Bitvavo, rebuild V4, publish repo files, access wallet/secrets, send alerts, execute orders, or alter/directly wait on production. It stores one gzip artifact with 3-day retention; possible impact is **additional GitHub runner minutes and shared quota**, to be reviewed before activation.
+
+**Important activation constraint:** GitHub `workflow_run` workflows must exist on the repository's default branch. The draft PR does **not** activate the recurring observer; merging is a separate change requiring safety review/approval.
+
+Proof from **PR-only CI run #39013586383 — SUCCESS**, **68 offline regression tests passed** and a real input snapshot:
+- `2026-10-17T07:20:10.021189Z` DIRECT scan, **427 markets**.
+- At the CI capture time, source age **432.866 seconds** (within the 900s cap), synchronized timestamps across production scan status, alert candidates and universe file.
+- **Three** DIRECT `ACCELERATION_READY` candidates in the source snapshot: **GTC-EUR, RSR-EUR, ZIG-EUR**. These are NOT validated `BUY_SENT` emails or simulated fills.
+- Features captured for those three candidates: **5m and 15m**; all three marked `UNSUPPORTED_NO_V4_BASELINE`. Their DIRECT data are hash-linked to the source Git checkout; every source JSON SHA256 is preserved. The prior V4/DL generation at DIRECT scan time was **4,443 seconds old**, clearly labeled `DL_OLDER_THAN_15_MINUTES`.
+- The entire gzip research receipt is **3,122 bytes** for this cycle and makes no extra public market requests.
+- `same_cycle_direct_features_proven=true`; `same_input_v4_dl_classification_proven=false`; `real_buy_sent_proven=false`; `net_portfolio_pnl_eur=null`.
+
+**Remaining central engineering blocker:** these synchronous DIRECT features do not contain V4's `baseline` (opportunity, entry, trend, buy_ready, etc.). An exact same-input DL V1 action CANNOT be reconstructed from them. Real A/B needs **a separately frozen V4 feature packet computed on a matching market-data timestamp**, or a transparently separate direct-input challenger with its own independently evaluated logic. Do not silently map missing values to zero/WATCH. If a prospective observer is activated, validate GitHub runner usage, actual hourly capture continuity, 5m source completeness, timestamp publication margins, and daily artifact retention before broadening scope.
+
+**No merge, production order, stop, threshold or DL gate activation has occurred.**
