@@ -54,7 +54,7 @@ jobs:
       - name: Keep immutable research receipt for 3 days, never commit to main
         uses: actions/upload-artifact@v4
         with:
-          name: direct-dl-input-receipt-\${{ github.run_id }}-\${{ github.run_attempt }}
+          name: direct-dl-input-receipt-${{ github.run_id }}-${{ github.run_attempt }}
           path: /tmp/direct-dl-prospective-input-receipt.json.gz
           if-no-files-found: error
           retention-days: 3
