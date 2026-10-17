@@ -40,6 +40,9 @@ class ProspectiveReceiptTests(unittest.TestCase):
         x=validate_packet(s,c,u,None,asof_ts=t+40,revision=SHA,hashes=HASHES)
         self.assertEqual(x["receipt_status"],"CAPTURED_SAME_DIRECT_SCAN")
         self.assertEqual(x["candidate_count"],1)
+        self.assertEqual(x["full_universe_market_rows_archived"],2)
+        self.assertEqual(len(x["full_universe_rows"]),2)
+        self.assertFalse(x["full_universe_hash_only"])
         self.assertEqual(x["candidate_rows"][0]["same_cycle_acceleration"]["state"],"CONFIRMED_ACCELERATION")
         self.assertEqual(x["candidate_rows"][0]["decision_layer_v1_same_input_status"],"UNSUPPORTED_NO_V4_BASELINE")
         self.assertFalse(x["same_input_v4_dl_classification_proven"])
@@ -73,6 +76,8 @@ class ProspectiveReceiptTests(unittest.TestCase):
         x=validate_packet(s,c,u,asof_ts=t+901,revision=SHA,hashes=HASHES)
         self.assertEqual(x["receipt_status"],"REJECTED_STALE_DIRECT_SNAPSHOT")
         self.assertEqual(x["candidate_rows"],[])
+        self.assertEqual(x["full_universe_rows"],[])
+        self.assertTrue(x["full_universe_hash_only"])
         self.assertFalse(x["same_cycle_direct_features_proven"])
 
     def test_dl_generated_after_direct_time_never_used_as_prior(self):
@@ -108,6 +113,8 @@ class ProspectiveReceiptTests(unittest.TestCase):
             self.assertEqual(rc,0)
             with gzip.open(output,"rt") as f: out=json.load(f)
             self.assertEqual(out["candidate_count"],1)
+            self.assertEqual(len(out["full_universe_rows"]),2)
+            self.assertEqual(out["full_universe_market_rows_archived"],2)
             self.assertTrue(out["no_additional_market_data_requests"])
 
 if __name__=="__main__":
