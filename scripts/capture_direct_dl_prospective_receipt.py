@@ -21,6 +21,7 @@ from pathlib import Path
 
 SCHEMA="solaire_direct_input_receipt_v1"
 MAX_INPUT_BYTES=16_000_000
+MAX_RECEIPT_GZIP_BYTES=2_000_000
 
 def utc_epoch(value):
     if not isinstance(value,str):
@@ -146,7 +147,9 @@ def validate_packet(status,candidates,universe,dl=None,*,asof_ts,revision,hashes
         "candidate_rows":direct_candidates if status_result=="CAPTURED_SAME_DIRECT_SCAN" else [],
         "prior_dl_status":dl_timing,
         "dl_generated_age_at_direct_scan_seconds":dl_age,
-        "full_universe_hash_only":True,
+        "full_universe_hash_only":status_result!="CAPTURED_SAME_DIRECT_SCAN",
+        "full_universe_market_rows_archived":len(market_by_name) if status_result=="CAPTURED_SAME_DIRECT_SCAN" else 0,
+        "full_universe_rows": [market_by_name[k] for k in sorted(market_by_name)] if status_result=="CAPTURED_SAME_DIRECT_SCAN" else [],
         "no_additional_market_data_requests":True,
         "same_cycle_direct_features_proven":status_result=="CAPTURED_SAME_DIRECT_SCAN",
         "same_input_v4_dl_classification_proven":False,
@@ -183,7 +186,11 @@ def main(argv=None):
         out.parent.mkdir(parents=True,exist_ok=True)
         with gzip.open(out,"wt",encoding="utf-8") as stream:
             json.dump(receipt,stream,ensure_ascii=False,sort_keys=True,separators=(",",":"))
-        print(json.dumps({k:v for k,v in receipt.items() if k!="candidate_rows"},sort_keys=True))
+        if out.stat().st_size>MAX_RECEIPT_GZIP_BYTES:
+            out.unlink(missing_ok=True)
+            raise ValueError("compressed prospective packet exceeds the 2MB budget")
+        print(json.dumps({k:v for k,v in receipt.items() if k not in ("candidate_rows","full_universe_rows")},sort_keys=True))
+        print("compressed_receipt_bytes="+str(out.stat().st_size))
         return 0
     except (ValueError,OSError,TypeError) as exc:
         print("DIRECT_PROSPECTIVE_RECEIPT_FAILED_CLOSED:"+str(exc),file=sys.stderr)
