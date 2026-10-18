@@ -1,8 +1,8 @@
 # Bitvavo — V4 mesurée / infrastructure V5
 
-Scan UTC : 2026-10-18T21:50:12.969141+00:00
-État : OK | marchés EUR : 427 | V4 : 355 | données valides : 427
-Récupération : 2026-10-18T21:49:08.652169+00:00 | âge ticker : 182.0 s | durée : 182.7 s
+Scan UTC : 2026-10-18T23:45:25.588411+00:00
+État : OK | marchés EUR : 427 | V4 : 360 | données valides : 427
+Récupération : 2026-10-18T23:44:50.933914+00:00 | âge ticker : 148.9 s | durée : 150.1 s
 
 ## ACHÈTE — signal V4 et plan théorique
 
@@ -12,23 +12,25 @@ Les intervalles sans transaction sont représentés explicitement à volume 0 ; 
 
 ## SURVEILLE
 
-- BAT-EUR : 0.15417 € ; score 74.54/100 ; SURVEILLE ; seuil achat non atteint
+- DUSK-EUR : 0.104532 € ; score 77.11/100 ; SURVEILLE ; SELLER_HEAVY_BOOK
+- RSR-EUR : 0.0017047 € ; score 72.89/100 ; SURVEILLE ; seuil achat non atteint
+- ALT-EUR : 0.0078303 € ; score 72.59/100 ; SURVEILLE ; VERY_SELLER_HEAVY_BOOK
 
 ## Contrôle des hausses
 
 | Marché | Prix € | 24 h | Détection | Couche d’échec | Actionnabilité |
 |---|---:|---:|---|---|---|
-| WHUF-EUR | 2.4203 | +21.20 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
-| GTC-EUR | 0.237939 | +16.27 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
-| ELSA-EUR | 0.0616 | +16.27 % | DETECTED_EARLY | NONE | ENTRY_TIMING_OR_EXECUTION |
-| MANTRA-EUR | 0.003853 | +12.92 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
-| AMP-EUR | 0.0006855 | +10.00 % | DETECTED_EARLY | NONE | INTERPRETATION |
-| ICNT-EUR | 0.17117 | +8.10 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
-| OSMO-EUR | 0.039361 | +7.68 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
-| CVX-EUR | 1.7958 | +6.33 % | NO_CONFIRMED_SHORT_TERM_EVENT | NOT_APPLICABLE | NOT_APPLICABLE |
-| GLMR-EUR | 0.009168 | +5.88 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
-| XDP-EUR | 0.016469 | +5.13 % | NO_CONFIRMED_SHORT_TERM_EVENT | NOT_APPLICABLE | NOT_APPLICABLE |
+| WHUF-EUR | 2.5004 | +26.05 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
+| ELSA-EUR | 0.062084 | +17.45 % | DETECTED_EARLY | NONE | ENTRY_TIMING_OR_EXECUTION |
+| ICNT-EUR | 0.17022 | +13.61 % | DETECTED_EARLY | NONE | ENTRY_TIMING_OR_EXECUTION |
+| GTC-EUR | 0.235199 | +12.49 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
+| AMP-EUR | 0.0006972 | +11.73 % | DETECTED_EARLY | NONE | INTERPRETATION |
+| SENT-EUR | 0.020333 | +8.73 % | NO_CONFIRMED_SHORT_TERM_EVENT | NOT_APPLICABLE | NOT_APPLICABLE |
+| OSMO-EUR | 0.039391 | +7.76 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
+| CVX-EUR | 1.8408 | +7.34 % | NO_CONFIRMED_SHORT_TERM_EVENT | NOT_APPLICABLE | NOT_APPLICABLE |
+| SOLV-EUR | 0.0040365 | +6.49 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
+| GLMR-EUR | 0.009296 | +5.59 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
 
-Historique (snapshot asynchrone) : 2191 scans ; 937449 observations ; 1661 épisodes d’achat évaluables.
+Historique (snapshot asynchrone) : 2192 scans ; 937876 observations ; 1661 épisodes d’achat évaluables.
 V5 optimisée : aucune. Supériorité sur V4 : non démontrée. Probabilités : non calibrées.
 Le cash et le portefeuille du plan sont hypothétiques. Aucun ordre réel n’est envoyé.
