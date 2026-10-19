@@ -1,0 +1,128 @@
+[
+  {
+    "sha": "df566b081fedfa36cbd7d733087c17a283f1cf7e",
+    "commit": {
+      "committer": {
+        "date": "2026-09-22T13:17:14Z"
+      },
+      "message": "Separate true prospective exit-policy validation cohort\n\n* Separate prospective exit-policy validation cohort\n\n* Persist prospective exit-policy shadow state\n\n* Test prospective exit-policy cohort separation"
+    }
+  },
+  {
+    "sha": "7adafba9ad33b16ccbf0d5536a0a5d97a2dace83",
+    "commit": {
+      "committer": {
+        "date": "2026-09-22T12:25:25Z"
+      },
+      "message": "Add prospective exit-policy shadow\n\n* Add prospective exit-policy shadow\n\n* Test exit-policy shadow isolation\n\n* Run exit-policy shadow in production scan\n\n* Expose exit-policy shadow in health\n\n* Test exit-policy health reporting"
+    }
+  },
+  {
+    "sha": "6a97640d7fa0673f09846303c8e255692b79b9db",
+    "commit": {
+      "committer": {
+        "date": "2026-09-21T21:44:05Z"
+      },
+      "message": "Add emerging-liquidity diagnostics shadow\n\n* Add emerging-liquidity shadow\n\n* Test emerging-liquidity shadow isolation\n\n* Run emerging-liquidity shadow in production scan\n\n* Expose emerging-liquidity shadow in health\n\n* Report emerging-liquidity shadow outcome"
+    }
+  },
+  {
+    "sha": "fd6a0a090f36b6fb7060bb679ae7c9b881551d0a",
+    "commit": {
+      "committer": {
+        "date": "2026-09-21T21:42:31Z"
+      },
+      "message": "Add fast breakout-risk shadow\n\n* Add fast breakout-risk shadow\n\n* Test breakout-risk shadow isolation\n\n* Run fast breakout-risk shadow in production scan\n\n* Expose breakout-risk shadow in health\n\n* Report breakout-risk shadow outcome"
+    }
+  },
+  {
+    "sha": "ff6eb61f41b85d8f89a7698eca72f5f3e16b4ce2",
+    "commit": {
+      "committer": {
+        "date": "2026-09-21T21:38:00Z"
+      },
+      "message": "Measure all simultaneously actionable Solaire candidates\n\n* Add simultaneous actionable shadow\n\n* Test simultaneous actionable shadow isolation\n\n* Measure simultaneous actionable candidates before sender\n\n* Expose all-actionable shadow in health\n\n* Report all-actionable shadow outcome"
+    }
+  },
+  {
+    "sha": "ca40e5918354dbe29a38da023fcb8f7954dfa287",
+    "commit": {
+      "committer": {
+        "date": "2026-09-21T21:25:33Z"
+      },
+      "message": "Harden Solaire health and decouple CI from retired infra\n\n* Expose all Solaire shadows in production health\n\n* Report all shadow step outcomes to health\n\n* Decouple critical CI from retired Oracle Railway path\n\n* Test Solaire operational hardening"
+    }
+  },
+  {
+    "sha": "b7233cf6b272d636a048d93715822af4c138b0be",
+    "commit": {
+      "committer": {
+        "date": "2026-09-21T20:17:19Z"
+      },
+      "message": "Add prospective V2.1 range-5 shadow\n\n* Add prospective V2.1 range-5 shadow\n\n* Test V2.1 range-5 shadow isolation\n\n* Run V2.1 range-5 shadow in production scan"
+    }
+  },
+  {
+    "sha": "d6f34b9788deaa808b6946689bb05d93d757460e",
+    "commit": {
+      "committer": {
+        "date": "2026-09-21T18:50:26Z"
+      },
+      "message": "Add prospective Solaire V2 rejection shadow\n\n* Add prospective rejection shadow v2\n\n* Test rejection shadow v2 isolation\n\n* Run final-gate rejection shadow in production scan"
+    }
+  },
+  {
+    "sha": "9293e73f4af20e310cde747ea347a1bdc167b2bb",
+    "commit": {
+      "committer": {
+        "date": "2026-09-21T18:07:04Z"
+      },
+      "message": "Add immediate high-quality BUILDING shadow\n\n* Add high-quality BUILDING shadow\n\n* Test early BUILDING shadow isolation\n\n* Run high-quality BUILDING shadow in production scan"
+    }
+  },
+  {
+    "sha": "dc2b9c912b240c1fd318e33da01844e0a1c1c583",
+    "commit": {
+      "committer": {
+        "date": "2026-09-21T12:02:10Z"
+      },
+      "message": "Run persistent BUILDING shadow measurement in production"
+    }
+  },
+  {
+    "sha": "bfc40b1059dd9209e42ef276a9ddf0d08a7e99e2",
+    "commit": {
+      "committer": {
+        "date": "2026-09-21T09:30:56Z"
+      },
+      "message": "Add non-blocking evaluation and explicit health checks"
+    }
+  },
+  {
+    "sha": "c31bb5d1f9d2d13c8db31e243b88d618f550b0ef",
+    "commit": {
+      "committer": {
+        "date": "2026-09-20T22:08:43Z"
+      },
+      "message": "Make Solaire workflow track only production dependencies"
+    }
+  },
+  {
+    "sha": "93e3c3926533d651408c9a3506d63360042166a8",
+    "commit": {
+      "committer": {
+        "date": "2026-09-20T19:26:50Z"
+      },
+      "message": "Run production scan immediately on production code changes"
+    }
+  },
+  {
+    "sha": "a6b890c0f1514c05b697b182b5507b04010ad979",
+    "commit": {
+      "committer": {
+        "date": "2026-09-20T19:21:24Z"
+      },
+      "message": "Run production scan independently every five minutes"
+    }
+  }
+]

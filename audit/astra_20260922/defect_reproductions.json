@@ -1,0 +1,61 @@
+{
+  "unsorted_evaluation": {
+    "ascending": {
+      "horizon_hours": 4,
+      "result": "TP1",
+      "mfe_pct": 25.0,
+      "mae_pct": -15.0,
+      "close_return_pct": -12.0,
+      "bars_used": 2,
+      "method": "closed_5m_bars_after_decision_bar"
+    },
+    "descending_api_order": {
+      "horizon_hours": 4,
+      "result": "STOP",
+      "mfe_pct": 25.0,
+      "mae_pct": -15.0,
+      "close_return_pct": 22.0,
+      "bars_used": 2,
+      "method": "closed_5m_bars_after_decision_bar"
+    }
+  },
+  "bar_crossing_horizon": {
+    "decision_ts": 60,
+    "horizon_end": 14460,
+    "accepted_bar_end": 14700,
+    "result": {
+      "horizon_hours": 4,
+      "result": "TP1",
+      "mfe_pct": 30.0,
+      "mae_pct": -1.0,
+      "close_return_pct": 25.0,
+      "bars_used": 1,
+      "method": "closed_5m_bars_after_decision_bar"
+    }
+  },
+  "false_complete_shadow_horizon": {
+    "gross_return_pct": 0.0,
+    "net_return_pct_est": -0.3,
+    "r_multiple": 0.0,
+    "exit_reason": "HORIZON_CLOSE",
+    "target_eur": 120,
+    "bars_used": 1,
+    "complete_horizon": true,
+    "intrabar_convention": "LOW_BEFORE_HIGH_CONSERVATIVE"
+  },
+  "rolling_cohort_eviction": {
+    "members_after_29h": 1,
+    "members_after_31h": 0,
+    "lookback_hours": 30.0
+  },
+  "handled_episode_blocks_later_invalidation": {
+    "prior_thesis_active_after_stop_breach": false,
+    "events_available_to_revalidate": 0
+  },
+  "synthetic_no_trade_freshness": {
+    "feature_valid": true,
+    "fresh": true,
+    "no_trade_bars_last25": 25,
+    "interpretation": "documented no-trade gaps legitimate; truncated/stale response cannot be distinguished"
+  }
+}
