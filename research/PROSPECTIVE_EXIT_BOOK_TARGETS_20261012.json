@@ -1,0 +1,1479 @@
+{
+  "schema": "solaire_prospective_exit_book_targets_v1",
+  "research_only": true,
+  "committed_before_due_utc": "2026-10-12T18:01:00.590Z",
+  "precommit_source": "PUBLIC_MACHINE_DECISION_JOURNAL",
+  "source_journal_path": "production_direct_decision_journal.json",
+  "source_journal_blob_git_sha": "b524f59dfa349d65457889548411bd666e05f75e",
+  "source_journal_updated_at_utc": "2026-10-12T17:32:13.896752+00:00",
+  "precommitted_horizons_hours": [
+    4,
+    12,
+    24
+  ],
+  "target_selection": "ALL_BUY_SENT_WITH_VALID_GEOMETRY_AND_DUE_15MIN_TO_48H_AFTER_PRECOMMIT",
+  "target_count": 81,
+  "unique_market_count": 26,
+  "real_trade_entry_or_exit_proven": false,
+  "real_bitvavo_pnl_eur": null,
+  "targets": [
+    {
+      "target_id": "decision_b9f3b1ca13de9ef1c189f83b1d11e653/EXIT_PLUS_24H",
+      "source_decision_id": "decision_b9f3b1ca13de9ef1c189f83b1d11e653",
+      "market": "MANTA-EUR",
+      "signal_decision_at_utc": "2026-10-11T18:20:56.138Z",
+      "due_at_utc": "2026-10-12T18:20:56.138Z",
+      "horizon_hours": 24,
+      "stake_scenarios_eur": [
+        100,
+        150
+      ],
+      "source_execution_observation_id": "observation_a41dc4d901e6a1647ef499ac33430c9c",
+      "signal_entry_limit_eur": 0.069715,
+      "signal_stop_eur": 0.062857,
+      "signal_tp1_eur": 0.083431,
+      "execution_stage": "SIGNAL_AGE_ONLY_NOT_PROVEN_FILLED",
+      "policy": "SOLAIRE_MACHINE_BUY_SENT_NOT_R2_NOT_V4"
+    },
+    {
+      "target_id": "decision_b2fae8dc5d7c208d0f1a47c13d17e5f6/EXIT_PLUS_12H",
+      "source_decision_id": "decision_b2fae8dc5d7c208d0f1a47c13d17e5f6",
+      "market": "CYBER-EUR",
+      "signal_decision_at_utc": "2026-10-12T06:28:06.124Z",
+      "due_at_utc": "2026-10-12T18:28:06.124Z",
+      "horizon_hours": 12,
+      "stake_scenarios_eur": [
+        100,
+        150
+      ],
+      "source_execution_observation_id": "observation_00076f23914123b2cf87a413db3b3f3d",
+      "signal_entry_limit_eur": 0.34216,
+      "signal_stop_eur": 0.30887,
+      "signal_tp1_eur": 0.40874,
+      "execution_stage": "SIGNAL_AGE_ONLY_NOT_PROVEN_FILLED",
+      "policy": "SOLAIRE_MACHINE_BUY_SENT_NOT_R2_NOT_V4"
+    },
+    {
+      "target_id": "decision_e87f7f96dee91fa221b18adf4878b032/EXIT_PLUS_24H",
+      "source_decision_id": "decision_e87f7f96dee91fa221b18adf4878b032",
+      "market": "DYM-EUR",
+      "signal_decision_at_utc": "2026-10-11T18:34:10.217Z",
+      "due_at_utc": "2026-10-12T18:34:10.217Z",
+      "horizon_hours": 24,
+      "stake_scenarios_eur": [
+        100,
+        150
+      ],
+      "source_execution_observation_id": "observation_9308ebe11051b555a31b0a2de0ab66dd",
+      "signal_entry_limit_eur": 0.018404,
+      "signal_stop_eur": 0.017162,
+      "signal_tp1_eur": 0.020888,
+      "execution_stage": "SIGNAL_AGE_ONLY_NOT_PROVEN_FILLED",
+      "policy": "SOLAIRE_MACHINE_BUY_SENT_NOT_R2_NOT_V4"
+    },
+    {
+      "target_id": "decision_316598ce1256579e6230f4d715f09992/EXIT_PLUS_24H",
+      "source_decision_id": "decision_316598ce1256579e6230f4d715f09992",
+      "market": "MAGIC-EUR",
+      "signal_decision_at_utc": "2026-10-11T18:44:12.932Z",
+      "due_at_utc": "2026-10-12T18:44:12.932Z",
+      "horizon_hours": 24,
+      "stake_scenarios_eur": [
+        100,
+        150
+      ],
+      "source_execution_observation_id": "observation_789153fa8872833dcdc3197a8ef32eac",
+      "signal_entry_limit_eur": 0.120519,
+      "signal_stop_eur": 0.109314,
+      "signal_tp1_eur": 0.142929,
+      "execution_stage": "SIGNAL_AGE_ONLY_NOT_PROVEN_FILLED",
+      "policy": "SOLAIRE_MACHINE_BUY_SENT_NOT_R2_NOT_V4"
+    },
+    {
+      "target_id": "decision_38d64fcc5b82307b1aa105fa03262159/EXIT_PLUS_12H",
+      "source_decision_id": "decision_38d64fcc5b82307b1aa105fa03262159",
+      "market": "WHUF-EUR",
+      "signal_decision_at_utc": "2026-10-12T06:53:10.231Z",
+      "due_at_utc": "2026-10-12T18:53:10.231Z",
+      "horizon_hours": 12,
+      "stake_scenarios_eur": [
+        100,
+        150
+      ],
+      "source_execution_observation_id": "observation_c82872ae36767caea6ace1c20278829a",
+      "signal_entry_limit_eur": 2.3809,
+      "signal_stop_eur": 2.2278,
+      "signal_tp1_eur": 2.6871,
+      "execution_stage": "SIGNAL_AGE_ONLY_NOT_PROVEN_FILLED",
+      "policy": "SOLAIRE_MACHINE_BUY_SENT_NOT_R2_NOT_V4"
+    },
+    {
+      "target_id": "decision_b24e88fea688b1bcd0d0ce7c1874215d/EXIT_PLUS_12H",
+      "source_decision_id": "decision_b24e88fea688b1bcd0d0ce7c1874215d",
+      "market": "BILL-EUR",
+      "signal_decision_at_utc": "2026-10-12T07:03:21.059Z",
+      "due_at_utc": "2026-10-12T19:03:21.059Z",
+      "horizon_hours": 12,
+      "stake_scenarios_eur": [
+        100,
+        150
+      ],
+      "source_execution_observation_id": "observation_b94c9e2bd9f6523d6fc9ef1050ed2bcb",
+      "signal_entry_limit_eur": 0.008857,
+      "signal_stop_eur": 0.008264,
+      "signal_tp1_eur": 0.010043,
+      "execution_stage": "SIGNAL_AGE_ONLY_NOT_PROVEN_FILLED",
+      "policy": "SOLAIRE_MACHINE_BUY_SENT_NOT_R2_NOT_V4"
+    },
+    {
+      "target_id": "decision_eb31fb92a8b837126553f5a685d803af/EXIT_PLUS_4H",
+      "source_decision_id": "decision_eb31fb92a8b837126553f5a685d803af",
+      "market": "METIS-EUR",
+      "signal_decision_at_utc": "2026-10-12T15:04:11.906Z",
+      "due_at_utc": "2026-10-12T19:04:11.906Z",
+      "horizon_hours": 4,
+      "stake_scenarios_eur": [
+        100,
+        150
+      ],
+      "source_execution_observation_id": "observation_f78564928e3cc945a4e32bae2332a086",
+      "signal_entry_limit_eur": 3.5406,
+      "signal_stop_eur": 3.3062,
+      "signal_tp1_eur": 4.0093,
+      "execution_stage": "SIGNAL_AGE_ONLY_NOT_PROVEN_FILLED",
+      "policy": "SOLAIRE_MACHINE_BUY_SENT_NOT_R2_NOT_V4"
+    },
+    {
+      "target_id": "decision_f000df97eade3e347582f33be983dbb4/EXIT_PLUS_4H",
+      "source_decision_id": "decision_f000df97eade3e347582f33be983dbb4",
+      "market": "MOVR-EUR",
+      "signal_decision_at_utc": "2026-10-12T15:04:11.906Z",
+      "due_at_utc": "2026-10-12T19:04:11.906Z",
+      "horizon_hours": 4,
+      "stake_scenarios_eur": [
+        100,
+        150
+      ],
+      "source_execution_observation_id": "observation_8896b5051bbf6f61bb8dc3f587381fe4",
+      "signal_entry_limit_eur": 1.4811,
+      "signal_stop_eur": 1.428,
+      "signal_tp1_eur": 1.5873,
+      "execution_stage": "SIGNAL_AGE_ONLY_NOT_PROVEN_FILLED",
+      "policy": "SOLAIRE_MACHINE_BUY_SENT_NOT_R2_NOT_V4"
+    },
+    {
+      "target_id": "decision_0cda9ad71f1ab43672a702a5089575c9/EXIT_PLUS_12H",
+      "source_decision_id": "decision_0cda9ad71f1ab43672a702a5089575c9",
+      "market": "CYBER-EUR",
+      "signal_decision_at_utc": "2026-10-12T07:16:53.993Z",
+      "due_at_utc": "2026-10-12T19:16:53.993Z",
+      "horizon_hours": 12,
+      "stake_scenarios_eur": [
+        100,
+        150
+      ],
+      "source_execution_observation_id": "observation_384e306a131b4e4c6c67359fc1f9555b",
+      "signal_entry_limit_eur": 0.35166,
+      "signal_stop_eur": 0.31729,
+      "signal_tp1_eur": 0.42039,
+      "execution_stage": "SIGNAL_AGE_ONLY_NOT_PROVEN_FILLED",
+      "policy": "SOLAIRE_MACHINE_BUY_SENT_NOT_R2_NOT_V4"
+    },
+    {
+      "target_id": "decision_6f34b72b4cb8f431cd060e9c965bbb8d/EXIT_PLUS_12H",
+      "source_decision_id": "decision_6f34b72b4cb8f431cd060e9c965bbb8d",
+      "market": "MAGIC-EUR",
+      "signal_decision_at_utc": "2026-10-12T07:16:53.993Z",
+      "due_at_utc": "2026-10-12T19:16:53.993Z",
+      "horizon_hours": 12,
+      "stake_scenarios_eur": [
+        100,
+        150
+      ],
+      "source_execution_observation_id": "observation_4d9ac575ed164449e72ef3f0f6ba6696",
+      "signal_entry_limit_eur": 0.110724,
+      "signal_stop_eur": 0.10367,
+      "signal_tp1_eur": 0.124832,
+      "execution_stage": "SIGNAL_AGE_ONLY_NOT_PROVEN_FILLED",
+      "policy": "SOLAIRE_MACHINE_BUY_SENT_NOT_R2_NOT_V4"
+    },
+    {
+      "target_id": "decision_5b41d9d45cb4fc16caea261a24c2c4f0/EXIT_PLUS_12H",
+      "source_decision_id": "decision_5b41d9d45cb4fc16caea261a24c2c4f0",
+      "market": "SXT-EUR",
+      "signal_decision_at_utc": "2026-10-12T07:21:58.942Z",
+      "due_at_utc": "2026-10-12T19:21:58.942Z",
+      "horizon_hours": 12,
+      "stake_scenarios_eur": [
+        100,
+        150
+      ],
+      "source_execution_observation_id": "observation_6fe242cc8dbc0a7a1abc00fcb010de4d",
+      "signal_entry_limit_eur": 0.00875,
+      "signal_stop_eur": 0.008314,
+      "signal_tp1_eur": 0.009622,
+      "execution_stage": "SIGNAL_AGE_ONLY_NOT_PROVEN_FILLED",
+      "policy": "SOLAIRE_MACHINE_BUY_SENT_NOT_R2_NOT_V4"
+    },
+    {
+      "target_id": "decision_6d47bd82959937091cee3adfef992c0a/EXIT_PLUS_4H",
+      "source_decision_id": "decision_6d47bd82959937091cee3adfef992c0a",
+      "market": "OGN-EUR",
+      "signal_decision_at_utc": "2026-10-12T15:49:31.786Z",
+      "due_at_utc": "2026-10-12T19:49:31.786Z",
+      "horizon_hours": 4,
+      "stake_scenarios_eur": [
+        100,
+        150
+      ],
+      "source_execution_observation_id": "observation_a34ba1e3a82015ec9821e626dd7ea592",
+      "signal_entry_limit_eur": 0.030675,
+      "signal_stop_eur": 0.028312,
+      "signal_tp1_eur": 0.035401,
+      "execution_stage": "SIGNAL_AGE_ONLY_NOT_PROVEN_FILLED",
+      "policy": "SOLAIRE_MACHINE_BUY_SENT_NOT_R2_NOT_V4"
+    },
+    {
+      "target_id": "decision_4d4eb1184a6481dd0b3e10064d15686f/EXIT_PLUS_12H",
+      "source_decision_id": "decision_4d4eb1184a6481dd0b3e10064d15686f",
+      "market": "PHA-EUR",
+      "signal_decision_at_utc": "2026-10-12T08:02:28.463Z",
+      "due_at_utc": "2026-10-12T20:02:28.463Z",
+      "horizon_hours": 12,
+      "stake_scenarios_eur": [
+        100,
+        150
+      ],
+      "source_execution_observation_id": "observation_dbfe5b8408ed78f986c84c1a1752a5f1",
+      "signal_entry_limit_eur": 0.057815,
+      "signal_stop_eur": 0.053364,
+      "signal_tp1_eur": 0.066717,
+      "execution_stage": "SIGNAL_AGE_ONLY_NOT_PROVEN_FILLED",
+      "policy": "SOLAIRE_MACHINE_BUY_SENT_NOT_R2_NOT_V4"
+    },
+    {
+      "target_id": "decision_1ac78a33a58ed4cf5ed0282238d83ac7/EXIT_PLUS_24H",
+      "source_decision_id": "decision_1ac78a33a58ed4cf5ed0282238d83ac7",
+      "market": "STRK-EUR",
+      "signal_decision_at_utc": "2026-10-11T20:02:44.138Z",
+      "due_at_utc": "2026-10-12T20:02:44.138Z",
+      "horizon_hours": 24,
+      "stake_scenarios_eur": [
+        100,
+        150
+      ],
+      "source_execution_observation_id": "observation_5558e509405554de1e18c3842348babe",
+      "signal_entry_limit_eur": 0.107444,
+      "signal_stop_eur": 0.099644,
+      "signal_tp1_eur": 0.123044,
+      "execution_stage": "SIGNAL_AGE_ONLY_NOT_PROVEN_FILLED",
+      "policy": "SOLAIRE_MACHINE_BUY_SENT_NOT_R2_NOT_V4"
+    },
+    {
+      "target_id": "decision_c1d12f07f5ba8d0ee7b5389262336e8e/EXIT_PLUS_24H",
+      "source_decision_id": "decision_c1d12f07f5ba8d0ee7b5389262336e8e",
+      "market": "IO-EUR",
+      "signal_decision_at_utc": "2026-10-11T20:17:40.729Z",
+      "due_at_utc": "2026-10-12T20:17:40.729Z",
+      "horizon_hours": 24,
+      "stake_scenarios_eur": [
+        100,
+        150
+      ],
+      "source_execution_observation_id": "observation_281e4d1554a4846b7dc0d78203a5978c",
+      "signal_entry_limit_eur": 0.16271,
+      "signal_stop_eur": 0.15009,
+      "signal_tp1_eur": 0.18794,
+      "execution_stage": "SIGNAL_AGE_ONLY_NOT_PROVEN_FILLED",
+      "policy": "SOLAIRE_MACHINE_BUY_SENT_NOT_R2_NOT_V4"
+    },
+    {
+      "target_id": "decision_73a001f05302a5f745a4b10c550dafdc/EXIT_PLUS_4H",
+      "source_decision_id": "decision_73a001f05302a5f745a4b10c550dafdc",
+      "market": "WHUF-EUR",
+      "signal_decision_at_utc": "2026-10-12T16:17:57.921Z",
+      "due_at_utc": "2026-10-12T20:17:57.921Z",
+      "horizon_hours": 4,
+      "stake_scenarios_eur": [
+        100,
+        150
+      ],
+      "source_execution_observation_id": "observation_baeac4b2f138017e5aefbac3bf814f3f",
+      "signal_entry_limit_eur": 2.1278,
+      "signal_stop_eur": 1.9726,
+      "signal_tp1_eur": 2.4382,
+      "execution_stage": "SIGNAL_AGE_ONLY_NOT_PROVEN_FILLED",
+      "policy": "SOLAIRE_MACHINE_BUY_SENT_NOT_R2_NOT_V4"
+    },
+    {
+      "target_id": "decision_990d0969ed88f653cc8bfaad2d971f99/EXIT_PLUS_4H",
+      "source_decision_id": "decision_990d0969ed88f653cc8bfaad2d971f99",
+      "market": "SKL-EUR",
+      "signal_decision_at_utc": "2026-10-12T16:38:03.996Z",
+      "due_at_utc": "2026-10-12T20:38:03.996Z",
+      "horizon_hours": 4,
+      "stake_scenarios_eur": [
+        100,
+        150
+      ],
+      "source_execution_observation_id": "observation_a0a1373bf942a8a5cd6e9cc2d2716c4b",
+      "signal_entry_limit_eur": 0.0049307,
+      "signal_stop_eur": 0.004502,
+      "signal_tp1_eur": 0.005788,
+      "execution_stage": "SIGNAL_AGE_ONLY_NOT_PROVEN_FILLED",
+      "policy": "SOLAIRE_MACHINE_BUY_SENT_NOT_R2_NOT_V4"
+    },
+    {
+      "target_id": "decision_2e90f73c88f2587a5c6c47633df221c3/EXIT_PLUS_24H",
+      "source_decision_id": "decision_2e90f73c88f2587a5c6c47633df221c3",
+      "market": "FIL-EUR",
+      "signal_decision_at_utc": "2026-10-11T20:50:55.833Z",
+      "due_at_utc": "2026-10-12T20:50:55.833Z",
+      "horizon_hours": 24,
+      "stake_scenarios_eur": [
+        100,
+        150
+      ],
+      "source_execution_observation_id": "observation_cff5afd0ae2cf49a0d0845d5c5bca169",
+      "signal_entry_limit_eur": 1.11927,
+      "signal_stop_eur": 1.02026,
+      "signal_tp1_eur": 1.31729,
+      "execution_stage": "SIGNAL_AGE_ONLY_NOT_PROVEN_FILLED",
+      "policy": "SOLAIRE_MACHINE_BUY_SENT_NOT_R2_NOT_V4"
+    },
+    {
+      "target_id": "decision_15f29e73ca70f34d3e6955ac967dfe32/EXIT_PLUS_12H",
+      "source_decision_id": "decision_15f29e73ca70f34d3e6955ac967dfe32",
+      "market": "CYBER-EUR",
+      "signal_decision_at_utc": "2026-10-12T08:56:39.940Z",
+      "due_at_utc": "2026-10-12T20:56:39.940Z",
+      "horizon_hours": 12,
+      "stake_scenarios_eur": [
+        100,
+        150
+      ],
+      "source_execution_observation_id": "observation_c099fb4a16f4b18dd471ba9588f671c6",
+      "signal_entry_limit_eur": 0.35629,
+      "signal_stop_eur": 0.33317,
+      "signal_tp1_eur": 0.40252,
+      "execution_stage": "SIGNAL_AGE_ONLY_NOT_PROVEN_FILLED",
+      "policy": "SOLAIRE_MACHINE_BUY_SENT_NOT_R2_NOT_V4"
+    },
+    {
+      "target_id": "decision_b21f8019c008a567e1794a92c05857a7/EXIT_PLUS_12H",
+      "source_decision_id": "decision_b21f8019c008a567e1794a92c05857a7",
+      "market": "PLUME-EUR",
+      "signal_decision_at_utc": "2026-10-12T09:10:14.615Z",
+      "due_at_utc": "2026-10-12T21:10:14.615Z",
+      "horizon_hours": 12,
+      "stake_scenarios_eur": [
+        100,
+        150
+      ],
+      "source_execution_observation_id": "observation_fe9f3b7fdd8980852c0f8b5d1d9b7336",
+      "signal_entry_limit_eur": 0.0208213,
+      "signal_stop_eur": 0.0193612,
+      "signal_tp1_eur": 0.0237415,
+      "execution_stage": "SIGNAL_AGE_ONLY_NOT_PROVEN_FILLED",
+      "policy": "SOLAIRE_MACHINE_BUY_SENT_NOT_R2_NOT_V4"
+    },
+    {
+      "target_id": "decision_d9439a91ce7d674f93fd3436abc0127a/EXIT_PLUS_12H",
+      "source_decision_id": "decision_d9439a91ce7d674f93fd3436abc0127a",
+      "market": "STRK-EUR",
+      "signal_decision_at_utc": "2026-10-12T09:20:22.031Z",
+      "due_at_utc": "2026-10-12T21:20:22.031Z",
+      "horizon_hours": 12,
+      "stake_scenarios_eur": [
+        100,
+        150
+      ],
+      "source_execution_observation_id": "observation_8dacd5ef87ee0d17005881692f492add",
+      "signal_entry_limit_eur": 0.094831,
+      "signal_stop_eur": 0.088955,
+      "signal_tp1_eur": 0.106582,
+      "execution_stage": "SIGNAL_AGE_ONLY_NOT_PROVEN_FILLED",
+      "policy": "SOLAIRE_MACHINE_BUY_SENT_NOT_R2_NOT_V4"
+    },
+    {
+      "target_id": "decision_a1e4f5ed09a3ab0cfe1c623c353b1908/EXIT_PLUS_4H",
+      "source_decision_id": "decision_a1e4f5ed09a3ab0cfe1c623c353b1908",
+      "market": "STRK-EUR",
+      "signal_decision_at_utc": "2026-10-12T17:32:11.044Z",
+      "due_at_utc": "2026-10-12T21:32:11.044Z",
+      "horizon_hours": 4,
+      "stake_scenarios_eur": [
+        100,
+        150
+      ],
+      "source_execution_observation_id": "observation_2e57fd3f689125fe65b8a60f2e934ab1",
+      "signal_entry_limit_eur": 0.08625,
+      "signal_stop_eur": 0.079557,
+      "signal_tp1_eur": 0.099635,
+      "execution_stage": "SIGNAL_AGE_ONLY_NOT_PROVEN_FILLED",
+      "policy": "SOLAIRE_MACHINE_BUY_SENT_NOT_R2_NOT_V4"
+    },
+    {
+      "target_id": "decision_04b94662cfed7162ed2be659160e7184/EXIT_PLUS_12H",
+      "source_decision_id": "decision_04b94662cfed7162ed2be659160e7184",
+      "market": "CYBER-EUR",
+      "signal_decision_at_utc": "2026-10-12T09:35:44.509Z",
+      "due_at_utc": "2026-10-12T21:35:44.509Z",
+      "horizon_hours": 12,
+      "stake_scenarios_eur": [
+        100,
+        150
+      ],
+      "source_execution_observation_id": "observation_5c807148da04405a7b7e8898f6002f19",
+      "signal_entry_limit_eur": 0.35988,
+      "signal_stop_eur": 0.33289,
+      "signal_tp1_eur": 0.41385,
+      "execution_stage": "SIGNAL_AGE_ONLY_NOT_PROVEN_FILLED",
+      "policy": "SOLAIRE_MACHINE_BUY_SENT_NOT_R2_NOT_V4"
+    },
+    {
+      "target_id": "decision_602b28fd72360576bdab8a0d1a1276ed/EXIT_PLUS_12H",
+      "source_decision_id": "decision_602b28fd72360576bdab8a0d1a1276ed",
+      "market": "ZRC-EUR",
+      "signal_decision_at_utc": "2026-10-12T09:35:44.509Z",
+      "due_at_utc": "2026-10-12T21:35:44.509Z",
+      "horizon_hours": 12,
+      "stake_scenarios_eur": [
+        100,
+        150
+      ],
+      "source_execution_observation_id": "observation_9bb64e794f24f0851b3f4a6549656d67",
+      "signal_entry_limit_eur": 0.0012301,
+      "signal_stop_eur": 0.0011542,
+      "signal_tp1_eur": 0.0013819,
+      "execution_stage": "SIGNAL_AGE_ONLY_NOT_PROVEN_FILLED",
+      "policy": "SOLAIRE_MACHINE_BUY_SENT_NOT_R2_NOT_V4"
+    },
+    {
+      "target_id": "decision_98a87f9eba0b612b3568185da61d0ee9/EXIT_PLUS_12H",
+      "source_decision_id": "decision_98a87f9eba0b612b3568185da61d0ee9",
+      "market": "MANTA-EUR",
+      "signal_decision_at_utc": "2026-10-12T09:35:44.509Z",
+      "due_at_utc": "2026-10-12T21:35:44.509Z",
+      "horizon_hours": 12,
+      "stake_scenarios_eur": [
+        100,
+        150
+      ],
+      "source_execution_observation_id": "observation_44c2fd2cd2115978fdaa4830dcd440e5",
+      "signal_entry_limit_eur": 0.066902,
+      "signal_stop_eur": 0.063294,
+      "signal_tp1_eur": 0.074118,
+      "execution_stage": "SIGNAL_AGE_ONLY_NOT_PROVEN_FILLED",
+      "policy": "SOLAIRE_MACHINE_BUY_SENT_NOT_R2_NOT_V4"
+    },
+    {
+      "target_id": "decision_d08991a5c545355ffb9e1ba2b18772a9/EXIT_PLUS_24H",
+      "source_decision_id": "decision_d08991a5c545355ffb9e1ba2b18772a9",
+      "market": "GRASS-EUR",
+      "signal_decision_at_utc": "2026-10-11T21:49:16.202Z",
+      "due_at_utc": "2026-10-12T21:49:16.202Z",
+      "horizon_hours": 24,
+      "stake_scenarios_eur": [
+        100,
+        150
+      ],
+      "source_execution_observation_id": "observation_99ad2c59bcfe06c8918b17ba6e99b8a0",
+      "signal_entry_limit_eur": 0.71455,
+      "signal_stop_eur": 0.67164,
+      "signal_tp1_eur": 0.80037,
+      "execution_stage": "SIGNAL_AGE_ONLY_NOT_PROVEN_FILLED",
+      "policy": "SOLAIRE_MACHINE_BUY_SENT_NOT_R2_NOT_V4"
+    },
+    {
+      "target_id": "decision_31fef14f13e723bd59b490da592aa52d/EXIT_PLUS_24H",
+      "source_decision_id": "decision_31fef14f13e723bd59b490da592aa52d",
+      "market": "PLUME-EUR",
+      "signal_decision_at_utc": "2026-10-11T22:17:27.040Z",
+      "due_at_utc": "2026-10-12T22:17:27.040Z",
+      "horizon_hours": 24,
+      "stake_scenarios_eur": [
+        100,
+        150
+      ],
+      "source_execution_observation_id": "observation_222e4a8e740c894a819d5bc991deb5cb",
+      "signal_entry_limit_eur": 0.020233,
+      "signal_stop_eur": 0.018847,
+      "signal_tp1_eur": 0.023005,
+      "execution_stage": "SIGNAL_AGE_ONLY_NOT_PROVEN_FILLED",
+      "policy": "SOLAIRE_MACHINE_BUY_SENT_NOT_R2_NOT_V4"
+    },
+    {
+      "target_id": "decision_655aed884da2ccea1907235b8ea904cf/EXIT_PLUS_12H",
+      "source_decision_id": "decision_655aed884da2ccea1907235b8ea904cf",
+      "market": "OGN-EUR",
+      "signal_decision_at_utc": "2026-10-12T10:19:45.995Z",
+      "due_at_utc": "2026-10-12T22:19:45.995Z",
+      "horizon_hours": 12,
+      "stake_scenarios_eur": [
+        100,
+        150
+      ],
+      "source_execution_observation_id": "observation_c7fb55b5138786678ba2b4a135a15382",
+      "signal_entry_limit_eur": 0.028874,
+      "signal_stop_eur": 0.027432,
+      "signal_tp1_eur": 0.031757,
+      "execution_stage": "SIGNAL_AGE_ONLY_NOT_PROVEN_FILLED",
+      "policy": "SOLAIRE_MACHINE_BUY_SENT_NOT_R2_NOT_V4"
+    },
+    {
+      "target_id": "decision_eac94f182db52c22622609116ccc4f5f/EXIT_PLUS_12H",
+      "source_decision_id": "decision_eac94f182db52c22622609116ccc4f5f",
+      "market": "MAGIC-EUR",
+      "signal_decision_at_utc": "2026-10-12T11:00:10.989Z",
+      "due_at_utc": "2026-10-12T23:00:10.989Z",
+      "horizon_hours": 12,
+      "stake_scenarios_eur": [
+        100,
+        150
+      ],
+      "source_execution_observation_id": "observation_832142d3c862ef9a3c41867203dfb198",
+      "signal_entry_limit_eur": 0.11864,
+      "signal_stop_eur": 0.108295,
+      "signal_tp1_eur": 0.139329,
+      "execution_stage": "SIGNAL_AGE_ONLY_NOT_PROVEN_FILLED",
+      "policy": "SOLAIRE_MACHINE_BUY_SENT_NOT_R2_NOT_V4"
+    },
+    {
+      "target_id": "decision_101e98d71af52bf34298860f352d9f38/EXIT_PLUS_12H",
+      "source_decision_id": "decision_101e98d71af52bf34298860f352d9f38",
+      "market": "BAT-EUR",
+      "signal_decision_at_utc": "2026-10-12T12:07:46.670Z",
+      "due_at_utc": "2026-10-13T00:07:46.670Z",
+      "horizon_hours": 12,
+      "stake_scenarios_eur": [
+        100,
+        150
+      ],
+      "source_execution_observation_id": "observation_ed0b27f343263bce74cc7f6b9d747328",
+      "signal_entry_limit_eur": 0.13632,
+      "signal_stop_eur": 0.12692,
+      "signal_tp1_eur": 0.15511,
+      "execution_stage": "SIGNAL_AGE_ONLY_NOT_PROVEN_FILLED",
+      "policy": "SOLAIRE_MACHINE_BUY_SENT_NOT_R2_NOT_V4"
+    },
+    {
+      "target_id": "decision_5e92da9ee7c0674d856483010fc4fe6c/EXIT_PLUS_12H",
+      "source_decision_id": "decision_5e92da9ee7c0674d856483010fc4fe6c",
+      "market": "MAGIC-EUR",
+      "signal_decision_at_utc": "2026-10-12T12:17:47.288Z",
+      "due_at_utc": "2026-10-13T00:17:47.288Z",
+      "horizon_hours": 12,
+      "stake_scenarios_eur": [
+        100,
+        150
+      ],
+      "source_execution_observation_id": "observation_4159e16f0e5d22421e5e6ade854effcc",
+      "signal_entry_limit_eur": 0.121662,
+      "signal_stop_eur": 0.110594,
+      "signal_tp1_eur": 0.143798,
+      "execution_stage": "SIGNAL_AGE_ONLY_NOT_PROVEN_FILLED",
+      "policy": "SOLAIRE_MACHINE_BUY_SENT_NOT_R2_NOT_V4"
+    },
+    {
+      "target_id": "decision_9f7c890912fab728162e50e4b49e3c29/EXIT_PLUS_24H",
+      "source_decision_id": "decision_9f7c890912fab728162e50e4b49e3c29",
+      "market": "MAGIC-EUR",
+      "signal_decision_at_utc": "2026-10-12T00:19:45.143Z",
+      "due_at_utc": "2026-10-13T00:19:45.143Z",
+      "horizon_hours": 24,
+      "stake_scenarios_eur": [
+        100,
+        150
+      ],
+      "source_execution_observation_id": "observation_ab226fe296954372b63f8445ced8451f",
+      "signal_entry_limit_eur": 0.122889,
+      "signal_stop_eur": 0.1138,
+      "signal_tp1_eur": 0.141067,
+      "execution_stage": "SIGNAL_AGE_ONLY_NOT_PROVEN_FILLED",
+      "policy": "SOLAIRE_MACHINE_BUY_SENT_NOT_R2_NOT_V4"
+    },
+    {
+      "target_id": "decision_d11bd859c6b8e69ca0490670c3a461d3/EXIT_PLUS_24H",
+      "source_decision_id": "decision_d11bd859c6b8e69ca0490670c3a461d3",
+      "market": "MAGIC-EUR",
+      "signal_decision_at_utc": "2026-10-12T01:05:16.168Z",
+      "due_at_utc": "2026-10-13T01:05:16.168Z",
+      "horizon_hours": 24,
+      "stake_scenarios_eur": [
+        100,
+        150
+      ],
+      "source_execution_observation_id": "observation_153907bd721c844b77b0124a4d1a1d66",
+      "signal_entry_limit_eur": 0.122665,
+      "signal_stop_eur": 0.115347,
+      "signal_tp1_eur": 0.1373,
+      "execution_stage": "SIGNAL_AGE_ONLY_NOT_PROVEN_FILLED",
+      "policy": "SOLAIRE_MACHINE_BUY_SENT_NOT_R2_NOT_V4"
+    },
+    {
+      "target_id": "decision_73b3bae7dc5e8090d7e138359df904af/EXIT_PLUS_12H",
+      "source_decision_id": "decision_73b3bae7dc5e8090d7e138359df904af",
+      "market": "SXT-EUR",
+      "signal_decision_at_utc": "2026-10-12T13:06:44.879Z",
+      "due_at_utc": "2026-10-13T01:06:44.879Z",
+      "horizon_hours": 12,
+      "stake_scenarios_eur": [
+        100,
+        150
+      ],
+      "source_execution_observation_id": "observation_75ce636a42d1b551e49afd4cd5673f43",
+      "signal_entry_limit_eur": 0.009241,
+      "signal_stop_eur": 0.008541,
+      "signal_tp1_eur": 0.01064,
+      "execution_stage": "SIGNAL_AGE_ONLY_NOT_PROVEN_FILLED",
+      "policy": "SOLAIRE_MACHINE_BUY_SENT_NOT_R2_NOT_V4"
+    },
+    {
+      "target_id": "decision_63f81698ffc0aa4116d093fd4efda70b/EXIT_PLUS_24H",
+      "source_decision_id": "decision_63f81698ffc0aa4116d093fd4efda70b",
+      "market": "KAIA-EUR",
+      "signal_decision_at_utc": "2026-10-12T01:18:40.299Z",
+      "due_at_utc": "2026-10-13T01:18:40.299Z",
+      "horizon_hours": 24,
+      "stake_scenarios_eur": [
+        100,
+        150
+      ],
+      "source_execution_observation_id": "observation_92d3f4063eb3bb4dee42c10cbcfe8a90",
+      "signal_entry_limit_eur": 0.047488,
+      "signal_stop_eur": 0.044388,
+      "signal_tp1_eur": 0.053688,
+      "execution_stage": "SIGNAL_AGE_ONLY_NOT_PROVEN_FILLED",
+      "policy": "SOLAIRE_MACHINE_BUY_SENT_NOT_R2_NOT_V4"
+    },
+    {
+      "target_id": "decision_dec16fa9a7b9af91701169ced9200ffa/EXIT_PLUS_24H",
+      "source_decision_id": "decision_dec16fa9a7b9af91701169ced9200ffa",
+      "market": "RLC-EUR",
+      "signal_decision_at_utc": "2026-10-12T01:48:55.184Z",
+      "due_at_utc": "2026-10-13T01:48:55.184Z",
+      "horizon_hours": 24,
+      "stake_scenarios_eur": [
+        100,
+        150
+      ],
+      "source_execution_observation_id": "observation_411e88dc9cbc4fccd353f33bbd8f9e68",
+      "signal_entry_limit_eur": 0.9592,
+      "signal_stop_eur": 0.88766,
+      "signal_tp1_eur": 1.10228,
+      "execution_stage": "SIGNAL_AGE_ONLY_NOT_PROVEN_FILLED",
+      "policy": "SOLAIRE_MACHINE_BUY_SENT_NOT_R2_NOT_V4"
+    },
+    {
+      "target_id": "decision_a2749b1430227280c1b13f44b2811ffa/EXIT_PLUS_24H",
+      "source_decision_id": "decision_a2749b1430227280c1b13f44b2811ffa",
+      "market": "MAGIC-EUR",
+      "signal_decision_at_utc": "2026-10-12T02:04:01.917Z",
+      "due_at_utc": "2026-10-13T02:04:01.917Z",
+      "horizon_hours": 24,
+      "stake_scenarios_eur": [
+        100,
+        150
+      ],
+      "source_execution_observation_id": "observation_bc7af2a4c3ea1ed1c6c2a3520b9a8a50",
+      "signal_entry_limit_eur": 0.126554,
+      "signal_stop_eur": 0.117306,
+      "signal_tp1_eur": 0.14505,
+      "execution_stage": "SIGNAL_AGE_ONLY_NOT_PROVEN_FILLED",
+      "policy": "SOLAIRE_MACHINE_BUY_SENT_NOT_R2_NOT_V4"
+    },
+    {
+      "target_id": "decision_e7698cee9f093fd5b1e94a6e40ddc8ae/EXIT_PLUS_24H",
+      "source_decision_id": "decision_e7698cee9f093fd5b1e94a6e40ddc8ae",
+      "market": "W-EUR",
+      "signal_decision_at_utc": "2026-10-12T02:17:28.587Z",
+      "due_at_utc": "2026-10-13T02:17:28.587Z",
+      "horizon_hours": 24,
+      "stake_scenarios_eur": [
+        100,
+        150
+      ],
+      "source_execution_observation_id": "observation_9938c2c823d39f041cdea625893b68bc",
+      "signal_entry_limit_eur": 0.021059,
+      "signal_stop_eur": 0.019299,
+      "signal_tp1_eur": 0.024579,
+      "execution_stage": "SIGNAL_AGE_ONLY_NOT_PROVEN_FILLED",
+      "policy": "SOLAIRE_MACHINE_BUY_SENT_NOT_R2_NOT_V4"
+    },
+    {
+      "target_id": "decision_b07bfda62900e7eacf55113963aeb843/EXIT_PLUS_24H",
+      "source_decision_id": "decision_b07bfda62900e7eacf55113963aeb843",
+      "market": "DATAIP-EUR",
+      "signal_decision_at_utc": "2026-10-12T02:32:41.560Z",
+      "due_at_utc": "2026-10-13T02:32:41.560Z",
+      "horizon_hours": 24,
+      "stake_scenarios_eur": [
+        100,
+        150
+      ],
+      "source_execution_observation_id": "observation_560a313715e2f51b6d5da7f1f6263603",
+      "signal_entry_limit_eur": 0.1895,
+      "signal_stop_eur": 0.1747,
+      "signal_tp1_eur": 0.2191,
+      "execution_stage": "SIGNAL_AGE_ONLY_NOT_PROVEN_FILLED",
+      "policy": "SOLAIRE_MACHINE_BUY_SENT_NOT_R2_NOT_V4"
+    },
+    {
+      "target_id": "decision_f453c05e54d131f3bbf73560a3e91520/EXIT_PLUS_24H",
+      "source_decision_id": "decision_f453c05e54d131f3bbf73560a3e91520",
+      "market": "METIS-EUR",
+      "signal_decision_at_utc": "2026-10-12T02:32:41.560Z",
+      "due_at_utc": "2026-10-13T02:32:41.560Z",
+      "horizon_hours": 24,
+      "stake_scenarios_eur": [
+        100,
+        150
+      ],
+      "source_execution_observation_id": "observation_f11e1ff7762d7638e3d85ed4f6ded119",
+      "signal_entry_limit_eur": 3.5252,
+      "signal_stop_eur": 3.2734,
+      "signal_tp1_eur": 4.0287,
+      "execution_stage": "SIGNAL_AGE_ONLY_NOT_PROVEN_FILLED",
+      "policy": "SOLAIRE_MACHINE_BUY_SENT_NOT_R2_NOT_V4"
+    },
+    {
+      "target_id": "decision_dc6dc7ad34b68625d13c83cbff9eaae5/EXIT_PLUS_24H",
+      "source_decision_id": "decision_dc6dc7ad34b68625d13c83cbff9eaae5",
+      "market": "IO-EUR",
+      "signal_decision_at_utc": "2026-10-12T02:47:55.976Z",
+      "due_at_utc": "2026-10-13T02:47:55.976Z",
+      "horizon_hours": 24,
+      "stake_scenarios_eur": [
+        100,
+        150
+      ],
+      "source_execution_observation_id": "observation_7dea1218c859d139cbca5436f33fd0e9",
+      "signal_entry_limit_eur": 0.16457,
+      "signal_stop_eur": 0.15495,
+      "signal_tp1_eur": 0.1838,
+      "execution_stage": "SIGNAL_AGE_ONLY_NOT_PROVEN_FILLED",
+      "policy": "SOLAIRE_MACHINE_BUY_SENT_NOT_R2_NOT_V4"
+    },
+    {
+      "target_id": "decision_ee00798fe122cd655a7ab1a8ecab8cb6/EXIT_PLUS_24H",
+      "source_decision_id": "decision_ee00798fe122cd655a7ab1a8ecab8cb6",
+      "market": "PLUME-EUR",
+      "signal_decision_at_utc": "2026-10-12T02:52:48.661Z",
+      "due_at_utc": "2026-10-13T02:52:48.661Z",
+      "horizon_hours": 24,
+      "stake_scenarios_eur": [
+        100,
+        150
+      ],
+      "source_execution_observation_id": "observation_f374166e5e05809387fda64de8254604",
+      "signal_entry_limit_eur": 0.0212523,
+      "signal_stop_eur": 0.0192272,
+      "signal_tp1_eur": 0.0253024,
+      "execution_stage": "SIGNAL_AGE_ONLY_NOT_PROVEN_FILLED",
+      "policy": "SOLAIRE_MACHINE_BUY_SENT_NOT_R2_NOT_V4"
+    },
+    {
+      "target_id": "decision_76b920c5ab088b78d53ab2e1c4d438f4/EXIT_PLUS_24H",
+      "source_decision_id": "decision_76b920c5ab088b78d53ab2e1c4d438f4",
+      "market": "EIGEN-EUR",
+      "signal_decision_at_utc": "2026-10-12T03:02:50.246Z",
+      "due_at_utc": "2026-10-13T03:02:50.246Z",
+      "horizon_hours": 24,
+      "stake_scenarios_eur": [
+        100,
+        150
+      ],
+      "source_execution_observation_id": "observation_72714acc71530960cb493c55e1ca443f",
+      "signal_entry_limit_eur": 0.25103,
+      "signal_stop_eur": 0.23337,
+      "signal_tp1_eur": 0.28634,
+      "execution_stage": "SIGNAL_AGE_ONLY_NOT_PROVEN_FILLED",
+      "policy": "SOLAIRE_MACHINE_BUY_SENT_NOT_R2_NOT_V4"
+    },
+    {
+      "target_id": "decision_eb31fb92a8b837126553f5a685d803af/EXIT_PLUS_12H",
+      "source_decision_id": "decision_eb31fb92a8b837126553f5a685d803af",
+      "market": "METIS-EUR",
+      "signal_decision_at_utc": "2026-10-12T15:04:11.906Z",
+      "due_at_utc": "2026-10-13T03:04:11.906Z",
+      "horizon_hours": 12,
+      "stake_scenarios_eur": [
+        100,
+        150
+      ],
+      "source_execution_observation_id": "observation_f78564928e3cc945a4e32bae2332a086",
+      "signal_entry_limit_eur": 3.5406,
+      "signal_stop_eur": 3.3062,
+      "signal_tp1_eur": 4.0093,
+      "execution_stage": "SIGNAL_AGE_ONLY_NOT_PROVEN_FILLED",
+      "policy": "SOLAIRE_MACHINE_BUY_SENT_NOT_R2_NOT_V4"
+    },
+    {
+      "target_id": "decision_f000df97eade3e347582f33be983dbb4/EXIT_PLUS_12H",
+      "source_decision_id": "decision_f000df97eade3e347582f33be983dbb4",
+      "market": "MOVR-EUR",
+      "signal_decision_at_utc": "2026-10-12T15:04:11.906Z",
+      "due_at_utc": "2026-10-13T03:04:11.906Z",
+      "horizon_hours": 12,
+      "stake_scenarios_eur": [
+        100,
+        150
+      ],
+      "source_execution_observation_id": "observation_8896b5051bbf6f61bb8dc3f587381fe4",
+      "signal_entry_limit_eur": 1.4811,
+      "signal_stop_eur": 1.428,
+      "signal_tp1_eur": 1.5873,
+      "execution_stage": "SIGNAL_AGE_ONLY_NOT_PROVEN_FILLED",
+      "policy": "SOLAIRE_MACHINE_BUY_SENT_NOT_R2_NOT_V4"
+    },
+    {
+      "target_id": "decision_4e70e52bdbb7beba6592f4e3a59da24c/EXIT_PLUS_24H",
+      "source_decision_id": "decision_4e70e52bdbb7beba6592f4e3a59da24c",
+      "market": "STRK-EUR",
+      "signal_decision_at_utc": "2026-10-12T03:31:36.019Z",
+      "due_at_utc": "2026-10-13T03:31:36.019Z",
+      "horizon_hours": 24,
+      "stake_scenarios_eur": [
+        100,
+        150
+      ],
+      "source_execution_observation_id": "observation_689799c1b94b5fb891e41d44b00a26fc",
+      "signal_entry_limit_eur": 0.098587,
+      "signal_stop_eur": 0.094128,
+      "signal_tp1_eur": 0.107504,
+      "execution_stage": "SIGNAL_AGE_ONLY_NOT_PROVEN_FILLED",
+      "policy": "SOLAIRE_MACHINE_BUY_SENT_NOT_R2_NOT_V4"
+    },
+    {
+      "target_id": "decision_7b5b8ec77582330bda87f058e2eb1a98/EXIT_PLUS_24H",
+      "source_decision_id": "decision_7b5b8ec77582330bda87f058e2eb1a98",
+      "market": "DATAIP-EUR",
+      "signal_decision_at_utc": "2026-10-12T03:41:36.550Z",
+      "due_at_utc": "2026-10-13T03:41:36.550Z",
+      "horizon_hours": 24,
+      "stake_scenarios_eur": [
+        100,
+        150
+      ],
+      "source_execution_observation_id": "observation_9474beb33ef81fe70aaf59d0502b800b",
+      "signal_entry_limit_eur": 0.1908,
+      "signal_stop_eur": 0.1738,
+      "signal_tp1_eur": 0.2247,
+      "execution_stage": "SIGNAL_AGE_ONLY_NOT_PROVEN_FILLED",
+      "policy": "SOLAIRE_MACHINE_BUY_SENT_NOT_R2_NOT_V4"
+    },
+    {
+      "target_id": "decision_6d47bd82959937091cee3adfef992c0a/EXIT_PLUS_12H",
+      "source_decision_id": "decision_6d47bd82959937091cee3adfef992c0a",
+      "market": "OGN-EUR",
+      "signal_decision_at_utc": "2026-10-12T15:49:31.786Z",
+      "due_at_utc": "2026-10-13T03:49:31.786Z",
+      "horizon_hours": 12,
+      "stake_scenarios_eur": [
+        100,
+        150
+      ],
+      "source_execution_observation_id": "observation_a34ba1e3a82015ec9821e626dd7ea592",
+      "signal_entry_limit_eur": 0.030675,
+      "signal_stop_eur": 0.028312,
+      "signal_tp1_eur": 0.035401,
+      "execution_stage": "SIGNAL_AGE_ONLY_NOT_PROVEN_FILLED",
+      "policy": "SOLAIRE_MACHINE_BUY_SENT_NOT_R2_NOT_V4"
+    },
+    {
+      "target_id": "decision_73a001f05302a5f745a4b10c550dafdc/EXIT_PLUS_12H",
+      "source_decision_id": "decision_73a001f05302a5f745a4b10c550dafdc",
+      "market": "WHUF-EUR",
+      "signal_decision_at_utc": "2026-10-12T16:17:57.921Z",
+      "due_at_utc": "2026-10-13T04:17:57.921Z",
+      "horizon_hours": 12,
+      "stake_scenarios_eur": [
+        100,
+        150
+      ],
+      "source_execution_observation_id": "observation_baeac4b2f138017e5aefbac3bf814f3f",
+      "signal_entry_limit_eur": 2.1278,
+      "signal_stop_eur": 1.9726,
+      "signal_tp1_eur": 2.4382,
+      "execution_stage": "SIGNAL_AGE_ONLY_NOT_PROVEN_FILLED",
+      "policy": "SOLAIRE_MACHINE_BUY_SENT_NOT_R2_NOT_V4"
+    },
+    {
+      "target_id": "decision_800c1b3ec5a5103e863d5e164e012f0a/EXIT_PLUS_24H",
+      "source_decision_id": "decision_800c1b3ec5a5103e863d5e164e012f0a",
+      "market": "RLC-EUR",
+      "signal_decision_at_utc": "2026-10-12T04:20:21.887Z",
+      "due_at_utc": "2026-10-13T04:20:21.887Z",
+      "horizon_hours": 24,
+      "stake_scenarios_eur": [
+        100,
+        150
+      ],
+      "source_execution_observation_id": "observation_c1ef6a0cb3a41ce979bab032945cab05",
+      "signal_entry_limit_eur": 0.94384,
+      "signal_stop_eur": 0.88021,
+      "signal_tp1_eur": 1.0711,
+      "execution_stage": "SIGNAL_AGE_ONLY_NOT_PROVEN_FILLED",
+      "policy": "SOLAIRE_MACHINE_BUY_SENT_NOT_R2_NOT_V4"
+    },
+    {
+      "target_id": "decision_990d0969ed88f653cc8bfaad2d971f99/EXIT_PLUS_12H",
+      "source_decision_id": "decision_990d0969ed88f653cc8bfaad2d971f99",
+      "market": "SKL-EUR",
+      "signal_decision_at_utc": "2026-10-12T16:38:03.996Z",
+      "due_at_utc": "2026-10-13T04:38:03.996Z",
+      "horizon_hours": 12,
+      "stake_scenarios_eur": [
+        100,
+        150
+      ],
+      "source_execution_observation_id": "observation_a0a1373bf942a8a5cd6e9cc2d2716c4b",
+      "signal_entry_limit_eur": 0.0049307,
+      "signal_stop_eur": 0.004502,
+      "signal_tp1_eur": 0.005788,
+      "execution_stage": "SIGNAL_AGE_ONLY_NOT_PROVEN_FILLED",
+      "policy": "SOLAIRE_MACHINE_BUY_SENT_NOT_R2_NOT_V4"
+    },
+    {
+      "target_id": "decision_79399a00b40d0cf5188feccf08be5e49/EXIT_PLUS_24H",
+      "source_decision_id": "decision_79399a00b40d0cf5188feccf08be5e49",
+      "market": "ZRO-EUR",
+      "signal_decision_at_utc": "2026-10-12T04:40:30.984Z",
+      "due_at_utc": "2026-10-13T04:40:30.984Z",
+      "horizon_hours": 24,
+      "stake_scenarios_eur": [
+        100,
+        150
+      ],
+      "source_execution_observation_id": "observation_24134445256afc9cfa38f88a6d72234d",
+      "signal_entry_limit_eur": 2.0293,
+      "signal_stop_eur": 1.8768,
+      "signal_tp1_eur": 2.3343,
+      "execution_stage": "SIGNAL_AGE_ONLY_NOT_PROVEN_FILLED",
+      "policy": "SOLAIRE_MACHINE_BUY_SENT_NOT_R2_NOT_V4"
+    },
+    {
+      "target_id": "decision_899ddd0141d94a5c30e749b18f83a9a0/EXIT_PLUS_24H",
+      "source_decision_id": "decision_899ddd0141d94a5c30e749b18f83a9a0",
+      "market": "W-EUR",
+      "signal_decision_at_utc": "2026-10-12T04:45:26.908Z",
+      "due_at_utc": "2026-10-13T04:45:26.908Z",
+      "horizon_hours": 24,
+      "stake_scenarios_eur": [
+        100,
+        150
+      ],
+      "source_execution_observation_id": "observation_e3fa0191681b1f812957a544f94dbdad",
+      "signal_entry_limit_eur": 0.025935,
+      "signal_stop_eur": 0.023808,
+      "signal_tp1_eur": 0.030189,
+      "execution_stage": "SIGNAL_AGE_ONLY_NOT_PROVEN_FILLED",
+      "policy": "SOLAIRE_MACHINE_BUY_SENT_NOT_R2_NOT_V4"
+    },
+    {
+      "target_id": "decision_a1e4f5ed09a3ab0cfe1c623c353b1908/EXIT_PLUS_12H",
+      "source_decision_id": "decision_a1e4f5ed09a3ab0cfe1c623c353b1908",
+      "market": "STRK-EUR",
+      "signal_decision_at_utc": "2026-10-12T17:32:11.044Z",
+      "due_at_utc": "2026-10-13T05:32:11.044Z",
+      "horizon_hours": 12,
+      "stake_scenarios_eur": [
+        100,
+        150
+      ],
+      "source_execution_observation_id": "observation_2e57fd3f689125fe65b8a60f2e934ab1",
+      "signal_entry_limit_eur": 0.08625,
+      "signal_stop_eur": 0.079557,
+      "signal_tp1_eur": 0.099635,
+      "execution_stage": "SIGNAL_AGE_ONLY_NOT_PROVEN_FILLED",
+      "policy": "SOLAIRE_MACHINE_BUY_SENT_NOT_R2_NOT_V4"
+    },
+    {
+      "target_id": "decision_509ecc561a4d33a50580da474a3a945b/EXIT_PLUS_24H",
+      "source_decision_id": "decision_509ecc561a4d33a50580da474a3a945b",
+      "market": "SXT-EUR",
+      "signal_decision_at_utc": "2026-10-12T05:49:24.767Z",
+      "due_at_utc": "2026-10-13T05:49:24.767Z",
+      "horizon_hours": 24,
+      "stake_scenarios_eur": [
+        100,
+        150
+      ],
+      "source_execution_observation_id": "observation_22acce01e0d9bcd85af0c78f3d687494",
+      "signal_entry_limit_eur": 0.008881,
+      "signal_stop_eur": 0.008386,
+      "signal_tp1_eur": 0.009871,
+      "execution_stage": "SIGNAL_AGE_ONLY_NOT_PROVEN_FILLED",
+      "policy": "SOLAIRE_MACHINE_BUY_SENT_NOT_R2_NOT_V4"
+    },
+    {
+      "target_id": "decision_014eed74fc130b02230aaddae3c91a0c/EXIT_PLUS_24H",
+      "source_decision_id": "decision_014eed74fc130b02230aaddae3c91a0c",
+      "market": "METIS-EUR",
+      "signal_decision_at_utc": "2026-10-12T06:04:24.027Z",
+      "due_at_utc": "2026-10-13T06:04:24.027Z",
+      "horizon_hours": 24,
+      "stake_scenarios_eur": [
+        100,
+        150
+      ],
+      "source_execution_observation_id": "observation_0ae073d412d27877eab3fd8ab73b3686",
+      "signal_entry_limit_eur": 3.7098,
+      "signal_stop_eur": 3.4654,
+      "signal_tp1_eur": 4.1986,
+      "execution_stage": "SIGNAL_AGE_ONLY_NOT_PROVEN_FILLED",
+      "policy": "SOLAIRE_MACHINE_BUY_SENT_NOT_R2_NOT_V4"
+    },
+    {
+      "target_id": "decision_83ee9174ba07bb514d2f09db9014e902/EXIT_PLUS_24H",
+      "source_decision_id": "decision_83ee9174ba07bb514d2f09db9014e902",
+      "market": "CNPY-EUR",
+      "signal_decision_at_utc": "2026-10-12T06:04:24.027Z",
+      "due_at_utc": "2026-10-13T06:04:24.027Z",
+      "horizon_hours": 24,
+      "stake_scenarios_eur": [
+        100,
+        150
+      ],
+      "source_execution_observation_id": "observation_8a025454dda57b158d69b3b8bf66c3c5",
+      "signal_entry_limit_eur": 0.25363,
+      "signal_stop_eur": 0.23557,
+      "signal_tp1_eur": 0.28975,
+      "execution_stage": "SIGNAL_AGE_ONLY_NOT_PROVEN_FILLED",
+      "policy": "SOLAIRE_MACHINE_BUY_SENT_NOT_R2_NOT_V4"
+    },
+    {
+      "target_id": "decision_b2fae8dc5d7c208d0f1a47c13d17e5f6/EXIT_PLUS_24H",
+      "source_decision_id": "decision_b2fae8dc5d7c208d0f1a47c13d17e5f6",
+      "market": "CYBER-EUR",
+      "signal_decision_at_utc": "2026-10-12T06:28:06.124Z",
+      "due_at_utc": "2026-10-13T06:28:06.124Z",
+      "horizon_hours": 24,
+      "stake_scenarios_eur": [
+        100,
+        150
+      ],
+      "source_execution_observation_id": "observation_00076f23914123b2cf87a413db3b3f3d",
+      "signal_entry_limit_eur": 0.34216,
+      "signal_stop_eur": 0.30887,
+      "signal_tp1_eur": 0.40874,
+      "execution_stage": "SIGNAL_AGE_ONLY_NOT_PROVEN_FILLED",
+      "policy": "SOLAIRE_MACHINE_BUY_SENT_NOT_R2_NOT_V4"
+    },
+    {
+      "target_id": "decision_38d64fcc5b82307b1aa105fa03262159/EXIT_PLUS_24H",
+      "source_decision_id": "decision_38d64fcc5b82307b1aa105fa03262159",
+      "market": "WHUF-EUR",
+      "signal_decision_at_utc": "2026-10-12T06:53:10.231Z",
+      "due_at_utc": "2026-10-13T06:53:10.231Z",
+      "horizon_hours": 24,
+      "stake_scenarios_eur": [
+        100,
+        150
+      ],
+      "source_execution_observation_id": "observation_c82872ae36767caea6ace1c20278829a",
+      "signal_entry_limit_eur": 2.3809,
+      "signal_stop_eur": 2.2278,
+      "signal_tp1_eur": 2.6871,
+      "execution_stage": "SIGNAL_AGE_ONLY_NOT_PROVEN_FILLED",
+      "policy": "SOLAIRE_MACHINE_BUY_SENT_NOT_R2_NOT_V4"
+    },
+    {
+      "target_id": "decision_b24e88fea688b1bcd0d0ce7c1874215d/EXIT_PLUS_24H",
+      "source_decision_id": "decision_b24e88fea688b1bcd0d0ce7c1874215d",
+      "market": "BILL-EUR",
+      "signal_decision_at_utc": "2026-10-12T07:03:21.059Z",
+      "due_at_utc": "2026-10-13T07:03:21.059Z",
+      "horizon_hours": 24,
+      "stake_scenarios_eur": [
+        100,
+        150
+      ],
+      "source_execution_observation_id": "observation_b94c9e2bd9f6523d6fc9ef1050ed2bcb",
+      "signal_entry_limit_eur": 0.008857,
+      "signal_stop_eur": 0.008264,
+      "signal_tp1_eur": 0.010043,
+      "execution_stage": "SIGNAL_AGE_ONLY_NOT_PROVEN_FILLED",
+      "policy": "SOLAIRE_MACHINE_BUY_SENT_NOT_R2_NOT_V4"
+    },
+    {
+      "target_id": "decision_0cda9ad71f1ab43672a702a5089575c9/EXIT_PLUS_24H",
+      "source_decision_id": "decision_0cda9ad71f1ab43672a702a5089575c9",
+      "market": "CYBER-EUR",
+      "signal_decision_at_utc": "2026-10-12T07:16:53.993Z",
+      "due_at_utc": "2026-10-13T07:16:53.993Z",
+      "horizon_hours": 24,
+      "stake_scenarios_eur": [
+        100,
+        150
+      ],
+      "source_execution_observation_id": "observation_384e306a131b4e4c6c67359fc1f9555b",
+      "signal_entry_limit_eur": 0.35166,
+      "signal_stop_eur": 0.31729,
+      "signal_tp1_eur": 0.42039,
+      "execution_stage": "SIGNAL_AGE_ONLY_NOT_PROVEN_FILLED",
+      "policy": "SOLAIRE_MACHINE_BUY_SENT_NOT_R2_NOT_V4"
+    },
+    {
+      "target_id": "decision_6f34b72b4cb8f431cd060e9c965bbb8d/EXIT_PLUS_24H",
+      "source_decision_id": "decision_6f34b72b4cb8f431cd060e9c965bbb8d",
+      "market": "MAGIC-EUR",
+      "signal_decision_at_utc": "2026-10-12T07:16:53.993Z",
+      "due_at_utc": "2026-10-13T07:16:53.993Z",
+      "horizon_hours": 24,
+      "stake_scenarios_eur": [
+        100,
+        150
+      ],
+      "source_execution_observation_id": "observation_4d9ac575ed164449e72ef3f0f6ba6696",
+      "signal_entry_limit_eur": 0.110724,
+      "signal_stop_eur": 0.10367,
+      "signal_tp1_eur": 0.124832,
+      "execution_stage": "SIGNAL_AGE_ONLY_NOT_PROVEN_FILLED",
+      "policy": "SOLAIRE_MACHINE_BUY_SENT_NOT_R2_NOT_V4"
+    },
+    {
+      "target_id": "decision_5b41d9d45cb4fc16caea261a24c2c4f0/EXIT_PLUS_24H",
+      "source_decision_id": "decision_5b41d9d45cb4fc16caea261a24c2c4f0",
+      "market": "SXT-EUR",
+      "signal_decision_at_utc": "2026-10-12T07:21:58.942Z",
+      "due_at_utc": "2026-10-13T07:21:58.942Z",
+      "horizon_hours": 24,
+      "stake_scenarios_eur": [
+        100,
+        150
+      ],
+      "source_execution_observation_id": "observation_6fe242cc8dbc0a7a1abc00fcb010de4d",
+      "signal_entry_limit_eur": 0.00875,
+      "signal_stop_eur": 0.008314,
+      "signal_tp1_eur": 0.009622,
+      "execution_stage": "SIGNAL_AGE_ONLY_NOT_PROVEN_FILLED",
+      "policy": "SOLAIRE_MACHINE_BUY_SENT_NOT_R2_NOT_V4"
+    },
+    {
+      "target_id": "decision_4d4eb1184a6481dd0b3e10064d15686f/EXIT_PLUS_24H",
+      "source_decision_id": "decision_4d4eb1184a6481dd0b3e10064d15686f",
+      "market": "PHA-EUR",
+      "signal_decision_at_utc": "2026-10-12T08:02:28.463Z",
+      "due_at_utc": "2026-10-13T08:02:28.463Z",
+      "horizon_hours": 24,
+      "stake_scenarios_eur": [
+        100,
+        150
+      ],
+      "source_execution_observation_id": "observation_dbfe5b8408ed78f986c84c1a1752a5f1",
+      "signal_entry_limit_eur": 0.057815,
+      "signal_stop_eur": 0.053364,
+      "signal_tp1_eur": 0.066717,
+      "execution_stage": "SIGNAL_AGE_ONLY_NOT_PROVEN_FILLED",
+      "policy": "SOLAIRE_MACHINE_BUY_SENT_NOT_R2_NOT_V4"
+    },
+    {
+      "target_id": "decision_15f29e73ca70f34d3e6955ac967dfe32/EXIT_PLUS_24H",
+      "source_decision_id": "decision_15f29e73ca70f34d3e6955ac967dfe32",
+      "market": "CYBER-EUR",
+      "signal_decision_at_utc": "2026-10-12T08:56:39.940Z",
+      "due_at_utc": "2026-10-13T08:56:39.940Z",
+      "horizon_hours": 24,
+      "stake_scenarios_eur": [
+        100,
+        150
+      ],
+      "source_execution_observation_id": "observation_c099fb4a16f4b18dd471ba9588f671c6",
+      "signal_entry_limit_eur": 0.35629,
+      "signal_stop_eur": 0.33317,
+      "signal_tp1_eur": 0.40252,
+      "execution_stage": "SIGNAL_AGE_ONLY_NOT_PROVEN_FILLED",
+      "policy": "SOLAIRE_MACHINE_BUY_SENT_NOT_R2_NOT_V4"
+    },
+    {
+      "target_id": "decision_b21f8019c008a567e1794a92c05857a7/EXIT_PLUS_24H",
+      "source_decision_id": "decision_b21f8019c008a567e1794a92c05857a7",
+      "market": "PLUME-EUR",
+      "signal_decision_at_utc": "2026-10-12T09:10:14.615Z",
+      "due_at_utc": "2026-10-13T09:10:14.615Z",
+      "horizon_hours": 24,
+      "stake_scenarios_eur": [
+        100,
+        150
+      ],
+      "source_execution_observation_id": "observation_fe9f3b7fdd8980852c0f8b5d1d9b7336",
+      "signal_entry_limit_eur": 0.0208213,
+      "signal_stop_eur": 0.0193612,
+      "signal_tp1_eur": 0.0237415,
+      "execution_stage": "SIGNAL_AGE_ONLY_NOT_PROVEN_FILLED",
+      "policy": "SOLAIRE_MACHINE_BUY_SENT_NOT_R2_NOT_V4"
+    },
+    {
+      "target_id": "decision_d9439a91ce7d674f93fd3436abc0127a/EXIT_PLUS_24H",
+      "source_decision_id": "decision_d9439a91ce7d674f93fd3436abc0127a",
+      "market": "STRK-EUR",
+      "signal_decision_at_utc": "2026-10-12T09:20:22.031Z",
+      "due_at_utc": "2026-10-13T09:20:22.031Z",
+      "horizon_hours": 24,
+      "stake_scenarios_eur": [
+        100,
+        150
+      ],
+      "source_execution_observation_id": "observation_8dacd5ef87ee0d17005881692f492add",
+      "signal_entry_limit_eur": 0.094831,
+      "signal_stop_eur": 0.088955,
+      "signal_tp1_eur": 0.106582,
+      "execution_stage": "SIGNAL_AGE_ONLY_NOT_PROVEN_FILLED",
+      "policy": "SOLAIRE_MACHINE_BUY_SENT_NOT_R2_NOT_V4"
+    },
+    {
+      "target_id": "decision_04b94662cfed7162ed2be659160e7184/EXIT_PLUS_24H",
+      "source_decision_id": "decision_04b94662cfed7162ed2be659160e7184",
+      "market": "CYBER-EUR",
+      "signal_decision_at_utc": "2026-10-12T09:35:44.509Z",
+      "due_at_utc": "2026-10-13T09:35:44.509Z",
+      "horizon_hours": 24,
+      "stake_scenarios_eur": [
+        100,
+        150
+      ],
+      "source_execution_observation_id": "observation_5c807148da04405a7b7e8898f6002f19",
+      "signal_entry_limit_eur": 0.35988,
+      "signal_stop_eur": 0.33289,
+      "signal_tp1_eur": 0.41385,
+      "execution_stage": "SIGNAL_AGE_ONLY_NOT_PROVEN_FILLED",
+      "policy": "SOLAIRE_MACHINE_BUY_SENT_NOT_R2_NOT_V4"
+    },
+    {
+      "target_id": "decision_602b28fd72360576bdab8a0d1a1276ed/EXIT_PLUS_24H",
+      "source_decision_id": "decision_602b28fd72360576bdab8a0d1a1276ed",
+      "market": "ZRC-EUR",
+      "signal_decision_at_utc": "2026-10-12T09:35:44.509Z",
+      "due_at_utc": "2026-10-13T09:35:44.509Z",
+      "horizon_hours": 24,
+      "stake_scenarios_eur": [
+        100,
+        150
+      ],
+      "source_execution_observation_id": "observation_9bb64e794f24f0851b3f4a6549656d67",
+      "signal_entry_limit_eur": 0.0012301,
+      "signal_stop_eur": 0.0011542,
+      "signal_tp1_eur": 0.0013819,
+      "execution_stage": "SIGNAL_AGE_ONLY_NOT_PROVEN_FILLED",
+      "policy": "SOLAIRE_MACHINE_BUY_SENT_NOT_R2_NOT_V4"
+    },
+    {
+      "target_id": "decision_98a87f9eba0b612b3568185da61d0ee9/EXIT_PLUS_24H",
+      "source_decision_id": "decision_98a87f9eba0b612b3568185da61d0ee9",
+      "market": "MANTA-EUR",
+      "signal_decision_at_utc": "2026-10-12T09:35:44.509Z",
+      "due_at_utc": "2026-10-13T09:35:44.509Z",
+      "horizon_hours": 24,
+      "stake_scenarios_eur": [
+        100,
+        150
+      ],
+      "source_execution_observation_id": "observation_44c2fd2cd2115978fdaa4830dcd440e5",
+      "signal_entry_limit_eur": 0.066902,
+      "signal_stop_eur": 0.063294,
+      "signal_tp1_eur": 0.074118,
+      "execution_stage": "SIGNAL_AGE_ONLY_NOT_PROVEN_FILLED",
+      "policy": "SOLAIRE_MACHINE_BUY_SENT_NOT_R2_NOT_V4"
+    },
+    {
+      "target_id": "decision_655aed884da2ccea1907235b8ea904cf/EXIT_PLUS_24H",
+      "source_decision_id": "decision_655aed884da2ccea1907235b8ea904cf",
+      "market": "OGN-EUR",
+      "signal_decision_at_utc": "2026-10-12T10:19:45.995Z",
+      "due_at_utc": "2026-10-13T10:19:45.995Z",
+      "horizon_hours": 24,
+      "stake_scenarios_eur": [
+        100,
+        150
+      ],
+      "source_execution_observation_id": "observation_c7fb55b5138786678ba2b4a135a15382",
+      "signal_entry_limit_eur": 0.028874,
+      "signal_stop_eur": 0.027432,
+      "signal_tp1_eur": 0.031757,
+      "execution_stage": "SIGNAL_AGE_ONLY_NOT_PROVEN_FILLED",
+      "policy": "SOLAIRE_MACHINE_BUY_SENT_NOT_R2_NOT_V4"
+    },
+    {
+      "target_id": "decision_eac94f182db52c22622609116ccc4f5f/EXIT_PLUS_24H",
+      "source_decision_id": "decision_eac94f182db52c22622609116ccc4f5f",
+      "market": "MAGIC-EUR",
+      "signal_decision_at_utc": "2026-10-12T11:00:10.989Z",
+      "due_at_utc": "2026-10-13T11:00:10.989Z",
+      "horizon_hours": 24,
+      "stake_scenarios_eur": [
+        100,
+        150
+      ],
+      "source_execution_observation_id": "observation_832142d3c862ef9a3c41867203dfb198",
+      "signal_entry_limit_eur": 0.11864,
+      "signal_stop_eur": 0.108295,
+      "signal_tp1_eur": 0.139329,
+      "execution_stage": "SIGNAL_AGE_ONLY_NOT_PROVEN_FILLED",
+      "policy": "SOLAIRE_MACHINE_BUY_SENT_NOT_R2_NOT_V4"
+    },
+    {
+      "target_id": "decision_101e98d71af52bf34298860f352d9f38/EXIT_PLUS_24H",
+      "source_decision_id": "decision_101e98d71af52bf34298860f352d9f38",
+      "market": "BAT-EUR",
+      "signal_decision_at_utc": "2026-10-12T12:07:46.670Z",
+      "due_at_utc": "2026-10-13T12:07:46.670Z",
+      "horizon_hours": 24,
+      "stake_scenarios_eur": [
+        100,
+        150
+      ],
+      "source_execution_observation_id": "observation_ed0b27f343263bce74cc7f6b9d747328",
+      "signal_entry_limit_eur": 0.13632,
+      "signal_stop_eur": 0.12692,
+      "signal_tp1_eur": 0.15511,
+      "execution_stage": "SIGNAL_AGE_ONLY_NOT_PROVEN_FILLED",
+      "policy": "SOLAIRE_MACHINE_BUY_SENT_NOT_R2_NOT_V4"
+    },
+    {
+      "target_id": "decision_5e92da9ee7c0674d856483010fc4fe6c/EXIT_PLUS_24H",
+      "source_decision_id": "decision_5e92da9ee7c0674d856483010fc4fe6c",
+      "market": "MAGIC-EUR",
+      "signal_decision_at_utc": "2026-10-12T12:17:47.288Z",
+      "due_at_utc": "2026-10-13T12:17:47.288Z",
+      "horizon_hours": 24,
+      "stake_scenarios_eur": [
+        100,
+        150
+      ],
+      "source_execution_observation_id": "observation_4159e16f0e5d22421e5e6ade854effcc",
+      "signal_entry_limit_eur": 0.121662,
+      "signal_stop_eur": 0.110594,
+      "signal_tp1_eur": 0.143798,
+      "execution_stage": "SIGNAL_AGE_ONLY_NOT_PROVEN_FILLED",
+      "policy": "SOLAIRE_MACHINE_BUY_SENT_NOT_R2_NOT_V4"
+    },
+    {
+      "target_id": "decision_73b3bae7dc5e8090d7e138359df904af/EXIT_PLUS_24H",
+      "source_decision_id": "decision_73b3bae7dc5e8090d7e138359df904af",
+      "market": "SXT-EUR",
+      "signal_decision_at_utc": "2026-10-12T13:06:44.879Z",
+      "due_at_utc": "2026-10-13T13:06:44.879Z",
+      "horizon_hours": 24,
+      "stake_scenarios_eur": [
+        100,
+        150
+      ],
+      "source_execution_observation_id": "observation_75ce636a42d1b551e49afd4cd5673f43",
+      "signal_entry_limit_eur": 0.009241,
+      "signal_stop_eur": 0.008541,
+      "signal_tp1_eur": 0.01064,
+      "execution_stage": "SIGNAL_AGE_ONLY_NOT_PROVEN_FILLED",
+      "policy": "SOLAIRE_MACHINE_BUY_SENT_NOT_R2_NOT_V4"
+    },
+    {
+      "target_id": "decision_eb31fb92a8b837126553f5a685d803af/EXIT_PLUS_24H",
+      "source_decision_id": "decision_eb31fb92a8b837126553f5a685d803af",
+      "market": "METIS-EUR",
+      "signal_decision_at_utc": "2026-10-12T15:04:11.906Z",
+      "due_at_utc": "2026-10-13T15:04:11.906Z",
+      "horizon_hours": 24,
+      "stake_scenarios_eur": [
+        100,
+        150
+      ],
+      "source_execution_observation_id": "observation_f78564928e3cc945a4e32bae2332a086",
+      "signal_entry_limit_eur": 3.5406,
+      "signal_stop_eur": 3.3062,
+      "signal_tp1_eur": 4.0093,
+      "execution_stage": "SIGNAL_AGE_ONLY_NOT_PROVEN_FILLED",
+      "policy": "SOLAIRE_MACHINE_BUY_SENT_NOT_R2_NOT_V4"
+    },
+    {
+      "target_id": "decision_f000df97eade3e347582f33be983dbb4/EXIT_PLUS_24H",
+      "source_decision_id": "decision_f000df97eade3e347582f33be983dbb4",
+      "market": "MOVR-EUR",
+      "signal_decision_at_utc": "2026-10-12T15:04:11.906Z",
+      "due_at_utc": "2026-10-13T15:04:11.906Z",
+      "horizon_hours": 24,
+      "stake_scenarios_eur": [
+        100,
+        150
+      ],
+      "source_execution_observation_id": "observation_8896b5051bbf6f61bb8dc3f587381fe4",
+      "signal_entry_limit_eur": 1.4811,
+      "signal_stop_eur": 1.428,
+      "signal_tp1_eur": 1.5873,
+      "execution_stage": "SIGNAL_AGE_ONLY_NOT_PROVEN_FILLED",
+      "policy": "SOLAIRE_MACHINE_BUY_SENT_NOT_R2_NOT_V4"
+    },
+    {
+      "target_id": "decision_6d47bd82959937091cee3adfef992c0a/EXIT_PLUS_24H",
+      "source_decision_id": "decision_6d47bd82959937091cee3adfef992c0a",
+      "market": "OGN-EUR",
+      "signal_decision_at_utc": "2026-10-12T15:49:31.786Z",
+      "due_at_utc": "2026-10-13T15:49:31.786Z",
+      "horizon_hours": 24,
+      "stake_scenarios_eur": [
+        100,
+        150
+      ],
+      "source_execution_observation_id": "observation_a34ba1e3a82015ec9821e626dd7ea592",
+      "signal_entry_limit_eur": 0.030675,
+      "signal_stop_eur": 0.028312,
+      "signal_tp1_eur": 0.035401,
+      "execution_stage": "SIGNAL_AGE_ONLY_NOT_PROVEN_FILLED",
+      "policy": "SOLAIRE_MACHINE_BUY_SENT_NOT_R2_NOT_V4"
+    },
+    {
+      "target_id": "decision_73a001f05302a5f745a4b10c550dafdc/EXIT_PLUS_24H",
+      "source_decision_id": "decision_73a001f05302a5f745a4b10c550dafdc",
+      "market": "WHUF-EUR",
+      "signal_decision_at_utc": "2026-10-12T16:17:57.921Z",
+      "due_at_utc": "2026-10-13T16:17:57.921Z",
+      "horizon_hours": 24,
+      "stake_scenarios_eur": [
+        100,
+        150
+      ],
+      "source_execution_observation_id": "observation_baeac4b2f138017e5aefbac3bf814f3f",
+      "signal_entry_limit_eur": 2.1278,
+      "signal_stop_eur": 1.9726,
+      "signal_tp1_eur": 2.4382,
+      "execution_stage": "SIGNAL_AGE_ONLY_NOT_PROVEN_FILLED",
+      "policy": "SOLAIRE_MACHINE_BUY_SENT_NOT_R2_NOT_V4"
+    },
+    {
+      "target_id": "decision_990d0969ed88f653cc8bfaad2d971f99/EXIT_PLUS_24H",
+      "source_decision_id": "decision_990d0969ed88f653cc8bfaad2d971f99",
+      "market": "SKL-EUR",
+      "signal_decision_at_utc": "2026-10-12T16:38:03.996Z",
+      "due_at_utc": "2026-10-13T16:38:03.996Z",
+      "horizon_hours": 24,
+      "stake_scenarios_eur": [
+        100,
+        150
+      ],
+      "source_execution_observation_id": "observation_a0a1373bf942a8a5cd6e9cc2d2716c4b",
+      "signal_entry_limit_eur": 0.0049307,
+      "signal_stop_eur": 0.004502,
+      "signal_tp1_eur": 0.005788,
+      "execution_stage": "SIGNAL_AGE_ONLY_NOT_PROVEN_FILLED",
+      "policy": "SOLAIRE_MACHINE_BUY_SENT_NOT_R2_NOT_V4"
+    },
+    {
+      "target_id": "decision_a1e4f5ed09a3ab0cfe1c623c353b1908/EXIT_PLUS_24H",
+      "source_decision_id": "decision_a1e4f5ed09a3ab0cfe1c623c353b1908",
+      "market": "STRK-EUR",
+      "signal_decision_at_utc": "2026-10-12T17:32:11.044Z",
+      "due_at_utc": "2026-10-13T17:32:11.044Z",
+      "horizon_hours": 24,
+      "stake_scenarios_eur": [
+        100,
+        150
+      ],
+      "source_execution_observation_id": "observation_2e57fd3f689125fe65b8a60f2e934ab1",
+      "signal_entry_limit_eur": 0.08625,
+      "signal_stop_eur": 0.079557,
+      "signal_tp1_eur": 0.099635,
+      "execution_stage": "SIGNAL_AGE_ONLY_NOT_PROVEN_FILLED",
+      "policy": "SOLAIRE_MACHINE_BUY_SENT_NOT_R2_NOT_V4"
+    }
+  ]
+}
