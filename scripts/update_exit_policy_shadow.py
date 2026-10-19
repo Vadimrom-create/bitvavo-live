@@ -58,13 +58,32 @@ def _bars(raw,now):
         if t+300_000<=now*1000:out.append((int(t),o,h,l,c,v))
     return sorted(out)
 
+QUALITY_VERSION="STRICT_CLOSED_GRID_V1"
+
+def _strict_price_window(start_ts,bars,horizon):
+    """Full post-signal 5m bars closed by deadline; no last-start shortcut."""
+    first=((int(start_ts*1000)//300_000)+1)*300_000
+    deadline=int((start_ts+horizon*3600)*1000)
+    expected=list(range(first,deadline-300_000+1,300_000))
+    xs=[x for x in bars if first<=x[0] and x[0]+300_000<=deadline]
+    actual=[x[0] for x in xs]
+    expected_set=set(expected)
+    actual_set=set(actual)
+    complete=bool(expected) and len(actual)==len(actual_set)==len(expected) and actual_set==expected_set
+    return xs,{
+        "quality_version":QUALITY_VERSION,
+        "expected_bars":len(expected),
+        "observed_bars":len(actual_set & expected_set),
+        "missing_bars":len(expected_set-actual_set),
+        "strict_complete":complete,
+        "coverage_status":"COMPLETE_STRICT" if complete else "INCOMPLETE_STRICT",
+    }
+
 def _sim(entry,stop,tp1,start_ts,bars,horizon,target_r):
     risk=entry-stop
     if risk<=0:return None
     target=tp1 if target_r is None else entry+target_r*risk
-    first=((int(start_ts*1000)//300_000)+1)*300_000
-    end=int((start_ts+horizon*3600)*1000)
-    xs=[x for x in bars if first<=x[0]<end]
+    xs,coverage=_strict_price_window(start_ts,bars,horizon)
     if not xs:return None
     exit_px=None;reason=None
     for t,o,h,l,c,v in xs:
@@ -76,12 +95,12 @@ def _sim(entry,stop,tp1,start_ts,bars,horizon,target_r):
         exit_px=xs[-1][4];reason="HORIZON_CLOSE"
     gross=(exit_px/entry-1)*100
     net=gross-2*FEE_RATE*100
-    complete=xs[-1][0]/1000>=start_ts+horizon*3600-600
+    complete=coverage["strict_complete"]
     return {
         "gross_return_pct":round(gross,4),"net_return_pct_est":round(net,4),
         "r_multiple":round((exit_px-entry)/risk,4),
         "exit_reason":reason,"target_eur":target,
-        "bars_used":len(xs),"complete_horizon":bool(complete),
+        "bars_used":len(xs),"complete_horizon":bool(complete),**coverage,
         "intrabar_convention":"LOW_BEFORE_HIGH_CONSERVATIVE",
     }
 
@@ -89,9 +108,7 @@ def _sim_stop_policy(entry,stop,start_ts,bars,horizon,phase,deferred):
     """Isolate stop behaviour; profit-taking is intentionally not modelled here."""
     risk=entry-stop
     if risk<=0:return None
-    first=((int(start_ts*1000)//300_000)+1)*300_000
-    end=int((start_ts+horizon*3600)*1000)
-    xs=[x for x in bars if first<=x[0]<end]
+    xs,coverage=_strict_price_window(start_ts,bars,horizon)
     if not xs:return None
     hard=entry-STOP_HARD_R*risk
     eligible=phase in STOP_DEFERRED_PHASES
@@ -110,7 +127,7 @@ def _sim_stop_policy(entry,stop,start_ts,bars,horizon,phase,deferred):
         exit_px=xs[-1][4];reason="HORIZON_CLOSE"
     gross=(exit_px/entry-1)*100
     net=gross-2*FEE_RATE*100
-    complete=xs[-1][0]/1000>=start_ts+horizon*3600-600
+    complete=coverage["strict_complete"]
     return {
         "gross_return_pct":round(gross,4),
         "net_return_pct_est":round(net,4),
@@ -121,17 +138,27 @@ def _sim_stop_policy(entry,stop,start_ts,bars,horizon,phase,deferred):
         "phase_at_entry":phase,
         "deferred_confirmation_eligible":eligible,
         "bars_used":len(xs),
-        "complete_horizon":bool(complete),
+        "complete_horizon":bool(complete),**coverage,
         "intrabar_convention":"HARD_STOP_BEFORE_CLOSE_CONFIRMATION",
         "measurement_scope":"STOP_ONLY_PROFIT_MANAGEMENT_UNCHANGED",
     }
+
+def _strictly_complete(result):
+    # Legacy journal records may have complete_horizon=True on partial
+    # and post-cutoff data; exclude rather than retrospectively bless them.
+    return bool(
+        result
+        and result.get("quality_version")==QUALITY_VERSION
+        and result.get("coverage_status")=="COMPLETE_STRICT"
+        and result.get("complete_horizon") is True
+    )
 
 def _stop_summary(rows,h):
     pairs=[]
     for r in rows:
         base=(r.get("stop_policies") or {}).get("touch",{}).get(str(h))
         cand=(r.get("stop_policies") or {}).get("phase_aware_2x5m_hard_1_75r",{}).get(str(h))
-        if not base or not cand or not base.get("complete_horizon") or not cand.get("complete_horizon"):
+        if not base or not cand or not _strictly_complete(base) or not _strictly_complete(cand):
             continue
         a=finite(base.get("net_return_pct_est"));b=finite(cand.get("net_return_pct_est"))
         if a is None or b is None:continue
@@ -162,7 +189,7 @@ def _stop_summary(rows,h):
         "median_delta_net_return_pct_points":med(deltas),
         "sum_delta_net_pnl_eur_est":round(sum(
             finite(r.get("stake_eur"),0)*(b-a)/100 for r,a,b in pairs
-        ),2),
+        ),2) if pairs else None,
     }
 
 def _row_key(r):
@@ -177,14 +204,14 @@ def _summary(rows,policy,h):
     xs=[]
     for r in rows:
         z=(r.get("policies") or {}).get(policy,{}).get(str(h))
-        if z and z.get("complete_horizon"):xs.append((r,z))
+        if _strictly_complete(z):xs.append((r,z))
     return {
         "n":len(xs),
         "positive_net":sum(z["net_return_pct_est"]>0 for _,z in xs),
         "negative_net":sum(z["net_return_pct_est"]<0 for _,z in xs),
         "median_net_return_pct":med([z["net_return_pct_est"] for _,z in xs]),
         "median_r_multiple":med([z["r_multiple"] for _,z in xs]),
-        "sum_net_pnl_eur_est":round(sum((r.get("stake_eur") or 0)*z["net_return_pct_est"]/100 for r,z in xs),2),
+        "sum_net_pnl_eur_est":round(sum((r.get("stake_eur") or 0)*z["net_return_pct_est"]/100 for r,z in xs),2) if xs else None,
         "target_exits":sum(z["exit_reason"]=="TARGET" for _,z in xs),
         "stop_exits":sum(z["exit_reason"]=="STOP" for _,z in xs),
     }
@@ -194,7 +221,7 @@ def _pairwise(rows,a,b,h):
     for r in rows:
         za=(r.get("policies") or {}).get(a,{}).get(str(h))
         zb=(r.get("policies") or {}).get(b,{}).get(str(h))
-        if not za or not zb or not za.get("complete_horizon") or not zb.get("complete_horizon"):
+        if not _strictly_complete(za) or not _strictly_complete(zb):
             continue
         da=finite(za.get("net_return_pct_est"))
         db=finite(zb.get("net_return_pct_est"))
@@ -211,7 +238,7 @@ def _pairwise(rows,a,b,h):
         "median_delta_net_return_pct_a_minus_b":med(deltas),
         "sum_delta_net_pnl_eur_est_a_minus_b":round(
             sum(stake*(a_ret-b_ret)/100 for a_ret,b_ret,stake in pairs),2
-        ),
+        ) if pairs else None,
     }
 
 def _candidate_pairwise(rows):
@@ -339,7 +366,8 @@ def main():
             if p=="current_tp1_stop":continue
             a=summary[k]["current_tp1_stop"];b=summary[k][p]
             comparisons[k][p]={
-                "delta_sum_net_pnl_eur_est":round(b["sum_net_pnl_eur_est"]-a["sum_net_pnl_eur_est"],2),
+                "delta_sum_net_pnl_eur_est":round(b["sum_net_pnl_eur_est"]-a["sum_net_pnl_eur_est"],2)
+                    if a["n"]>0 and a["n"]==b["n"] and a["sum_net_pnl_eur_est"] is not None and b["sum_net_pnl_eur_est"] is not None else None,
                 "delta_median_net_return_pct":None if a["median_net_return_pct"] is None or b["median_net_return_pct"] is None else round(b["median_net_return_pct"]-a["median_net_return_pct"],4),
             }
 
@@ -350,7 +378,8 @@ def main():
             if p=="current_tp1_stop":continue
             a=prospective_summary[k]["current_tp1_stop"];b=prospective_summary[k][p]
             prospective_comparisons[k][p]={
-                "delta_sum_net_pnl_eur_est":round(b["sum_net_pnl_eur_est"]-a["sum_net_pnl_eur_est"],2),
+                "delta_sum_net_pnl_eur_est":round(b["sum_net_pnl_eur_est"]-a["sum_net_pnl_eur_est"],2)
+                    if a["n"]>0 and a["n"]==b["n"] and a["sum_net_pnl_eur_est"] is not None and b["sum_net_pnl_eur_est"] is not None else None,
                 "delta_median_net_return_pct":None if a["median_net_return_pct"] is None or b["median_net_return_pct"] is None else round(b["median_net_return_pct"]-a["median_net_return_pct"],4),
             }
 
@@ -425,6 +454,14 @@ def main():
             "summary":stop_summary,
             "decision_readiness":stop_readiness,
             "affects_position_management":False,
+        },
+        "measurement_quality_version":QUALITY_VERSION,
+        "legacy_horizon_coverage_unverified":{
+            str(h):sum(
+                bool(((r.get("policies") or {}).get("current_tp1_stop") or {}).get(str(h),{}).get("complete_horizon"))
+                and not _strictly_complete(((r.get("policies") or {}).get("current_tp1_stop") or {}).get(str(h)))
+                for r in rows
+            ) for h in HORIZONS
         },
         "errors":errors,"affects_detection":False,"affects_buy_gate":False,"affects_email":False,
     }

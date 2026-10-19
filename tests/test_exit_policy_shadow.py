@@ -32,3 +32,62 @@ def test_exit_policy_shadow_compares_candidates_directly_and_tracks_readiness():
     assert "CHECKPOINT_COMPLETE_4H=30" in x
     assert "DECISION_COMPLETE_12H=50" in x
     assert "decision_readiness" in x
+
+
+def test_exit_policy_strict_grid_prevents_future_wick_and_marks_missing_bars():
+    from scripts.update_exit_policy_shadow import _sim, _sim_stop_policy
+    entry={"price":1.0,"stop":0.9,"tp":1.1,"ts":3601.0}
+    first=3900_000
+    bars=[(first+i*300_000,1.,1.02,0.98,1.0,100.) for i in range(47)]
+    future=(first+47*300_000,1.,5.,0.01,5.,100.)
+    actual=_sim(1.0,0.9,1.1,3601.0,bars+[future],4,None)
+    assert actual["quality_version"]=="STRICT_CLOSED_GRID_V1"
+    assert actual["expected_bars"]==47
+    assert actual["bars_used"]==47
+    assert actual["complete_horizon"] is True
+    assert actual["exit_reason"]=="HORIZON_CLOSE"
+    assert actual["gross_return_pct"]==0.0
+    phase=_sim_stop_policy(1.0,0.9,3601.0,bars+[future],4,"MIXED_1H",True)
+    assert phase["complete_horizon"] is True
+    assert phase["gross_return_pct"]==0.0
+
+    missing=_sim(1.0,0.9,1.1,3601.0,bars[:5]+bars[6:],4,None)
+    assert missing["complete_horizon"] is False
+    assert missing["coverage_status"]=="INCOMPLETE_STRICT"
+    assert missing["missing_bars"]==1
+    duplicate=_sim(1.0,0.9,1.1,3601.0,bars+[bars[0]],4,None)
+    assert duplicate["complete_horizon"] is False
+
+
+def test_exit_shadow_summary_excludes_legacy_false_complete():
+    from scripts.update_exit_policy_shadow import _summary, _sim, _strictly_complete
+    first=3900_000
+    bars=[(first+i*300_000,1.,1.02,0.98,1.0,100.) for i in range(47)]
+    strict=_sim(1.,0.9,1.1,3601.,bars,4,None)
+    legacy={"complete_horizon":True,"net_return_pct_est":99.0,"r_multiple":999.0,
+            "exit_reason":"TARGET"}
+    assert _strictly_complete(legacy) is False
+    rows=[
+        {"stake_eur":150.0,"policies":{"current_tp1_stop":{"4":legacy}}},
+        {"stake_eur":150.0,"policies":{"current_tp1_stop":{"4":strict}}},
+    ]
+    x=_summary(rows,"current_tp1_stop",4)
+    assert x["n"]==1
+    assert x["sum_net_pnl_eur_est"]==-0.45
+
+
+def test_no_verified_exit_policy_cases_are_unknown_not_zero_profit():
+    from scripts.update_exit_policy_shadow import _summary, _pairwise
+    only_legacy={
+        "stake_eur":100.0,
+        "policies":{
+            "current_tp1_stop":{"4":{"complete_horizon":True,"net_return_pct_est":10.0}},
+            "full_1_4r":{"4":{"complete_horizon":True,"net_return_pct_est":11.0}},
+        },
+    }
+    result=_summary([only_legacy],"current_tp1_stop",4)
+    assert result["n"]==0
+    assert result["sum_net_pnl_eur_est"] is None
+    pair=_pairwise([only_legacy],"current_tp1_stop","full_1_4r",4)
+    assert pair["n"]==0
+    assert pair["sum_delta_net_pnl_eur_est_a_minus_b"] is None
