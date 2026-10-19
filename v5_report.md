@@ -1,8 +1,8 @@
 # Bitvavo — V4 mesurée / infrastructure V5
 
-Scan UTC : 2026-10-19T14:35:50.232152+00:00
-État : OK | marchés EUR : 427 | V4 : 355 | données valides : 427
-Récupération : 2026-10-19T14:34:46.955944+00:00 | âge ticker : 173.0 s | durée : 175.0 s
+Scan UTC : 2026-10-19T20:11:15.690524+00:00
+État : OK | marchés EUR : 427 | V4 : 345 | données valides : 427
+Récupération : 2026-10-19T20:10:13.906606+00:00 | âge ticker : 173.9 s | durée : 174.6 s
 
 ## ACHÈTE — signal V4 et plan théorique
 
@@ -12,22 +12,24 @@ Les intervalles sans transaction sont représentés explicitement à volume 0 ; 
 
 ## SURVEILLE
 
+- KMNO-EUR : 0.035322 € ; score 72.58/100 ; SURVEILLE ; VERY_SELLER_HEAVY_BOOK
+- ALT-EUR : 0.0079045 € ; score 72.01/100 ; SURVEILLE ; SELLER_HEAVY_BOOK, WICK_SETUP
 
 ## Contrôle des hausses
 
 | Marché | Prix € | 24 h | Détection | Couche d’échec | Actionnabilité |
 |---|---:|---:|---|---|---|
-| OSMO-EUR | 0.052205 | +36.96 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
-| GTC-EUR | 0.2735 | +21.45 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
-| AMP-EUR | 0.0007808 | +20.07 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
-| POND-EUR | 0.001565 | +17.97 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
-| NIL-EUR | 0.07658 | +11.48 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
-| ACU-EUR | 0.09073 | +9.56 % | NO_CONFIRMED_SHORT_TERM_EVENT | NOT_APPLICABLE | NOT_APPLICABLE |
-| ARB-EUR | 0.17306 | +9.26 % | NO_CONFIRMED_SHORT_TERM_EVENT | NOT_APPLICABLE | NOT_APPLICABLE |
-| CTR-EUR | 0.012633 | +8.88 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
-| KAT-EUR | 0.003683 | +8.71 % | NO_CONFIRMED_SHORT_TERM_EVENT | NOT_APPLICABLE | NOT_APPLICABLE |
-| CT-EUR | 0.29575 | +7.76 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
+| PHA-EUR | 0.057224 | +35.51 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
+| AVA-EUR | 0.38214 | +31.82 % | DETECTED_EARLY | NONE | ENTRY_TIMING_OR_EXECUTION |
+| GTC-EUR | 0.30673 | +30.49 % | DETECTED_EARLY | NONE | INTERPRETATION |
+| CTR-EUR | 0.014815 | +27.40 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
+| OSMO-EUR | 0.047108 | +23.71 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
+| NIL-EUR | 0.077952 | +18.89 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
+| S-EUR | 0.051124 | +16.02 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
+| VVV-EUR | 21.6317 | +14.36 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
+| BAT-EUR | 0.16762 | +12.77 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
+| WELL-EUR | 0.0019713 | +12.46 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
 
-Historique (snapshot asynchrone) : 2194 scans ; 938730 observations ; 1661 épisodes d’achat évaluables.
+Historique (snapshot asynchrone) : 2196 scans ; 939584 observations ; 1661 épisodes d’achat évaluables.
 V5 optimisée : aucune. Supériorité sur V4 : non démontrée. Probabilités : non calibrées.
 Le cash et le portefeuille du plan sont hypothétiques. Aucun ordre réel n’est envoyé.
