@@ -1,28 +1,28 @@
 # Solaire Swing Selector — SHADOW
 
-Generated: 2026-10-20T14:19:52.209833+00:00
+Generated: 2026-10-20T19:18:33.404638+00:00
 Version: SWING_SELECTOR_V1_FROZEN_2026-10-08_R2
 No orders, no alerts, no Decision Layer changes.
 
 | Rank | Market | Score | Status | 3d | 7d | 14d | RS BTC 7d | Dist EMA50 | News mod |
 |---:|---|---:|---|---:|---:|---:|---:|---:|---:|
-| 1 | GWEI-EUR | 87.03 | HUMAN_REVIEW | 6.83% | 6.54% | 12.88% | 8.82% | 4.56% | +0.00 |
-| 2 | SOLV-EUR | 82.01 | HUMAN_REVIEW | 1.83% | 7.53% | 4.84% | 9.81% | 10.25% | +0.00 |
-| 3 | WLD-EUR | 81.95 | HUMAN_REVIEW | 11.87% | 7.05% | -0.04% | 9.33% | 16.23% | +0.00 |
-| 4 | METIS-EUR | 80.33 | HUMAN_REVIEW | 3.02% | 8.26% | 18.76% | 10.54% | 21.04% | +0.00 |
-| 5 | INJ-EUR | 79.73 | HUMAN_REVIEW | -1.14% | 4.46% | 4.73% | 6.74% | 18.81% | +0.00 |
-| 6 | CTR-EUR | 79.71 | HUMAN_REVIEW | 10.12% | 1.01% | 15.35% | 3.29% | 21.10% | +0.00 |
-| 7 | ELSA-EUR | 79.38 | HUMAN_REVIEW | 8.75% | 29.67% | 18.20% | 31.95% | 19.52% | +0.00 |
-| 8 | CRV-EUR | 78.28 | HUMAN_REVIEW | 8.08% | 9.27% | 3.26% | 11.55% | 8.77% | +0.00 |
-| 9 | PEPE-EUR | 77.97 | HUMAN_REVIEW | 8.91% | 0.11% | -1.52% | 2.40% | 7.73% | +0.00 |
-| 10 | DODO-EUR | 76.89 | HUMAN_REVIEW | 1.80% | 3.18% | 12.66% | 5.46% | 9.63% | +0.00 |
-| 11 | NIL-EUR | 73.55 | PERSISTENT_TOP20 | 7.77% | 11.84% | -8.28% | 14.12% | 18.00% | +0.00 |
-| 12 | TIA-EUR | 73.22 | PERSISTENT_TOP20 | -2.03% | 10.04% | 29.55% | 12.32% | 30.95% | +0.00 |
-| 13 | ARB-EUR | 72.75 | PERSISTENT_TOP20 | 3.78% | -2.10% | -5.70% | 0.18% | 7.65% | +0.00 |
-| 14 | INIT-EUR | 72.32 | PREWATCH_PERSISTENCE_REQUIRED | 1.40% | 1.83% | 11.87% | 4.11% | 27.78% | +0.00 |
-| 15 | AMP-EUR | 71.64 | PERSISTENT_TOP20 | 14.26% | 6.42% | 29.64% | 8.70% | 34.75% | +0.00 |
-| 16 | BEAM-EUR | 71.36 | PERSISTENT_TOP20 | 9.36% | 7.38% | 26.75% | 9.66% | 40.88% | +0.00 |
-| 17 | KMNO-EUR | 71.26 | PERSISTENT_TOP20 | 0.76% | 0.56% | 3.06% | 2.84% | 16.74% | +0.00 |
-| 18 | ALT-EUR | 71.19 | PREWATCH_PERSISTENCE_REQUIRED | 21.57% | 24.93% | 34.08% | 27.21% | 38.18% | +0.00 |
-| 19 | SENT-EUR | 70.06 | PERSISTENT_TOP20 | 2.41% | 9.00% | -15.83% | 11.28% | 11.38% | +0.00 |
-| 20 | MORPHO-EUR | 69.99 | PREWATCH_PERSISTENCE_REQUIRED | 2.57% | 3.03% | -9.45% | 5.31% | 1.09% | +2.25 |
+| 1 | PEPE-EUR | 86.84 | HUMAN_REVIEW | 18.18% | 8.64% | 6.86% | 9.41% | 16.48% | +0.00 |
+| 2 | GWEI-EUR | 83.80 | HUMAN_REVIEW | 5.36% | 5.08% | 11.33% | 5.85% | 3.18% | +0.00 |
+| 3 | SOLV-EUR | 81.36 | HUMAN_REVIEW | 1.39% | 7.06% | 4.39% | 7.84% | 9.80% | +0.00 |
+| 4 | METIS-EUR | 80.47 | HUMAN_REVIEW | 4.65% | 9.97% | 20.64% | 10.75% | 22.86% | +0.00 |
+| 5 | INJ-EUR | 79.56 | HUMAN_REVIEW | -0.23% | 5.42% | 5.70% | 6.19% | 19.85% | +0.00 |
+| 6 | WLD-EUR | 79.48 | HUMAN_REVIEW | 17.09% | 12.05% | 4.62% | 12.82% | 21.39% | +0.00 |
+| 7 | CRV-EUR | 79.32 | HUMAN_REVIEW | 10.35% | 11.56% | 5.43% | 12.34% | 10.95% | +0.00 |
+| 8 | COMP-EUR | 77.32 | PREWATCH_PERSISTENCE_REQUIRED | 21.91% | 13.45% | 7.25% | 14.22% | 18.70% | +0.00 |
+| 9 | ALT-EUR | 76.93 | WAIT_PULLBACK_OR_NORMALIZATION | 16.62% | 19.84% | 28.62% | 20.62% | 32.85% | +0.00 |
+| 10 | DODO-EUR | 76.17 | HUMAN_REVIEW | 2.75% | 4.13% | 13.70% | 4.91% | 10.60% | +0.00 |
+| 11 | AKT-EUR | 75.81 | PREWATCH_PERSISTENCE_REQUIRED | 6.27% | 7.01% | -3.44% | 7.79% | 13.23% | +0.00 |
+| 12 | CVX-EUR | 75.01 | PREWATCH_PERSISTENCE_REQUIRED | 18.55% | 14.28% | 0.55% | 15.06% | 11.22% | +0.00 |
+| 13 | SENT-EUR | 74.98 | PERSISTENT_TOP20 | 7.69% | 14.62% | -11.49% | 15.39% | 16.86% | +0.00 |
+| 14 | ELSA-EUR | 74.61 | PERSISTENT_TOP20 | 11.21% | 32.61% | 20.88% | 33.39% | 22.09% | +0.00 |
+| 15 | AMP-EUR | 74.17 | PERSISTENT_TOP20 | 15.10% | 7.19% | 30.58% | 7.97% | 35.68% | +0.00 |
+| 16 | CTR-EUR | 73.67 | PERSISTENT_TOP20 | 24.56% | 14.26% | 30.47% | 15.03% | 36.13% | +0.00 |
+| 17 | NIL-EUR | 73.50 | PERSISTENT_TOP20 | 13.92% | 18.22% | -3.04% | 19.00% | 24.41% | +0.00 |
+| 18 | VVV-EUR | 73.34 | PREWATCH_PERSISTENCE_REQUIRED | 14.74% | 12.54% | -5.23% | 13.32% | 9.94% | +0.00 |
+| 19 | DOT-EUR | 72.97 | PREWATCH_PERSISTENCE_REQUIRED | 5.23% | 0.88% | -2.22% | 1.65% | 6.89% | +0.00 |
+| 20 | INIT-EUR | 72.94 | PERSISTENT_TOP20 | 2.93% | 3.36% | 13.56% | 4.14% | 29.60% | +0.00 |
