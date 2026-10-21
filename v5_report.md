@@ -1,8 +1,8 @@
 # Bitvavo — V4 mesurée / infrastructure V5
 
-Scan UTC : 2026-10-20T23:47:03.040342+00:00
-État : OK | marchés EUR : 427 | V4 : 329 | données valides : 427
-Récupération : 2026-10-20T23:46:03.199314+00:00 | âge ticker : 175.3 s | durée : 176.1 s
+Scan UTC : 2026-10-21T02:08:02.209742+00:00
+État : OK | marchés EUR : 427 | V4 : 334 | données valides : 427
+Récupération : 2026-10-21T02:07:02.887547+00:00 | âge ticker : 170.4 s | durée : 171.4 s
 
 ## ACHÈTE — signal V4 et plan théorique
 
@@ -12,27 +12,25 @@ Les intervalles sans transaction sont représentés explicitement à volume 0 ; 
 
 ## SURVEILLE
 
-- BEAM-EUR : 0.0028496 € ; score 78.73/100 ; SURVEILLE ; SPREAD_RISK
-- WLD-EUR : 0.52359 € ; score 75.63/100 ; SURVEILLE ; WICK_SETUP
-- CTR-EUR : 0.015562 € ; score 75.40/100 ; SURVEILLE ; SPREAD_RISK, SELLER_HEAVY_BOOK, WICK_SETUP, VERTICAL_SHORT_TERM
-- AMP-EUR : 0.0007717 € ; score 73.45/100 ; SURVEILLE ; SPREAD_RISK
-- INJ-EUR : 7.9454 € ; score 72.34/100 ; SURVEILLE ; seuil achat non atteint
+- INJ-EUR : 8.2293 € ; score 84.50/100 ; SURVEILLE ; seuil achat non atteint
+- ALT-EUR : 0.0088922 € ; score 78.69/100 ; SURVEILLE ; SELLER_HEAVY_BOOK
+- WLD-EUR : 0.52047 € ; score 73.11/100 ; SURVEILLE ; seuil achat non atteint
 
 ## Contrôle des hausses
 
 | Marché | Prix € | 24 h | Détection | Couche d’échec | Actionnabilité |
 |---|---:|---:|---|---|---|
-| IOST-EUR | 0.0009724 | +46.56 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
-| COMP-EUR | 22.887 | +20.32 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
-| ICNT-EUR | 0.18029 | +16.04 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
-| CVX-EUR | 2.1282 | +15.48 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
-| REZ-EUR | 0.0034913 | +14.52 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
-| GNS-EUR | 0.40961 | +13.76 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
-| SOSO-EUR | 0.28974 | +13.43 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
-| TOSHI-EUR | 0.00010634 | +10.87 % | NO_CONFIRMED_SHORT_TERM_EVENT | NOT_APPLICABLE | NOT_APPLICABLE |
-| USELESS-EUR | 0.139759 | +10.51 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
-| AERO-EUR | 0.78272 | +10.37 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
+| IOST-EUR | 0.0009503 | +42.75 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
+| BIRB-EUR | 0.05527 | +32.51 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
+| GNS-EUR | 0.4475 | +24.30 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
+| MEW-EUR | 0.00044799 | +22.51 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
+| CVX-EUR | 2.2605 | +21.75 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
+| COMP-EUR | 23.085 | +21.36 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
+| TOSHI-EUR | 0.00011063 | +16.51 % | NO_CONFIRMED_SHORT_TERM_EVENT | NOT_APPLICABLE | NOT_APPLICABLE |
+| SOSO-EUR | 0.29439 | +14.92 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
+| ICNT-EUR | 0.17833 | +14.26 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
+| MOODENG-EUR | 0.038125 | +13.67 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
 
-Historique (snapshot asynchrone) : 2203 scans ; 942573 observations ; 1661 épisodes d’achat évaluables.
+Historique (snapshot asynchrone) : 2204 scans ; 943000 observations ; 1661 épisodes d’achat évaluables.
 V5 optimisée : aucune. Supériorité sur V4 : non démontrée. Probabilités : non calibrées.
 Le cash et le portefeuille du plan sont hypothétiques. Aucun ordre réel n’est envoyé.
