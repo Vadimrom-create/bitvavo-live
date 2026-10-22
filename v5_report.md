@@ -1,8 +1,8 @@
 # Bitvavo — V4 mesurée / infrastructure V5
 
-Scan UTC : 2026-10-22T10:02:55.288555+00:00
+Scan UTC : 2026-10-22T15:04:28.433148+00:00
 État : OK | marchés EUR : 428 | V4 : 370 | données valides : 428
-Récupération : 2026-10-22T10:01:48.475220+00:00 | âge ticker : 182.2 s | durée : 183.0 s
+Récupération : 2026-10-22T15:03:01.535170+00:00 | âge ticker : 199.0 s | durée : 201.1 s
 
 ## ACHÈTE — signal V4 et plan théorique
 
@@ -12,25 +12,23 @@ Les intervalles sans transaction sont représentés explicitement à volume 0 ; 
 
 ## SURVEILLE
 
-- BEAM-EUR : 0.0028264 € ; score 76.67/100 ; SURVEILLE ; SPREAD_RISK, WICK_SETUP
-- CTR-EUR : 0.014335 € ; score 72.27/100 ; SURVEILLE ; SPREAD_RISK
-- WLD-EUR : 0.48957 € ; score 71.90/100 ; SURVEILLE ; STABILITY_HOLD
+- ELSA-EUR : 0.064099 € ; score 73.00/100 ; SURVEILLE ; SPREAD_RISK, WICK_SETUP
 
 ## Contrôle des hausses
 
 | Marché | Prix € | 24 h | Détection | Couche d’échec | Actionnabilité |
 |---|---:|---:|---|---|---|
-| PTB-EUR | 0.0006655 | +37.19 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
-| IRYS-EUR | 0.0179 | +29.46 % | DETECTED_EARLY | NONE | INTERPRETATION |
-| BILL-EUR | 0.005641 | +13.30 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
-| DGB-EUR | 0.0034139 | +12.34 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
-| ARKM-EUR | 0.12586 | +10.63 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
-| PROM-EUR | 5.1651 | +10.32 % | NO_CONFIRMED_SHORT_TERM_EVENT | NOT_APPLICABLE | NOT_APPLICABLE |
-| AVA-EUR | 0.32303 | +9.87 % | DETECTED_EARLY | NONE | ENTRY_TIMING_OR_EXECUTION |
-| PHA-EUR | 0.05506 | +9.87 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
-| VVV-EUR | 24.9172 | +8.92 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
-| LIGHTER-EUR | 3.2692 | +8.91 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
+| PTB-EUR | 0.0006232 | +41.93 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
+| BILL-EUR | 0.005868 | +16.24 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
+| DGB-EUR | 0.0034739 | +14.24 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
+| CTR-EUR | 0.015477 | +13.33 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
+| BTT-EUR | 3.6203e-07 | +9.97 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
+| AXIS-EUR | 0.265527 | +7.53 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
+| CNPY-EUR | 0.21525 | +6.52 % | NO_CONFIRMED_SHORT_TERM_EVENT | NOT_APPLICABLE | NOT_APPLICABLE |
+| XMN-EUR | 0.000379 | +6.16 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
+| PHA-EUR | 0.056136 | +6.08 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
+| LIGHTER-EUR | 3.2364 | +5.90 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
 
-Historique (snapshot asynchrone) : 2211 scans ; 945993 observations ; 1662 épisodes d’achat évaluables.
+Historique (snapshot asynchrone) : 2212 scans ; 946421 observations ; 1663 épisodes d’achat évaluables.
 V5 optimisée : aucune. Supériorité sur V4 : non démontrée. Probabilités : non calibrées.
 Le cash et le portefeuille du plan sont hypothétiques. Aucun ordre réel n’est envoyé.
