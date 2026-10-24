@@ -1,8 +1,8 @@
 # Bitvavo — V4 mesurée / infrastructure V5
 
-Scan UTC : 2026-10-24T09:50:45.227401+00:00
-État : OK | marchés EUR : 428 | V4 : 390 | données valides : 428
-Récupération : 2026-10-24T09:49:34.122925+00:00 | âge ticker : 186.9 s | durée : 188.4 s
+Scan UTC : 2026-10-24T13:42:40.104114+00:00
+État : OK | marchés EUR : 428 | V4 : 382 | données valides : 428
+Récupération : 2026-10-24T13:41:31.229617+00:00 | âge ticker : 182.7 s | durée : 183.5 s
 
 ## ACHÈTE — signal V4 et plan théorique
 
@@ -12,25 +12,23 @@ Les intervalles sans transaction sont représentés explicitement à volume 0 ; 
 
 ## SURVEILLE
 
-- INIT-EUR : 0.128989 € ; score 75.48/100 ; SURVEILLE ; SPREAD_RISK, SELLER_HEAVY_BOOK
-- ELSA-EUR : 0.068368 € ; score 74.34/100 ; SURVEILLE ; SPREAD_RISK
-- BEAM-EUR : 0.0029088 € ; score 72.98/100 ; SURVEILLE ; SPREAD_RISK
+- ELSA-EUR : 0.065912 € ; score 72.39/100 ; SURVEILLE ; SPREAD_RISK
 
 ## Contrôle des hausses
 
 | Marché | Prix € | 24 h | Détection | Couche d’échec | Actionnabilité |
 |---|---:|---:|---|---|---|
-| BIRB-EUR | 0.14661 | +126.85 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
-| IRYS-EUR | 0.062369 | +94.78 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
-| TREE-EUR | 0.05309 | +54.69 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
-| BLEND-EUR | 0.05805 | +28.71 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
-| TRUST-EUR | 0.054039 | +24.04 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
-| UP-EUR | 0.072672 | +18.21 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
-| CPOOL-EUR | 0.02921 | +15.32 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
-| LUMIA-EUR | 0.069208 | +15.16 % | NO_CONFIRMED_SHORT_TERM_EVENT | NOT_APPLICABLE | NOT_APPLICABLE |
-| KERNEL-EUR | 0.051402 | +14.56 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
-| ACU-EUR | 0.10711 | +14.24 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
+| BIRB-EUR | 0.1056 | +60.49 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
+| IRYS-EUR | 0.054941 | +42.01 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
+| U-EUR | 7.2e-05 | +18.62 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
+| TREE-EUR | 0.04259 | +18.55 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
+| INIT-EUR | 0.13409 | +12.67 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
+| KAT-EUR | 0.004003 | +11.41 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
+| ACU-EUR | 0.10631 | +10.69 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
+| RECALL-EUR | 0.034346 | +10.25 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
+| ANIME-EUR | 0.0027656 | +9.71 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
+| LUMIA-EUR | 0.067259 | +9.17 % | NO_CONFIRMED_SHORT_TERM_EVENT | NOT_APPLICABLE | NOT_APPLICABLE |
 
-Historique (snapshot asynchrone) : 2223 scans ; 951129 observations ; 1663 épisodes d’achat évaluables.
+Historique (snapshot asynchrone) : 2224 scans ; 951557 observations ; 1663 épisodes d’achat évaluables.
 V5 optimisée : aucune. Supériorité sur V4 : non démontrée. Probabilités : non calibrées.
 Le cash et le portefeuille du plan sont hypothétiques. Aucun ordre réel n’est envoyé.
