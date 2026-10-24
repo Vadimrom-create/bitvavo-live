@@ -1,28 +1,28 @@
 # Solaire Swing Selector — SHADOW
 
-Generated: 2026-10-24T04:40:39.207988+00:00
+Generated: 2026-10-24T11:05:37.247391+00:00
 Version: SWING_SELECTOR_V1_FROZEN_2026-10-08_R2
 No orders, no alerts, no Decision Layer changes.
 
 | Rank | Market | Score | Status | 3d | 7d | 14d | RS BTC 7d | Dist EMA50 | News mod |
 |---:|---|---:|---|---:|---:|---:|---:|---:|---:|
-| 1 | PEPE-EUR | 90.07 | HUMAN_REVIEW | -1.31% | 18.11% | 12.98% | 18.81% | 13.71% | +0.00 |
-| 2 | ACU-EUR | 89.82 | WAIT_PULLBACK_OR_NORMALIZATION | 12.20% | 16.42% | 15.16% | 17.12% | 4.98% | +0.00 |
-| 3 | KMNO-EUR | 84.70 | HUMAN_REVIEW | -0.74% | 4.77% | 15.09% | 5.47% | 18.03% | +0.00 |
-| 4 | BABY-EUR | 84.08 | HUMAN_REVIEW | 1.57% | 12.20% | 1.38% | 12.90% | 7.83% | +0.00 |
-| 5 | DODO-EUR | 80.96 | HUMAN_REVIEW | -0.53% | 2.48% | 11.50% | 3.19% | 8.46% | +0.00 |
-| 6 | INIT-EUR | 80.71 | PREWATCH_PERSISTENCE_REQUIRED | 12.70% | 15.49% | 21.39% | 16.19% | 37.18% | -0.96 |
-| 7 | SENT-EUR | 80.31 | HUMAN_REVIEW | -0.83% | 6.94% | 8.03% | 7.64% | 13.66% | +0.00 |
-| 8 | KERNEL-EUR | 79.62 | HUMAN_REVIEW | 9.27% | 24.47% | 0.76% | 25.17% | 12.13% | +0.00 |
-| 9 | ELSA-EUR | 79.56 | WAIT_PULLBACK_OR_NORMALIZATION | 5.43% | 24.20% | 36.59% | 24.90% | 30.37% | +0.00 |
-| 10 | MEW-EUR | 79.34 | HUMAN_REVIEW | 1.90% | 13.79% | -2.88% | 14.49% | 4.48% | +0.00 |
-| 11 | BCH-EUR | 78.71 | PERSISTENT_TOP20 | -1.72% | 2.15% | 0.14% | 2.85% | 2.17% | +0.00 |
-| 12 | BEAM-EUR | 78.69 | PREWATCH_PERSISTENCE_REQUIRED | 6.04% | 13.42% | 24.54% | 14.12% | 37.52% | +0.00 |
-| 13 | ARKM-EUR | 77.66 | PERSISTENT_TOP20 | 3.02% | 12.70% | 0.16% | 13.40% | 9.46% | +0.00 |
-| 14 | REZ-EUR | 77.43 | PERSISTENT_TOP20 | -0.06% | 8.30% | -2.56% | 9.00% | 4.35% | +0.00 |
-| 15 | PROM-EUR | 77.31 | PERSISTENT_TOP20 | -4.11% | 13.00% | 6.65% | 13.70% | 10.24% | +0.00 |
-| 16 | SOLV-EUR | 76.58 | PREWATCH_PERSISTENCE_REQUIRED | 0.33% | 1.98% | 9.04% | 2.68% | 8.68% | +0.00 |
-| 17 | PARTI-EUR | 75.93 | PREWATCH_PERSISTENCE_REQUIRED | 0.28% | 14.04% | -4.12% | 14.74% | 12.91% | +0.00 |
-| 18 | CVX-EUR | 75.86 | PERSISTENT_TOP20 | -8.27% | 26.33% | 15.04% | 27.03% | 14.48% | +0.00 |
-| 19 | TREE-EUR | 74.97 | PREWATCH_PERSISTENCE_REQUIRED | 10.47% | 14.70% | -4.35% | 15.40% | 5.38% | +0.00 |
-| 20 | TRAC-EUR | 74.19 | PREWATCH_PERSISTENCE_REQUIRED | 4.97% | 6.48% | 0.99% | 7.18% | 11.41% | +0.00 |
+| 1 | ACU-EUR | 90.88 | HUMAN_REVIEW | 14.91% | 19.23% | 17.95% | 20.07% | 7.41% | +0.00 |
+| 2 | BABY-EUR | 86.94 | HUMAN_REVIEW | 2.50% | 13.22% | 2.30% | 14.05% | 8.77% | +0.00 |
+| 3 | DODO-EUR | 86.12 | HUMAN_REVIEW | 2.82% | 5.94% | 15.26% | 6.77% | 11.95% | +0.00 |
+| 4 | REZ-EUR | 84.77 | HUMAN_REVIEW | 13.88% | 23.41% | 11.03% | 24.24% | 18.23% | +0.00 |
+| 5 | KMNO-EUR | 83.29 | HUMAN_REVIEW | -2.21% | 3.22% | 13.39% | 4.05% | 16.36% | +0.00 |
+| 6 | INIT-EUR | 82.18 | WAIT_PULLBACK_OR_NORMALIZATION | 13.77% | 16.58% | 22.54% | 17.42% | 38.41% | +0.00 |
+| 7 | F-EUR | 81.81 | PREWATCH_PERSISTENCE_REQUIRED | 5.88% | 14.95% | 2.78% | 15.78% | 3.41% | +0.00 |
+| 8 | SOLV-EUR | 80.78 | HUMAN_REVIEW | 1.86% | 3.53% | 10.70% | 4.37% | 10.26% | +0.00 |
+| 9 | PEPE-EUR | 80.50 | HUMAN_REVIEW | -6.12% | 12.36% | 7.48% | 13.20% | 8.40% | +0.00 |
+| 10 | ZORA-EUR | 79.73 | PREWATCH_PERSISTENCE_REQUIRED | 8.74% | 12.80% | 0.76% | 13.64% | 3.89% | +0.00 |
+| 11 | MEW-EUR | 79.67 | PERSISTENT_TOP20 | 2.06% | 13.97% | -2.73% | 14.81% | 4.64% | +0.00 |
+| 12 | PARTI-EUR | 79.16 | PERSISTENT_TOP20 | 8.80% | 23.74% | 4.03% | 24.57% | 22.04% | +0.00 |
+| 13 | CPOOL-EUR | 78.96 | PREWATCH_PERSISTENCE_REQUIRED | 13.66% | 15.58% | 2.50% | 16.42% | 16.24% | +0.00 |
+| 14 | BEAM-EUR | 78.93 | PERSISTENT_TOP20 | 4.53% | 11.80% | 22.76% | 12.64% | 35.67% | +0.00 |
+| 15 | HAEDAL-EUR | 78.45 | PREWATCH_PERSISTENCE_REQUIRED | 5.18% | 5.56% | 1.97% | 6.40% | 5.89% | +0.00 |
+| 16 | PROM-EUR | 75.97 | PERSISTENT_TOP20 | -4.84% | 12.14% | 5.84% | 12.97% | 9.43% | +0.00 |
+| 17 | RED-EUR | 75.85 | PREWATCH_PERSISTENCE_REQUIRED | 2.60% | 9.94% | 0.77% | 10.78% | 6.63% | +0.00 |
+| 18 | BREV-EUR | 75.20 | PREWATCH_PERSISTENCE_REQUIRED | 13.28% | 18.25% | -0.97% | 19.09% | 9.30% | +0.00 |
+| 19 | KAT-EUR | 75.19 | PREWATCH_PERSISTENCE_REQUIRED | 8.43% | 11.16% | -4.02% | 12.00% | 0.02% | +0.00 |
+| 20 | CVX-EUR | 75.08 | PERSISTENT_TOP20 | -8.58% | 25.90% | 14.65% | 26.74% | 14.11% | +0.00 |
