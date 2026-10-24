@@ -1,8 +1,8 @@
 # Bitvavo — V4 mesurée / infrastructure V5
 
-Scan UTC : 2026-10-24T19:27:33.068408+00:00
-État : OK | marchés EUR : 428 | V4 : 385 | données valides : 428
-Récupération : 2026-10-24T19:26:30.627589+00:00 | âge ticker : 176.0 s | durée : 176.7 s
+Scan UTC : 2026-10-24T21:45:58.635876+00:00
+État : OK | marchés EUR : 428 | V4 : 380 | données valides : 428
+Récupération : 2026-10-24T21:44:55.524335+00:00 | âge ticker : 176.5 s | durée : 177.8 s
 
 ## ACHÈTE — signal V4 et plan théorique
 
@@ -12,24 +12,25 @@ Les intervalles sans transaction sont représentés explicitement à volume 0 ; 
 
 ## SURVEILLE
 
-- ELSA-EUR : 0.068862 € ; score 76.63/100 ; SURVEILLE ; WICK_SETUP
-- INIT-EUR : 0.132347 € ; score 74.70/100 ; SURVEILLE ; SELLER_HEAVY_BOOK, WICK_SETUP
+- INIT-EUR : 0.138 € ; score 80.46/100 ; SURVEILLE ; SPREAD_RISK, SELLER_HEAVY_BOOK
+- AVA-EUR : 0.3776 € ; score 78.10/100 ; SURVEILLE ; VERY_SELLER_HEAVY_BOOK, WICK_SETUP
+- ELSA-EUR : 0.068115 € ; score 74.87/100 ; SURVEILLE ; seuil achat non atteint
 
 ## Contrôle des hausses
 
 | Marché | Prix € | 24 h | Détection | Couche d’échec | Actionnabilité |
 |---|---:|---:|---|---|---|
-| EPIC-EUR | 0.14018 | +29.53 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
-| ANIME-EUR | 0.0030867 | +20.74 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
-| BIRB-EUR | 0.08319 | +16.03 % | DETECTED_EARLY | NONE | INTERPRETATION |
-| REZ-EUR | 0.0039519 | +14.84 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
-| UP-EUR | 0.072485 | +13.75 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
-| AXIS-EUR | 0.250024 | +11.69 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
-| U-EUR | 7.67e-05 | +9.73 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
-| CAP-EUR | 0.069086 | +8.47 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
-| TREE-EUR | 0.039782 | +8.02 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
-| ICNT-EUR | 0.17362 | +7.68 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
+| ANIME-EUR | 0.003397 | +35.72 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
+| EPIC-EUR | 0.13728 | +28.11 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
+| AXIS-EUR | 0.254975 | +12.02 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
+| KAT-EUR | 0.004084 | +11.71 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
+| BIRB-EUR | 0.08093 | +11.34 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
+| REZ-EUR | 0.0038074 | +10.90 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
+| DOS-EUR | 0.22729 | +10.73 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
+| CAP-EUR | 0.0693917 | +8.42 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
+| PTB-EUR | 0.0002287 | +8.39 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
+| UP-EUR | 0.072606 | +8.38 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
 
-Historique (snapshot asynchrone) : 2226 scans ; 952413 observations ; 1663 épisodes d’achat évaluables.
+Historique (snapshot asynchrone) : 2227 scans ; 952841 observations ; 1663 épisodes d’achat évaluables.
 V5 optimisée : aucune. Supériorité sur V4 : non démontrée. Probabilités : non calibrées.
 Le cash et le portefeuille du plan sont hypothétiques. Aucun ordre réel n’est envoyé.
