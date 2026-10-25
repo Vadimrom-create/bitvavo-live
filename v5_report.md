@@ -1,8 +1,8 @@
 # Bitvavo — V4 mesurée / infrastructure V5
 
-Scan UTC : 2026-10-25T07:00:37.217461+00:00
+Scan UTC : 2026-10-25T12:32:09.888107+00:00
 État : OK | marchés EUR : 428 | V4 : 374 | données valides : 428
-Récupération : 2026-10-25T06:59:30.979070+00:00 | âge ticker : 178.3 s | durée : 179.0 s
+Récupération : 2026-10-25T12:31:08.158779+00:00 | âge ticker : 171.2 s | durée : 172.5 s
 
 ## ACHÈTE — signal V4 et plan théorique
 
@@ -12,23 +12,24 @@ Les intervalles sans transaction sont représentés explicitement à volume 0 ; 
 
 ## SURVEILLE
 
-- INIT-EUR : 0.136543 € ; score 72.64/100 ; SURVEILLE ; SELLER_HEAVY_BOOK, WICK_SETUP
+- ELSA-EUR : 0.067184 € ; score 76.61/100 ; SURVEILLE ; WICK_SETUP
+- INIT-EUR : 0.132984 € ; score 72.64/100 ; SURVEILLE ; SELLER_HEAVY_BOOK
 
 ## Contrôle des hausses
 
 | Marché | Prix € | 24 h | Détection | Couche d’échec | Actionnabilité |
 |---|---:|---:|---|---|---|
-| T-EUR | 0.006205 | +49.45 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
-| CAP-EUR | 0.0767546 | +24.00 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
-| USELESS-EUR | 0.162045 | +12.26 % | NO_CONFIRMED_SHORT_TERM_EVENT | NOT_APPLICABLE | NOT_APPLICABLE |
-| CNPY-EUR | 0.20395 | +8.66 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
-| MLN-EUR | 1.2373 | +7.17 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
-| GRASS-EUR | 0.60479 | +6.02 % | NO_CONFIRMED_SHORT_TERM_EVENT | NOT_APPLICABLE | NOT_APPLICABLE |
-| ZIG-EUR | 0.040747 | +5.74 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
-| SOLV-EUR | 0.0040873 | +5.10 % | NO_CONFIRMED_SHORT_TERM_EVENT | NOT_APPLICABLE | NOT_APPLICABLE |
-| ACX-EUR | 0.04 | +5.01 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
-| CHIP-EUR | 0.039401 | +4.73 % | NO_CONFIRMED_SHORT_TERM_EVENT | NOT_APPLICABLE | NOT_APPLICABLE |
+| TREAD-EUR | 0.75448 | +39.29 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
+| CAP-EUR | 0.0843267 | +29.77 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
+| T-EUR | 0.0049614 | +19.77 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
+| CNPY-EUR | 0.21157 | +12.80 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
+| USELESS-EUR | 0.15374 | +9.59 % | NO_CONFIRMED_SHORT_TERM_EVENT | NOT_APPLICABLE | NOT_APPLICABLE |
+| GROVE-EUR | 0.00445 | +6.79 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
+| MLN-EUR | 1.2338 | +6.42 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
+| GRASS-EUR | 0.61038 | +6.30 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
+| CHIP-EUR | 0.040133 | +5.91 % | NO_CONFIRMED_SHORT_TERM_EVENT | NOT_APPLICABLE | NOT_APPLICABLE |
+| ARX-EUR | 0.19306 | +5.78 % | NO_CONFIRMED_SHORT_TERM_EVENT | NOT_APPLICABLE | NOT_APPLICABLE |
 
-Historique (snapshot asynchrone) : 2230 scans ; 954125 observations ; 1663 épisodes d’achat évaluables.
+Historique (snapshot asynchrone) : 2231 scans ; 954553 observations ; 1663 épisodes d’achat évaluables.
 V5 optimisée : aucune. Supériorité sur V4 : non démontrée. Probabilités : non calibrées.
 Le cash et le portefeuille du plan sont hypothétiques. Aucun ordre réel n’est envoyé.
