@@ -1,8 +1,8 @@
 # Bitvavo — V4 mesurée / infrastructure V5
 
-Scan UTC : 2026-10-26T19:56:52.025472+00:00
-État : OK | marchés EUR : 428 | V4 : 369 | données valides : 428
-Récupération : 2026-10-26T19:55:46.732262+00:00 | âge ticker : 181.2 s | durée : 182.1 s
+Scan UTC : 2026-10-26T23:29:21.748158+00:00
+État : OK | marchés EUR : 428 | V4 : 372 | données valides : 428
+Récupération : 2026-10-26T23:28:18.838339+00:00 | âge ticker : 171.8 s | durée : 172.6 s
 
 ## ACHÈTE — signal V4 et plan théorique
 
@@ -12,23 +12,26 @@ Les intervalles sans transaction sont représentés explicitement à volume 0 ; 
 
 ## SURVEILLE
 
-- DODO-EUR : 0.021225 € ; score 74.50/100 ; SURVEILLE ; SPREAD_RISK, SELLER_HEAVY_BOOK
+- DODO-EUR : 0.021985 € ; score 75.79/100 ; SURVEILLE ; seuil achat non atteint
+- ELSA-EUR : 0.070875 € ; score 75.78/100 ; SURVEILLE ; SPREAD_RISK
+- INIT-EUR : 0.139779 € ; score 74.12/100 ; SURVEILLE ; SELLER_HEAVY_BOOK
+- WIN-EUR : 5.9472e-05 € ; score 72.18/100 ; SURVEILLE ; WIDE_SPREAD_RISK
 
 ## Contrôle des hausses
 
 | Marché | Prix € | 24 h | Détection | Couche d’échec | Actionnabilité |
 |---|---:|---:|---|---|---|
-| ZRC-EUR | 0.0011667 | +32.59 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
-| VERONA-EUR | 0.11363 | +22.30 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
-| CHIP-EUR | 0.047358 | +17.78 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
-| BEAM-EUR | 0.0029196 | +14.35 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
-| PARTI-EUR | 0.033815 | +14.17 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
-| NEX-EUR | 6.22e-07 | +13.24 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
-| HAEDAL-EUR | 0.019322 | +12.06 % | NO_CONFIRMED_SHORT_TERM_EVENT | NOT_APPLICABLE | NOT_APPLICABLE |
-| SOON-EUR | 0.27079 | +9.41 % | DETECTED_EARLY | NONE | INTERPRETATION |
-| TOSHI-EUR | 0.00010275 | +8.79 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
-| KAT-EUR | 0.003846 | +8.74 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
+| ZRC-EUR | 0.001202 | +39.22 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
+| NEX-EUR | 6.807e-07 | +23.14 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
+| CHIP-EUR | 0.045786 | +17.40 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
+| PARTI-EUR | 0.034389 | +16.58 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
+| SYN-EUR | 0.158943 | +16.11 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
+| VERONA-EUR | 0.11049 | +14.89 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
+| HAEDAL-EUR | 0.019444 | +12.57 % | NO_CONFIRMED_SHORT_TERM_EVENT | NOT_APPLICABLE | NOT_APPLICABLE |
+| BEAM-EUR | 0.0029734 | +12.29 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
+| KAT-EUR | 0.003869 | +10.51 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
+| SOON-EUR | 0.27147 | +9.94 % | DETECTED_EARLY | NONE | INTERPRETATION |
 
-Historique (snapshot asynchrone) : 2239 scans ; 957977 observations ; 1663 épisodes d’achat évaluables.
+Historique (snapshot asynchrone) : 2240 scans ; 958405 observations ; 1663 épisodes d’achat évaluables.
 V5 optimisée : aucune. Supériorité sur V4 : non démontrée. Probabilités : non calibrées.
 Le cash et le portefeuille du plan sont hypothétiques. Aucun ordre réel n’est envoyé.
