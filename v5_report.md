@@ -1,8 +1,8 @@
 # Bitvavo — V4 mesurée / infrastructure V5
 
-Scan UTC : 2026-10-26T14:10:15.386589+00:00
-État : OK | marchés EUR : 428 | V4 : 363 | données valides : 428
-Récupération : 2026-10-26T14:09:09.025593+00:00 | âge ticker : 180.3 s | durée : 181.8 s
+Scan UTC : 2026-10-26T19:56:52.025472+00:00
+État : OK | marchés EUR : 428 | V4 : 369 | données valides : 428
+Récupération : 2026-10-26T19:55:46.732262+00:00 | âge ticker : 181.2 s | durée : 182.1 s
 
 ## ACHÈTE — signal V4 et plan théorique
 
@@ -12,23 +12,23 @@ Les intervalles sans transaction sont représentés explicitement à volume 0 ; 
 
 ## SURVEILLE
 
-- PARTI-EUR : 0.030618 € ; score 72.17/100 ; SURVEILLE ; SPREAD_RISK, SELLER_HEAVY_BOOK
+- DODO-EUR : 0.021225 € ; score 74.50/100 ; SURVEILLE ; SPREAD_RISK, SELLER_HEAVY_BOOK
 
 ## Contrôle des hausses
 
 | Marché | Prix € | 24 h | Détection | Couche d’échec | Actionnabilité |
 |---|---:|---:|---|---|---|
-| NEX-EUR | 6.759e-07 | +24.64 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
-| KAT-EUR | 0.004197 | +17.79 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
-| QNT-EUR | 188.825 | +15.41 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
-| BEAM-EUR | 0.0029627 | +14.34 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
-| CHIP-EUR | 0.043329 | +10.82 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
-| BABY-EUR | 0.013129 | +10.78 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
-| U-EUR | 7.39e-05 | +10.63 % | DETECTED_EARLY | NONE | INTERPRETATION |
-| OSMO-EUR | 0.044702 | +10.26 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
-| NOM-EUR | 0.0014943 | +8.96 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
-| HAEDAL-EUR | 0.018393 | +7.34 % | NO_CONFIRMED_SHORT_TERM_EVENT | NOT_APPLICABLE | NOT_APPLICABLE |
+| ZRC-EUR | 0.0011667 | +32.59 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
+| VERONA-EUR | 0.11363 | +22.30 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
+| CHIP-EUR | 0.047358 | +17.78 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
+| BEAM-EUR | 0.0029196 | +14.35 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
+| PARTI-EUR | 0.033815 | +14.17 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
+| NEX-EUR | 6.22e-07 | +13.24 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
+| HAEDAL-EUR | 0.019322 | +12.06 % | NO_CONFIRMED_SHORT_TERM_EVENT | NOT_APPLICABLE | NOT_APPLICABLE |
+| SOON-EUR | 0.27079 | +9.41 % | DETECTED_EARLY | NONE | INTERPRETATION |
+| TOSHI-EUR | 0.00010275 | +8.79 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
+| KAT-EUR | 0.003846 | +8.74 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
 
-Historique (snapshot asynchrone) : 2237 scans ; 957121 observations ; 1663 épisodes d’achat évaluables.
+Historique (snapshot asynchrone) : 2239 scans ; 957977 observations ; 1663 épisodes d’achat évaluables.
 V5 optimisée : aucune. Supériorité sur V4 : non démontrée. Probabilités : non calibrées.
 Le cash et le portefeuille du plan sont hypothétiques. Aucun ordre réel n’est envoyé.
