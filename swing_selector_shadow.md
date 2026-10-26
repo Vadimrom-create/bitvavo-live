@@ -1,28 +1,28 @@
 # Solaire Swing Selector — SHADOW
 
-Generated: 2026-10-26T13:08:16.837927+00:00
+Generated: 2026-10-26T20:30:53.669083+00:00
 Version: SWING_SELECTOR_V1_FROZEN_2026-10-08_R2
 No orders, no alerts, no Decision Layer changes.
 
 | Rank | Market | Score | Status | 3d | 7d | 14d | RS BTC 7d | Dist EMA50 | News mod |
 |---:|---|---:|---|---:|---:|---:|---:|---:|---:|
-| 1 | BABY-EUR | 92.14 | HUMAN_REVIEW | 9.51% | 18.33% | 17.58% | 20.67% | 14.29% | +0.00 |
-| 2 | ACU-EUR | 88.70 | HUMAN_REVIEW | 0.36% | 13.88% | 19.91% | 16.22% | 3.60% | +0.00 |
-| 3 | DODO-EUR | 87.31 | PREWATCH_PERSISTENCE_REQUIRED | 15.23% | 17.01% | 25.86% | 19.36% | 24.00% | +0.00 |
-| 4 | HAEDAL-EUR | 86.95 | HUMAN_REVIEW | 10.16% | 15.02% | 14.07% | 17.36% | 10.85% | +0.00 |
-| 5 | NIL-EUR | 86.05 | HUMAN_REVIEW | 19.65% | 8.06% | 20.19% | 10.40% | 21.13% | +0.00 |
-| 6 | CVX-EUR | 85.74 | HUMAN_REVIEW | 0.35% | 17.68% | 22.26% | 20.02% | 14.99% | +0.00 |
-| 7 | PEPE-EUR | 84.72 | HUMAN_REVIEW | -3.19% | 6.67% | 12.65% | 9.02% | 9.83% | +0.00 |
-| 8 | KMNO-EUR | 84.70 | HUMAN_REVIEW | -0.58% | 5.50% | 17.42% | 7.84% | 17.04% | +0.00 |
-| 9 | ENA-EUR | 84.18 | HUMAN_REVIEW | 4.32% | 9.64% | 0.66% | 11.98% | 6.22% | +0.00 |
-| 10 | TOSHI-EUR | 83.40 | PREWATCH_PERSISTENCE_REQUIRED | 7.11% | 8.47% | 6.63% | 10.82% | 2.74% | +0.00 |
-| 11 | TAIKO-EUR | 82.83 | PERSISTENT_TOP20 | 0.83% | 12.70% | 2.47% | 15.04% | -0.22% | +0.00 |
-| 12 | REZ-EUR | 82.78 | PERSISTENT_TOP20 | 17.76% | 34.23% | 23.04% | 36.57% | 21.90% | +0.00 |
-| 13 | BREV-EUR | 81.16 | PREWATCH_PERSISTENCE_REQUIRED | 5.43% | 13.82% | -1.42% | 16.16% | 5.64% | +0.00 |
-| 14 | NEWT-EUR | 80.29 | PREWATCH_PERSISTENCE_REQUIRED | 8.82% | 14.59% | 4.44% | 16.93% | 6.10% | +0.00 |
-| 15 | ELSA-EUR | 77.79 | PERSISTENT_TOP20 | 5.74% | 12.24% | 51.78% | 14.59% | 31.22% | +0.00 |
-| 16 | PROM-EUR | 77.25 | PERSISTENT_TOP20 | -3.73% | 13.41% | 8.21% | 15.75% | 6.37% | +0.00 |
-| 17 | MEGA-EUR | 76.65 | PERSISTENT_TOP20 | -0.40% | 2.50% | 2.71% | 4.84% | 4.65% | +0.00 |
-| 18 | DOS-EUR | 76.42 | PERSISTENT_TOP20 | 11.39% | 38.42% | 12.86% | 40.76% | 14.85% | +0.00 |
-| 19 | PARTI-EUR | 76.18 | PERSISTENT_TOP20 | 1.30% | 12.50% | -4.93% | 14.85% | 12.94% | +0.00 |
-| 20 | MEW-EUR | 75.87 | PREWATCH_PERSISTENCE_REQUIRED | -2.40% | 12.83% | 2.91% | 15.17% | 3.56% | +0.00 |
+| 1 | BABY-EUR | 91.38 | HUMAN_REVIEW | 7.96% | 16.66% | 15.92% | 18.75% | 12.75% | +0.00 |
+| 2 | DODO-EUR | 90.16 | HUMAN_REVIEW | 10.51% | 12.22% | 20.71% | 14.31% | 19.15% | +0.00 |
+| 3 | ACU-EUR | 88.30 | HUMAN_REVIEW | 0.24% | 13.75% | 19.77% | 15.84% | 3.48% | +0.00 |
+| 4 | NIL-EUR | 87.38 | HUMAN_REVIEW | 15.26% | 4.09% | 15.77% | 6.18% | 16.89% | +0.00 |
+| 5 | CVX-EUR | 86.45 | HUMAN_REVIEW | -0.44% | 16.75% | 21.30% | 18.84% | 14.13% | +0.00 |
+| 6 | ENA-EUR | 86.23 | HUMAN_REVIEW | 5.22% | 10.59% | 1.53% | 12.68% | 7.10% | +0.00 |
+| 7 | KMNO-EUR | 85.66 | HUMAN_REVIEW | 2.99% | 9.29% | 21.64% | 11.38% | 21.04% | +0.00 |
+| 8 | HAEDAL-EUR | 84.89 | HUMAN_REVIEW | 14.95% | 20.01% | 19.02% | 22.10% | 15.45% | +0.00 |
+| 9 | TAIKO-EUR | 84.21 | HUMAN_REVIEW | 1.78% | 13.76% | 3.44% | 15.85% | 0.68% | +0.00 |
+| 10 | TOSHI-EUR | 82.41 | HUMAN_REVIEW | 5.63% | 6.98% | 5.16% | 9.06% | 1.37% | +0.00 |
+| 11 | MEGA-EUR | 81.21 | PERSISTENT_TOP20 | 2.60% | 5.58% | 5.80% | 7.67% | 7.66% | +0.00 |
+| 12 | PEPE-EUR | 80.55 | PERSISTENT_TOP20 | -5.51% | 4.13% | 9.96% | 6.21% | 7.32% | +0.00 |
+| 13 | VVV-EUR | 80.53 | PREWATCH_PERSISTENCE_REQUIRED | 0.46% | 3.96% | 12.19% | 6.05% | 6.11% | +0.00 |
+| 14 | REZ-EUR | 79.85 | PERSISTENT_TOP20 | 19.23% | 35.90% | 24.57% | 37.98% | 23.34% | +0.00 |
+| 15 | ELSA-EUR | 76.03 | PERSISTENT_TOP20 | 3.97% | 10.37% | 49.24% | 12.46% | 29.14% | +0.00 |
+| 16 | PARTI-EUR | 75.75 | PERSISTENT_TOP20 | 14.89% | 27.59% | 7.82% | 29.68% | 27.33% | +0.00 |
+| 17 | PROM-EUR | 75.67 | PERSISTENT_TOP20 | -4.52% | 12.49% | 7.33% | 14.58% | 5.55% | +0.00 |
+| 18 | BNB-EUR | 75.58 | PREWATCH_PERSISTENCE_REQUIRED | 0.55% | 1.52% | 1.06% | 3.61% | 2.29% | +0.00 |
+| 19 | BCH-EUR | 75.19 | PREWATCH_PERSISTENCE_REQUIRED | -1.38% | -0.52% | 4.30% | 1.57% | 1.48% | +0.00 |
+| 20 | DOS-EUR | 74.03 | PERSISTENT_TOP20 | 0.53% | 24.92% | 1.85% | 27.01% | 4.11% | +0.00 |
