@@ -93,6 +93,8 @@ jobs:
           PY
 
       - name: Email confidential WALLET digest via existing Gmail transport
+        # Email sending paused on 2026-10-26 at user request; wallet snapshots and scans continue.
+        if: ${{ false }}
         # Failures must not block encrypted snapshot publication or 5m handoff.
         continue-on-error: true
         env:
