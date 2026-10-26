@@ -1,8 +1,8 @@
 # Bitvavo — V4 mesurée / infrastructure V5
 
-Scan UTC : 2026-10-26T01:42:26.457661+00:00
-État : OK | marchés EUR : 428 | V4 : 351 | données valides : 428
-Récupération : 2026-10-26T01:41:24.796562+00:00 | âge ticker : 175.6 s | durée : 177.5 s
+Scan UTC : 2026-10-26T06:59:07.983407+00:00
+État : OK | marchés EUR : 428 | V4 : 355 | données valides : 428
+Récupération : 2026-10-26T06:58:07.444538+00:00 | âge ticker : 165.9 s | durée : 166.9 s
 
 ## ACHÈTE — signal V4 et plan théorique
 
@@ -12,22 +12,23 @@ Les intervalles sans transaction sont représentés explicitement à volume 0 ; 
 
 ## SURVEILLE
 
+- ELSA-EUR : 0.068361 € ; score 74.74/100 ; SURVEILLE ; WICK_SETUP
 
 ## Contrôle des hausses
 
 | Marché | Prix € | 24 h | Détection | Couche d’échec | Actionnabilité |
 |---|---:|---:|---|---|---|
-| CAP-EUR | 0.1004519 | +39.71 % | DETECTED_EARLY | NONE | INTERPRETATION |
-| TREAD-EUR | 0.72115 | +28.18 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
-| DODO-EUR | 0.024363 | +22.43 % | DETECTED_EARLY | NONE | ENTRY_TIMING_OR_EXECUTION |
-| REZ-EUR | 0.0042151 | +12.87 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
-| AXIS-EUR | 0.262396 | +12.73 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
-| IRYS-EUR | 0.032973 | +12.12 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
-| ALIGN-EUR | 0.003991 | +8.78 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
-| OSMO-EUR | 0.044268 | +7.75 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
-| PROMPT-EUR | 0.016174 | +6.77 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
-| U-EUR | 7.2e-05 | +6.51 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
+| NEX-EUR | 6.81e-07 | +26.65 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
+| OSMO-EUR | 0.046404 | +16.59 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
+| CAP-EUR | 0.0901617 | +16.32 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
+| TREAD-EUR | 0.71601 | +16.13 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
+| SWELL-EUR | 0.0006631 | +11.18 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
+| DOS-EUR | 0.23292 | +10.89 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
+| DODO-EUR | 0.022132 | +10.50 % | DETECTED_EARLY | NONE | ENTRY_TIMING_OR_EXECUTION |
+| BABY-EUR | 0.012819 | +9.33 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
+| ENA-EUR | 0.18527 | +8.24 % | NO_CONFIRMED_SHORT_TERM_EVENT | NOT_APPLICABLE | NOT_APPLICABLE |
+| TOSHI-EUR | 0.00010491 | +7.98 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
 
-Historique (snapshot asynchrone) : 2236 scans ; 956693 observations ; 1663 épisodes d’achat évaluables.
+Historique (snapshot asynchrone) : 2237 scans ; 957121 observations ; 1663 épisodes d’achat évaluables.
 V5 optimisée : aucune. Supériorité sur V4 : non démontrée. Probabilités : non calibrées.
 Le cash et le portefeuille du plan sont hypothétiques. Aucun ordre réel n’est envoyé.
