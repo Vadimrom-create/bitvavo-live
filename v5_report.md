@@ -1,8 +1,8 @@
 # Bitvavo — V4 mesurée / infrastructure V5
 
-Scan UTC : 2026-10-27T23:10:48.432811+00:00
-État : OK | marchés EUR : 427 | V4 : 376 | données valides : 427
-Récupération : 2026-10-27T23:09:40.062881+00:00 | âge ticker : 176.6 s | durée : 177.4 s
+Scan UTC : 2026-10-28T02:13:14.131706+00:00
+État : OK | marchés EUR : 427 | V4 : 371 | données valides : 427
+Récupération : 2026-10-28T02:12:11.004135+00:00 | âge ticker : 181.6 s | durée : 182.8 s
 
 ## ACHÈTE — signal V4 et plan théorique
 
@@ -12,25 +12,23 @@ Les intervalles sans transaction sont représentés explicitement à volume 0 ; 
 
 ## SURVEILLE
 
-- DODO-EUR : 0.021251 € ; score 75.34/100 ; SURVEILLE ; seuil achat non atteint
-- ELSA-EUR : 0.07114 € ; score 73.18/100 ; SURVEILLE ; seuil achat non atteint
-- MEGA-EUR : 0.04455 € ; score 72.31/100 ; SURVEILLE ; WICK_SETUP
+- ELSA-EUR : 0.070248 € ; score 75.47/100 ; SURVEILLE ; seuil achat non atteint
 
 ## Contrôle des hausses
 
 | Marché | Prix € | 24 h | Détection | Couche d’échec | Actionnabilité |
 |---|---:|---:|---|---|---|
-| GROVE-EUR | 0.008501 | +85.65 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
-| HAEDAL-EUR | 0.02758 | +42.92 % | DETECTED_EARLY | NONE | ENTRY_TIMING_OR_EXECUTION |
-| ACU-EUR | 0.12656 | +21.41 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
-| XAN-EUR | 0.0083094 | +18.29 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
-| OSMO-EUR | 0.052183 | +17.06 % | DETECTED_EARLY | NONE | INTERPRETATION |
-| TREAD-EUR | 0.73355 | +15.39 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
-| DOS-EUR | 0.24095 | +14.57 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
-| REZ-EUR | 0.0047111 | +14.16 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
-| SOLV-EUR | 0.0043733 | +13.20 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
-| GRASS-EUR | 0.67211 | +12.09 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
+| GROVE-EUR | 0.00777 | +74.18 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
+| HAEDAL-EUR | 0.024844 | +31.30 % | DETECTED_EARLY | NONE | ENTRY_TIMING_OR_EXECUTION |
+| ACU-EUR | 0.13134 | +27.18 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
+| XAN-EUR | 0.0088165 | +26.67 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
+| PUFFER-EUR | 0.029235 | +17.29 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
+| SOLV-EUR | 0.0044938 | +15.95 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
+| HUMA-EUR | 0.02225 | +15.66 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
+| PEPE-EUR | 4.4071e-06 | +14.77 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
+| GRASS-EUR | 0.68784 | +14.74 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
+| DOS-EUR | 0.24022 | +12.68 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
 
-Historique (snapshot asynchrone) : 2245 scans ; 960543 observations ; 1663 épisodes d’achat évaluables.
+Historique (snapshot asynchrone) : 2246 scans ; 960970 observations ; 1663 épisodes d’achat évaluables.
 V5 optimisée : aucune. Supériorité sur V4 : non démontrée. Probabilités : non calibrées.
 Le cash et le portefeuille du plan sont hypothétiques. Aucun ordre réel n’est envoyé.
