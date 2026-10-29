@@ -114,8 +114,8 @@ def validate_alerts(rows, asof):
     return accepted
 
 
-def validate_pairs(rows, decision_ids):
-    """Pairs are *externally* verified comparable executions, not inferred highs."""
+def validate_pairs(rows, decision_ids, decision_actions=None):
+    """Pairs are externally verified; refusal can be a verified no-trade arm."""
     accepted, seen = [], set()
     for i, row in enumerate(rows, 1):
         if row.get("record_type") != "paired_outcome":
@@ -132,9 +132,24 @@ def validate_pairs(rows, decision_ids):
         # A falsy or missing proof excludes the pair; it cannot be backfilled
         # from a token's maximum favorable excursion or a candle high.
         if not all(row.get(flag) is True for flag in (
-            "both_executions_validated", "matched_budget_policy_costs",
-            "horizon_matured", "independent_episode"
+            "matched_budget_policy_costs", "horizon_matured", "independent_episode"
         )):
+            continue
+        ordinary_pair = row.get("both_executions_validated") is True
+        # A refusal must be evaluated as a ZERO-position alternative, not
+        # misrepresented as a second executed trade. A historical email
+        # entry cannot be reused: the executable entry needs verification
+        # at the precise time ChatGPT rejected the signal.
+        verified_no_trade = (
+            decision_actions is not None
+            and decision_actions.get(key) in {"WAIT_RECHECK", "REJECT_STRUCTURAL", "INSUFFICIENT_DATA"}
+            and row.get("solaire_execution_validated_at_chat_decision") is True
+            and row.get("chatgpt_no_trade_verified") is True
+            and row.get("decision_time_parity_verified") is True
+            and type(row.get("chatgpt_net_eur")) in (float, int)
+            and row["chatgpt_net_eur"] == 0
+        )
+        if not (ordinary_pair or verified_no_trade):
             continue
         a = row.get("solaire_net_eur")
         b = row.get("chatgpt_net_eur")
@@ -169,6 +184,39 @@ def aggregate(decisions, alerts, pairs, asof):
             alerts_after_refusal.append({"market": market, "last_decision_id": d["decision_id"],
                                          "new_signal_ids": [a["signal_id"] for a in new]})
 
+    # Audit attribution requires the order of messages. A ChatGPT refusal
+    # *after* an alert cannot be treated as an ex-ante veto of that initial
+    # entry. The pair's executable baseline needs an independent timestamp.
+    buys_by_market = defaultdict(list)
+    for alert in alerts:
+        if alert["action"] == "ACHETE":
+            buys_by_market[alert["market"]].append(alert)
+    for events in buys_by_market.values():
+        events.sort(key=lambda a: (a["_at"], a["signal_id"]))
+
+    machine_buy_refusal_timing = []
+    for d in machine_buy_rejected:
+        prior = [a for a in buys_by_market[d["market"]] if a["_at"] <= d["_at"]]
+        if prior:
+            first, last = prior[0], prior[-1]
+            machine_buy_refusal_timing.append({
+                "decision_id": d["decision_id"],
+                "market": d["market"],
+                "status": "POST_ALERT_REVIEW_NOT_EX_ANTE_VETO",
+                "first_prior_signal_id": first["signal_id"],
+                "latest_prior_signal_id": last["signal_id"],
+                "seconds_since_first_prior_buy": round((d["_at"] - first["_at"]).total_seconds(), 3),
+                "seconds_since_latest_prior_buy": round((d["_at"] - last["_at"]).total_seconds(), 3),
+                "attribution": "UNVERIFIED_UNTIL_DECISION_TIME_ENTRY_AND_EXECUTION_PROVEN",
+            })
+        else:
+            machine_buy_refusal_timing.append({
+                "decision_id": d["decision_id"],
+                "market": d["market"],
+                "status": "NO_PRIOR_MACHINE_BUY_IN_SUPPLIED_ALERT_LOG",
+                "attribution": "NON_MESURABLE",
+            })
+
     pairs_by_horizon = {}
     for h in HORIZONS:
         grp = [(a, b) for horizon, a, b, _ in pairs if horizon == h]
@@ -186,6 +234,15 @@ def aggregate(decisions, alerts, pairs, asof):
         "decision_count": len(decisions), "markets": len(by_market),
         "machine_buy_refused_count": len(machine_buy_rejected),
         "machine_buy_refused_ids": [d["decision_id"] for d in machine_buy_rejected],
+        "machine_buy_refusal_timing": machine_buy_refusal_timing,
+        "post_alert_nonbuy_count": sum(
+            item["status"] == "POST_ALERT_REVIEW_NOT_EX_ANTE_VETO"
+            for item in machine_buy_refusal_timing
+        ),
+        "nonbuy_without_prior_alert_evidence_count": sum(
+            item["status"] == "NO_PRIOR_MACHINE_BUY_IN_SUPPLIED_ALERT_LOG"
+            for item in machine_buy_refusal_timing
+        ),
         "stale_source_over_10min_ids": stale_source,
         "missing_execution_evidence_ids": missing_liquidity,
         "overdue_recheck_ids": overdue,
@@ -198,7 +255,9 @@ def aggregate(decisions, alerts, pairs, asof):
             "No automatic capture of ChatGPT messages: records must be written after each SCAN.",
             "Missing archival book or verified fills => no realized counterfactual PnL.",
             "Paired outcomes are supplied and verified externally, not inferred from token price highs.",
+            "For refusals, a zero-position arm requires verified Solaire fill at ChatGPT decision time.",
             "Small or overlapping cohorts do not establish statistical superiority.",
+            "Late ChatGPT refusals cannot be credited as pre-alert vetoes; compare from decision-time executable prices.",
         ],
     }
 
@@ -225,7 +284,8 @@ def main(argv=None):
         asof = parse_utc(args.asof, "--asof") if args.asof else datetime.now(UTC)
         decisions = validate_decisions(jsonl(args.decisions), asof)
         alerts = validate_alerts(jsonl(args.machine_alerts), asof)
-        paired = validate_pairs(jsonl(args.pairs), {d["decision_id"] for d in decisions})
+        paired = validate_pairs(jsonl(args.pairs), {d["decision_id"] for d in decisions},
+                                {d["decision_id"]: d["chatgpt_action"] for d in decisions})
         report = aggregate(decisions, alerts, paired, asof)
         out = json.dumps(report, ensure_ascii=False, indent=2, sort_keys=True) + "\n"
         if args.output:
