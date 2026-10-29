@@ -1,28 +1,28 @@
 # Solaire Swing Selector — SHADOW
 
-Generated: 2026-10-28T20:18:01.148952+00:00
+Generated: 2026-10-29T01:00:06.181356+00:00
 Version: SWING_SELECTOR_V1_FROZEN_2026-10-08_R2
 No orders, no alerts, no Decision Layer changes.
 
 | Rank | Market | Score | Status | 3d | 7d | 14d | RS BTC 7d | Dist EMA50 | News mod |
 |---:|---|---:|---|---:|---:|---:|---:|---:|---:|
-| 1 | ACU-EUR | 92.93 | HUMAN_REVIEW | 12.45% | 23.08% | 34.12% | 26.31% | 12.77% | +0.00 |
-| 2 | BABY-EUR | 89.45 | HUMAN_REVIEW | 12.21% | 12.07% | 24.19% | 15.30% | 16.57% | +0.00 |
-| 3 | MEGA-EUR | 89.22 | HUMAN_REVIEW | 10.91% | 10.15% | 10.29% | 13.39% | 15.50% | +0.00 |
-| 4 | SOLV-EUR | 88.45 | PREWATCH_PERSISTENCE_REQUIRED | 11.77% | 15.21% | 27.27% | 18.45% | 21.53% | +0.00 |
-| 5 | PEPE-EUR | 88.22 | HUMAN_REVIEW | 14.38% | 5.95% | 20.16% | 9.18% | 19.69% | +0.00 |
-| 6 | BCH-EUR | 87.40 | HUMAN_REVIEW | 6.31% | 3.37% | 9.68% | 6.61% | 6.71% | +0.00 |
-| 7 | TAIKO-EUR | 81.72 | HUMAN_REVIEW | -0.88% | 6.48% | 7.46% | 9.72% | 1.50% | +0.00 |
-| 8 | RECALL-EUR | 81.63 | PREWATCH_PERSISTENCE_REQUIRED | 9.28% | 8.40% | 8.64% | 11.63% | -1.71% | +0.00 |
-| 9 | GMX-EUR | 80.05 | PREWATCH_PERSISTENCE_REQUIRED | 8.52% | 5.64% | 3.95% | 8.87% | 10.15% | +0.00 |
-| 10 | REZ-EUR | 79.83 | HUMAN_REVIEW | 1.88% | 26.10% | 25.54% | 29.34% | 25.06% | +0.00 |
-| 11 | SHELL-EUR | 79.72 | PERSISTENT_TOP20 | 18.23% | 16.82% | 21.17% | 20.06% | 14.95% | +0.00 |
-| 12 | CHIP-EUR | 78.73 | PERSISTENT_TOP20 | 17.31% | 7.68% | 0.46% | 10.91% | 11.08% | +0.00 |
-| 13 | BNB-EUR | 78.55 | PREWATCH_PERSISTENCE_REQUIRED | 2.37% | 1.30% | 3.16% | 4.53% | 3.36% | +1.25 |
-| 14 | BREV-EUR | 78.03 | PERSISTENT_TOP20 | 8.64% | 10.14% | 5.52% | 13.38% | 5.98% | +0.00 |
-| 15 | INX-EUR | 77.90 | PERSISTENT_TOP20 | 11.42% | 8.24% | 5.86% | 11.47% | -8.73% | +0.00 |
-| 16 | BEAM-EUR | 76.79 | PREWATCH_PERSISTENCE_REQUIRED | 13.47% | 7.97% | 13.30% | 11.21% | 33.01% | +0.00 |
-| 17 | DODO-EUR | 75.65 | PERSISTENT_TOP20 | -8.08% | 15.30% | 21.35% | 18.53% | 20.85% | +0.00 |
-| 18 | SENT-EUR | 75.48 | PREWATCH_PERSISTENCE_REQUIRED | 8.28% | -3.51% | 13.57% | -0.27% | 9.64% | +0.00 |
-| 19 | GRASS-EUR | 74.83 | PERSISTENT_TOP20 | -2.11% | 3.56% | 13.42% | 6.80% | 20.24% | +0.00 |
-| 20 | KAT-EUR | 74.75 | PREWATCH_PERSISTENCE_REQUIRED | 10.92% | 6.43% | 3.27% | 9.67% | -1.21% | +0.00 |
+| 1 | MEGA-EUR | 89.00 | HUMAN_REVIEW | 8.02% | 17.71% | 11.88% | 17.16% | 15.85% | +0.00 |
+| 2 | SOLV-EUR | 88.96 | HUMAN_REVIEW | 10.80% | 11.93% | 18.17% | 11.38% | 17.95% | +0.00 |
+| 3 | BABY-EUR | 86.70 | HUMAN_REVIEW | 1.95% | 13.39% | 15.12% | 12.84% | 13.18% | +0.00 |
+| 4 | ACU-EUR | 86.46 | HUMAN_REVIEW | 10.61% | 32.17% | 30.28% | 31.61% | 13.48% | +0.00 |
+| 5 | PEPE-EUR | 85.12 | HUMAN_REVIEW | 18.80% | 17.50% | 25.92% | 16.95% | 24.38% | +0.00 |
+| 6 | RECALL-EUR | 84.41 | HUMAN_REVIEW | 6.40% | 17.19% | 8.44% | 16.63% | -2.74% | +0.00 |
+| 7 | BCH-EUR | 84.12 | HUMAN_REVIEW | 2.99% | 5.88% | 4.39% | 5.32% | 4.86% | +0.00 |
+| 8 | SPX-EUR | 82.88 | PREWATCH_PERSISTENCE_REQUIRED | 10.48% | 14.68% | 18.68% | 14.12% | 2.61% | +0.00 |
+| 9 | INX-EUR | 81.70 | HUMAN_REVIEW | 5.35% | 17.44% | 14.85% | 16.88% | -6.77% | +0.00 |
+| 10 | HOME-EUR | 80.55 | PREWATCH_PERSISTENCE_REQUIRED | 7.80% | 7.70% | 8.70% | 7.15% | -0.31% | +0.00 |
+| 11 | REZ-EUR | 80.40 | PERSISTENT_TOP20 | 6.23% | 26.17% | 31.33% | 25.62% | 26.00% | +0.00 |
+| 12 | ENA-EUR | 79.10 | PREWATCH_PERSISTENCE_REQUIRED | 1.18% | 6.17% | 2.43% | 5.62% | 6.44% | +0.00 |
+| 13 | TAIKO-EUR | 78.27 | PERSISTENT_TOP20 | -1.53% | 5.77% | 6.75% | 5.22% | 0.86% | +0.00 |
+| 14 | BNB-EUR | 78.12 | PERSISTENT_TOP20 | 2.64% | 4.58% | 4.74% | 4.02% | 4.47% | +1.25 |
+| 15 | CSPR-EUR | 77.57 | PREWATCH_PERSISTENCE_REQUIRED | 22.05% | 20.97% | 10.67% | 20.42% | 6.75% | +0.00 |
+| 16 | HYPE-EUR | 77.14 | PREWATCH_PERSISTENCE_REQUIRED | 3.42% | 5.02% | -0.63% | 4.47% | 0.42% | +0.00 |
+| 17 | BREV-EUR | 77.09 | PERSISTENT_TOP20 | 4.69% | 13.55% | 4.05% | 13.00% | 4.10% | +0.00 |
+| 18 | KAT-EUR | 76.69 | PERSISTENT_TOP20 | 1.23% | 13.25% | 6.58% | 12.69% | 0.39% | +0.00 |
+| 19 | GMX-EUR | 76.67 | PERSISTENT_TOP20 | 6.79% | 3.95% | 2.29% | 3.39% | 8.47% | +0.00 |
+| 20 | TRUST-EUR | 76.53 | PREWATCH_PERSISTENCE_REQUIRED | 3.66% | 12.08% | 2.89% | 11.52% | -0.30% | +0.00 |
