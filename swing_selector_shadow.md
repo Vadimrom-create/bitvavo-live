@@ -1,28 +1,28 @@
 # Solaire Swing Selector — SHADOW
 
-Generated: 2026-10-30T10:05:10.130549+00:00
+Generated: 2026-10-30T18:02:07.188564+00:00
 Version: SWING_SELECTOR_V1_FROZEN_2026-10-08_R2
 No orders, no alerts, no Decision Layer changes.
 
 | Rank | Market | Score | Status | 3d | 7d | 14d | RS BTC 7d | Dist EMA50 | News mod |
 |---:|---|---:|---|---:|---:|---:|---:|---:|---:|
-| 1 | PEPE-EUR | 89.14 | HUMAN_REVIEW | 5.85% | 7.09% | 21.85% | 10.67% | 18.28% | +0.00 |
-| 2 | SOLV-EUR | 86.96 | HUMAN_REVIEW | 0.18% | 14.66% | 15.34% | 18.24% | 19.06% | +0.00 |
-| 3 | HYPE-EUR | 86.16 | WAIT_PULLBACK_OR_NORMALIZATION | 12.31% | 19.14% | 14.81% | 22.72% | 12.72% | -1.52 |
-| 4 | RUNE-EUR | 83.93 | PREWATCH_PERSISTENCE_REQUIRED | 6.36% | 8.54% | 5.48% | 12.12% | 7.35% | +0.00 |
-| 5 | MERL-EUR | 81.66 | HUMAN_REVIEW | 1.11% | 2.58% | 2.92% | 6.16% | 4.61% | +0.00 |
-| 6 | TRX-EUR | 80.56 | HUMAN_REVIEW | 4.78% | 5.82% | 4.51% | 9.40% | 5.19% | +0.00 |
-| 7 | WIN-EUR | 79.80 | WAIT_PULLBACK_OR_NORMALIZATION | 2.74% | 9.77% | 18.07% | 13.35% | 26.12% | +0.00 |
-| 8 | DODO-EUR | 79.73 | HUMAN_REVIEW | -2.08% | 8.60% | 12.28% | 12.18% | 13.73% | +0.00 |
-| 9 | BREV-EUR | 79.55 | PREWATCH_PERSISTENCE_REQUIRED | -1.93% | 4.88% | 9.47% | 8.46% | 4.68% | +0.00 |
-| 10 | SHELL-EUR | 78.59 | HUMAN_REVIEW | 1.04% | 10.31% | 4.90% | 13.89% | 4.83% | +0.00 |
-| 11 | SOMI-EUR | 78.37 | PERSISTENT_TOP20 | 7.47% | 12.29% | -2.18% | 15.87% | 8.99% | +0.00 |
-| 12 | SOON-EUR | 77.52 | PERSISTENT_TOP20 | 2.07% | 2.94% | 1.89% | 6.52% | 9.23% | +0.00 |
-| 13 | HUMA-EUR | 76.67 | PREWATCH_PERSISTENCE_REQUIRED | 9.02% | 7.42% | 2.94% | 11.00% | 4.10% | +0.00 |
-| 14 | ACU-EUR | 75.63 | PERSISTENT_TOP20 | -14.49% | 8.23% | 21.35% | 11.81% | 8.97% | +0.00 |
-| 15 | REZ-EUR | 75.26 | PREWATCH_PERSISTENCE_REQUIRED | -20.64% | 7.53% | 16.40% | 11.11% | 7.72% | +0.00 |
-| 16 | MEGA-EUR | 72.96 | PREWATCH_PERSISTENCE_REQUIRED | -7.11% | 2.20% | -0.82% | 5.78% | 5.59% | +0.00 |
-| 17 | LISTA-EUR | 72.83 | PREWATCH_PERSISTENCE_REQUIRED | -1.63% | -0.05% | 1.22% | 3.53% | 2.56% | +0.00 |
-| 18 | BCH-EUR | 72.79 | PERSISTENT_TOP20 | -5.17% | 0.00% | 2.00% | 3.58% | 2.22% | +0.00 |
-| 19 | PROM-EUR | 72.70 | PREWATCH_PERSISTENCE_REQUIRED | -0.79% | -1.66% | 15.27% | 1.92% | 7.19% | +0.00 |
-| 20 | CAP-EUR | 71.39 | PREWATCH_PERSISTENCE_REQUIRED | -15.21% | 12.57% | 11.53% | 16.15% | 13.70% | +0.00 |
+| 1 | HYPE-EUR | 88.11 | HUMAN_REVIEW | 13.17% | 20.05% | 15.69% | 24.91% | 13.54% | -0.96 |
+| 2 | BREV-EUR | 86.61 | HUMAN_REVIEW | 0.79% | 7.80% | 12.51% | 12.65% | 7.46% | +0.00 |
+| 3 | PEPE-EUR | 85.89 | HUMAN_REVIEW | 11.50% | 12.81% | 28.36% | 17.66% | 24.29% | +0.00 |
+| 4 | MERL-EUR | 85.51 | HUMAN_REVIEW | 1.76% | 3.24% | 3.58% | 8.10% | 5.25% | +0.00 |
+| 5 | SOLV-EUR | 85.45 | HUMAN_REVIEW | 4.42% | 19.52% | 20.22% | 24.37% | 23.86% | +0.00 |
+| 6 | PUNDIX-EUR | 84.72 | PREWATCH_PERSISTENCE_REQUIRED | 7.05% | 11.00% | 8.89% | 15.86% | 7.64% | +0.00 |
+| 7 | SHELL-EUR | 83.11 | HUMAN_REVIEW | 6.55% | 16.33% | 10.63% | 21.18% | 10.31% | +0.00 |
+| 8 | RUNE-EUR | 82.40 | HUMAN_REVIEW | 3.07% | 5.18% | 2.22% | 10.04% | 4.16% | +0.00 |
+| 9 | TRX-EUR | 81.48 | HUMAN_REVIEW | 3.14% | 4.17% | 2.88% | 9.02% | 3.61% | +0.00 |
+| 10 | FUEL-EUR | 80.74 | PREWATCH_PERSISTENCE_REQUIRED | 2.11% | 2.89% | 6.94% | 7.75% | 3.73% | +0.00 |
+| 11 | HUMA-EUR | 80.45 | PERSISTENT_TOP20 | 11.79% | 10.16% | 5.56% | 15.01% | 6.64% | +0.00 |
+| 12 | SOON-EUR | 79.79 | PERSISTENT_TOP20 | 2.61% | 3.49% | 2.44% | 8.35% | 9.79% | +0.00 |
+| 13 | BCH-EUR | 79.29 | PERSISTENT_TOP20 | -3.39% | 1.88% | 3.91% | 6.73% | 4.06% | +0.00 |
+| 14 | PROVE-EUR | 78.13 | PREWATCH_PERSISTENCE_REQUIRED | 2.05% | 7.38% | 5.49% | 12.23% | 2.36% | +0.00 |
+| 15 | KERNEL-EUR | 76.89 | PREWATCH_PERSISTENCE_REQUIRED | 1.97% | -4.26% | 13.64% | 0.59% | 6.76% | +0.00 |
+| 16 | REZ-EUR | 75.55 | PERSISTENT_TOP20 | -20.99% | 7.06% | 15.89% | 11.92% | 7.27% | +0.00 |
+| 17 | DODO-EUR | 75.30 | PERSISTENT_TOP20 | -4.97% | 5.40% | 8.97% | 10.25% | 10.52% | +0.00 |
+| 18 | SOMI-EUR | 75.26 | PERSISTENT_TOP20 | 2.60% | 7.20% | -6.61% | 12.05% | 4.25% | +0.00 |
+| 19 | PROM-EUR | 75.25 | PERSISTENT_TOP20 | -0.55% | -1.42% | 15.55% | 3.43% | 7.44% | +0.00 |
+| 20 | HOME-EUR | 73.61 | PREWATCH_PERSISTENCE_REQUIRED | -1.70% | 2.73% | 2.56% | 7.59% | -4.78% | +0.00 |
