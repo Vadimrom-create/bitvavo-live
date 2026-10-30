@@ -1,8 +1,8 @@
 # Bitvavo — V4 mesurée / infrastructure V5
 
-Scan UTC : 2026-10-29T22:03:58.622017+00:00
-État : OK | marchés EUR : 427 | V4 : 405 | données valides : 427
-Récupération : 2026-10-29T22:02:51.098433+00:00 | âge ticker : 171.6 s | durée : 173.1 s
+Scan UTC : 2026-10-30T01:54:18.542407+00:00
+État : OK | marchés EUR : 427 | V4 : 412 | données valides : 427
+Récupération : 2026-10-30T01:53:11.304090+00:00 | âge ticker : 180.2 s | durée : 181.0 s
 
 ## ACHÈTE — signal V4 et plan théorique
 
@@ -12,23 +12,22 @@ Les intervalles sans transaction sont représentés explicitement à volume 0 ; 
 
 ## SURVEILLE
 
-- DODO-EUR : 0.022419 € ; score 72.70/100 ; SURVEILLE ; SPREAD_RISK, SELLER_HEAVY_BOOK, WICK_SETUP
 
 ## Contrôle des hausses
 
 | Marché | Prix € | 24 h | Détection | Couche d’échec | Actionnabilité |
 |---|---:|---:|---|---|---|
-| PARTI-EUR | 0.052188 | +48.67 % | DETECTED_EARLY | NONE | ENTRY_TIMING_OR_EXECUTION |
-| LSK-EUR | 0.17607 | +18.49 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
-| HYPE-EUR | 82.953 | +14.18 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
-| TRX-EUR | 0.329 | +11.47 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
-| BLEND-EUR | 0.04759 | +6.63 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
-| VSN-EUR | 0.036817 | +5.51 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
-| ICNT-EUR | 0.17632 | +3.65 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
-| CAP-EUR | 0.0684857 | +3.62 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
-| MERL-EUR | 0.02499 | +3.56 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
-| HUMA-EUR | 0.025261 | +3.16 % | NO_CONFIRMED_SHORT_TERM_EVENT | NOT_APPLICABLE | NOT_APPLICABLE |
+| PARTI-EUR | 0.051692 | +48.16 % | DETECTED_EARLY | NONE | ENTRY_TIMING_OR_EXECUTION |
+| HYPE-EUR | 80.039 | +12.66 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
+| TRX-EUR | 0.32158 | +8.81 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
+| CAP-EUR | 0.0695448 | +7.32 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
+| HUMA-EUR | 0.025323 | +3.79 % | NO_CONFIRMED_SHORT_TERM_EVENT | NOT_APPLICABLE | NOT_APPLICABLE |
+| MERL-EUR | 0.023978 | +3.64 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
+| RUNE-EUR | 0.56421 | +3.20 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
+| LSK-EUR | 0.15 | +2.08 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
+| ICNT-EUR | 0.16986 | +2.03 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
+| NES-EUR | 0.10313 | +1.32 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
 
-Historique (snapshot asynchrone) : 2254 scans ; 964386 observations ; 1665 épisodes d’achat évaluables.
+Historique (snapshot asynchrone) : 2255 scans ; 964813 observations ; 1665 épisodes d’achat évaluables.
 V5 optimisée : aucune. Supériorité sur V4 : non démontrée. Probabilités : non calibrées.
 Le cash et le portefeuille du plan sont hypothétiques. Aucun ordre réel n’est envoyé.
