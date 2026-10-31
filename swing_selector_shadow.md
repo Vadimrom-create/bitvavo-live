@@ -1,28 +1,28 @@
 # Solaire Swing Selector — SHADOW
 
-Generated: 2026-10-31T05:46:51.936142+00:00
+Generated: 2026-10-31T12:36:44.977945+00:00
 Version: SWING_SELECTOR_V1_FROZEN_2026-10-08_R2
 No orders, no alerts, no Decision Layer changes.
 
 | Rank | Market | Score | Status | 3d | 7d | 14d | RS BTC 7d | Dist EMA50 | News mod |
 |---:|---|---:|---|---:|---:|---:|---:|---:|---:|
-| 1 | HYPE-EUR | 92.98 | HUMAN_REVIEW | 11.06% | 17.35% | 15.67% | 21.39% | 10.10% | +0.00 |
-| 2 | MERL-EUR | 90.51 | HUMAN_REVIEW | 10.37% | 8.90% | 13.81% | 12.94% | 9.68% | +0.00 |
-| 3 | SOLV-EUR | 89.55 | HUMAN_REVIEW | 3.13% | 13.73% | 18.00% | 17.77% | 19.85% | +0.00 |
-| 4 | BREV-EUR | 89.02 | HUMAN_REVIEW | 9.50% | 8.11% | 22.64% | 12.15% | 12.26% | +0.00 |
-| 5 | PEPE-EUR | 87.25 | HUMAN_REVIEW | -2.13% | 9.43% | 28.03% | 13.47% | 18.48% | +0.00 |
-| 6 | BCH-EUR | 86.28 | HUMAN_REVIEW | 0.83% | 4.98% | 6.32% | 9.02% | 5.25% | +0.00 |
-| 7 | RUNE-EUR | 85.44 | HUMAN_REVIEW | 6.07% | 6.00% | 5.70% | 10.04% | 6.14% | +1.25 |
-| 8 | SOMI-EUR | 83.13 | PREWATCH_PERSISTENCE_REQUIRED | 1.13% | 12.12% | 3.60% | 16.17% | 10.20% | +0.00 |
-| 9 | PROM-EUR | 82.50 | HUMAN_REVIEW | 0.91% | 5.95% | 14.64% | 9.99% | 9.31% | +0.00 |
-| 10 | AGLD-EUR | 81.41 | HUMAN_REVIEW | 5.24% | 5.95% | 9.56% | 9.99% | 3.91% | +0.00 |
-| 11 | XPL-EUR | 81.00 | PERSISTENT_TOP20 | 6.44% | 9.80% | 4.13% | 13.84% | -1.13% | +0.00 |
-| 12 | PUNDIX-EUR | 80.99 | PERSISTENT_TOP20 | 1.03% | 3.64% | 7.00% | 7.68% | 1.91% | +0.00 |
-| 13 | PROVE-EUR | 80.64 | PERSISTENT_TOP20 | 6.13% | 11.31% | 11.62% | 15.35% | 6.42% | +0.00 |
-| 14 | CAP-EUR | 80.35 | PREWATCH_PERSISTENCE_REQUIRED | 20.11% | 9.33% | 18.15% | 13.37% | 21.44% | +0.00 |
-| 15 | TRUST-EUR | 80.22 | PREWATCH_PERSISTENCE_REQUIRED | 2.10% | 2.30% | 11.00% | 6.34% | 2.45% | +0.00 |
-| 16 | HUMA-EUR | 79.74 | PERSISTENT_TOP20 | 4.63% | 16.29% | 1.96% | 20.33% | 4.89% | +0.00 |
-| 17 | HOME-EUR | 79.40 | PREWATCH_PERSISTENCE_REQUIRED | -2.16% | 4.47% | 10.24% | 8.51% | -1.66% | +0.00 |
-| 18 | SHELL-EUR | 78.55 | PERSISTENT_TOP20 | -7.04% | 11.38% | 18.55% | 15.42% | 11.50% | +0.00 |
-| 19 | KERNEL-EUR | 78.18 | PERSISTENT_TOP20 | 6.27% | -2.81% | 21.39% | 1.23% | 8.30% | +0.00 |
-| 20 | QNT-EUR | 77.59 | PREWATCH_PERSISTENCE_REQUIRED | -3.04% | 9.49% | 0.64% | 13.53% | 11.68% | -2.08 |
+| 1 | HYPE-EUR | 91.49 | HUMAN_REVIEW | 7.98% | 14.10% | 12.46% | 18.16% | 7.18% | +0.00 |
+| 2 | MERL-EUR | 89.70 | HUMAN_REVIEW | 9.52% | 8.06% | 12.93% | 12.12% | 8.88% | +0.00 |
+| 3 | BREV-EUR | 88.45 | HUMAN_REVIEW | 6.65% | 5.31% | 19.46% | 9.37% | 9.47% | +0.00 |
+| 4 | PEPE-EUR | 88.25 | HUMAN_REVIEW | 0.57% | 12.45% | 31.57% | 16.51% | 21.59% | +0.00 |
+| 5 | SOLV-EUR | 86.96 | HUMAN_REVIEW | 6.45% | 17.38% | 21.79% | 21.44% | 23.52% | +0.00 |
+| 6 | BCH-EUR | 84.47 | HUMAN_REVIEW | -0.22% | 3.88% | 5.20% | 7.94% | 4.19% | +0.00 |
+| 7 | DODO-EUR | 83.49 | PREWATCH_PERSISTENCE_REQUIRED | -2.96% | 7.46% | 15.32% | 11.52% | 14.99% | +0.00 |
+| 8 | RUNE-EUR | 82.32 | HUMAN_REVIEW | 5.17% | 5.10% | 4.80% | 9.16% | 5.27% | +0.00 |
+| 9 | AGLD-EUR | 82.17 | HUMAN_REVIEW | 5.84% | 6.56% | 10.19% | 10.62% | 4.48% | +0.00 |
+| 10 | WOO-EUR | 81.89 | PREWATCH_PERSISTENCE_REQUIRED | 9.41% | 6.43% | 6.11% | 10.49% | 0.47% | +0.00 |
+| 11 | POWR-EUR | 80.28 | PREWATCH_PERSISTENCE_REQUIRED | 2.97% | 3.59% | 9.45% | 7.65% | 0.84% | +0.00 |
+| 12 | ACU-EUR | 79.84 | PREWATCH_PERSISTENCE_REQUIRED | -3.11% | 6.79% | 24.56% | 10.85% | 9.07% | +0.00 |
+| 13 | HUMA-EUR | 79.09 | PERSISTENT_TOP20 | 4.45% | 16.10% | 1.79% | 20.16% | 4.72% | +0.00 |
+| 14 | CAP-EUR | 78.60 | PERSISTENT_TOP20 | 21.64% | 10.72% | 19.65% | 14.78% | 22.91% | +0.00 |
+| 15 | PROVE-EUR | 78.49 | PERSISTENT_TOP20 | 8.35% | 13.64% | 13.95% | 17.70% | 8.54% | +0.00 |
+| 16 | XPL-EUR | 78.47 | PERSISTENT_TOP20 | 4.82% | 8.13% | 2.55% | 12.19% | -2.57% | +0.00 |
+| 17 | SHELL-EUR | 78.32 | PERSISTENT_TOP20 | -8.86% | 9.19% | 16.22% | 13.25% | 9.40% | +0.00 |
+| 18 | SOMI-EUR | 76.34 | PERSISTENT_TOP20 | -2.31% | 8.32% | 0.08% | 12.38% | 6.61% | +0.00 |
+| 19 | QNT-EUR | 76.28 | PERSISTENT_TOP20 | -3.97% | 8.44% | -0.32% | 12.50% | 10.66% | -1.52 |
+| 20 | GWEI-EUR | 74.97 | PREWATCH_PERSISTENCE_REQUIRED | 2.07% | 2.23% | 1.98% | 6.29% | 1.94% | +0.00 |
