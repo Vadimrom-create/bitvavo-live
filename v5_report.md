@@ -1,8 +1,8 @@
 # Bitvavo — V4 mesurée / infrastructure V5
 
-Scan UTC : 2026-10-31T02:33:42.913603+00:00
-État : OK | marchés EUR : 427 | V4 : 404 | données valides : 427
-Récupération : 2026-10-31T02:32:33.535163+00:00 | âge ticker : 180.1 s | durée : 181.0 s
+Scan UTC : 2026-10-31T08:52:06.693981+00:00
+État : OK | marchés EUR : 427 | V4 : 396 | données valides : 427
+Récupération : 2026-10-31T08:50:59.011024+00:00 | âge ticker : 184.4 s | durée : 186.5 s
 
 ## ACHÈTE — signal V4 et plan théorique
 
@@ -12,21 +12,22 @@ Les intervalles sans transaction sont représentés explicitement à volume 0 ; 
 
 ## SURVEILLE
 
+- SOLV-EUR : 0.004614 € ; score 74.20/100 ; SURVEILLE ; seuil achat non atteint
 
 ## Contrôle des hausses
 
 | Marché | Prix € | 24 h | Détection | Couche d’échec | Actionnabilité |
 |---|---:|---:|---|---|---|
-| BEAM-EUR | 0.0042617 | +46.04 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
-| HFT-EUR | 0.005958 | +40.52 % | DETECTED_EARLY | NONE | INTERPRETATION |
-| LSK-EUR | 0.20575 | +33.62 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
-| BIRB-EUR | 0.07622 | +23.19 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
-| NIL-EUR | 0.071514 | +21.56 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
-| OP-EUR | 0.10577 | +19.74 % | NO_CONFIRMED_SHORT_TERM_EVENT | NOT_APPLICABLE | NOT_APPLICABLE |
-| U-EUR | 7.24e-05 | +19.28 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
-| GWEI-EUR | 0.0187 | +19.15 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
-| CFG-EUR | 0.087451 | +18.05 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
-| AVA-EUR | 0.2986 | +17.25 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
+| HFT-EUR | 0.005437 | +28.99 % | DETECTED_EARLY | NONE | INTERPRETATION |
+| BIRB-EUR | 0.08108 | +20.33 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
+| LSK-EUR | 0.20663 | +18.64 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
+| GWEI-EUR | 0.01929 | +17.74 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
+| BEAM-EUR | 0.0045151 | +14.78 % | DETECTED_EARLY | NONE | INTERPRETATION |
+| POND-EUR | 0.0012172 | +14.67 % | DETECTED_EARLY | NONE | INTERPRETATION |
+| CVC-EUR | 0.02055 | +13.91 % | NO_CONFIRMED_SHORT_TERM_EVENT | NOT_APPLICABLE | NOT_APPLICABLE |
+| CAP-EUR | 0.0785639 | +13.86 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
+| WOO-EUR | 0.010266 | +13.30 % | DETECTED_EARLY | NONE | INTERPRETATION |
+| U-EUR | 7.09e-05 | +13.08 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
 
 Historique (snapshot asynchrone) : 2260 scans ; 966948 observations ; 1665 épisodes d’achat évaluables.
 V5 optimisée : aucune. Supériorité sur V4 : non démontrée. Probabilités : non calibrées.
