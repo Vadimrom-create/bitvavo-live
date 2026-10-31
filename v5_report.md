@@ -1,8 +1,8 @@
 # Bitvavo — V4 mesurée / infrastructure V5
 
-Scan UTC : 2026-10-30T23:23:23.764027+00:00
-État : OK | marchés EUR : 427 | V4 : 406 | données valides : 427
-Récupération : 2026-10-30T23:22:15.466966+00:00 | âge ticker : 184.1 s | durée : 185.1 s
+Scan UTC : 2026-10-31T02:33:42.913603+00:00
+État : OK | marchés EUR : 427 | V4 : 404 | données valides : 427
+Récupération : 2026-10-31T02:32:33.535163+00:00 | âge ticker : 180.1 s | durée : 181.0 s
 
 ## ACHÈTE — signal V4 et plan théorique
 
@@ -12,23 +12,22 @@ Les intervalles sans transaction sont représentés explicitement à volume 0 ; 
 
 ## SURVEILLE
 
-- SOLV-EUR : 0.0045386 € ; score 72.58/100 ; SURVEILLE ; seuil achat non atteint
 
 ## Contrôle des hausses
 
 | Marché | Prix € | 24 h | Détection | Couche d’échec | Actionnabilité |
 |---|---:|---:|---|---|---|
-| BEAM-EUR | 0.0041222 | +39.24 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
-| BIRB-EUR | 0.08329 | +36.16 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
-| GWEI-EUR | 0.02008 | +22.46 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
-| BLUR-EUR | 0.008035 | +16.28 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
-| OP-EUR | 0.10569 | +16.22 % | NO_CONFIRMED_SHORT_TERM_EVENT | NOT_APPLICABLE | NOT_APPLICABLE |
-| WOO-EUR | 0.010365 | +15.99 % | NO_CONFIRMED_SHORT_TERM_EVENT | NOT_APPLICABLE | NOT_APPLICABLE |
-| ZRC-EUR | 0.0010551 | +15.17 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
-| HAEDAL-EUR | 0.021685 | +14.50 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
-| U-EUR | 6.8e-05 | +14.29 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
-| PUNDIX-EUR | 0.09855 | +12.85 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
+| BEAM-EUR | 0.0042617 | +46.04 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
+| HFT-EUR | 0.005958 | +40.52 % | DETECTED_EARLY | NONE | INTERPRETATION |
+| LSK-EUR | 0.20575 | +33.62 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
+| BIRB-EUR | 0.07622 | +23.19 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
+| NIL-EUR | 0.071514 | +21.56 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
+| OP-EUR | 0.10577 | +19.74 % | NO_CONFIRMED_SHORT_TERM_EVENT | NOT_APPLICABLE | NOT_APPLICABLE |
+| U-EUR | 7.24e-05 | +19.28 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
+| GWEI-EUR | 0.0187 | +19.15 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
+| CFG-EUR | 0.087451 | +18.05 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
+| AVA-EUR | 0.2986 | +17.25 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
 
-Historique (snapshot asynchrone) : 2259 scans ; 966521 observations ; 1665 épisodes d’achat évaluables.
+Historique (snapshot asynchrone) : 2260 scans ; 966948 observations ; 1665 épisodes d’achat évaluables.
 V5 optimisée : aucune. Supériorité sur V4 : non démontrée. Probabilités : non calibrées.
 Le cash et le portefeuille du plan sont hypothétiques. Aucun ordre réel n’est envoyé.
