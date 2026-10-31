@@ -1,8 +1,8 @@
 # Bitvavo — V4 mesurée / infrastructure V5
 
-Scan UTC : 2026-10-31T14:55:03.462107+00:00
-État : OK | marchés EUR : 427 | V4 : 386 | données valides : 427
-Récupération : 2026-10-31T14:53:55.383451+00:00 | âge ticker : 184.9 s | durée : 186.0 s
+Scan UTC : 2026-10-31T18:56:28.924845+00:00
+État : OK | marchés EUR : 427 | V4 : 379 | données valides : 427
+Récupération : 2026-10-31T18:55:23.932436+00:00 | âge ticker : 179.9 s | durée : 181.8 s
 
 ## ACHÈTE — signal V4 et plan théorique
 
@@ -12,22 +12,24 @@ Les intervalles sans transaction sont représentés explicitement à volume 0 ; 
 
 ## SURVEILLE
 
+- SOLV-EUR : 0.0045566 € ; score 75.68/100 ; SURVEILLE ; WICK_SETUP
+- INIT-EUR : 0.153547 € ; score 72.06/100 ; SURVEILLE ; SPREAD_RISK, VERY_SELLER_HEAVY_BOOK
 
 ## Contrôle des hausses
 
 | Marché | Prix € | 24 h | Détection | Couche d’échec | Actionnabilité |
 |---|---:|---:|---|---|---|
-| LSK-EUR | 0.25981 | +41.12 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
-| COW-EUR | 0.13179 | +35.13 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
-| RED-EUR | 0.12781 | +14.15 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
-| INX-EUR | 0.004238 | +12.77 % | NO_CONFIRMED_SHORT_TERM_EVENT | NOT_APPLICABLE | NOT_APPLICABLE |
-| EDEN-EUR | 0.051892 | +12.76 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
-| RAD-EUR | 0.225 | +12.43 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
-| POND-EUR | 0.0011977 | +12.11 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
-| U-EUR | 6.38e-05 | +11.15 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
-| STX-EUR | 0.28178 | +11.05 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
-| CVC-EUR | 0.020964 | +10.83 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
+| LSK-EUR | 0.24964 | +36.58 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
+| COW-EUR | 0.12128 | +20.68 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
+| STX-EUR | 0.29739 | +18.78 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
+| MORPHO-EUR | 2.14754 | +16.71 % | NO_CONFIRMED_SHORT_TERM_EVENT | NOT_APPLICABLE | NOT_APPLICABLE |
+| RED-EUR | 0.12439 | +13.43 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
+| INX-EUR | 0.004144 | +12.49 % | NO_CONFIRMED_SHORT_TERM_EVENT | NOT_APPLICABLE | NOT_APPLICABLE |
+| RSR-EUR | 0.001401 | +11.50 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
+| PTB-EUR | 0.000103 | +11.35 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
+| STO-EUR | 0.029187 | +10.84 % | NO_CONFIRMED_SHORT_TERM_EVENT | NOT_APPLICABLE | NOT_APPLICABLE |
+| LIGHTER-EUR | 2.7095 | +10.60 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
 
-Historique (snapshot asynchrone) : 2261 scans ; 967375 observations ; 1665 épisodes d’achat évaluables.
+Historique (snapshot asynchrone) : 2263 scans ; 968229 observations ; 1665 épisodes d’achat évaluables.
 V5 optimisée : aucune. Supériorité sur V4 : non démontrée. Probabilités : non calibrées.
 Le cash et le portefeuille du plan sont hypothétiques. Aucun ordre réel n’est envoyé.
