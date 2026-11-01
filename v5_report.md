@@ -1,8 +1,8 @@
 # Bitvavo — V4 mesurée / infrastructure V5
 
-Scan UTC : 2026-10-31T22:00:57.600963+00:00
-État : OK | marchés EUR : 427 | V4 : 370 | données valides : 427
-Récupération : 2026-10-31T21:59:53.264490+00:00 | âge ticker : 178.9 s | durée : 180.8 s
+Scan UTC : 2026-11-01T00:58:52.009102+00:00
+État : OK | marchés EUR : 427 | V4 : 363 | données valides : 427
+Récupération : 2026-11-01T00:57:49.520202+00:00 | âge ticker : 169.0 s | durée : 169.4 s
 
 ## ACHÈTE — signal V4 et plan théorique
 
@@ -12,23 +12,24 @@ Les intervalles sans transaction sont représentés explicitement à volume 0 ; 
 
 ## SURVEILLE
 
-- SOLV-EUR : 0.0045914 € ; score 73.44/100 ; SURVEILLE ; WICK_SETUP
+- PEPE-EUR : 4.5023e-06 € ; score 75.89/100 ; SURVEILLE ; WICK_SETUP
+- SOLV-EUR : 0.0046164 € ; score 74.08/100 ; SURVEILLE ; seuil achat non atteint
 
 ## Contrôle des hausses
 
 | Marché | Prix € | 24 h | Détection | Couche d’échec | Actionnabilité |
 |---|---:|---:|---|---|---|
-| ADX-EUR | 0.061768 | +32.29 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
-| LSK-EUR | 0.21796 | +18.32 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
-| U-EUR | 7.47e-05 | +18.01 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
-| LIGHTER-EUR | 2.812 | +16.24 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
-| MORPHO-EUR | 2.13764 | +15.45 % | NO_CONFIRMED_SHORT_TERM_EVENT | NOT_APPLICABLE | NOT_APPLICABLE |
-| STX-EUR | 0.29115 | +13.85 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
-| BEAM-EUR | 0.0045539 | +13.33 % | DETECTED_EARLY | NONE | INTERPRETATION |
-| NES-EUR | 0.11338 | +9.99 % | NO_CONFIRMED_SHORT_TERM_EVENT | NOT_APPLICABLE | NOT_APPLICABLE |
-| COW-EUR | 0.1128 | +9.76 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
-| INX-EUR | 0.004099 | +9.54 % | NO_CONFIRMED_SHORT_TERM_EVENT | NOT_APPLICABLE | NOT_APPLICABLE |
+| ADX-EUR | 0.057761 | +19.56 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
+| POWR-EUR | 0.057557 | +16.45 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
+| U-EUR | 7.3e-05 | +14.96 % | DETECTED_EARLY | NONE | INTERPRETATION |
+| MORPHO-EUR | 2.11573 | +12.54 % | NO_CONFIRMED_SHORT_TERM_EVENT | NOT_APPLICABLE | NOT_APPLICABLE |
+| LIGHTER-EUR | 2.7988 | +12.35 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
+| BTT-EUR | 3.1496e-07 | +9.85 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
+| STX-EUR | 0.28806 | +9.31 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
+| ZRO-EUR | 1.6506 | +8.09 % | NO_CONFIRMED_SHORT_TERM_EVENT | NOT_APPLICABLE | NOT_APPLICABLE |
+| RSR-EUR | 0.0013853 | +7.81 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
+| BAT-EUR | 0.12541 | +7.25 % | NO_CONFIRMED_SHORT_TERM_EVENT | NOT_APPLICABLE | NOT_APPLICABLE |
 
-Historique (snapshot asynchrone) : 2264 scans ; 968656 observations ; 1665 épisodes d’achat évaluables.
+Historique (snapshot asynchrone) : 2265 scans ; 969083 observations ; 1665 épisodes d’achat évaluables.
 V5 optimisée : aucune. Supériorité sur V4 : non démontrée. Probabilités : non calibrées.
 Le cash et le portefeuille du plan sont hypothétiques. Aucun ordre réel n’est envoyé.
