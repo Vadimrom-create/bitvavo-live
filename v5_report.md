@@ -1,8 +1,8 @@
 # Bitvavo — V4 mesurée / infrastructure V5
 
-Scan UTC : 2026-11-01T14:19:22.134153+00:00
-État : OK | marchés EUR : 427 | V4 : 363 | données valides : 427
-Récupération : 2026-11-01T14:18:20.111582+00:00 | âge ticker : 170.7 s | durée : 171.4 s
+Scan UTC : 2026-11-01T19:04:32.173468+00:00
+État : OK | marchés EUR : 427 | V4 : 361 | données valides : 427
+Récupération : 2026-11-01T19:03:32.345832+00:00 | âge ticker : 167.7 s | durée : 169.7 s
 
 ## ACHÈTE — signal V4 et plan théorique
 
@@ -12,23 +12,24 @@ Les intervalles sans transaction sont représentés explicitement à volume 0 ; 
 
 ## SURVEILLE
 
-- PEPE-EUR : 4.3858e-06 € ; score 72.21/100 ; SURVEILLE ; seuil achat non atteint
+- SOLV-EUR : 0.0047922 € ; score 74.23/100 ; SURVEILLE ; SPREAD_RISK
+- PEPE-EUR : 4.3749e-06 € ; score 73.31/100 ; SURVEILLE ; WICK_SETUP
 
 ## Contrôle des hausses
 
 | Marché | Prix € | 24 h | Détection | Couche d’échec | Actionnabilité |
 |---|---:|---:|---|---|---|
-| G-EUR | 0.0035461 | +18.81 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
-| LIGHTER-EUR | 2.9161 | +16.84 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
-| INIT-EUR | 0.175534 | +15.24 % | DETECTED_EARLY | NONE | ENTRY_TIMING_OR_EXECUTION |
-| FLOCK-EUR | 0.037599 | +14.42 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
-| SOLV-EUR | 0.0050398 | +11.91 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
-| ZRO-EUR | 1.7138 | +10.75 % | NO_CONFIRMED_SHORT_TERM_EVENT | NOT_APPLICABLE | NOT_APPLICABLE |
-| U-EUR | 6.98e-05 | +9.58 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
-| TREAD-EUR | 0.73448 | +9.48 % | NO_CONFIRMED_SHORT_TERM_EVENT | NOT_APPLICABLE | NOT_APPLICABLE |
-| POWR-EUR | 0.056534 | +9.05 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
-| BIO-EUR | 0.02097 | +8.90 % | NO_CONFIRMED_SHORT_TERM_EVENT | NOT_APPLICABLE | NOT_APPLICABLE |
+| HOT-EUR | 0.00035915 | +14.92 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
+| TREAD-EUR | 0.75 | +10.56 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
+| INIT-EUR | 0.169168 | +10.01 % | DETECTED_EARLY | NONE | ENTRY_TIMING_OR_EXECUTION |
+| G-EUR | 0.0032903 | +9.40 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
+| FLOCK-EUR | 0.034924 | +9.04 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
+| TRUMP-EUR | 1.5202 | +7.73 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
+| BIO-EUR | 0.020844 | +7.65 % | DETECTED_EARLY | NONE | INTERPRETATION |
+| POWR-EUR | 0.053634 | +7.35 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
+| FUN-EUR | 0.013261 | +6.90 % | NO_CONFIRMED_SHORT_TERM_EVENT | NOT_APPLICABLE | NOT_APPLICABLE |
+| ZEUS-EUR | 0.0064391 | +6.73 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
 
-Historique (snapshot asynchrone) : 2267 scans ; 969937 observations ; 1665 épisodes d’achat évaluables.
+Historique (snapshot asynchrone) : 2268 scans ; 970364 observations ; 1665 épisodes d’achat évaluables.
 V5 optimisée : aucune. Supériorité sur V4 : non démontrée. Probabilités : non calibrées.
 Le cash et le portefeuille du plan sont hypothétiques. Aucun ordre réel n’est envoyé.
