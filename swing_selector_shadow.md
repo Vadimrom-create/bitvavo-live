@@ -1,28 +1,28 @@
 # Solaire Swing Selector — SHADOW
 
-Generated: 2026-11-02T21:43:55.824746+00:00
+Generated: 2026-11-03T06:51:38.582187+00:00
 Version: SWING_SELECTOR_V1_FROZEN_2026-10-08_R2
 No orders, no alerts, no Decision Layer changes.
 
 | Rank | Market | Score | Status | 3d | 7d | 14d | RS BTC 7d | Dist EMA50 | News mod |
 |---:|---|---:|---|---:|---:|---:|---:|---:|---:|
-| 1 | WOO-EUR | 82.92 | HUMAN_REVIEW | 2.97% | 14.07% | 5.98% | 18.13% | 0.57% | +0.00 |
-| 2 | SOLV-EUR | 80.44 | HUMAN_REVIEW | -4.28% | 11.51% | 13.70% | 15.57% | 14.79% | +0.00 |
-| 3 | PEPE-EUR | 80.10 | HUMAN_REVIEW | -5.79% | 7.36% | 11.94% | 11.42% | 10.11% | +0.00 |
-| 4 | WIN-EUR | 78.67 | HUMAN_REVIEW | 7.18% | 3.45% | 28.04% | 7.52% | 28.62% | +0.00 |
-| 5 | ACU-EUR | 78.12 | HUMAN_REVIEW | 0.66% | 2.21% | 17.95% | 6.27% | 3.81% | +0.00 |
-| 6 | HYPE-EUR | 78.09 | HUMAN_REVIEW | -7.23% | 6.77% | 5.84% | 10.83% | 2.19% | -2.08 |
-| 7 | HAEDAL-EUR | 77.97 | WAIT_PULLBACK_OR_NORMALIZATION | 10.70% | 25.68% | 48.57% | 29.74% | 31.72% | +0.00 |
-| 8 | MERL-EUR | 76.19 | HUMAN_REVIEW | -3.85% | 4.06% | 12.38% | 8.12% | 5.06% | +0.00 |
-| 9 | TRUST-EUR | 74.71 | HUMAN_REVIEW | 3.73% | 1.45% | 6.76% | 5.51% | -1.50% | +0.00 |
-| 10 | PROM-EUR | 73.92 | HUMAN_REVIEW | -5.67% | -0.43% | 12.55% | 3.63% | 3.43% | +0.00 |
-| 11 | SHELL-EUR | 73.04 | PERSISTENT_TOP20 | -6.42% | 4.44% | 9.37% | 8.50% | 2.15% | +0.00 |
-| 12 | CROSS-EUR | 72.61 | PREWATCH_PERSISTENCE_REQUIRED | 0.56% | 4.26% | 5.31% | 8.32% | -6.67% | +0.00 |
-| 13 | HOT-EUR | 72.08 | PERSISTENT_TOP20 | 23.47% | 28.88% | 22.79% | 32.94% | 16.47% | +0.00 |
-| 14 | GMX-EUR | 71.08 | PREWATCH_PERSISTENCE_REQUIRED | 2.11% | 0.24% | -4.00% | 4.30% | -0.13% | +0.00 |
-| 15 | STX-EUR | 70.60 | PERSISTENT_TOP20 | 14.46% | 9.13% | -8.28% | 13.19% | 2.71% | +0.00 |
-| 16 | XAN-EUR | 70.19 | PERSISTENT_TOP20 | 2.75% | 24.03% | 6.89% | 28.09% | -7.34% | +0.00 |
-| 17 | EDEN-EUR | 69.11 | PREWATCH_PERSISTENCE_REQUIRED | -0.69% | -1.37% | 4.69% | 2.69% | 0.68% | +0.00 |
-| 18 | PROVE-EUR | 69.00 | PERSISTENT_TOP20 | -6.87% | 3.67% | 6.54% | 7.74% | -1.06% | +0.00 |
-| 19 | MAVIA-EUR | 67.04 | PREWATCH_PERSISTENCE_REQUIRED | 4.99% | 3.96% | 0.68% | 8.02% | -6.86% | +0.00 |
-| 20 | YGG-EUR | 66.51 | PREWATCH_PERSISTENCE_REQUIRED | 2.61% | -0.42% | 3.39% | 3.64% | -1.29% | +0.00 |
+| 1 | WOO-EUR | 82.00 | HUMAN_REVIEW | 1.66% | 13.33% | 8.08% | 18.32% | 1.65% | +0.00 |
+| 2 | PEPE-EUR | 80.73 | HUMAN_REVIEW | -3.11% | 4.27% | 6.12% | 9.26% | 13.56% | +0.00 |
+| 3 | HYPE-EUR | 79.04 | HUMAN_REVIEW | -4.15% | 3.42% | 5.50% | 8.41% | 3.08% | -0.96 |
+| 4 | HOT-EUR | 78.32 | HUMAN_REVIEW | 23.39% | 24.68% | 17.12% | 29.67% | 14.25% | +0.00 |
+| 5 | WIN-EUR | 78.28 | WAIT_PULLBACK_OR_NORMALIZATION | 2.60% | 9.20% | 19.32% | 14.19% | 27.85% | +0.00 |
+| 6 | TRUST-EUR | 78.09 | HUMAN_REVIEW | 4.83% | -0.08% | 8.00% | 4.91% | 1.29% | +0.00 |
+| 7 | CSPR-EUR | 72.65 | PREWATCH_PERSISTENCE_REQUIRED | 8.22% | 7.67% | 1.97% | 12.65% | -2.98% | +0.00 |
+| 8 | MERL-EUR | 70.47 | HUMAN_REVIEW | -5.11% | 4.26% | 9.73% | 9.24% | 5.91% | +0.00 |
+| 9 | TRX-EUR | 68.53 | PREWATCH_PERSISTENCE_REQUIRED | 5.32% | -3.81% | -3.04% | 1.18% | -2.57% | +0.00 |
+| 10 | CROSS-EUR | 67.89 | HUMAN_REVIEW | 0.32% | 0.71% | 3.43% | 5.70% | -6.55% | +0.00 |
+| 11 | GMX-EUR | 67.64 | PERSISTENT_TOP20 | -0.42% | -5.77% | 2.39% | -0.78% | 2.53% | +0.00 |
+| 12 | SXT-EUR | 66.87 | PREWATCH_PERSISTENCE_REQUIRED | 1.49% | -2.08% | 3.77% | 2.91% | -1.17% | +0.00 |
+| 13 | QNT-EUR | 66.83 | PREWATCH_PERSISTENCE_REQUIRED | -3.20% | -2.76% | 0.13% | 2.23% | 9.36% | +2.25 |
+| 14 | HOME-EUR | 66.01 | PREWATCH_PERSISTENCE_REQUIRED | 0.36% | -1.97% | 6.09% | 3.02% | -4.62% | +0.00 |
+| 15 | PROM-EUR | 65.99 | PERSISTENT_TOP20 | -4.76% | -4.14% | 7.45% | 0.85% | 2.66% | +0.00 |
+| 16 | ASTER-EUR | 65.98 | PREWATCH_PERSISTENCE_REQUIRED | -0.33% | -1.96% | -1.99% | 3.03% | 0.20% | +0.00 |
+| 17 | SHELL-EUR | 65.91 | PERSISTENT_TOP20 | -4.01% | -1.50% | 1.39% | 3.49% | 1.57% | +0.00 |
+| 18 | STX-EUR | 65.11 | PERSISTENT_TOP20 | 0.55% | 6.93% | -7.87% | 11.92% | 1.62% | +0.00 |
+| 19 | UNI-EUR | 64.87 | PREWATCH_PERSISTENCE_REQUIRED | -0.50% | -1.13% | -4.90% | 3.86% | -1.60% | +0.00 |
+| 20 | MEGA-EUR | 64.65 | PREWATCH_PERSISTENCE_REQUIRED | 1.09% | -10.19% | 3.45% | -5.21% | 2.01% | +0.00 |
