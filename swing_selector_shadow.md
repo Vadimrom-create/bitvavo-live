@@ -1,28 +1,28 @@
 # Solaire Swing Selector — SHADOW
 
-Generated: 2026-11-04T06:28:14.377277+00:00
+Generated: 2026-11-04T17:17:29.980861+00:00
 Version: SWING_SELECTOR_V1_FROZEN_2026-10-08_R2
 No orders, no alerts, no Decision Layer changes.
 
 | Rank | Market | Score | Status | 3d | 7d | 14d | RS BTC 7d | Dist EMA50 | News mod |
 |---:|---|---:|---|---:|---:|---:|---:|---:|---:|
-| 1 | WOO-EUR | 85.35 | HUMAN_REVIEW | 3.11% | 13.46% | 9.56% | 19.68% | 3.62% | +0.00 |
-| 2 | TREAD-EUR | 83.46 | HUMAN_REVIEW | 7.30% | 15.05% | 6.15% | 21.27% | 12.84% | +0.00 |
-| 3 | TRUST-EUR | 80.62 | HUMAN_REVIEW | 5.78% | 0.69% | 6.32% | 6.92% | 1.21% | +0.00 |
-| 4 | ZRO-EUR | 75.31 | HUMAN_REVIEW | 0.35% | 7.59% | -6.15% | 13.81% | 8.87% | +0.00 |
-| 5 | HYPE-EUR | 74.50 | HUMAN_REVIEW | -7.37% | 0.87% | 1.61% | 7.09% | -0.42% | +0.00 |
-| 6 | GMX-EUR | 72.16 | HUMAN_REVIEW | 6.37% | -2.71% | 1.13% | 3.51% | 5.23% | +0.00 |
-| 7 | ICNT-EUR | 71.89 | WAIT_PULLBACK_OR_NORMALIZATION | 25.13% | 16.53% | 15.56% | 22.75% | 44.21% | +0.00 |
-| 8 | HOME-EUR | 71.65 | HUMAN_REVIEW | 3.52% | -3.25% | 4.20% | 2.97% | -2.88% | +0.00 |
-| 9 | PEPE-EUR | 70.09 | HUMAN_REVIEW | -3.16% | -5.81% | 2.96% | 0.41% | 11.32% | +0.00 |
-| 10 | LIGHTER-EUR | 70.07 | HUMAN_REVIEW | 1.90% | 8.73% | -14.09% | 14.95% | -5.10% | +0.00 |
-| 11 | TRX-EUR | 69.32 | PERSISTENT_TOP20 | 2.13% | -3.01% | -2.70% | 3.21% | -2.37% | +0.00 |
-| 12 | POWR-EUR | 68.57 | PERSISTENT_TOP20 | -8.30% | 2.19% | 4.49% | 8.41% | -0.23% | +0.00 |
-| 13 | HOT-EUR | 67.42 | PREWATCH_PERSISTENCE_REQUIRED | 28.31% | 35.57% | 24.66% | 41.80% | 22.14% | +0.00 |
-| 14 | PARTI-EUR | 65.69 | PREWATCH_PERSISTENCE_REQUIRED | -4.57% | 8.78% | 29.29% | 15.00% | 23.03% | +0.00 |
-| 15 | HAEDAL-EUR | 65.24 | PREWATCH_PERSISTENCE_REQUIRED | 15.49% | -0.84% | 48.22% | 5.39% | 32.19% | +0.00 |
-| 16 | RUNE-EUR | 65.24 | PREWATCH_PERSISTENCE_REQUIRED | 11.73% | -1.33% | -9.02% | 4.89% | -0.29% | +0.00 |
-| 17 | KITE-EUR | 64.71 | PERSISTENT_TOP20 | -4.92% | -0.34% | -4.33% | 5.88% | -2.66% | +0.00 |
-| 18 | SXT-EUR | 64.51 | PERSISTENT_TOP20 | 2.89% | -4.35% | -0.67% | 1.87% | -1.68% | +0.00 |
-| 19 | CAP-EUR | 64.25 | PREWATCH_PERSISTENCE_REQUIRED | 3.87% | 1.36% | 6.75% | 7.58% | 2.83% | +0.00 |
-| 20 | BIRB-EUR | 62.97 | PREWATCH_PERSISTENCE_REQUIRED | 8.57% | 14.52% | 54.54% | 20.74% | 27.07% | +0.00 |
+| 1 | WOO-EUR | 85.00 | HUMAN_REVIEW | 7.44% | 18.22% | 14.15% | 19.74% | 7.78% | +0.00 |
+| 2 | TRUST-EUR | 84.94 | HUMAN_REVIEW | 13.59% | 8.12% | 14.16% | 9.64% | 8.36% | +0.00 |
+| 3 | PEPE-EUR | 84.11 | HUMAN_REVIEW | 5.78% | 2.89% | 12.47% | 4.41% | 21.11% | +0.00 |
+| 4 | UNI-EUR | 83.28 | PREWATCH_PERSISTENCE_REQUIRED | 6.63% | 6.57% | 4.50% | 8.09% | 7.55% | +0.00 |
+| 5 | HYPE-EUR | 82.23 | HUMAN_REVIEW | -2.53% | 6.14% | 6.92% | 7.66% | 4.57% | +0.00 |
+| 6 | TREAD-EUR | 81.35 | HUMAN_REVIEW | 6.17% | 13.84% | 5.03% | 15.36% | 11.71% | +0.00 |
+| 7 | SXT-EUR | 79.69 | HUMAN_REVIEW | 16.07% | 7.90% | 12.05% | 9.43% | 10.37% | +0.00 |
+| 8 | GMX-EUR | 79.65 | HUMAN_REVIEW | 15.31% | 5.46% | 9.63% | 6.99% | 13.68% | +0.00 |
+| 9 | POL-EUR | 77.64 | PREWATCH_PERSISTENCE_REQUIRED | 5.95% | 5.08% | 2.66% | 6.60% | 1.77% | +0.00 |
+| 10 | LIGHTER-EUR | 75.60 | HUMAN_REVIEW | 7.34% | 14.53% | -9.51% | 16.05% | -0.24% | +0.00 |
+| 11 | STX-EUR | 75.37 | PREWATCH_PERSISTENCE_REQUIRED | 4.65% | 15.12% | -4.60% | 16.64% | 7.36% | +0.00 |
+| 12 | ZRO-EUR | 72.84 | PERSISTENT_TOP20 | 1.22% | 8.53% | -5.33% | 10.05% | 9.78% | +0.00 |
+| 13 | POWR-EUR | 72.66 | PERSISTENT_TOP20 | -4.48% | 6.45% | 8.85% | 7.97% | 3.76% | +0.00 |
+| 14 | QNT-EUR | 72.44 | PREWATCH_PERSISTENCE_REQUIRED | 0.52% | 0.61% | -0.25% | 2.13% | 13.63% | +0.00 |
+| 15 | SPX-EUR | 71.56 | PREWATCH_PERSISTENCE_REQUIRED | 7.07% | -4.60% | 2.56% | -3.08% | -1.03% | +0.00 |
+| 16 | ICNT-EUR | 71.19 | PERSISTENT_TOP20 | 19.99% | 11.74% | 10.81% | 13.26% | 38.61% | +0.00 |
+| 17 | ARX-EUR | 70.97 | PREWATCH_PERSISTENCE_REQUIRED | 32.79% | 13.59% | 17.95% | 15.11% | 24.65% | +0.00 |
+| 18 | PARTI-EUR | 70.29 | PERSISTENT_TOP20 | 3.01% | 17.41% | 39.55% | 18.93% | 32.29% | +0.00 |
+| 19 | ASTER-EUR | 69.54 | PREWATCH_PERSISTENCE_REQUIRED | 0.97% | -0.41% | -0.86% | 1.11% | 1.23% | +0.00 |
+| 20 | MERL-EUR | 68.51 | PREWATCH_PERSISTENCE_REQUIRED | -10.47% | 3.65% | 3.55% | 5.17% | 1.77% | +0.00 |
