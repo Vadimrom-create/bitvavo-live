@@ -1,8 +1,8 @@
 # Bitvavo — V4 mesurée / infrastructure V5
 
-Scan UTC : 2026-11-03T21:56:12.502447+00:00
-État : OK | marchés EUR : 426 | V4 : 374 | données valides : 426
-Récupération : 2026-11-03T21:55:08.811195+00:00 | âge ticker : 177.8 s | durée : 179.8 s
+Scan UTC : 2026-11-04T01:49:17.132088+00:00
+État : OK | marchés EUR : 426 | V4 : 377 | données valides : 426
+Récupération : 2026-11-04T01:48:13.804712+00:00 | âge ticker : 172.0 s | durée : 172.8 s
 
 ## ACHÈTE — signal V4 et plan théorique
 
@@ -17,17 +17,17 @@ Les intervalles sans transaction sont représentés explicitement à volume 0 ; 
 
 | Marché | Prix € | 24 h | Détection | Couche d’échec | Actionnabilité |
 |---|---:|---:|---|---|---|
-| HOT-EUR | 0.00048577 | +20.76 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
-| ICNT-EUR | 0.20194 | +18.57 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
-| RUNE-EUR | 0.56595 | +16.11 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
-| FLUID-EUR | 1.8686 | +14.67 % | NO_CONFIRMED_SHORT_TERM_EVENT | NOT_APPLICABLE | NOT_APPLICABLE |
-| LIGHTER-EUR | 3.0599 | +12.06 % | NO_CONFIRMED_SHORT_TERM_EVENT | NOT_APPLICABLE | NOT_APPLICABLE |
-| TREAD-EUR | 0.80171 | +11.35 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
-| IRYS-EUR | 0.01926 | +11.32 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
-| KMNO-EUR | 0.029713 | +11.30 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
-| AXIS-EUR | 0.122271 | +10.18 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
-| PUMP-EUR | 0.0039225 | +9.96 % | NO_CONFIRMED_SHORT_TERM_EVENT | NOT_APPLICABLE | NOT_APPLICABLE |
+| AXIS-EUR | 0.128299 | +18.36 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
+| ICNT-EUR | 0.1932 | +14.38 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
+| FLUID-EUR | 1.8233 | +12.18 % | NO_CONFIRMED_SHORT_TERM_EVENT | NOT_APPLICABLE | NOT_APPLICABLE |
+| RUNE-EUR | 0.55303 | +10.94 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
+| TREAD-EUR | 0.79614 | +10.58 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
+| KMNO-EUR | 0.029197 | +10.34 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
+| HOT-EUR | 0.0004279 | +9.99 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
+| IKA-EUR | 0.0012542 | +8.57 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
+| SOON-EUR | 0.22681 | +8.39 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
+| QKC-EUR | 0.002158 | +7.22 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
 
-Historique (snapshot asynchrone) : 2275 scans ; 973353 observations ; 1665 épisodes d’achat évaluables.
+Historique (snapshot asynchrone) : 2277 scans ; 974205 observations ; 1665 épisodes d’achat évaluables.
 V5 optimisée : aucune. Supériorité sur V4 : non démontrée. Probabilités : non calibrées.
 Le cash et le portefeuille du plan sont hypothétiques. Aucun ordre réel n’est envoyé.
