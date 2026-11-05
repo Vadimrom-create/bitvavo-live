@@ -43,3 +43,40 @@ Variables (turnover, RVOL, etc.) : **diagnostics shadow uniquement**, aucune pon
 - Bilan hebdomadaire cumulatif, avec maturité, N, PnL et divergences, et alertes exceptionnelles en cas de défaut critique.
 - Temps humain mesuré de manière non intrusive (début/fin de session, relances), sans imputer une durée fictive.
 - Pas de validation de supériorité sans échantillon indépendant et absence de fuite du futur.
+
+## Chronologie des refus post-ACHÈTE (shadow)
+
+Une réponse de ChatGPT formulée **après** l'email ACHÈTE initial ne peut pas être
+comptabilisée comme un veto ex ante sur l'entrée au prix de cet email. Le
+validateur `scripts/scan_accountability_ledger.py` classe maintenant les
+`scan_decision` non-BUY avec alerte antérieure disponible en
+`POST_ALERT_REVIEW_NOT_EX_ANTE_VETO`, en reportant le délai depuis la première
+et la dernière alerte antérieures. Sans historique d'alertes complet, le statut
+est `NO_PRIOR_MACHINE_BUY_IN_SUPPLIED_ALERT_LOG`, **jamais** la preuve
+d'un refus avant le premier ACHÈTE.
+
+Pour juger si ChatGPT a effectivement amélioré ou dégradé une décision, ne
+pas comparer mécaniquement le rendement depuis le prix du **premier email**
+avec la décision ChatGPT intervenue plus tard. Il faut vérifier que l'entrée
+restait exécutable **à l'instant de l'avis**, puis utiliser le même prix de
+départ, le même budget, les mêmes frais, stops, objectifs et fenêtres pour
+l'alternative avec et sans refus. Le PnL « raté » depuis un premier signal
+plus ancien reste un indicateur descriptif, pas un PnL apparié.
+
+La capture des réponses ChatGPT **n'est pas automatique** : le dispositif
+`scripts/capture_chatgpt_scan_session.py` nécessite encore un enregistrement
+privé explicite. Aucune phrase ou donnée de conversation ne doit être
+versée au dépôt public ou à un commentaire d'issue.
+
+### Bras de contrôle « ne pas acheter »
+
+Un refus `WAIT_RECHECK`, `REJECT_STRUCTURAL` ou `INSUFFICIENT_DATA`
+peut être comparé à une entrée Solaire, mais uniquement avec un PnL
+ChatGPT **strictement nul**, et trois preuves supplémentaires explicites :
+`solaire_execution_validated_at_chat_decision=true`,
+`chatgpt_no_trade_verified=true`,
+`decision_time_parity_verified=true`. S'ajoutent les preuves déjà exigées
+de coûts/budget/politique appariés, horizon maturé et épisode indépendant.
+Ces attestations sont fournies par un validateur de preuve externe ; la
+présence de booléens dans un JSON ne constitue pas leur vérification.
+À défaut, la paire est écartée du calcul et reste `NON_MESURABLE`.
