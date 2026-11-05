@@ -48,6 +48,28 @@ def sample(decisions=None, **changes):
 
 
 class SessionCaptureTests(unittest.TestCase):
+    def test_explicit_machine_signal_link_must_have_been_reviewed(self):
+        obj = sample()
+        obj["decisions"][0]["machine_signal_id"] = "signal-ogn-001"
+        obj["decisions"][0]["decision_category"] = "ATTENDRE_CONFIRMATION"
+        lines = capture.validate_session(obj, NOW)
+        self.assertEqual(lines[1]["machine_signal_id"], "signal-ogn-001")
+        self.assertEqual(lines[1]["decision_category"], "ATTENDRE_CONFIRMATION")
+        obj["decisions"][0]["machine_signal_id"] = "unseen-signal"
+        with self.assertRaises(InputError):
+            capture.validate_session(obj, NOW)
+
+    def test_explicit_decision_category_cannot_contradict_action(self):
+        obj = sample()
+        obj["decisions"][0]["decision_category"] = "ACHAT_TEST"
+        with self.assertRaises(InputError):
+            capture.validate_session(obj, NOW)
+
+    def test_legacy_session_without_link_fields_remains_valid(self):
+        lines = capture.validate_session(sample(), NOW)
+        self.assertNotIn("machine_signal_id", lines[1])
+        self.assertNotIn("decision_category", lines[1])
+
     def test_headers_and_decisions_share_one_private_file(self):
         lines = capture.validate_session(sample(), NOW)
         self.assertEqual([x["record_type"] for x in lines],
