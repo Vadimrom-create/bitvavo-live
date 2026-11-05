@@ -1,0 +1,102 @@
+name: Research economic signal ledger (read-only)
+
+on:
+  pull_request:
+    paths:
+      - 'research/economic_cash_ledger.py'
+      - 'research/capital_constrained_replay.py'
+      - 'tests/test_capital_constrained_replay.py'
+      - 'scripts/prepare_economic_replay.py'
+      - 'scripts/run_economic_portfolio_replay.py'
+      - 'tests/test_economic_replay_preflight.py'
+      - 'scripts/build_economic_signal_ledger.py'
+      - 'tests/test_economic_signal_ledger.py'
+      - 'scripts/enrich_economic_signal_books.py'
+      - 'docs/ECONOMIC_SIGNAL_LEDGER_V1.md'
+      - '.github/workflows/test_economic_signal_ledger.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  signal-ledger:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Synthetic accounting and anti-lookahead tests
+        run: python -m unittest tests.test_economic_signal_ledger tests.test_capital_constrained_replay tests.test_economic_replay_preflight -v
+      - name: Convert retained public machine decisions without inferring orders
+        run: |
+          python scripts/build_economic_signal_ledger.py --output /tmp/solaire-machine-economic-ledger.json
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          a = json.loads(Path("/tmp/solaire-machine-economic-ledger.json").read_text())
+          n = a["count"]
+          buys = a["counts_by_machine_action"]["BUY_SENT"]
+          refused = a["counts_by_machine_action"]["REJECTED"]
+          assert n == buys + refused and n > 0
+          assert buys > 0 and refused > 0
+          assert all(row["execution_fill_status"] == "UNKNOWN_NOT_PROVEN" for row in a["records"])
+          assert all(row["net_trade_pnl_eur"] is None for row in a["records"])
+          assert a["actual_exchange_fills_verified"] == 0
+          assert a["actual_net_pnl_eur"] is None
+          assert not a["buy_sent_equals_filled_order"]
+          print(f"Source snapshot: {n} machine decisions; {buys} BUY_SENT; {refused} REJECTED.")
+          print("Filled trades: UNKNOWN; actual PnL: NOT IDENTIFIABLE.")
+          PY
+      - name: Join historical book snapshots by matching signal IDs (not fills)
+        run: |
+          python scripts/enrich_economic_signal_books.py \
+            --source /tmp/solaire-machine-economic-ledger.json \
+            --observations-dir execution_observations \
+            --output /tmp/solaire-machine-book-join.json
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          o = json.loads(Path("/tmp/solaire-machine-book-join.json").read_text())
+          assert o["schema"] == "solaire_economic_machine_book_join_v1"
+          assert o["historical_fills_verified"] == 0
+          assert o["portfolio_real_pnl_eur"] is None
+          assert sum(o["books_by_status"].values()) == o["count"]
+          assert all(x["historical_book_evidence"]["actual_fill_proven"] is False for x in o["records"])
+          print(f"Matched book snapshots: {o['matched_book_count']} / {o['count']}; fills remain unverified.")
+          print("Reasons:", o["books_by_status"])
+          print("BUY_SENT historical book cost summary:", o["buy_sent_book_cost_summary"])
+          PY
+      - name: Prepare fixed-stake cohorts and fail closed without price trajectories
+        run: |
+          python scripts/prepare_economic_replay.py --books /tmp/solaire-machine-book-join.json --stake 100 --output /tmp/solaire-preflight-100.json
+          python scripts/prepare_economic_replay.py --books /tmp/solaire-machine-book-join.json --stake 150 --output /tmp/solaire-preflight-150.json
+          python scripts/run_economic_portfolio_replay.py --books /tmp/solaire-machine-book-join.json --output /tmp/solaire-replay-readiness.json
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          a=json.loads(Path("/tmp/solaire-preflight-100.json").read_text())
+          b=json.loads(Path("/tmp/solaire-preflight-150.json").read_text())
+          c=json.loads(Path("/tmp/solaire-replay-readiness.json").read_text())
+          assert a["alert_count"] == b["alert_count"]
+          assert a["prepared_signal_count"]+a["missing_book_proof_count"]==a["alert_count"]
+          assert b["prepared_signal_count"]+b["missing_book_proof_count"]==b["alert_count"]
+          assert c["status"] == "NOT_READY_NO_PUBLIC_PRICE_PATHS_SUPPLIED"
+          assert c["modeled_portfolio_pnl_eur"] is None and c["real_bitvavo_pnl_eur"] is None
+          print(f"Stake 100€: {a['prepared_signal_count']} eligible book-proven model signals; missing {a['missing_book_proof_count']}")
+          print(f"Stake 150€: {b['prepared_signal_count']} eligible book-proven model signals; missing {b['missing_book_proof_count']}")
+          print("REAL PORTFOLIO PNL UNKNOWN; MODEL PNL NOT ESTIMATED WITHOUT PRICE PATHS.")
+          PY
+      - name: Upload public, synthetic-safe event registry artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: economic-machine-decisions-unknown-fills
+          path: |
+            /tmp/solaire-machine-economic-ledger.json
+            /tmp/solaire-machine-book-join.json
+            /tmp/solaire-preflight-100.json
+            /tmp/solaire-preflight-150.json
+            /tmp/solaire-replay-readiness.json
+          retention-days: 14

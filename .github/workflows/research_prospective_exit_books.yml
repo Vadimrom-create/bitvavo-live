@@ -1,0 +1,65 @@
+name: Prospective exit book shadow (precommitted, research only)
+
+on:
+  pull_request:
+    paths:
+      - 'research/PROSPECTIVE_EXIT_BOOK_TARGETS_20261012.json'
+      - 'scripts/capture_precommitted_exit_books.py'
+      - 'tests/test_precommitted_exit_books.py'
+      - '.github/workflows/research_prospective_exit_books.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  one-shot-prospective-exit-books:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Verify zero look-ahead and no-order invariants
+        run: python -m unittest tests.test_precommitted_exit_books -v
+      - name: Validate fixed targets committed before exit due times
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          from scripts.capture_precommitted_exit_books import validate_commitment
+          path=Path("research/PROSPECTIVE_EXIT_BOOK_TARGETS_20261012.json")
+          c=json.loads(path.read_text())
+          validate_commitment(c)
+          assert c["target_count"] == 81 and c["unique_market_count"] == 26
+          assert c["real_trade_entry_or_exit_proven"] is False
+          print("PRECOMMITTED SHADOW TARGETS:",c["target_count"],"across",c["unique_market_count"],"markets")
+          print("Original journal Git blob SHA:",c["source_journal_blob_git_sha"])
+          print("Precommitted before exits:",c["committed_before_due_utc"])
+          PY
+      - name: One-time public book capture ONLY at already-due shadow exit times
+        run: |
+          python scripts/capture_precommitted_exit_books.py \
+            --precommit research/PROSPECTIVE_EXIT_BOOK_TARGETS_20261012.json \
+            --output /tmp/solaire-precommitted-exit-book-capture.json
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          out=json.loads(Path("/tmp/solaire-precommitted-exit-book-capture.json").read_text())
+          assert out["target_count"] == 81
+          assert out["real_exit_fills_verified"] == 0
+          assert out["actual_wallet_pnl_eur"] is None
+          assert out["any_order_submitted"] is False
+          assert sum(out["status_counts"].values()) == 81
+          assert out["attempted_public_books"] <= 8
+          print("SHADOW LIVE CAPTURE:",out["status_counts"])
+          print("CAPTURED is a live request-completion book, not a historical or real-order fill")
+          PY
+      - name: Keep bounded public research artifacts only
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: prospective-exit-books-precommitted-v1
+          retention-days: 14
+          path: /tmp/solaire-precommitted-exit-book-capture.json

@@ -1,0 +1,62 @@
+name: Research public 24h portfolio probe (no orders)
+
+on:
+  pull_request:
+    paths:
+      - 'research/capital_constrained_replay.py'
+      - 'scripts/run_public_replay_probe.py'
+      - 'tests/test_public_replay_probe.py'
+      - '.github/workflows/research_public_portfolio_probe.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  one-off-probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 18
+    env:
+      PYTHONHASHSEED: '0'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Verify deterministic and fail-closed synthetic tests
+        run: python -m unittest tests.test_public_replay_probe tests.test_capital_constrained_replay tests.test_economic_replay_preflight -v
+      - name: Predeclare complete machine cohort and historic book references
+        run: |
+          python scripts/build_economic_signal_ledger.py --output /tmp/replay-machine.json
+          python scripts/enrich_economic_signal_books.py --source /tmp/replay-machine.json --output /tmp/replay-books.json
+      - name: Capture public Bitvavo 5m OHLC for age-only subset, then evaluate
+        run: |
+          python scripts/run_public_replay_probe.py \
+            --books /tmp/replay-books.json \
+            --report /tmp/research-probe-report.json \
+            --candle-bundle /tmp/research-probe-closed-candles.json
+      - name: Never represent modeled outcomes as real wallet profit
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          p = json.loads(Path("/tmp/research-probe-report.json").read_text())
+          assert p["real_bitvavo_pnl_eur"] is None
+          if "model_only" in p:
+              assert p["model_only"]["actual_exchange_fills_verified"] == 0
+              assert p["model_only"]["real_bitvavo_pnl_eur"] is None
+              assert p["r2_v4_comparison_ready"] is False
+          print("A priori cohort:", p["window"]["buy_alert_count"])
+          print("Trajectory status:", p["status"])
+          print("Modeled PnL (only if complete):", p.get("modeled_portfolio_pnl_eur"))
+          print("Real capital PnL: NON MESURABLE from public OHLC only")
+          PY
+      - name: Retain public market evidence as short-lived research artifacts
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: public-research-model-24h-evidence
+          retention-days: 7
+          path: |
+            /tmp/research-probe-report.json
+            /tmp/research-probe-closed-candles.json

@@ -1,0 +1,67 @@
+name: Frozen 11 Oct exit executability audit (research only)
+
+on:
+  pull_request:
+    paths:
+      - 'research/capital_constrained_replay.py'
+      - 'research/last_print_equity_diagnostic.py'
+      - 'tests/test_last_print_equity_diagnostic.py'
+      - 'scripts/audit_frozen_exit_execution.py'
+      - 'tests/test_capital_constrained_replay.py'
+      - '.github/workflows/research_frozen_exit_audit.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  frozen-exit-audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Offline synthetic regressions
+        run: python -m unittest tests.test_capital_constrained_replay tests.test_public_replay_probe tests.test_last_print_equity_diagnostic -v
+      - name: Recover exactly the original public machine-book and candle artifacts
+        run: |
+          mkdir -p /tmp/frozen-books /tmp/frozen-candles
+          gh run download 38166530515 --repo "${GITHUB_REPOSITORY}" \
+            --name economic-machine-decisions-unknown-fills --dir /tmp/frozen-books
+          gh run download 38167319461 --repo "${GITHUB_REPOSITORY}" \
+            --name public-research-model-24h-evidence --dir /tmp/frozen-candles
+          test -s /tmp/frozen-books/solaire-machine-book-join.json
+          test -s /tmp/frozen-candles/research-probe-report.json
+          test -s /tmp/frozen-candles/research-probe-closed-candles.json
+      - name: Replay strictly matched frozen evidence without fresh prices
+        run: |
+          python scripts/audit_frozen_exit_execution.py \
+            --books /tmp/frozen-books/solaire-machine-book-join.json \
+            --candles /tmp/frozen-candles/research-probe-closed-candles.json \
+            --baseline /tmp/frozen-candles/research-probe-report.json \
+            --output /tmp/frozen-exit-execution-report.json
+          python - <<'PY'
+          import json
+          p = json.load(open('/tmp/frozen-exit-execution-report.json', encoding='utf-8'))
+          assert p['alerts']==75 and p['markets']==44
+          assert p['real_execution_status']=='NOT_PROVEN_NO_HISTORICAL_EXIT_BOOK_OR_FILLS'
+          assert p['modes']['strict']['modeled_portfolio_pnl_eur'] is None
+          assert p['modes']['flat_last_price']['modeled_portfolio_pnl_eur'] is not None
+          assert all(s['real_bitvavo_pnl_eur'] is None for s in p['modes'].values())
+          assert p['indicative_mark_to_last_print_risk']['strict']['max_drawdown_last_print_eur_est'] is None
+          assert all(r['real_executable_drawdown_eur'] is None
+                     for r in p['indicative_mark_to_last_print_risk'].values())
+          print('Frozen source integrity verified; actual exchange PnL remains unknown')
+          PY
+      - name: Keep bounded frozen public results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: frozen-exit-executability-11oct
+          retention-days: 14
+          path: /tmp/frozen-exit-execution-report.json
