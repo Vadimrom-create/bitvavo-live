@@ -1,8 +1,8 @@
 # Bitvavo — V4 mesurée / infrastructure V5
 
-Scan UTC : 2026-11-06T17:30:52.582108+00:00
-État : OK | marchés EUR : 425 | V4 : 374 | données valides : 425
-Récupération : 2026-11-06T17:29:46.756986+00:00 | âge ticker : 178.6 s | durée : 179.5 s
+Scan UTC : 2026-11-06T22:18:29.291521+00:00
+État : OK | marchés EUR : 425 | V4 : 366 | données valides : 425
+Récupération : 2026-11-06T22:17:28.675546+00:00 | âge ticker : 169.2 s | durée : 169.7 s
 
 ## ACHÈTE — signal V4 et plan théorique
 
@@ -17,17 +17,17 @@ Les intervalles sans transaction sont représentés explicitement à volume 0 ; 
 
 | Marché | Prix € | 24 h | Détection | Couche d’échec | Actionnabilité |
 |---|---:|---:|---|---|---|
-| CYBER-EUR | 0.32431 | +55.42 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
-| ICNT-EUR | 0.27052 | +39.21 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
-| GROVE-EUR | 0.00762 | +21.01 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
-| ALIGN-EUR | 0.004264 | +16.95 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
-| MAGIC-EUR | 0.081594 | +14.74 % | NO_CONFIRMED_SHORT_TERM_EVENT | NOT_APPLICABLE | NOT_APPLICABLE |
-| TRIA-EUR | 0.002246 | +14.13 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
-| ZIL-EUR | 0.0016228 | +13.72 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
-| W-EUR | 0.0104 | +12.47 % | NO_CONFIRMED_SHORT_TERM_EVENT | NOT_APPLICABLE | NOT_APPLICABLE |
-| GNS-EUR | 0.34679 | +11.17 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
-| RAY-EUR | 1.63117 | +10.97 % | NO_CONFIRMED_SHORT_TERM_EVENT | NOT_APPLICABLE | NOT_APPLICABLE |
+| ICNT-EUR | 0.26957 | +40.42 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
+| CYBER-EUR | 0.3162 | +27.56 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
+| GROVE-EUR | 0.007696 | +20.97 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
+| ACT-EUR | 0.009522 | +17.48 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
+| TRIA-EUR | 0.002261 | +13.90 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
+| XTZ-EUR | 0.2495 | +12.42 % | NO_CONFIRMED_SHORT_TERM_EVENT | NOT_APPLICABLE | NOT_APPLICABLE |
+| FLOCK-EUR | 0.03664 | +12.30 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
+| CELR-EUR | 0.0022486 | +12.28 % | NO_CONFIRMED_SHORT_TERM_EVENT | NOT_APPLICABLE | NOT_APPLICABLE |
+| SAFE-EUR | 0.078133 | +11.24 % | NO_CONFIRMED_SHORT_TERM_EVENT | NOT_APPLICABLE | NOT_APPLICABLE |
+| BIRB-EUR | 0.09022 | +10.70 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
 
-Historique (snapshot asynchrone) : 2287 scans ; 978465 observations ; 1665 épisodes d’achat évaluables.
+Historique (snapshot asynchrone) : 2288 scans ; 978890 observations ; 1665 épisodes d’achat évaluables.
 V5 optimisée : aucune. Supériorité sur V4 : non démontrée. Probabilités : non calibrées.
 Le cash et le portefeuille du plan sont hypothétiques. Aucun ordre réel n’est envoyé.
