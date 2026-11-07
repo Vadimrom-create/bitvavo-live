@@ -1,28 +1,28 @@
 # Solaire Swing Selector — SHADOW
 
-Generated: 2026-11-07T13:06:45.306369+00:00
+Generated: 2026-11-07T19:26:36.221968+00:00
 Version: SWING_SELECTOR_V1_FROZEN_2026-10-08_R2
 No orders, no alerts, no Decision Layer changes.
 
 | Rank | Market | Score | Status | 3d | 7d | 14d | RS BTC 7d | Dist EMA50 | News mod |
 |---:|---|---:|---|---:|---:|---:|---:|---:|---:|
-| 1 | INJ-EUR | 90.31 | HUMAN_REVIEW | 4.96% | 14.58% | 7.72% | 16.29% | 11.38% | +0.00 |
-| 2 | TRUST-EUR | 90.03 | HUMAN_REVIEW | 0.48% | 20.53% | 15.94% | 22.24% | 13.77% | +0.00 |
-| 3 | LIGHTER-EUR | 89.63 | HUMAN_REVIEW | 7.06% | 11.64% | 9.45% | 13.35% | 3.85% | +0.00 |
-| 4 | NES-EUR | 88.68 | HUMAN_REVIEW | 12.17% | 16.57% | 33.31% | 18.28% | 12.22% | +0.00 |
-| 5 | STX-EUR | 83.24 | HUMAN_REVIEW | -3.29% | 6.94% | 13.91% | 8.65% | 6.79% | +0.00 |
-| 6 | ARX-EUR | 81.72 | HUMAN_REVIEW | -1.91% | 9.59% | 13.16% | 11.30% | 6.09% | +0.00 |
-| 7 | PEPE-EUR | 81.33 | HUMAN_REVIEW | 1.04% | 0.46% | 10.77% | 2.17% | 14.91% | +0.00 |
-| 8 | MAVIA-EUR | 81.25 | HUMAN_REVIEW | 3.31% | 7.91% | 2.58% | 9.62% | -2.66% | +0.00 |
-| 9 | WOO-EUR | 81.14 | HUMAN_REVIEW | -1.47% | 4.63% | 11.07% | 6.34% | 3.71% | +0.00 |
-| 10 | MEGA-EUR | 78.96 | HUMAN_REVIEW | 4.75% | 8.87% | 4.68% | 10.58% | 8.66% | +0.00 |
-| 11 | QNT-EUR | 78.82 | PREWATCH_PERSISTENCE_REQUIRED | -1.37% | -0.56% | 11.78% | 1.15% | 10.73% | +2.50 |
-| 12 | MERL-EUR | 77.92 | PERSISTENT_TOP20 | 2.49% | -2.68% | 9.21% | -0.97% | 7.36% | +0.00 |
-| 13 | HOME-EUR | 77.71 | PERSISTENT_TOP20 | 1.21% | 3.92% | 4.59% | 5.63% | -1.93% | +0.00 |
-| 14 | RAY-EUR | 77.18 | PERSISTENT_TOP20 | 4.18% | 9.40% | -2.29% | 11.11% | 4.27% | +0.00 |
-| 15 | FLUID-EUR | 76.32 | PERSISTENT_TOP20 | -6.29% | 30.18% | 5.73% | 31.89% | 19.70% | +0.00 |
-| 16 | MAGIC-EUR | 75.64 | PERSISTENT_TOP20 | 2.34% | 5.05% | 0.56% | 6.76% | 11.18% | +0.00 |
-| 17 | CAT-EUR | 75.39 | PREWATCH_PERSISTENCE_REQUIRED | -1.45% | 8.51% | 4.32% | 10.22% | -4.19% | +0.00 |
-| 18 | ARB-EUR | 74.72 | PREWATCH_PERSISTENCE_REQUIRED | 3.39% | 1.70% | -1.31% | 3.41% | -1.36% | +0.00 |
-| 19 | AKT-EUR | 74.32 | PERSISTENT_TOP20 | 0.62% | 5.32% | -1.04% | 7.04% | 1.02% | +0.00 |
-| 20 | CYBER-EUR | 72.91 | PERSISTENT_TOP20 | 27.83% | 19.62% | 5.74% | 21.33% | 6.53% | +0.00 |
+| 1 | TRUST-EUR | 89.42 | HUMAN_REVIEW | 3.27% | 23.89% | 19.17% | 25.90% | 16.80% | +0.00 |
+| 2 | INJ-EUR | 88.65 | HUMAN_REVIEW | 2.97% | 12.41% | 5.67% | 14.43% | 9.36% | +0.00 |
+| 3 | SXT-EUR | 87.72 | PREWATCH_PERSISTENCE_REQUIRED | 5.75% | 12.37% | 7.88% | 14.39% | 8.22% | +0.00 |
+| 4 | ACT-EUR | 84.38 | PREWATCH_PERSISTENCE_REQUIRED | 19.25% | 23.26% | 20.40% | 25.27% | 10.57% | +0.00 |
+| 5 | STX-EUR | 82.21 | HUMAN_REVIEW | -4.55% | 5.55% | 12.43% | 7.57% | 5.46% | +0.00 |
+| 6 | MEGA-EUR | 81.62 | HUMAN_REVIEW | 4.39% | 8.49% | 4.31% | 10.50% | 8.30% | +0.00 |
+| 7 | WOO-EUR | 81.38 | HUMAN_REVIEW | -2.35% | 3.70% | 10.07% | 5.71% | 2.82% | +0.00 |
+| 8 | MAVIA-EUR | 80.29 | HUMAN_REVIEW | 2.58% | 7.15% | 1.87% | 9.17% | -3.31% | +0.00 |
+| 9 | QNT-EUR | 79.71 | HUMAN_REVIEW | -1.33% | -0.52% | 11.82% | 1.50% | 10.77% | +2.50 |
+| 10 | MERL-EUR | 78.57 | HUMAN_REVIEW | 2.51% | -2.66% | 9.24% | -0.64% | 7.39% | +0.00 |
+| 11 | HOME-EUR | 78.15 | PERSISTENT_TOP20 | 1.44% | 4.16% | 4.83% | 6.18% | -1.72% | +0.00 |
+| 12 | NOS-EUR | 77.65 | PREWATCH_PERSISTENCE_REQUIRED | -0.33% | 14.95% | 4.47% | 16.96% | 3.93% | +0.00 |
+| 13 | PEPE-EUR | 77.12 | PERSISTENT_TOP20 | -0.62% | -1.19% | 8.96% | 0.83% | 13.11% | +0.00 |
+| 14 | FLUID-EUR | 76.40 | PERSISTENT_TOP20 | -6.52% | 29.86% | 5.47% | 31.88% | 19.42% | +0.00 |
+| 15 | PROMPT-EUR | 74.95 | PREWATCH_PERSISTENCE_REQUIRED | 13.79% | 12.35% | 0.88% | 14.37% | 0.48% | +0.00 |
+| 16 | RAY-EUR | 74.05 | PERSISTENT_TOP20 | 2.27% | 7.39% | -4.09% | 9.41% | 2.42% | +0.00 |
+| 17 | CAT-EUR | 74.04 | PERSISTENT_TOP20 | -1.98% | 7.92% | 3.76% | 9.94% | -4.69% | +0.00 |
+| 18 | LIGHTER-EUR | 73.99 | PERSISTENT_TOP20 | -2.05% | 2.14% | 0.14% | 4.16% | -4.66% | +0.00 |
+| 19 | TRX-EUR | 73.73 | PREWATCH_PERSISTENCE_REQUIRED | 0.67% | 5.54% | -2.45% | 7.56% | -1.94% | +0.00 |
+| 20 | ARB-EUR | 73.38 | PERSISTENT_TOP20 | 3.14% | 1.45% | -1.55% | 3.47% | -1.59% | +0.00 |
