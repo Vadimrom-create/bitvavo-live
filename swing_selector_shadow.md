@@ -1,28 +1,28 @@
 # Solaire Swing Selector — SHADOW
 
-Generated: 2026-11-07T06:02:03.376400+00:00
+Generated: 2026-11-07T13:06:45.306369+00:00
 Version: SWING_SELECTOR_V1_FROZEN_2026-10-08_R2
 No orders, no alerts, no Decision Layer changes.
 
 | Rank | Market | Score | Status | 3d | 7d | 14d | RS BTC 7d | Dist EMA50 | News mod |
 |---:|---|---:|---|---:|---:|---:|---:|---:|---:|
-| 1 | INJ-EUR | 90.73 | HUMAN_REVIEW | 6.83% | 16.63% | 9.64% | 18.46% | 13.29% | +0.00 |
-| 2 | TRUST-EUR | 90.46 | HUMAN_REVIEW | 2.06% | 22.42% | 17.76% | 24.26% | 15.48% | +0.00 |
-| 3 | ARX-EUR | 89.59 | HUMAN_REVIEW | 1.71% | 13.63% | 17.34% | 15.46% | 9.83% | +0.00 |
-| 4 | LIGHTER-EUR | 88.82 | HUMAN_REVIEW | 4.98% | 9.47% | 7.32% | 11.30% | 1.91% | +0.00 |
-| 5 | WOO-EUR | 87.20 | HUMAN_REVIEW | 1.41% | 7.69% | 14.32% | 9.53% | 6.62% | +0.00 |
-| 6 | SXT-EUR | 85.38 | HUMAN_REVIEW | 3.74% | 10.23% | 5.83% | 12.07% | 6.25% | +0.00 |
-| 7 | STX-EUR | 84.64 | HUMAN_REVIEW | -2.80% | 7.48% | 14.50% | 9.32% | 7.31% | +0.00 |
-| 8 | NES-EUR | 83.41 | HUMAN_REVIEW | 13.88% | 24.58% | 27.31% | 26.41% | 10.59% | +0.00 |
-| 9 | PEPE-EUR | 83.13 | HUMAN_REVIEW | 2.04% | 1.45% | 11.86% | 3.28% | 15.99% | +0.00 |
-| 10 | MERL-EUR | 83.05 | HUMAN_REVIEW | 5.06% | -0.23% | 11.96% | 1.60% | 9.95% | +0.00 |
-| 11 | ACT-EUR | 82.85 | PREWATCH_PERSISTENCE_REQUIRED | 19.50% | 23.51% | 20.64% | 25.34% | 10.79% | +0.00 |
-| 12 | MAVIA-EUR | 80.41 | PREWATCH_PERSISTENCE_REQUIRED | 3.88% | 8.51% | 3.15% | 10.34% | -2.14% | +0.00 |
-| 13 | MEGA-EUR | 79.80 | PERSISTENT_TOP20 | 5.26% | 9.40% | 5.19% | 11.23% | 9.17% | +0.00 |
-| 14 | AKT-EUR | 78.35 | PERSISTENT_TOP20 | 3.08% | 7.90% | 1.38% | 9.73% | 3.39% | +0.00 |
-| 15 | HOME-EUR | 78.31 | PERSISTENT_TOP20 | 1.38% | 4.09% | 4.77% | 5.93% | -1.78% | +0.00 |
-| 16 | MAGIC-EUR | 78.21 | PERSISTENT_TOP20 | 4.10% | 6.86% | 2.29% | 8.69% | 13.01% | +0.00 |
-| 17 | RAY-EUR | 77.84 | PERSISTENT_TOP20 | 4.79% | 10.04% | -1.72% | 11.87% | 4.85% | +0.00 |
-| 18 | FLUID-EUR | 77.47 | PERSISTENT_TOP20 | -4.76% | 32.31% | 7.46% | 34.14% | 21.57% | +0.00 |
-| 19 | PROMPT-EUR | 76.91 | PREWATCH_PERSISTENCE_REQUIRED | 28.18% | 26.55% | 13.63% | 28.38% | 12.62% | +0.00 |
-| 20 | CYBER-EUR | 75.91 | PREWATCH_PERSISTENCE_REQUIRED | 25.64% | 17.57% | 3.93% | 19.40% | 4.77% | +0.00 |
+| 1 | INJ-EUR | 90.31 | HUMAN_REVIEW | 4.96% | 14.58% | 7.72% | 16.29% | 11.38% | +0.00 |
+| 2 | TRUST-EUR | 90.03 | HUMAN_REVIEW | 0.48% | 20.53% | 15.94% | 22.24% | 13.77% | +0.00 |
+| 3 | LIGHTER-EUR | 89.63 | HUMAN_REVIEW | 7.06% | 11.64% | 9.45% | 13.35% | 3.85% | +0.00 |
+| 4 | NES-EUR | 88.68 | HUMAN_REVIEW | 12.17% | 16.57% | 33.31% | 18.28% | 12.22% | +0.00 |
+| 5 | STX-EUR | 83.24 | HUMAN_REVIEW | -3.29% | 6.94% | 13.91% | 8.65% | 6.79% | +0.00 |
+| 6 | ARX-EUR | 81.72 | HUMAN_REVIEW | -1.91% | 9.59% | 13.16% | 11.30% | 6.09% | +0.00 |
+| 7 | PEPE-EUR | 81.33 | HUMAN_REVIEW | 1.04% | 0.46% | 10.77% | 2.17% | 14.91% | +0.00 |
+| 8 | MAVIA-EUR | 81.25 | HUMAN_REVIEW | 3.31% | 7.91% | 2.58% | 9.62% | -2.66% | +0.00 |
+| 9 | WOO-EUR | 81.14 | HUMAN_REVIEW | -1.47% | 4.63% | 11.07% | 6.34% | 3.71% | +0.00 |
+| 10 | MEGA-EUR | 78.96 | HUMAN_REVIEW | 4.75% | 8.87% | 4.68% | 10.58% | 8.66% | +0.00 |
+| 11 | QNT-EUR | 78.82 | PREWATCH_PERSISTENCE_REQUIRED | -1.37% | -0.56% | 11.78% | 1.15% | 10.73% | +2.50 |
+| 12 | MERL-EUR | 77.92 | PERSISTENT_TOP20 | 2.49% | -2.68% | 9.21% | -0.97% | 7.36% | +0.00 |
+| 13 | HOME-EUR | 77.71 | PERSISTENT_TOP20 | 1.21% | 3.92% | 4.59% | 5.63% | -1.93% | +0.00 |
+| 14 | RAY-EUR | 77.18 | PERSISTENT_TOP20 | 4.18% | 9.40% | -2.29% | 11.11% | 4.27% | +0.00 |
+| 15 | FLUID-EUR | 76.32 | PERSISTENT_TOP20 | -6.29% | 30.18% | 5.73% | 31.89% | 19.70% | +0.00 |
+| 16 | MAGIC-EUR | 75.64 | PERSISTENT_TOP20 | 2.34% | 5.05% | 0.56% | 6.76% | 11.18% | +0.00 |
+| 17 | CAT-EUR | 75.39 | PREWATCH_PERSISTENCE_REQUIRED | -1.45% | 8.51% | 4.32% | 10.22% | -4.19% | +0.00 |
+| 18 | ARB-EUR | 74.72 | PREWATCH_PERSISTENCE_REQUIRED | 3.39% | 1.70% | -1.31% | 3.41% | -1.36% | +0.00 |
+| 19 | AKT-EUR | 74.32 | PERSISTENT_TOP20 | 0.62% | 5.32% | -1.04% | 7.04% | 1.02% | +0.00 |
+| 20 | CYBER-EUR | 72.91 | PERSISTENT_TOP20 | 27.83% | 19.62% | 5.74% | 21.33% | 6.53% | +0.00 |
