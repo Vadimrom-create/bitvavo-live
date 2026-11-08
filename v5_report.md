@@ -1,8 +1,8 @@
 # Bitvavo — V4 mesurée / infrastructure V5
 
-Scan UTC : 2026-11-07T22:56:56.488780+00:00
-État : OK | marchés EUR : 425 | V4 : 349 | données valides : 425
-Récupération : 2026-11-07T22:55:54.743097+00:00 | âge ticker : 170.4 s | durée : 171.6 s
+Scan UTC : 2026-11-08T02:04:02.716001+00:00
+État : OK | marchés EUR : 425 | V4 : 353 | données valides : 425
+Récupération : 2026-11-08T02:03:00.809071+00:00 | âge ticker : 171.6 s | durée : 172.5 s
 
 ## ACHÈTE — signal V4 et plan théorique
 
@@ -12,24 +12,23 @@ Les intervalles sans transaction sont représentés explicitement à volume 0 ; 
 
 ## SURVEILLE
 
-- BIRB-EUR : 0.08376 € ; score 74.27/100 ; SURVEILLE ; VERY_SELLER_HEAVY_BOOK
-- INJ-EUR : 7.3568 € ; score 72.15/100 ; SURVEILLE ; seuil achat non atteint
+- TRUST-EUR : 0.054984 € ; score 75.61/100 ; SURVEILLE ; SELLER_HEAVY_BOOK, WICK_SETUP
 
 ## Contrôle des hausses
 
 | Marché | Prix € | 24 h | Détection | Couche d’échec | Actionnabilité |
 |---|---:|---:|---|---|---|
-| EPIC-EUR | 0.091 | +42.48 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
-| MET-EUR | 0.29643 | +20.36 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
-| IMU-EUR | 0.0016698 | +13.40 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
-| DEGEN-EUR | 0.00082215 | +10.53 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
-| DGB-EUR | 0.0029772 | +8.54 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
-| ACT-EUR | 0.0102 | +8.46 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
-| NOS-EUR | 0.40916 | +7.52 % | NO_CONFIRMED_SHORT_TERM_EVENT | NOT_APPLICABLE | NOT_APPLICABLE |
-| ICNT-EUR | 0.28594 | +7.21 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
-| MAVIA-EUR | 0.023754 | +6.77 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
-| NES-EUR | 0.13812 | +6.48 % | NO_CONFIRMED_SHORT_TERM_EVENT | NOT_APPLICABLE | NOT_APPLICABLE |
+| EPIC-EUR | 0.09435 | +47.91 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
+| MET-EUR | 0.29045 | +16.03 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
+| BLEND-EUR | 0.05255 | +14.64 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
+| ACT-EUR | 0.010435 | +11.92 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
+| NES-EUR | 0.14122 | +8.87 % | NO_CONFIRMED_SHORT_TERM_EVENT | NOT_APPLICABLE | NOT_APPLICABLE |
+| DEGEN-EUR | 0.0008122 | +8.32 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
+| DGB-EUR | 0.002937 | +6.63 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
+| FOLD-EUR | 0.036949 | +6.21 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
+| NOS-EUR | 0.40667 | +5.64 % | NO_CONFIRMED_SHORT_TERM_EVENT | NOT_APPLICABLE | NOT_APPLICABLE |
+| TAI-EUR | 0.002441 | +5.63 % | DETECTED_EARLY | NONE | INTERPRETATION |
 
-Historique (snapshot asynchrone) : 2292 scans ; 980590 observations ; 1665 épisodes d’achat évaluables.
+Historique (snapshot asynchrone) : 2293 scans ; 981015 observations ; 1665 épisodes d’achat évaluables.
 V5 optimisée : aucune. Supériorité sur V4 : non démontrée. Probabilités : non calibrées.
 Le cash et le portefeuille du plan sont hypothétiques. Aucun ordre réel n’est envoyé.
