@@ -1,8 +1,8 @@
 # Bitvavo — V4 mesurée / infrastructure V5
 
-Scan UTC : 2026-11-09T11:22:58.297922+00:00
-État : OK | marchés EUR : 425 | V4 : 369 | données valides : 425
-Récupération : 2026-11-09T11:21:57.032536+00:00 | âge ticker : 171.9 s | durée : 172.7 s
+Scan UTC : 2026-11-09T21:37:25.040832+00:00
+État : OK | marchés EUR : 425 | V4 : 370 | données valides : 425
+Récupération : 2026-11-09T21:36:21.805397+00:00 | âge ticker : 168.2 s | durée : 168.8 s
 
 ## ACHÈTE — signal V4 et plan théorique
 
@@ -12,23 +12,22 @@ Les intervalles sans transaction sont représentés explicitement à volume 0 ; 
 
 ## SURVEILLE
 
-- MEGA-EUR : 0.04617 € ; score 74.34/100 ; SURVEILLE ; seuil achat non atteint
 
 ## Contrôle des hausses
 
 | Marché | Prix € | 24 h | Détection | Couche d’échec | Actionnabilité |
 |---|---:|---:|---|---|---|
-| GNS-EUR | 0.43749 | +51.36 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
-| RSR-EUR | 0.0015934 | +7.90 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
-| NES-EUR | 0.14265 | +7.66 % | NO_CONFIRMED_SHORT_TERM_EVENT | NOT_APPLICABLE | NOT_APPLICABLE |
-| MERL-EUR | 0.028351 | +7.54 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
-| ZIL-EUR | 0.0015802 | +6.99 % | NO_CONFIRMED_SHORT_TERM_EVENT | NOT_APPLICABLE | NOT_APPLICABLE |
-| O-EUR | 0.39198 | +5.93 % | DETECTED_EARLY | NONE | INTERPRETATION |
-| ARB-EUR | 0.16017 | +5.03 % | NO_CONFIRMED_SHORT_TERM_EVENT | NOT_APPLICABLE | NOT_APPLICABLE |
-| BIO-EUR | 0.018124 | +4.66 % | NO_CONFIRMED_SHORT_TERM_EVENT | NOT_APPLICABLE | NOT_APPLICABLE |
-| BIRB-EUR | 0.08447 | +4.62 % | DETECTED_EARLY | NONE | ENTRY_TIMING_OR_EXECUTION |
-| DODO-EUR | 0.020634 | +4.56 % | NO_CONFIRMED_SHORT_TERM_EVENT | NOT_APPLICABLE | NOT_APPLICABLE |
+| INIT-EUR | 0.133858 | +25.13 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
+| BAT-EUR | 0.11491 | +7.63 % | NO_CONFIRMED_SHORT_TERM_EVENT | NOT_APPLICABLE | NOT_APPLICABLE |
+| O-EUR | 0.39877 | +7.61 % | NO_CONFIRMED_SHORT_TERM_EVENT | NOT_APPLICABLE | NOT_APPLICABLE |
+| CATI-EUR | 0.034073 | +7.56 % | NO_CONFIRMED_SHORT_TERM_EVENT | NOT_APPLICABLE | NOT_APPLICABLE |
+| YB-EUR | 0.04392 | +7.12 % | NO_CONFIRMED_SHORT_TERM_EVENT | NOT_APPLICABLE | NOT_APPLICABLE |
+| VVV-EUR | 19.5 | +6.85 % | NO_CONFIRMED_SHORT_TERM_EVENT | NOT_APPLICABLE | NOT_APPLICABLE |
+| USELESS-EUR | 0.120714 | +6.83 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
+| JUP-EUR | 0.22636 | +6.76 % | NO_CONFIRMED_SHORT_TERM_EVENT | NOT_APPLICABLE | NOT_APPLICABLE |
+| KERNEL-EUR | 0.039167 | +6.48 % | NO_CONFIRMED_SHORT_TERM_EVENT | NOT_APPLICABLE | NOT_APPLICABLE |
+| SIGN-EUR | 0.008022 | +6.39 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
 
-Historique (snapshot asynchrone) : 2300 scans ; 983990 observations ; 1665 épisodes d’achat évaluables.
+Historique (snapshot asynchrone) : 2301 scans ; 984415 observations ; 1665 épisodes d’achat évaluables.
 V5 optimisée : aucune. Supériorité sur V4 : non démontrée. Probabilités : non calibrées.
 Le cash et le portefeuille du plan sont hypothétiques. Aucun ordre réel n’est envoyé.
