@@ -1,8 +1,8 @@
 # Bitvavo — V4 mesurée / infrastructure V5
 
-Scan UTC : 2026-11-11T05:49:15.197212+00:00
-État : OK | marchés EUR : 425 | V4 : 342 | données valides : 425
-Récupération : 2026-11-11T05:48:15.801311+00:00 | âge ticker : 173.5 s | durée : 174.4 s
+Scan UTC : 2026-11-11T13:07:53.237021+00:00
+État : OK | marchés EUR : 425 | V4 : 351 | données valides : 425
+Récupération : 2026-11-11T13:06:55.029135+00:00 | âge ticker : 165.5 s | durée : 166.0 s
 
 ## ACHÈTE — signal V4 et plan théorique
 
@@ -17,17 +17,17 @@ Les intervalles sans transaction sont représentés explicitement à volume 0 ; 
 
 | Marché | Prix € | 24 h | Détection | Couche d’échec | Actionnabilité |
 |---|---:|---:|---|---|---|
-| AGI-EUR | 0.003523 | +20.61 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
-| LIGHTER-EUR | 3.0989 | +10.22 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
-| ICP-EUR | 2.3271 | +8.28 % | NO_CONFIRMED_SHORT_TERM_EVENT | NOT_APPLICABLE | NOT_APPLICABLE |
-| KITE-EUR | 0.10914 | +7.32 % | NO_CONFIRMED_SHORT_TERM_EVENT | NOT_APPLICABLE | NOT_APPLICABLE |
-| PYTH-EUR | 0.061999 | +6.74 % | NO_CONFIRMED_SHORT_TERM_EVENT | NOT_APPLICABLE | NOT_APPLICABLE |
-| CYBER-EUR | 0.2425 | +5.76 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
-| HOME-EUR | 0.004925 | +5.42 % | NO_CONFIRMED_SHORT_TERM_EVENT | NOT_APPLICABLE | NOT_APPLICABLE |
-| NES-EUR | 0.1562 | +5.28 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
-| ZRO-EUR | 1.3989 | +4.77 % | NO_CONFIRMED_SHORT_TERM_EVENT | NOT_APPLICABLE | NOT_APPLICABLE |
-| LUMIA-EUR | 0.069172 | +4.75 % | NO_CONFIRMED_SHORT_TERM_EVENT | NOT_APPLICABLE | NOT_APPLICABLE |
+| GRAM-EUR | 1.1109 | +13.74 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
+| GNS-EUR | 0.36391 | +9.67 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
+| EPIC-EUR | 0.0738 | +9.07 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
+| LAPTOP-EUR | 0.0229 | +8.58 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
+| KITE-EUR | 0.11237 | +8.36 % | NO_CONFIRMED_SHORT_TERM_EVENT | NOT_APPLICABLE | NOT_APPLICABLE |
+| NPC-EUR | 0.0126679 | +7.60 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
+| SPX-EUR | 0.33719 | +7.48 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
+| ICP-EUR | 2.2787 | +6.28 % | NO_CONFIRMED_SHORT_TERM_EVENT | NOT_APPLICABLE | NOT_APPLICABLE |
+| AGI-EUR | 0.003238 | +6.27 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
+| XMN-EUR | 0.000323 | +6.25 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
 
-Historique (snapshot asynchrone) : 2305 scans ; 986115 observations ; 1665 épisodes d’achat évaluables.
+Historique (snapshot asynchrone) : 2307 scans ; 986965 observations ; 1665 épisodes d’achat évaluables.
 V5 optimisée : aucune. Supériorité sur V4 : non démontrée. Probabilités : non calibrées.
 Le cash et le portefeuille du plan sont hypothétiques. Aucun ordre réel n’est envoyé.
