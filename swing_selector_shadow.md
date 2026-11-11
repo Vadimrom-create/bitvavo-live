@@ -1,28 +1,28 @@
 # Solaire Swing Selector — SHADOW
 
-Generated: 2026-11-10T21:19:04.720317+00:00
+Generated: 2026-11-11T06:28:53.770613+00:00
 Version: SWING_SELECTOR_V1_FROZEN_2026-10-08_R2
 No orders, no alerts, no Decision Layer changes.
 
 | Rank | Market | Score | Status | 3d | 7d | 14d | RS BTC 7d | Dist EMA50 | News mod |
 |---:|---|---:|---|---:|---:|---:|---:|---:|---:|
-| 1 | MERL-EUR | 90.24 | HUMAN_REVIEW | 9.31% | 18.80% | 18.98% | 23.62% | 16.88% | +0.00 |
-| 2 | PEPE-EUR | 88.91 | HUMAN_REVIEW | 8.58% | 9.16% | 14.79% | 13.98% | 19.67% | +0.00 |
-| 3 | MEGA-EUR | 88.37 | HUMAN_REVIEW | 0.67% | 11.66% | 1.91% | 16.47% | 12.58% | +0.00 |
-| 4 | INJ-EUR | 82.01 | HUMAN_REVIEW | -4.07% | 10.18% | -0.56% | 14.99% | 6.20% | +0.00 |
-| 5 | RSR-EUR | 81.34 | HUMAN_REVIEW | 3.95% | 13.22% | 0.44% | 18.04% | 0.50% | +0.00 |
-| 6 | LIGHTER-EUR | 80.81 | PREWATCH_PERSISTENCE_REQUIRED | 1.52% | 0.16% | 9.72% | 4.97% | -0.53% | +0.00 |
-| 7 | SXT-EUR | 80.81 | HUMAN_REVIEW | -1.34% | 9.23% | 7.94% | 14.04% | 7.26% | +0.00 |
-| 8 | ETHFI-EUR | 78.08 | HUMAN_REVIEW | 5.50% | 11.20% | -4.24% | 16.02% | 1.44% | +0.00 |
-| 9 | NES-EUR | 77.78 | HUMAN_REVIEW | 7.98% | 31.76% | 47.99% | 36.58% | 23.94% | +0.00 |
-| 10 | ACT-EUR | 76.76 | HUMAN_REVIEW | -18.91% | 18.58% | 17.62% | 23.39% | 6.22% | +0.00 |
-| 11 | CYBER-EUR | 72.71 | PERSISTENT_TOP20 | -2.60% | 21.45% | 0.95% | 26.26% | 0.28% | +0.00 |
-| 12 | OPEN-EUR | 70.59 | PERSISTENT_TOP20 | 1.41% | 6.01% | -3.24% | 10.83% | -11.97% | +0.00 |
-| 13 | CAP-EUR | 69.38 | PERSISTENT_TOP20 | -0.50% | 40.11% | 7.80% | 44.93% | 30.47% | +0.00 |
-| 14 | TREAD-EUR | 67.69 | PREWATCH_PERSISTENCE_REQUIRED | -5.91% | 10.34% | 21.27% | 15.15% | 18.19% | +0.00 |
-| 15 | KITE-EUR | 67.65 | PREWATCH_PERSISTENCE_REQUIRED | 9.74% | -1.86% | -1.88% | 2.96% | -0.76% | +0.00 |
-| 16 | TRX-EUR | 66.76 | PERSISTENT_TOP20 | -0.87% | -0.71% | -4.24% | 4.10% | -2.31% | +0.00 |
-| 17 | ACU-EUR | 65.65 | PREWATCH_PERSISTENCE_REQUIRED | 0.32% | 0.78% | -15.77% | 5.59% | 5.30% | +0.00 |
-| 18 | RENDER-EUR | 65.47 | PERSISTENT_TOP20 | 0.74% | 5.89% | -7.71% | 10.71% | -5.85% | +0.00 |
-| 19 | BEAM-EUR | 65.09 | PREWATCH_PERSISTENCE_REQUIRED | 10.09% | 4.89% | 30.49% | 9.70% | 33.92% | +0.00 |
-| 20 | ARB-EUR | 63.82 | PERSISTENT_TOP20 | -5.78% | 0.83% | -4.96% | 5.64% | -5.46% | +0.00 |
+| 1 | LIGHTER-EUR | 88.72 | HUMAN_REVIEW | 13.08% | 4.80% | 16.78% | 12.46% | 2.25% | +0.00 |
+| 2 | PEPE-EUR | 87.55 | HUMAN_REVIEW | 7.11% | 7.70% | 5.59% | 15.36% | 19.09% | +0.00 |
+| 3 | MERL-EUR | 85.99 | HUMAN_REVIEW | -1.44% | 7.69% | 16.30% | 15.36% | 10.15% | +0.00 |
+| 4 | INJ-EUR | 85.69 | HUMAN_REVIEW | 2.27% | 4.37% | 1.20% | 12.03% | 9.50% | +0.00 |
+| 5 | MEGA-EUR | 85.28 | HUMAN_REVIEW | -0.45% | 8.90% | -1.33% | 16.56% | 10.62% | +0.00 |
+| 6 | SXT-EUR | 81.12 | HUMAN_REVIEW | 8.17% | 5.80% | 6.52% | 13.46% | 7.41% | +0.00 |
+| 7 | RSR-EUR | 78.90 | HUMAN_REVIEW | -2.27% | 7.17% | -1.52% | 14.83% | 0.78% | +0.00 |
+| 8 | CAP-EUR | 76.89 | HUMAN_REVIEW | -0.12% | 5.11% | 37.76% | 12.77% | 25.62% | +0.00 |
+| 9 | PYTH-EUR | 76.87 | PREWATCH_PERSISTENCE_REQUIRED | 15.23% | 4.03% | -6.12% | 11.69% | 2.01% | +1.75 |
+| 10 | KITE-EUR | 76.60 | HUMAN_REVIEW | 14.70% | 2.77% | 4.44% | 10.43% | 3.34% | +0.00 |
+| 11 | ACU-EUR | 76.48 | PERSISTENT_TOP20 | 8.32% | 6.13% | -4.10% | 13.79% | 5.45% | +0.00 |
+| 12 | ETHFI-EUR | 76.22 | PERSISTENT_TOP20 | 9.80% | 6.37% | -7.00% | 14.03% | 0.92% | +0.00 |
+| 13 | ACT-EUR | 76.09 | PERSISTENT_TOP20 | -2.37% | 8.97% | 9.31% | 16.63% | -0.36% | +0.00 |
+| 14 | HOME-EUR | 75.99 | PREWATCH_PERSISTENCE_REQUIRED | 6.88% | 2.80% | -0.51% | 10.46% | 0.01% | +0.00 |
+| 15 | MET-EUR | 75.67 | PREWATCH_PERSISTENCE_REQUIRED | -1.00% | 3.23% | -2.02% | 10.90% | -0.10% | +0.00 |
+| 16 | ICP-EUR | 72.63 | PREWATCH_PERSISTENCE_REQUIRED | 11.89% | 0.86% | -2.08% | 8.52% | -3.02% | +1.25 |
+| 17 | NES-EUR | 72.13 | PERSISTENT_TOP20 | 13.18% | 31.78% | 54.88% | 39.44% | 26.87% | +0.00 |
+| 18 | OPEN-EUR | 71.13 | PERSISTENT_TOP20 | 2.84% | 3.38% | -2.46% | 11.05% | -10.38% | +0.00 |
+| 19 | ARB-EUR | 70.26 | PERSISTENT_TOP20 | -2.50% | 0.54% | -6.13% | 8.20% | -3.81% | +0.00 |
+| 20 | RENDER-EUR | 68.03 | PERSISTENT_TOP20 | 4.06% | -0.15% | -6.75% | 7.51% | -4.69% | +0.00 |
