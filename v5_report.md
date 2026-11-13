@@ -1,8 +1,8 @@
 # Bitvavo — V4 mesurée / infrastructure V5
 
-Scan UTC : 2026-11-12T23:01:10.832525+00:00
-État : OK | marchés EUR : 426 | V4 : 365 | données valides : 426
-Récupération : 2026-11-12T23:00:05.476970+00:00 | âge ticker : 174.9 s | durée : 175.6 s
+Scan UTC : 2026-11-13T03:30:24.916367+00:00
+État : OK | marchés EUR : 426 | V4 : 360 | données valides : 426
+Récupération : 2026-11-13T03:29:26.356632+00:00 | âge ticker : 171.2 s | durée : 172.0 s
 
 ## ACHÈTE — signal V4 et plan théorique
 
@@ -17,17 +17,17 @@ Les intervalles sans transaction sont représentés explicitement à volume 0 ; 
 
 | Marché | Prix € | 24 h | Détection | Couche d’échec | Actionnabilité |
 |---|---:|---:|---|---|---|
-| DODO-EUR | 0.025036 | +20.86 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
-| TRIA-EUR | 0.002428 | +10.21 % | NO_CONFIRMED_SHORT_TERM_EVENT | NOT_APPLICABLE | NOT_APPLICABLE |
-| CNPY-EUR | 0.1102 | +8.58 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
-| PROM-EUR | 4.5347 | +8.29 % | NO_CONFIRMED_SHORT_TERM_EVENT | NOT_APPLICABLE | NOT_APPLICABLE |
-| PLUME-EUR | 0.0126447 | +7.32 % | NO_CONFIRMED_SHORT_TERM_EVENT | NOT_APPLICABLE | NOT_APPLICABLE |
-| S-EUR | 0.033951 | +6.30 % | NO_CONFIRMED_SHORT_TERM_EVENT | NOT_APPLICABLE | NOT_APPLICABLE |
-| MOCA-EUR | 0.006282 | +6.04 % | NO_CONFIRMED_SHORT_TERM_EVENT | NOT_APPLICABLE | NOT_APPLICABLE |
-| TIA-EUR | 0.39557 | +5.78 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
-| MON-EUR | 0.015856 | +5.64 % | NO_CONFIRMED_SHORT_TERM_EVENT | NOT_APPLICABLE | NOT_APPLICABLE |
-| MERL-EUR | 0.026801 | +5.53 % | NO_CONFIRMED_SHORT_TERM_EVENT | NOT_APPLICABLE | NOT_APPLICABLE |
+| DODO-EUR | 0.024996 | +20.01 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
+| INIT-EUR | 0.08817 | +15.01 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
+| PROM-EUR | 4.4909 | +7.94 % | NO_CONFIRMED_SHORT_TERM_EVENT | NOT_APPLICABLE | NOT_APPLICABLE |
+| OSMO-EUR | 0.031647 | +4.97 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
+| TIA-EUR | 0.38807 | +4.57 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
+| BIRB-EUR | 0.06887 | +4.35 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
+| PLUME-EUR | 0.0122455 | +3.95 % | NO_CONFIRMED_SHORT_TERM_EVENT | NOT_APPLICABLE | NOT_APPLICABLE |
+| HUMA-EUR | 0.007161 | +3.74 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
+| MEGA-EUR | 0.04062 | +3.65 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
+| OPEN-EUR | 0.08302 | +3.05 % | NO_CONFIRMED_SHORT_TERM_EVENT | NOT_APPLICABLE | NOT_APPLICABLE |
 
-Historique (snapshot asynchrone) : 2312 scans ; 989091 observations ; 1665 épisodes d’achat évaluables.
+Historique (snapshot asynchrone) : 2313 scans ; 989517 observations ; 1665 épisodes d’achat évaluables.
 V5 optimisée : aucune. Supériorité sur V4 : non démontrée. Probabilités : non calibrées.
 Le cash et le portefeuille du plan sont hypothétiques. Aucun ordre réel n’est envoyé.
