@@ -1,8 +1,8 @@
 # Bitvavo — V4 mesurée / infrastructure V5
 
-Scan UTC : 2026-11-15T01:15:16.565008+00:00
-État : OK | marchés EUR : 426 | V4 : 388 | données valides : 426
-Récupération : 2026-11-15T01:14:12.115543+00:00 | âge ticker : 174.3 s | durée : 175.1 s
+Scan UTC : 2026-11-15T07:57:35.916128+00:00
+État : OK | marchés EUR : 426 | V4 : 383 | données valides : 426
+Récupération : 2026-11-15T07:56:34.807779+00:00 | âge ticker : 165.8 s | durée : 166.3 s
 
 ## ACHÈTE — signal V4 et plan théorique
 
@@ -17,17 +17,17 @@ Les intervalles sans transaction sont représentés explicitement à volume 0 ; 
 
 | Marché | Prix € | 24 h | Détection | Couche d’échec | Actionnabilité |
 |---|---:|---:|---|---|---|
-| BOB-EUR | 0.003555 | +20.40 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
-| PROMPT-EUR | 0.014403 | +18.54 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
-| DODO-EUR | 0.029112 | +7.53 % | DETECTED_EARLY | NONE | ENTRY_TIMING_OR_EXECUTION |
-| THQ-EUR | 0.007988 | +5.83 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
-| ALLO-EUR | 0.137741 | +3.00 % | NO_CONFIRMED_SHORT_TERM_EVENT | NOT_APPLICABLE | NOT_APPLICABLE |
-| CAP-EUR | 0.0994493 | +2.59 % | DETECTED_EARLY | NONE | ENTRY_TIMING_OR_EXECUTION |
-| TAI-EUR | 0.00216 | +2.22 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
-| XDP-EUR | 0.01561 | +1.82 % | NO_CONFIRMED_SHORT_TERM_EVENT | NOT_APPLICABLE | NOT_APPLICABLE |
-| MERL-EUR | 0.028324 | +1.26 % | NO_CONFIRMED_SHORT_TERM_EVENT | NOT_APPLICABLE | NOT_APPLICABLE |
-| CTR-EUR | 0.012987 | +0.85 % | NO_CONFIRMED_SHORT_TERM_EVENT | NOT_APPLICABLE | NOT_APPLICABLE |
+| NES-EUR | 0.1445 | +20.38 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
+| BOB-EUR | 0.003543 | +19.13 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
+| PROMPT-EUR | 0.01303 | +11.00 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
+| MEGA-EUR | 0.04437 | +9.18 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
+| VVV-EUR | 17.2884 | +5.57 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
+| INIT-EUR | 0.07262 | +4.86 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
+| GIGA-EUR | 0.0014742 | +4.45 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
+| THQ-EUR | 0.007859 | +4.34 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
+| KITE-EUR | 0.12008 | +3.53 % | NO_CONFIRMED_SHORT_TERM_EVENT | NOT_APPLICABLE | NOT_APPLICABLE |
+| XAN-EUR | 0.0072374 | +2.98 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
 
-Historique (snapshot asynchrone) : 2321 scans ; 992925 observations ; 1665 épisodes d’achat évaluables.
+Historique (snapshot asynchrone) : 2322 scans ; 993351 observations ; 1665 épisodes d’achat évaluables.
 V5 optimisée : aucune. Supériorité sur V4 : non démontrée. Probabilités : non calibrées.
 Le cash et le portefeuille du plan sont hypothétiques. Aucun ordre réel n’est envoyé.
