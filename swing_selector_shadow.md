@@ -1,28 +1,28 @@
 # Solaire Swing Selector — SHADOW
 
-Generated: 2026-11-15T22:51:17.401838+00:00
+Generated: 2026-11-16T06:34:43.132206+00:00
 Version: SWING_SELECTOR_V1_FROZEN_2026-10-08_R2
 No orders, no alerts, no Decision Layer changes.
 
 | Rank | Market | Score | Status | 3d | 7d | 14d | RS BTC 7d | Dist EMA50 | News mod |
 |---:|---|---:|---|---:|---:|---:|---:|---:|---:|
-| 1 | JUP-EUR | 88.67 | HUMAN_REVIEW | -0.36% | 14.68% | 3.65% | 26.88% | -1.30% | +0.00 |
-| 2 | MEGA-EUR | 86.81 | WAIT_PULLBACK_OR_NORMALIZATION | 6.57% | -0.20% | 13.88% | 12.00% | 10.74% | +0.00 |
-| 3 | CROSS-EUR | 86.71 | HUMAN_REVIEW | 0.40% | 13.88% | 2.75% | 26.08% | -0.05% | +0.00 |
-| 4 | MERL-EUR | 85.18 | HUMAN_REVIEW | 5.54% | 0.68% | 2.62% | 12.88% | 11.15% | +0.00 |
-| 5 | PROM-EUR | 81.42 | HUMAN_REVIEW | 5.84% | 2.68% | -4.34% | 14.88% | 2.23% | +0.00 |
-| 6 | HMSTR-EUR | 80.42 | HUMAN_REVIEW | 0.86% | 9.37% | 0.47% | 21.57% | -4.90% | +0.00 |
-| 7 | CAP-EUR | 79.41 | HUMAN_REVIEW | 2.95% | 7.58% | 52.07% | 19.78% | 27.93% | +0.00 |
-| 8 | KITE-EUR | 77.41 | HUMAN_REVIEW | 13.59% | 35.73% | 17.91% | 47.93% | 19.83% | +0.00 |
-| 9 | ACU-EUR | 76.18 | HUMAN_REVIEW | -4.28% | 4.67% | -6.98% | 16.87% | 0.91% | +0.00 |
-| 10 | WLFI-EUR | 75.30 | HUMAN_REVIEW | 0.82% | 3.45% | -4.05% | 15.65% | -6.64% | +0.00 |
-| 11 | SCR-EUR | 73.20 | PERSISTENT_TOP20 | 3.69% | 11.82% | -7.67% | 24.02% | -8.37% | +0.00 |
-| 12 | LUMIA-EUR | 71.98 | PERSISTENT_TOP20 | -1.63% | 8.14% | -0.96% | 20.34% | -4.98% | +0.00 |
-| 13 | SOLV-EUR | 71.12 | PERSISTENT_TOP20 | 0.26% | 4.07% | -15.87% | 16.26% | 2.41% | +0.00 |
-| 14 | DODO-EUR | 70.87 | PERSISTENT_TOP20 | 11.55% | 42.74% | 41.93% | 54.94% | 39.93% | +0.00 |
-| 15 | XDP-EUR | 70.26 | PERSISTENT_TOP20 | 4.43% | 18.61% | -3.19% | 30.81% | —% | +0.00 |
-| 16 | SXT-EUR | 70.13 | PERSISTENT_TOP20 | -13.73% | -0.67% | 5.21% | 11.53% | -2.24% | +0.00 |
-| 17 | PORTAL-EUR | 66.06 | PREWATCH_PERSISTENCE_REQUIRED | -3.97% | 2.95% | -8.09% | 15.15% | -12.31% | +0.00 |
-| 18 | RARE-EUR | 65.90 | PREWATCH_PERSISTENCE_REQUIRED | 46.79% | 35.07% | 17.03% | 47.27% | 17.10% | +0.00 |
-| 19 | VVV-EUR | 64.14 | PREWATCH_PERSISTENCE_REQUIRED | 7.38% | 2.26% | -10.22% | 14.46% | -7.07% | +0.00 |
-| 20 | OPEN-EUR | 62.72 | PERSISTENT_TOP20 | -9.31% | -2.69% | 5.03% | 9.51% | -13.41% | +0.00 |
+| 1 | KITE-EUR | 92.84 | HUMAN_REVIEW | 3.66% | 20.24% | 16.11% | 33.10% | 11.95% | +0.00 |
+| 2 | CROSS-EUR | 86.24 | HUMAN_REVIEW | 6.14% | 20.53% | 10.40% | 33.39% | 6.61% | +0.00 |
+| 3 | JUP-EUR | 85.74 | HUMAN_REVIEW | -1.24% | 5.13% | 9.68% | 17.99% | -2.61% | +0.00 |
+| 4 | MEGA-EUR | 85.73 | HUMAN_REVIEW | 8.70% | -0.38% | 9.61% | 12.47% | 9.05% | +0.00 |
+| 5 | PROM-EUR | 81.63 | HUMAN_REVIEW | 4.55% | 2.72% | 0.10% | 15.57% | 2.67% | +0.00 |
+| 6 | SOLV-EUR | 79.36 | HUMAN_REVIEW | 5.56% | 3.76% | -3.37% | 16.61% | 7.80% | +0.00 |
+| 7 | CAP-EUR | 78.07 | HUMAN_REVIEW | 0.62% | 10.92% | 49.71% | 23.77% | 27.84% | +0.00 |
+| 8 | SCR-EUR | 75.18 | HUMAN_REVIEW | 1.68% | 8.36% | -4.95% | 21.22% | -6.61% | +0.00 |
+| 9 | ACU-EUR | 75.14 | HUMAN_REVIEW | -6.57% | -0.16% | 0.29% | 12.69% | 1.38% | +0.00 |
+| 10 | XDC-EUR | 72.32 | PREWATCH_PERSISTENCE_REQUIRED | 1.67% | 1.37% | -3.06% | 14.22% | -3.48% | +0.00 |
+| 11 | XDP-EUR | 71.80 | PERSISTENT_TOP20 | 0.02% | 10.22% | -2.60% | 23.07% | -5.95% | +0.00 |
+| 12 | MERL-EUR | 71.12 | PERSISTENT_TOP20 | -1.89% | -5.85% | 5.44% | 7.01% | 7.00% | +0.00 |
+| 13 | DODO-EUR | 71.09 | PERSISTENT_TOP20 | 9.49% | 41.41% | 48.02% | 54.26% | 41.43% | +0.00 |
+| 14 | RARE-EUR | 70.62 | PERSISTENT_TOP20 | 43.04% | 30.42% | 13.77% | 43.27% | 9.73% | +0.00 |
+| 15 | GRAM-EUR | 66.62 | PREWATCH_PERSISTENCE_REQUIRED | -3.37% | 3.90% | -9.71% | 16.75% | -13.03% | +0.00 |
+| 16 | WLFI-EUR | 64.64 | PERSISTENT_TOP20 | -1.54% | -1.15% | -5.82% | 11.70% | -8.19% | +0.00 |
+| 17 | SIGN-EUR | 61.99 | PREWATCH_PERSISTENCE_REQUIRED | 2.95% | -0.18% | -9.83% | 12.68% | -12.54% | +0.00 |
+| 18 | SENT-EUR | 61.53 | PREWATCH_PERSISTENCE_REQUIRED | 0.57% | 6.03% | -13.28% | 18.88% | -8.59% | +0.00 |
+| 19 | ZBCN-EUR | 60.94 | PREWATCH_PERSISTENCE_REQUIRED | -1.38% | 3.11% | -7.50% | 15.96% | -7.96% | +0.00 |
+| 20 | ALLO-EUR | 59.20 | PREWATCH_PERSISTENCE_REQUIRED | -1.06% | 1.89% | -5.58% | 14.75% | -20.64% | +0.00 |
