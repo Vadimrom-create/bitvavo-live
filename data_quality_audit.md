@@ -1,8 +1,8 @@
 # Audit qualité des données Bitvavo
 
-Scan : 2026-11-17T05:30:29.252049+00:00 (20261117T052828Z-1816f3e6)
-Univers : 426 | strategy-grade : 426 | rejetés : 0
-5m valides : 426 | 15m valides : 426 | deux intervalles valides : 426
+Scan : 2026-11-17T14:41:41.123172+00:00 (20261117T143947Z-b874a872)
+Univers : 425 | strategy-grade : 425 | rejetés : 0
+5m valides : 425 | 15m valides : 425 | deux intervalles valides : 425
 
 ## Causes de rejet globales
 
