@@ -1,6 +1,6 @@
 # Decision Layer V1 + boucle de contrôle — shadow
 
-Scan : 2026-11-17T22:47:12.285116+00:00
+Scan : 2026-11-18T04:00:29.232412+00:00
 Policy : DECISION_LAYER_V1_SHADOW au-dessus de V4_FROZEN_20260908
 
 Cette couche ne modifie aucun score V4 et ne peut envoyer aucun ordre.
@@ -11,7 +11,8 @@ Entry est un indicateur de timing, pas un veto structurel.
 - **MEILLEUR_ACHAT_IMMEDIAT** : aucun candidat matériel
 - **MEILLEURE_LIMITE_PASSIVE** : aucun candidat matériel
 - **MEILLEUR_LATENT_ACCELERATOR** : aucun candidat matériel
-- **MEILLEUR_PULLBACK_REENTRY** : aucun candidat matériel
+- **MEILLEUR_PULLBACK_REENTRY** : HMSTR-EUR | action ATTENDS_REPRISE_OU_REENTREE | opportunité 6.691 | entrée 5.500 | trend 7.800 | rang 6.535
+  - Trend remains strong; candidate retained for re-entry instead of discarded.
 
 ## Tous les achats immédiats
 
@@ -20,39 +21,39 @@ Aucun ACHETE_MAINTENANT dans le classement complet.
 ## Top cross-sectionnel — aperçu non exhaustif
 
 Ce top est une vue courte multi-buckets. Il ne doit jamais être utilisé comme liste exhaustive des achats immédiats.
-Aucun candidat ne remplit actuellement un bucket décisionnel.
+1. HMSTR-EUR — MEILLEUR_PULLBACK_REENTRY — ATTENDS_REPRISE_OU_REENTREE — rank 6.535
 
 ## Accélération indépendante
 
-- BLEND-EUR — BUILDING_ACCELERATION — score 5.183/10 — REQUIRES_FINAL_EXECUTION_VALIDATION
-- ACT-EUR — BUILDING_ACCELERATION — score 5.162/10 — REQUIRES_FINAL_EXECUTION_VALIDATION
-- IKA-EUR — BUILDING_ACCELERATION — score 4.910/10 — REQUIRES_FINAL_EXECUTION_VALIDATION
+- MMT-EUR — CONFIRMED_ACCELERATION — score 9.871/10 — DETECTED_BUT_TOO_LATE
+- WHUF-EUR — CONFIRMED_ACCELERATION — score 6.679/10 — REQUIRES_FINAL_EXECUTION_VALIDATION
+- DRV-EUR — BUILDING_ACCELERATION — score 5.459/10 — REQUIRES_FINAL_EXECUTION_VALIDATION
 
 ## Watchlist persistante 24–72 h
 
-- HFT-EUR — MEMORY_24H — score mémoire 9.204/10 — sources ACCELERATION — MEMORY_ONLY
+- MMT-EUR — ACTIVE_NOW — score mémoire 9.871/10 — sources ACCELERATION — DETECTED_BUT_TOO_LATE
+- HFT-EUR — MEMORY_DECAY_24_72H — score mémoire 8.433/10 — sources ACCELERATION — MEMORY_ONLY
 - GLMR-EUR — MEMORY_24H — score mémoire 7.896/10 — sources ACCELERATION — MEMORY_ONLY
 - EPIC-EUR — MEMORY_24H — score mémoire 7.286/10 — sources ACCELERATION — MEMORY_ONLY
+- DODO-EUR — ACTIVE_NOW — score mémoire 7.192/10 — sources ACCELERATION, DECISION_LAYER, V4 — WATCH_ONLY
 - BREV-EUR — MEMORY_24H — score mémoire 7.033/10 — sources ACCELERATION — MEMORY_ONLY
-- HMSTR-EUR — ACTIVE_NOW — score mémoire 6.886/10 — sources V4 — WATCH_ONLY
-- DODO-EUR — MEMORY_24H — score mémoire 6.603/10 — sources ACCELERATION, DECISION_LAYER, V4 — MEMORY_ONLY
+- WHUF-EUR — ACTIVE_NOW — score mémoire 6.679/10 — sources ACCELERATION — WATCH_ONLY
 - KITE-EUR — MEMORY_24H — score mémoire 6.576/10 — sources DECISION_LAYER, V4 — MEMORY_ONLY
+- HMSTR-EUR — ACTIVE_NOW — score mémoire 6.535/10 — sources DECISION_LAYER, V4 — WATCH_ONLY
 - INIT-EUR — MEMORY_24H — score mémoire 6.426/10 — sources ACCELERATION — MEMORY_ONLY
-- FARTCOIN-EUR — MEMORY_24H — score mémoire 5.933/10 — sources ACCELERATION — MEMORY_ONLY
-- SQD-EUR — MEMORY_24H — score mémoire 5.871/10 — sources ACCELERATION — MEMORY_ONLY
 
 ## Audit des plus fortes hausses
 
-- BREV-EUR +102.48% — INSUFFICIENT_HISTORY — couche HISTORY — action NOT_APPLICABLE
-- MMT-EUR +28.83% — INSUFFICIENT_HISTORY — couche HISTORY — action NOT_APPLICABLE
-- NES-EUR +24.60% — INSUFFICIENT_HISTORY — couche HISTORY — action NOT_APPLICABLE
-- ICNT-EUR +18.25% — INSUFFICIENT_HISTORY — couche HISTORY — action NOT_APPLICABLE
-- UP-EUR +17.32% — INSUFFICIENT_HISTORY — couche HISTORY — action NOT_APPLICABLE
-- LUNA-EUR +12.33% — INSUFFICIENT_HISTORY — couche HISTORY — action NOT_APPLICABLE
-- TREAD-EUR +11.52% — INSUFFICIENT_HISTORY — couche HISTORY — action NOT_APPLICABLE
-- TRUST-EUR +10.36% — INSUFFICIENT_HISTORY — couche HISTORY — action NOT_APPLICABLE
-- CROSS-EUR +10.11% — INSUFFICIENT_HISTORY — couche HISTORY — action NOT_APPLICABLE
-- SHELL-EUR +9.70% — INSUFFICIENT_HISTORY — couche HISTORY — action NOT_APPLICABLE
+- BREV-EUR +94.94% — INSUFFICIENT_HISTORY — couche HISTORY — action NOT_APPLICABLE
+- MMT-EUR +32.28% — INSUFFICIENT_HISTORY — couche HISTORY — action NOT_APPLICABLE
+- QUID-EUR +27.08% — INSUFFICIENT_HISTORY — couche HISTORY — action NOT_APPLICABLE
+- NES-EUR +24.64% — INSUFFICIENT_HISTORY — couche HISTORY — action NOT_APPLICABLE
+- ICNT-EUR +20.13% — INSUFFICIENT_HISTORY — couche HISTORY — action NOT_APPLICABLE
+- UP-EUR +12.36% — INSUFFICIENT_HISTORY — couche HISTORY — action NOT_APPLICABLE
+- TREAD-EUR +10.97% — INSUFFICIENT_HISTORY — couche HISTORY — action NOT_APPLICABLE
+- WHUF-EUR +9.79% — INSUFFICIENT_HISTORY — couche HISTORY — action NOT_APPLICABLE
+- TLM-EUR +8.46% — INSUFFICIENT_HISTORY — couche HISTORY — action NOT_APPLICABLE
+- SENT-EUR +8.14% — NO_CONFIRMED_SHORT_TERM_EVENT — couche NOT_APPLICABLE — action NOT_APPLICABLE
 
 ## Gestion des positions détenues
 

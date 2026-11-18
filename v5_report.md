@@ -1,8 +1,8 @@
 # Bitvavo — V4 mesurée / infrastructure V5
 
-Scan UTC : 2026-11-17T22:47:12.285116+00:00
-État : OK | marchés EUR : 425 | V4 : 365 | données valides : 425
-Récupération : 2026-11-17T22:46:13.101178+00:00 | âge ticker : 176.1 s | durée : 178.4 s
+Scan UTC : 2026-11-18T04:00:29.232412+00:00
+État : OK | marchés EUR : 425 | V4 : 370 | données valides : 425
+Récupération : 2026-11-18T03:59:25.900085+00:00 | âge ticker : 175.4 s | durée : 176.2 s
 
 ## ACHÈTE — signal V4 et plan théorique
 
@@ -12,23 +12,23 @@ Les intervalles sans transaction sont représentés explicitement à volume 0 ; 
 
 ## SURVEILLE
 
-- HMSTR-EUR : 0.00013218 € ; score 76.99/100 ; SURVEILLE ; seuil achat non atteint
+- DODO-EUR : 0.031561 € ; score 72.41/100 ; SURVEILLE ; seuil achat non atteint
 
 ## Contrôle des hausses
 
 | Marché | Prix € | 24 h | Détection | Couche d’échec | Actionnabilité |
 |---|---:|---:|---|---|---|
-| BREV-EUR | 0.10302 | +102.48 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
-| MMT-EUR | 0.13021 | +28.83 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
-| NES-EUR | 0.18283 | +24.60 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
-| ICNT-EUR | 0.24576 | +18.25 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
-| UP-EUR | 0.048714 | +17.32 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
-| LUNA-EUR | 3.6967e-05 | +12.33 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
-| TREAD-EUR | 0.80981 | +11.52 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
-| TRUST-EUR | 0.043072 | +10.36 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
-| CROSS-EUR | 0.145962 | +10.11 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
-| SHELL-EUR | 0.025568 | +9.70 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
+| BREV-EUR | 0.101 | +94.94 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
+| MMT-EUR | 0.13858 | +32.28 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
+| QUID-EUR | 0.0505 | +27.08 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
+| NES-EUR | 0.19157 | +24.64 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
+| ICNT-EUR | 0.2545 | +20.13 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
+| UP-EUR | 0.050303 | +12.36 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
+| TREAD-EUR | 0.82201 | +10.97 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
+| WHUF-EUR | 1.4642 | +9.79 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
+| TLM-EUR | 0.0009321 | +8.46 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
+| SENT-EUR | 0.017353 | +8.14 % | NO_CONFIRMED_SHORT_TERM_EVENT | NOT_APPLICABLE | NOT_APPLICABLE |
 
-Historique (snapshot asynchrone) : 2330 scans ; 996759 observations ; 1665 épisodes d’achat évaluables.
+Historique (snapshot asynchrone) : 2331 scans ; 997184 observations ; 1665 épisodes d’achat évaluables.
 V5 optimisée : aucune. Supériorité sur V4 : non démontrée. Probabilités : non calibrées.
 Le cash et le portefeuille du plan sont hypothétiques. Aucun ordre réel n’est envoyé.
