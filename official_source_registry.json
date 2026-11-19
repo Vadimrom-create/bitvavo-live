@@ -3,12 +3,12 @@
   "coverage": {
     "active_markets": 424,
     "attempted_this_run": 40,
-    "coverage_pct": 74.76,
+    "coverage_pct": 75.0,
     "errors_this_run": 0,
     "resolved_this_run": 1,
-    "with_any_official_source": 317,
-    "with_official_page": 314,
-    "with_official_x": 310
+    "with_any_official_source": 318,
+    "with_official_page": 315,
+    "with_official_x": 311
   },
   "markets": {
     "0G-EUR": {
@@ -6852,15 +6852,18 @@
       "announcement_urls": [],
       "coingecko_id": "tars-protocol",
       "coingecko_resolution": "SYMBOL_AND_NAME",
-      "discovery_error": "HTTPError: HTTP Error 429: Too Many Requests",
-      "discovery_status": "DISCOVERY_ERROR",
-      "homepage": [],
+      "discovery_status": "DISCOVERED",
+      "homepage": [
+        "https://tars.pro/"
+      ],
+      "link_discovery_source": "COINGECKO_DIRECTORY",
+      "links_are_project_sources": true,
       "market": "TAI-EUR",
       "medium": [],
       "official_forum_urls": [],
       "project_name": "TARS AI",
       "symbol": "TAI",
-      "x_handle": null
+      "x_handle": "tarsprotocol"
     },
     "TAIKO-EUR": {
       "active_on_bitvavo": true,
@@ -8030,5 +8033,5 @@
     }
   },
   "schema": "solaire_official_source_registry_v1",
-  "updated_at_ts": 1795094046.3172429
+  "updated_at_ts": 1795124429.917251
 }
