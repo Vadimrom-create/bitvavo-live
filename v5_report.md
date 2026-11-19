@@ -1,8 +1,8 @@
 # Bitvavo — V4 mesurée / infrastructure V5
 
-Scan UTC : 2026-11-18T20:51:41.316632+00:00
+Scan UTC : 2026-11-19T02:12:28.668872+00:00
 État : OK | marchés EUR : 425 | V4 : 360 | données valides : 425
-Récupération : 2026-11-18T20:50:39.159080+00:00 | âge ticker : 169.1 s | durée : 169.8 s
+Récupération : 2026-11-19T02:11:28.042935+00:00 | âge ticker : 167.9 s | durée : 170.2 s
 
 ## ACHÈTE — signal V4 et plan théorique
 
@@ -12,23 +12,23 @@ Les intervalles sans transaction sont représentés explicitement à volume 0 ; 
 
 ## SURVEILLE
 
-- MEGA-EUR : 0.04934 € ; score 72.04/100 ; SURVEILLE ; seuil achat non atteint
+- DODO-EUR : 0.031788 € ; score 82.59/100 ; SURVEILLE ; seuil achat non atteint
 
 ## Contrôle des hausses
 
 | Marché | Prix € | 24 h | Détection | Couche d’échec | Actionnabilité |
 |---|---:|---:|---|---|---|
-| MMT-EUR | 0.22609 | +78.60 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
-| ICNT-EUR | 0.29916 | +33.26 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
-| ZKC-EUR | 0.027058 | +25.08 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
-| WHUF-EUR | 1.5469 | +20.95 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
-| IRYS-EUR | 0.015991 | +20.83 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
-| ZIL-EUR | 0.000995 | +19.48 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
-| SOON-EUR | 0.25449 | +19.14 % | NO_CONFIRMED_SHORT_TERM_EVENT | NOT_APPLICABLE | NOT_APPLICABLE |
-| NES-EUR | 0.21536 | +17.28 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
-| HUMA-EUR | 0.007705 | +14.15 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
-| ZKP-EUR | 0.031348 | +10.93 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
+| IRYS-EUR | 0.022012 | +66.62 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
+| MMT-EUR | 0.19672 | +52.25 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
+| CROSS-EUR | 0.164326 | +26.07 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
+| HUMA-EUR | 0.0082 | +21.73 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
+| NES-EUR | 0.21787 | +20.08 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
+| ICNT-EUR | 0.29325 | +18.07 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
+| PUFFER-EUR | 0.02187 | +16.26 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
+| SENT-EUR | 0.019817 | +15.94 % | NO_CONFIRMED_SHORT_TERM_EVENT | NOT_APPLICABLE | NOT_APPLICABLE |
+| WHUF-EUR | 1.6496 | +15.10 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
+| ZKC-EUR | 0.024508 | +13.33 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
 
-Historique (snapshot asynchrone) : 2334 scans ; 998459 observations ; 1665 épisodes d’achat évaluables.
+Historique (snapshot asynchrone) : 2335 scans ; 998884 observations ; 1665 épisodes d’achat évaluables.
 V5 optimisée : aucune. Supériorité sur V4 : non démontrée. Probabilités : non calibrées.
 Le cash et le portefeuille du plan sont hypothétiques. Aucun ordre réel n’est envoyé.
