@@ -1,11 +1,11 @@
 {
-  "active_market_count": 425,
+  "active_market_count": 424,
   "coverage": {
-    "active_markets": 425,
+    "active_markets": 424,
     "attempted_this_run": 40,
-    "coverage_pct": 74.59,
+    "coverage_pct": 74.76,
     "errors_this_run": 0,
-    "resolved_this_run": 0,
+    "resolved_this_run": 1,
     "with_any_official_source": 317,
     "with_official_page": 314,
     "with_official_x": 310
@@ -1789,7 +1789,7 @@
       "x_handle": "CoWSwap"
     },
     "CPOOL-EUR": {
-      "active_on_bitvavo": true,
+      "active_on_bitvavo": false,
       "announcement_urls": [
         "https://clearpool.medium.com/"
       ],
@@ -6831,16 +6831,21 @@
     "T-EUR": {
       "active_on_bitvavo": true,
       "announcement_urls": [],
-      "coingecko_id": null,
-      "coingecko_resolution": "AMBIGUOUS_SYMBOL",
-      "discovery_status": "AMBIGUOUS_SYMBOL",
-      "homepage": [],
+      "coingecko_id": "threshold-network-token",
+      "coingecko_resolution": "UNIQUE_SYMBOL",
+      "discovery_status": "DISCOVERED",
+      "homepage": [
+        "https://threshold.network/",
+        "https://blog.threshold.network/"
+      ],
+      "link_discovery_source": "COINGECKO_DIRECTORY",
+      "links_are_project_sources": true,
       "market": "T-EUR",
       "medium": [],
       "official_forum_urls": [],
       "project_name": "Threshold",
       "symbol": "T",
-      "x_handle": null
+      "x_handle": "TheTNetwork"
     },
     "TAI-EUR": {
       "active_on_bitvavo": true,
@@ -8025,5 +8030,5 @@
     }
   },
   "schema": "solaire_official_source_registry_v1",
-  "updated_at_ts": 1795061381.2948415
+  "updated_at_ts": 1795094046.3172429
 }
