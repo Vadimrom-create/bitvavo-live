@@ -3,12 +3,12 @@
   "coverage": {
     "active_markets": 424,
     "attempted_this_run": 40,
-    "coverage_pct": 75.0,
+    "coverage_pct": 75.24,
     "errors_this_run": 0,
     "resolved_this_run": 1,
-    "with_any_official_source": 318,
-    "with_official_page": 315,
-    "with_official_x": 311
+    "with_any_official_source": 319,
+    "with_official_page": 316,
+    "with_official_x": 312
   },
   "markets": {
     "0G-EUR": {
@@ -6870,15 +6870,21 @@
       "announcement_urls": [],
       "coingecko_id": "taiko",
       "coingecko_resolution": "SYMBOL_AND_NAME",
-      "discovery_error": "HTTPError: HTTP Error 429: Too Many Requests",
-      "discovery_status": "DISCOVERY_ERROR",
-      "homepage": [],
+      "discovery_status": "DISCOVERED",
+      "homepage": [
+        "https://taiko.xyz"
+      ],
+      "link_discovery_source": "COINGECKO_DIRECTORY",
+      "links_are_project_sources": true,
       "market": "TAIKO-EUR",
       "medium": [],
-      "official_forum_urls": [],
+      "official_forum_urls": [
+        "https://taiko.mirror.xyz/",
+        "https://community.taiko.xyz/"
+      ],
       "project_name": "Taiko",
       "symbol": "TAIKO",
-      "x_handle": null
+      "x_handle": "taikoxyz"
     },
     "TAO-EUR": {
       "active_on_bitvavo": true,
@@ -8033,5 +8039,5 @@
     }
   },
   "schema": "solaire_official_source_registry_v1",
-  "updated_at_ts": 1795124429.917251
+  "updated_at_ts": 1795142604.9364378
 }
