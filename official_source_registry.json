@@ -3,12 +3,12 @@
   "coverage": {
     "active_markets": 424,
     "attempted_this_run": 40,
-    "coverage_pct": 75.24,
+    "coverage_pct": 75.47,
     "errors_this_run": 0,
     "resolved_this_run": 1,
-    "with_any_official_source": 319,
-    "with_official_page": 316,
-    "with_official_x": 312
+    "with_any_official_source": 320,
+    "with_official_page": 317,
+    "with_official_x": 313
   },
   "markets": {
     "0G-EUR": {
@@ -6891,15 +6891,19 @@
       "announcement_urls": [],
       "coingecko_id": "bittensor",
       "coingecko_resolution": "SYMBOL_AND_NAME",
-      "discovery_error": "HTTPError: HTTP Error 429: Too Many Requests",
-      "discovery_status": "DISCOVERY_ERROR",
-      "homepage": [],
+      "discovery_status": "DISCOVERED",
+      "homepage": [
+        "https://bittensor.com/",
+        "https://docs.bittensor.com/"
+      ],
+      "link_discovery_source": "COINGECKO_DIRECTORY",
+      "links_are_project_sources": true,
       "market": "TAO-EUR",
       "medium": [],
       "official_forum_urls": [],
       "project_name": "Bittensor",
       "symbol": "TAO",
-      "x_handle": null
+      "x_handle": "opentensor"
     },
     "THE-EUR": {
       "active_on_bitvavo": true,
@@ -8039,5 +8043,5 @@
     }
   },
   "schema": "solaire_official_source_registry_v1",
-  "updated_at_ts": 1795142604.9364378
+  "updated_at_ts": 1795171078.726826
 }
