@@ -1,8 +1,8 @@
 # Bitvavo — V4 mesurée / infrastructure V5
 
-Scan UTC : 2026-11-20T01:19:00.826228+00:00
-État : OK | marchés EUR : 424 | V4 : 352 | données valides : 424
-Récupération : 2026-11-20T01:18:00.728139+00:00 | âge ticker : 166.5 s | durée : 167.6 s
+Scan UTC : 2026-11-20T08:46:43.476025+00:00
+État : OK | marchés EUR : 424 | V4 : 369 | données valides : 424
+Récupération : 2026-11-20T08:45:43.748417+00:00 | âge ticker : 174.4 s | durée : 175.2 s
 
 ## ACHÈTE — signal V4 et plan théorique
 
@@ -17,17 +17,17 @@ Les intervalles sans transaction sont représentés explicitement à volume 0 ; 
 
 | Marché | Prix € | 24 h | Détection | Couche d’échec | Actionnabilité |
 |---|---:|---:|---|---|---|
-| ICNT-EUR | 0.39245 | +29.77 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
-| PUFFER-EUR | 0.025161 | +27.12 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
-| IKA-EUR | 0.0006316 | +26.32 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
-| MMT-EUR | 0.23959 | +20.76 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
-| NES-EUR | 0.25996 | +20.22 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
-| RARE-EUR | 0.012077 | +17.62 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
-| YB-EUR | 0.04888 | +16.35 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
-| CTR-EUR | 0.016 | +16.20 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
-| HUMA-EUR | 0.009202 | +15.20 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
-| LAPTOP-EUR | 0.01908 | +10.80 % | DETECTED_EARLY | NONE | INTERPRETATION |
+| IKA-EUR | 0.00083 | +64.06 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
+| CYBER-EUR | 0.27961 | +50.57 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
+| MMT-EUR | 0.22591 | +26.65 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
+| TREAD-EUR | 0.94532 | +14.62 % | DETECTED_EARLY | NONE | INTERPRETATION |
+| DOS-EUR | 0.17496 | +14.62 % | NO_CONFIRMED_SHORT_TERM_EVENT | NOT_APPLICABLE | NOT_APPLICABLE |
+| CAP-EUR | 0.0879809 | +13.36 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
+| ICNT-EUR | 0.40304 | +12.94 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
+| NES-EUR | 0.2534 | +12.90 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
+| YB-EUR | 0.04693 | +11.82 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
+| HUMA-EUR | 0.008331 | +11.39 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
 
-Historique (snapshot asynchrone) : 2338 scans ; 1000158 observations ; 1665 épisodes d’achat évaluables.
+Historique (snapshot asynchrone) : 2339 scans ; 1000582 observations ; 1665 épisodes d’achat évaluables.
 V5 optimisée : aucune. Supériorité sur V4 : non démontrée. Probabilités : non calibrées.
 Le cash et le portefeuille du plan sont hypothétiques. Aucun ordre réel n’est envoyé.
