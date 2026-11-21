@@ -3,12 +3,12 @@
   "coverage": {
     "active_markets": 424,
     "attempted_this_run": 40,
-    "coverage_pct": 76.18,
+    "coverage_pct": 76.42,
     "errors_this_run": 0,
     "resolved_this_run": 1,
-    "with_any_official_source": 323,
-    "with_official_page": 320,
-    "with_official_x": 316
+    "with_any_official_source": 324,
+    "with_official_page": 321,
+    "with_official_x": 317
   },
   "markets": {
     "0G-EUR": {
@@ -6971,18 +6971,23 @@
     },
     "TLM-EUR": {
       "active_on_bitvavo": true,
-      "announcement_urls": [],
+      "announcement_urls": [
+        "https://medium.com/@alienworlds"
+      ],
       "coingecko_id": "alien-worlds",
       "coingecko_resolution": "SYMBOL_AND_NAME",
-      "discovery_error": "HTTPError: HTTP Error 429: Too Many Requests",
-      "discovery_status": "DISCOVERY_ERROR",
-      "homepage": [],
+      "discovery_status": "DISCOVERED",
+      "homepage": [
+        "https://alienworlds.io/"
+      ],
+      "link_discovery_source": "COINGECKO_DIRECTORY",
+      "links_are_project_sources": true,
       "market": "TLM-EUR",
       "medium": [],
       "official_forum_urls": [],
       "project_name": "Alien Worlds",
       "symbol": "TLM",
-      "x_handle": null
+      "x_handle": "alienworlds"
     },
     "TNSR-EUR": {
       "active_on_bitvavo": true,
@@ -8062,5 +8067,5 @@
     }
   },
   "schema": "solaire_official_source_registry_v1",
-  "updated_at_ts": 1795246884.300271
+  "updated_at_ts": 1795275830.517309
 }
