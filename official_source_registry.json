@@ -3,12 +3,12 @@
   "coverage": {
     "active_markets": 424,
     "attempted_this_run": 40,
-    "coverage_pct": 75.94,
+    "coverage_pct": 76.18,
     "errors_this_run": 0,
     "resolved_this_run": 1,
-    "with_any_official_source": 322,
-    "with_official_page": 319,
-    "with_official_x": 315
+    "with_any_official_source": 323,
+    "with_official_page": 320,
+    "with_official_x": 316
   },
   "markets": {
     "0G-EUR": {
@@ -6950,15 +6950,24 @@
       "announcement_urls": [],
       "coingecko_id": "celestia",
       "coingecko_resolution": "SYMBOL_AND_NAME",
-      "discovery_error": "HTTPError: HTTP Error 429: Too Many Requests",
-      "discovery_status": "DISCOVERY_ERROR",
-      "homepage": [],
+      "discovery_status": "DISCOVERED",
+      "homepage": [
+        "https://celestia.org/",
+        "https://blog.celestia.org/",
+        "https://celestia.org/developer-portal/"
+      ],
+      "link_discovery_source": "COINGECKO_DIRECTORY",
+      "links_are_project_sources": true,
       "market": "TIA-EUR",
       "medium": [],
-      "official_forum_urls": [],
+      "official_forum_urls": [
+        "https://forum.celestia.org/",
+        "https://www.linkedin.com/company/celestiaorg/",
+        "https://www.youtube.com/channel/UCLlvAEzXBFZ-P3zS6BF2Bjg"
+      ],
       "project_name": "Celestia",
       "symbol": "TIA",
-      "x_handle": null
+      "x_handle": "CelestiaOrg"
     },
     "TLM-EUR": {
       "active_on_bitvavo": true,
@@ -8053,5 +8062,5 @@
     }
   },
   "schema": "solaire_official_source_registry_v1",
-  "updated_at_ts": 1795220711.4063227
+  "updated_at_ts": 1795246884.300271
 }
