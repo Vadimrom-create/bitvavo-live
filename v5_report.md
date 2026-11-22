@@ -1,8 +1,8 @@
 # Bitvavo — V4 mesurée / infrastructure V5
 
-Scan UTC : 2026-11-22T00:05:19.100995+00:00
-État : OK | marchés EUR : 424 | V4 : 389 | données valides : 424
-Récupération : 2026-11-22T00:04:12.363836+00:00 | âge ticker : 180.4 s | durée : 181.2 s
+Scan UTC : 2026-11-22T06:23:32.150870+00:00
+État : OK | marchés EUR : 424 | V4 : 370 | données valides : 424
+Récupération : 2026-11-22T06:22:31.572611+00:00 | âge ticker : 176.4 s | durée : 177.2 s
 
 ## ACHÈTE — signal V4 et plan théorique
 
@@ -17,17 +17,17 @@ Les intervalles sans transaction sont représentés explicitement à volume 0 ; 
 
 | Marché | Prix € | 24 h | Détection | Couche d’échec | Actionnabilité |
 |---|---:|---:|---|---|---|
-| DRV-EUR | 0.30243 | +35.04 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
-| NPC-EUR | 0.0101318 | +27.03 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
-| VVV-EUR | 22.6363 | +19.24 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
-| IMU-EUR | 0.0012296 | +17.10 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
-| DODO-EUR | 0.035879 | +15.99 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
-| PROMPT-EUR | 0.009934 | +13.66 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
-| PARTI-EUR | 0.033457 | +12.52 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
-| ORCA-EUR | 1.12117 | +12.35 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
-| ENSO-EUR | 0.4396 | +12.29 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
-| PROM-EUR | 4.6005 | +11.43 % | NO_CONFIRMED_SHORT_TERM_EVENT | NOT_APPLICABLE | NOT_APPLICABLE |
+| NPC-EUR | 0.0094203 | +25.97 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
+| DRV-EUR | 0.29469 | +24.25 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
+| VVV-EUR | 22.7865 | +23.54 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
+| ZBCN-EUR | 0.0017051 | +23.26 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
+| AI-EUR | 0.015088 | +22.67 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
+| ELSA-EUR | 0.066247 | +13.99 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
+| IKA-EUR | 0.00057 | +13.77 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
+| ETHFI-EUR | 0.43696 | +12.63 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
+| USELESS-EUR | 0.072476 | +12.19 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
+| ORCA-EUR | 1.10139 | +11.74 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
 
-Historique (snapshot asynchrone) : 2344 scans ; 1002702 observations ; 1665 épisodes d’achat évaluables.
+Historique (snapshot asynchrone) : 2346 scans ; 1003550 observations ; 1665 épisodes d’achat évaluables.
 V5 optimisée : aucune. Supériorité sur V4 : non démontrée. Probabilités : non calibrées.
 Le cash et le portefeuille du plan sont hypothétiques. Aucun ordre réel n’est envoyé.
