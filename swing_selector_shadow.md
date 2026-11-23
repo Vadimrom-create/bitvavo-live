@@ -1,28 +1,28 @@
 # Solaire Swing Selector — SHADOW
 
-Generated: 2026-11-23T01:46:09.032360+00:00
+Generated: 2026-11-23T12:51:42.249667+00:00
 Version: SWING_SELECTOR_V1_FROZEN_2026-10-08_R2
 No orders, no alerts, no Decision Layer changes.
 
 | Rank | Market | Score | Status | 3d | 7d | 14d | RS BTC 7d | Dist EMA50 | News mod |
 |---:|---|---:|---|---:|---:|---:|---:|---:|---:|
-| 1 | SOON-EUR | 84.98 | HUMAN_REVIEW | 3.43% | 15.95% | 8.99% | 21.86% | 0.81% | +0.00 |
-| 2 | HMSTR-EUR | 81.47 | HUMAN_REVIEW | 0.55% | 2.88% | 15.53% | 8.78% | 1.54% | +0.00 |
-| 3 | AI-EUR | 80.07 | HUMAN_REVIEW | 5.76% | 18.04% | 9.17% | 23.95% | -4.58% | +0.00 |
-| 4 | EDU-EUR | 79.93 | PREWATCH_PERSISTENCE_REQUIRED | 7.03% | 7.53% | 13.05% | 13.44% | -5.45% | +0.00 |
-| 5 | VVV-EUR | 79.83 | HUMAN_REVIEW | 28.04% | 31.68% | 25.29% | 37.59% | 19.26% | +0.00 |
-| 6 | KITE-EUR | 79.65 | HUMAN_REVIEW | 3.88% | 14.00% | 28.77% | 19.91% | 15.56% | +0.00 |
-| 7 | DRV-EUR | 79.33 | HUMAN_REVIEW | 57.12% | 34.75% | 24.53% | 40.66% | 15.84% | +0.00 |
-| 8 | SENT-EUR | 78.76 | HUMAN_REVIEW | -5.66% | 9.72% | 23.01% | 15.63% | 3.52% | +0.00 |
-| 9 | ZBCN-EUR | 77.94 | PREWATCH_PERSISTENCE_REQUIRED | 14.01% | 3.37% | 5.40% | 9.28% | -4.02% | +0.00 |
-| 10 | YB-EUR | 77.00 | HUMAN_REVIEW | 9.87% | 22.86% | 9.54% | 28.77% | -10.55% | +0.00 |
-| 11 | BLUR-EUR | 76.38 | PERSISTENT_TOP20 | 2.13% | 24.05% | 14.27% | 29.96% | -19.83% | +0.00 |
-| 12 | CROSS-EUR | 75.56 | PREWATCH_PERSISTENCE_REQUIRED | 5.86% | 4.07% | 57.58% | 9.98% | 25.62% | +0.00 |
-| 13 | TRUST-EUR | 74.93 | PREWATCH_PERSISTENCE_REQUIRED | 0.17% | 18.80% | -9.79% | 24.70% | -1.72% | +0.00 |
-| 14 | KERNEL-EUR | 74.27 | PREWATCH_PERSISTENCE_REQUIRED | -6.81% | 15.36% | 1.72% | 21.27% | 0.35% | +0.00 |
-| 15 | CT-EUR | 74.25 | PERSISTENT_TOP20 | 3.49% | 13.08% | 9.83% | 18.98% | -34.39% | +0.00 |
-| 16 | DODO-EUR | 74.10 | PERSISTENT_TOP20 | 18.02% | 22.61% | 76.69% | 28.52% | 54.12% | +0.00 |
-| 17 | DBR-EUR | 73.03 | PREWATCH_PERSISTENCE_REQUIRED | 3.26% | 5.14% | 6.56% | 11.05% | -7.65% | +0.00 |
-| 18 | ENSO-EUR | 72.78 | PERSISTENT_TOP20 | 13.11% | 29.61% | 13.61% | 35.52% | -14.82% | +0.00 |
-| 19 | LISTA-EUR | 72.05 | PERSISTENT_TOP20 | 18.79% | 17.74% | 10.27% | 23.64% | 8.51% | +0.00 |
-| 20 | PARTI-EUR | 71.09 | PERSISTENT_TOP20 | 17.60% | 10.97% | -11.36% | 16.87% | 6.73% | +0.00 |
+| 1 | VVV-EUR | 85.89 | HUMAN_REVIEW | 25.24% | 28.81% | 22.55% | 33.44% | 16.78% | +0.00 |
+| 2 | SOON-EUR | 85.26 | HUMAN_REVIEW | 3.85% | 16.42% | 9.43% | 21.04% | 1.20% | +0.00 |
+| 3 | KITE-EUR | 83.98 | HUMAN_REVIEW | 2.75% | 12.76% | 27.37% | 17.39% | 14.36% | +0.00 |
+| 4 | EDU-EUR | 83.91 | HUMAN_REVIEW | 10.26% | 10.77% | 16.46% | 15.40% | -2.71% | +0.00 |
+| 5 | AI-EUR | 83.78 | HUMAN_REVIEW | 15.11% | 28.49% | 18.83% | 33.11% | 3.51% | +0.00 |
+| 6 | HMSTR-EUR | 83.71 | HUMAN_REVIEW | 2.61% | 4.98% | 17.89% | 9.61% | 3.53% | +0.00 |
+| 7 | DRV-EUR | 82.19 | HUMAN_REVIEW | 46.06% | 25.26% | 15.76% | 29.89% | 8.03% | +0.00 |
+| 8 | TRUST-EUR | 81.40 | HUMAN_REVIEW | 4.40% | 23.81% | -5.98% | 28.44% | 2.26% | +0.00 |
+| 9 | SENT-EUR | 79.50 | HUMAN_REVIEW | -5.41% | 10.00% | 23.33% | 14.63% | 3.78% | +0.00 |
+| 10 | YB-EUR | 78.82 | HUMAN_REVIEW | 12.43% | 25.72% | 12.09% | 30.35% | -8.54% | +0.00 |
+| 11 | DBR-EUR | 76.70 | PERSISTENT_TOP20 | 6.12% | 8.05% | 9.51% | 12.68% | -5.19% | +0.00 |
+| 12 | BLUR-EUR | 75.36 | PERSISTENT_TOP20 | 10.30% | 33.98% | 23.41% | 38.60% | -13.64% | +0.00 |
+| 13 | FLUX-EUR | 75.32 | PREWATCH_PERSISTENCE_REQUIRED | 12.06% | 11.93% | 0.77% | 16.55% | -7.59% | +0.00 |
+| 14 | LISTA-EUR | 73.78 | PERSISTENT_TOP20 | 19.35% | 18.30% | 10.80% | 22.92% | 9.00% | +0.00 |
+| 15 | DODO-EUR | 73.76 | PERSISTENT_TOP20 | 17.53% | 22.10% | 75.95% | 26.72% | 53.51% | +0.00 |
+| 16 | RARE-EUR | 73.57 | PREWATCH_PERSISTENCE_REQUIRED | 3.51% | 2.97% | 33.00% | 7.60% | 10.03% | +0.00 |
+| 17 | JUP-EUR | 71.90 | PREWATCH_PERSISTENCE_REQUIRED | 7.54% | 2.51% | -0.73% | 7.13% | -5.83% | +0.00 |
+| 18 | PARTI-EUR | 70.72 | PERSISTENT_TOP20 | 17.59% | 10.95% | -11.37% | 15.58% | 6.71% | +0.00 |
+| 19 | ENSO-EUR | 70.66 | PERSISTENT_TOP20 | 8.71% | 24.56% | 9.18% | 29.19% | -18.03% | +0.00 |
+| 20 | LUNA-EUR | 70.61 | PREWATCH_PERSISTENCE_REQUIRED | -9.07% | 10.72% | 4.70% | 15.35% | -6.17% | +0.00 |
