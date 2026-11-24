@@ -1,8 +1,8 @@
 # Bitvavo — V4 mesurée / infrastructure V5
 
-Scan UTC : 2026-11-23T21:41:03.318247+00:00
-État : OK | marchés EUR : 423 | V4 : 368 | données valides : 423
-Récupération : 2026-11-23T21:40:00.944152+00:00 | âge ticker : 172.1 s | durée : 172.6 s
+Scan UTC : 2026-11-24T05:44:40.389436+00:00
+État : OK | marchés EUR : 423 | V4 : 370 | données valides : 423
+Récupération : 2026-11-24T05:43:37.466705+00:00 | âge ticker : 182.3 s | durée : 183.1 s
 
 ## ACHÈTE — signal V4 et plan théorique
 
@@ -12,22 +12,23 @@ Les intervalles sans transaction sont représentés explicitement à volume 0 ; 
 
 ## SURVEILLE
 
+- DODO-EUR : 0.037173 € ; score 72.25/100 ; SURVEILLE ; SPREAD_RISK
 
 ## Contrôle des hausses
 
 | Marché | Prix € | 24 h | Détection | Couche d’échec | Actionnabilité |
 |---|---:|---:|---|---|---|
-| INX-EUR | 0.003833 | +32.13 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
-| LISTA-EUR | 0.08365 | +21.94 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
-| ELSA-EUR | 0.092631 | +20.50 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
-| LSK-EUR | 0.14509 | +12.23 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
-| GROVE-EUR | 0.005557 | +12.13 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
-| CAP-EUR | 0.0945671 | +12.05 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
-| QNT-EUR | 145.02 | +11.64 % | DETECTED_EARLY | NONE | INTERPRETATION |
-| FLUX-EUR | 0.04891 | +11.60 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
-| PROM-EUR | 4.745 | +11.17 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
-| PEAQ-EUR | 0.019777 | +10.04 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
+| LISTA-EUR | 0.102245 | +44.81 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
+| INX-EUR | 0.003729 | +28.54 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
+| MMT-EUR | 0.23505 | +21.63 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
+| RPL-EUR | 1.1954 | +15.49 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
+| BABY-EUR | 0.008115 | +14.70 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
+| TREAD-EUR | 0.98538 | +13.34 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
+| ZIL-EUR | 0.0007842 | +13.01 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
+| SQD-EUR | 0.013037 | +11.53 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
+| ZRC-EUR | 0.000801 | +11.48 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
+| ATOM-EUR | 1.205 | +11.38 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
 
-Historique (snapshot asynchrone) : 2351 scans ; 1005670 observations ; 1665 épisodes d’achat évaluables.
+Historique (snapshot asynchrone) : 2352 scans ; 1006093 observations ; 1665 épisodes d’achat évaluables.
 V5 optimisée : aucune. Supériorité sur V4 : non démontrée. Probabilités : non calibrées.
 Le cash et le portefeuille du plan sont hypothétiques. Aucun ordre réel n’est envoyé.
