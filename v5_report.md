@@ -1,34 +1,33 @@
 # Bitvavo — V4 mesurée / infrastructure V5
 
-Scan UTC : 2026-11-25T01:00:11.491382+00:00
-État : OK | marchés EUR : 423 | V4 : 364 | données valides : 423
-Récupération : 2026-11-25T00:59:10.375645+00:00 | âge ticker : 181.0 s | durée : 182.2 s
+Scan UTC : 2026-11-25T09:33:29.849444+00:00
+État : OK | marchés EUR : 422 | V4 : 368 | données valides : 422
+Récupération : 2026-11-25T09:32:26.981365+00:00 | âge ticker : 174.6 s | durée : 175.8 s
 
 ## ACHÈTE — signal V4 et plan théorique
 
 AUCUN ACHAT VALIDÉ — cette absence ne valide pas les marchés aux données insuffisantes.
-Bougies utilisables : 5 min 423/423 ; 15 min 423/423.
+Bougies utilisables : 5 min 422/422 ; 15 min 422/422.
 Les intervalles sans transaction sont représentés explicitement à volume 0 ; aucune transaction n’est inventée.
 
 ## SURVEILLE
 
-- DODO-EUR : 0.039774 € ; score 76.56/100 ; SURVEILLE ; seuil achat non atteint
 
 ## Contrôle des hausses
 
 | Marché | Prix € | 24 h | Détection | Couche d’échec | Actionnabilité |
 |---|---:|---:|---|---|---|
-| POND-EUR | 0.0010973 | +46.07 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
-| BIGTIME-EUR | 0.004103 | +14.48 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
-| DODO-EUR | 0.039774 | +8.23 % | NO_CONFIRMED_SHORT_TERM_EVENT | NOT_APPLICABLE | NOT_APPLICABLE |
-| LISTA-EUR | 0.097813 | +8.06 % | DETECTED_EARLY | NONE | INTERPRETATION |
-| AI-EUR | 0.015302 | +7.84 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
-| TAI-EUR | 0.002339 | +7.64 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
-| WIN-EUR | 5.3616e-05 | +6.96 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
-| QKC-EUR | 0.001814 | +6.67 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
-| SHELL-EUR | 0.023869 | +6.38 % | NO_CONFIRMED_SHORT_TERM_EVENT | NOT_APPLICABLE | NOT_APPLICABLE |
-| ZIG-EUR | 0.027242 | +6.27 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
+| BIGTIME-EUR | 0.0068 | +83.59 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
+| POND-EUR | 0.0008884 | +18.06 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
+| MANTRA-EUR | 0.001867 | +17.64 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
+| SSV-EUR | 1.633 | +12.72 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
+| SLX-EUR | 0.03005 | +10.40 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
+| WAXP-EUR | 0.0033794 | +9.31 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
+| BLUR-EUR | 0.007977 | +8.77 % | NO_CONFIRMED_SHORT_TERM_EVENT | NOT_APPLICABLE | NOT_APPLICABLE |
+| SOSO-EUR | 0.26989 | +7.92 % | NO_CONFIRMED_SHORT_TERM_EVENT | NOT_APPLICABLE | NOT_APPLICABLE |
+| MOVE-EUR | 0.004459 | +7.24 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
+| DODO-EUR | 0.039882 | +6.80 % | NO_CONFIRMED_SHORT_TERM_EVENT | NOT_APPLICABLE | NOT_APPLICABLE |
 
-Historique (snapshot asynchrone) : 2354 scans ; 1006939 observations ; 1665 épisodes d’achat évaluables.
+Historique (snapshot asynchrone) : 2355 scans ; 1007362 observations ; 1665 épisodes d’achat évaluables.
 V5 optimisée : aucune. Supériorité sur V4 : non démontrée. Probabilités : non calibrées.
 Le cash et le portefeuille du plan sont hypothétiques. Aucun ordre réel n’est envoyé.
