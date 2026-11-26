@@ -1,8 +1,8 @@
 # Bitvavo — V4 mesurée / infrastructure V5
 
-Scan UTC : 2026-11-25T19:33:26.290381+00:00
-État : OK | marchés EUR : 422 | V4 : 373 | données valides : 422
-Récupération : 2026-11-25T19:32:23.856491+00:00 | âge ticker : 176.5 s | durée : 177.8 s
+Scan UTC : 2026-11-26T02:31:13.560431+00:00
+État : OK | marchés EUR : 422 | V4 : 374 | données valides : 422
+Récupération : 2026-11-26T02:30:08.914989+00:00 | âge ticker : 180.9 s | durée : 181.5 s
 
 ## ACHÈTE — signal V4 et plan théorique
 
@@ -17,17 +17,17 @@ Les intervalles sans transaction sont représentés explicitement à volume 0 ; 
 
 | Marché | Prix € | 24 h | Détection | Couche d’échec | Actionnabilité |
 |---|---:|---:|---|---|---|
-| MANTRA-EUR | 0.002991 | +95.23 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
-| BIGTIME-EUR | 0.006279 | +65.11 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
-| SSV-EUR | 2.0435 | +44.46 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
-| MMT-EUR | 0.27596 | +36.02 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
-| BLUR-EUR | 0.01004 | +35.99 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
-| SLX-EUR | 0.03114 | +22.94 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
-| NES-EUR | 0.19262 | +20.83 % | DETECTED_EARLY | NONE | INTERPRETATION |
-| MOODENG-EUR | 0.026823 | +19.85 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
-| MON-EUR | 0.01061 | +19.62 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
-| SOSO-EUR | 0.28996 | +19.34 % | NO_CONFIRMED_SHORT_TERM_EVENT | NOT_APPLICABLE | NOT_APPLICABLE |
+| MANTRA-EUR | 0.002635 | +69.78 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
+| SSV-EUR | 2.2292 | +58.18 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
+| MOVE-EUR | 0.005977 | +46.60 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
+| MMT-EUR | 0.29466 | +46.02 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
+| BIGTIME-EUR | 0.00564 | +37.93 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
+| BLUR-EUR | 0.010053 | +24.14 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
+| SLX-EUR | 0.03283 | +23.42 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
+| NES-EUR | 0.19904 | +21.56 % | DETECTED_EARLY | NONE | INTERPRETATION |
+| VVV-EUR | 27.1654 | +21.49 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
+| MOODENG-EUR | 0.026028 | +18.77 % | INSUFFICIENT_HISTORY | HISTORY | NOT_APPLICABLE |
 
-Historique (snapshot asynchrone) : 2356 scans ; 1007784 observations ; 1665 épisodes d’achat évaluables.
+Historique (snapshot asynchrone) : 2357 scans ; 1008206 observations ; 1665 épisodes d’achat évaluables.
 V5 optimisée : aucune. Supériorité sur V4 : non démontrée. Probabilités : non calibrées.
 Le cash et le portefeuille du plan sont hypothétiques. Aucun ordre réel n’est envoyé.
